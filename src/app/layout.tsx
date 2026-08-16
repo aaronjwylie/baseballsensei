@@ -61,7 +61,11 @@ export default function RootLayout({
       className={`${oswald.variable} ${lexend.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink">
-        <SiteChrome header={<SiteHeader />} footer={<SiteFooter />}>
+        <SiteChrome
+          header={<SiteHeader />}
+          overlayHeader={<SiteHeader transparent />}
+          footer={<SiteFooter />}
+        >
           <main className="flex-1">{children}</main>
         </SiteChrome>
       </body>

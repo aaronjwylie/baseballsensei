@@ -1,51 +1,76 @@
+import Image from "next/image";
+import Link from "next/link";
 import { ButtonLink, Container } from "@/shared/ui";
-import { site, formatPrice } from "@/shared/config/site";
+import { formatPrice } from "@/shared/config/site";
 import { getSettings } from "@/domains/settings";
 import { pricing } from "../model/copy";
-import { SectionHeading } from "./SectionHeading";
 
 /**
- * The ask, on a full-bleed band so the number can't be scrolled past.
+ * What it costs — a price block over a full-bleed photograph.
  *
- * The figure is the operator's price (`settings.priceCents`) — the same value
- * the PaymentIntent charges — so this card and Stripe cannot disagree.
+ * **The number is read, not written.** The design draws "80$" and it is
+ * currently right, but the price is a `settings` row the admin edits at
+ * `/admin/settings` ([ADR 012](docs/decisions/012-retention-and-operator-settings.md)).
+ * Transcribing it would mean the landing page keeps quoting the old figure the
+ * moment he changes it — a page that lies about price is worse than a page that
+ * costs a query.
+ *
+ * Rendered `$80` rather than the design's `80$`: `formatPrice` is the app's one
+ * money formatter and it follows en-CA, which the receipt email and the payment
+ * step already use. Two spellings of the same amount on one purchase is a
+ * support ticket.
+ *
+ * This is what makes `/` an ISR page rather than a fully static one — see the
+ * `revalidate` in `app/page.tsx`.
  */
 export async function Pricing() {
   const settings = await getSettings();
-  return (
-    <section id="pricing" className="scroll-mt-8 bg-band py-20 lg:py-28">
-      <Container className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
-        <SectionHeading
-          eyebrow={pricing.eyebrow}
-          title={pricing.title}
-          align="center"
-        />
 
-        <div className="rounded-3xl bg-paper-alt px-8 py-12 text-center sm:px-14">
-          <p className="text-5xl font-medium tracking-tight lg:text-[56px]">
+  return (
+    <section
+      id="pricing"
+      className="relative isolate scroll-mt-8 overflow-hidden bg-ink py-20 lg:py-28"
+    >
+      <Image
+        src="/images/concept-band.webp"
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover"
+      />
+      <div className="absolute inset-0 bg-ink/70" />
+
+      <Container className="relative">
+        <div className="ml-auto max-w-[380px] text-center lg:text-left">
+          <p className="font-display text-[64px] font-normal leading-none tracking-[-0.02em] text-highlight lg:text-[88px]">
             {formatPrice(settings.priceCents)}
           </p>
-          <p className="mt-1 text-3xl font-medium tracking-tight lg:text-[40px]">
-            {site.price.unit}
-          </p>
+          <p className="mt-2 text-[15px] text-paper">{pricing.unit}</p>
 
-          <ul className="mx-auto mt-7 inline-block text-left text-[17px] text-ink-soft">
+          <ul className="mt-8 flex flex-col gap-3 text-left">
             {pricing.included.map((item) => (
-              <li key={item} className="flex gap-2.5">
-                <span aria-hidden>•</span>
-                {item}
+              <li key={item} className="flex items-start gap-3">
+                <span aria-hidden className="mt-0.5 text-highlight">
+                  ✓
+                </span>
+                <span className="text-[15px] text-paper">{item}</span>
               </li>
             ))}
           </ul>
 
-          <div className="mt-9 flex flex-col items-center gap-4">
-            <ButtonLink href="/start" variant="outline" size="lg">
-              Submit a video
-            </ButtonLink>
-            <ButtonLink href="/contact" variant="outline" size="lg">
-              Questions? Reach out
-            </ButtonLink>
-          </div>
+          <ButtonLink href="/start" variant="primary" className="mt-8">
+            {pricing.cta} <span aria-hidden>→</span>
+          </ButtonLink>
+
+          <p className="mt-5 text-[13px] text-paper">
+            {pricing.contactPrompt}{" "}
+            <Link
+              href="/contact"
+              className="text-highlight underline underline-offset-4 hover:opacity-80"
+            >
+              {pricing.contactLink}
+            </Link>
+          </p>
         </div>
       </Container>
     </section>

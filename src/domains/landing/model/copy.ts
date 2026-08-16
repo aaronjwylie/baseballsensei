@@ -2,170 +2,179 @@
  * Landing-page section copy. Client-editable — change words here, never in the
  * section components.
  *
- * Transcribed from Audrey's approved wireframe
- * (`docs/reference/Home • Desktop.svg`, 2026-07-30). Where the wireframe holds
- * an obvious typo or an unfinished placeholder, the correction is noted at the
- * value — see the slice doc for the full list, which needs Audrey's sign-off.
+ * Transcribed from Audrey's Figma, page "Final design"
+ * (`nZ2cQxvViIVzxrA9ILchVt`, read 2026-08-15), which supersedes the wireframe
+ * this file previously carried. Ben confirmed sign-off on the copy.
+ *
+ * Two strings are **not** verbatim, both because the Figma's own value is
+ * broken rather than because it was improved on. Each is marked `AUTHORED` at
+ * the value with what the file actually said. Nothing else departs from it.
  *
  * Brand facts used across the whole app (name, price, turnaround) live in
  * `shared/config/site.ts`; this file is only what the landing page says.
  */
 import { site } from "@/shared/config/site";
 
-/** The chip above the hero headline. */
-export const heroEyebrow = "Now taking clips";
+/**
+ * A heading the design sets in two colours — the second half picked out in lime
+ * on dark grounds, blue on light ones. Splitting it here rather than in the
+ * component keeps the break a copy decision, which is what it is: move a word
+ * across and the emphasis moves with it.
+ */
+export type SplitHeading = { lead: string; highlight: string };
+
+export const hero = {
+  eyebrow: "Professional Baseball Coaching",
+  title: { lead: "Train like", highlight: "Japan's best players" },
+  body: `Upload your swing or pitching mechanics. Receive precision analysis from a progression coach from Japan within ${site.turnaround}.`,
+  primaryCta: "Get coach feedback",
+  secondaryCta: "How it works",
+} as const;
 
 /**
- * The four claim chips under the hero CTAs. The turnaround one is derived
- * rather than written, so it can never contradict the pricing card or the
- * confirmation email.
+ * The scrolling strip under the hero. Six claims, not the seven the Figma
+ * draws — its seventh is "japan precision" a second time, which is the row
+ * repeating to fill 1079px rather than a seventh claim. The marquee repeats the
+ * set in the component, so the duplicate would have come back doubled.
  */
-export const heroClaims = [
-  `${site.turnaround} turnaround`,
+export const ticker = [
+  `${site.turnaround.replace(" hours", "h")} turnaround`,
+  "no robots",
+  "human coaching",
+  "real pro coach",
+  "japan precision",
   "1:1 video reply",
-  "No robots",
-  "Real pro coach",
 ] as const;
 
-/** The rotated card overlapping the hero image. */
-export const heroHighlights = {
-  title: "Highlights",
-  items: [
-    "Human coaching",
-    "Japanese baseball philosophy",
-    "Personalized advice",
-    "Trusted expertise",
-  ],
-} as const;
-
 export const method = {
-  eyebrow: "Method",
-  title: "Three steps. That’s it.",
-  subtitle: `Send one clip. Get a personal video breakdown in ${site.turnaround}. Real humans, zero robots.`,
+  title: { lead: "Three steps.", highlight: "That's it." },
   steps: [
     {
-      step: "01",
-      title: "Film one rep",
-      body: "One swing or pitch. Side angle. Phone is fine.",
+      title: "Upload your swing or pitch",
+      body: "Share your videos, your goals, and we'll handle the rest.",
+      image: "/images/step-card-a.webp",
     },
     {
-      step: "02",
-      title: "Sensei reviews",
-      body: "A former NPB coach studies your clip frame by frame.",
+      title: "Get expert feedback",
+      body: "Receive personalized video feedback and written coaching notes.",
+      image: "/images/step-card-b.webp",
     },
     {
-      // Wireframe reads "Get personalize feedback".
-      step: "03",
-      title: "Get personalized feedback",
-      body: "One personal video. One adjustment. One drill.",
+      title: "Improve every rep",
+      body: "Train with purpose using your personalized feedback.",
+      image: "/images/step-card-c.webp",
     },
   ],
 } as const;
 
 /**
- * One lead coach and the team under him — the shape the wireframe asks for,
- * replacing the three equal coach cards that preceded it.
- *
- * Every value here is placeholder text drawn straight from the wireframe and
- * **cannot go live as written** — it needs the admin's real name, record, and
- * headshot. The `stats` are unsourced claims for the same reason.
+ * ⚠️ `role` is still the Figma's placeholder — it reads "Title here" there and
+ * reads the same here, because inventing a job title for a real, named person
+ * is not a gap code should fill. It needs Masatomo's actual title before launch.
  */
 export const coach = {
-  // Wireframe reads "HEAD SENSE".
-  eyebrow: "Head sensei",
-  title: "Meet your coach name and his expert team",
-  bio: "Short bio Japanese professional baseball league, but he has a few coaches under him who help with drills etc with number years of experience with these achievements.",
-  quote: "Anyone can say ‘swing earlier.’ I show you what earlier feels like.",
-  /** The rotated card overlapping the coach photo. */
-  card: ["Name", "Position", "Team"],
+  eyebrow: "Professional Baseball Coaching",
+  title: { lead: "Your coach.", highlight: "Your next level." },
+  name: "masatomo",
+  role: "Title here",
+  bio: "Get personalized guidance from Masatomo and his team of experienced Japanese baseball coaches. They'll help you see what's working, understand what needs improvement, and give you clear advice you can take back to the field.",
   stats: [
-    { value: "NPB", label: "Pro coaches" },
-    { value: "12 yrs", label: "Coaching youth" },
-    { value: "EN / JP", label: "Languages" },
-    { value: "Hit · Pitch", label: "Speciality" },
+    { value: "NPB", label: "Played at the highest level" },
+    { value: "12 yrs", label: "Coaching young athletes" },
+    { value: "JP METHOD", label: "Japanese approach to training" },
+    { value: "GAME IQ", label: "Mechanics + mindset" },
   ],
 } as const;
 
 /**
- * The pricing card's feature list.
- *
- * ⚠️ "Written summary of notes" is a promise the pipeline does not currently
- * back: a submission carries exactly one `feedbackUrl`, so a coach delivers one
- * file, not a video *and* a document. Selling both needs either a schema change
- * or a copy change — flagged in the slice doc rather than silently resolved.
+ * The price is *not* written here. The design draws "80$", and it is right, but
+ * the number belongs to the `settings` row the admin edits at `/admin/settings`
+ * — hardcoding it means the landing page keeps quoting 80 after the price
+ * changes. The section reads it and formats it.
  */
 export const pricing = {
-  eyebrow: "Pricing",
-  title: "One video. No subscription.",
+  unit: "Per Submission",
   included: [
+    "No subscription needed",
     "Coach video walkthrough",
     "Written summary of notes",
     `Delivered within ${site.turnaround}`,
   ],
+  cta: "Get coach feedback",
+  contactPrompt: "Question?",
+  contactLink: "Reach Out",
 } as const;
 
-export const useCase = {
-  eyebrow: "Use case",
-  title: "Type of feedback you will receive.",
-  body: "Learn the mindset and techniques that shaped players like Ichiro Suzuki and Shohei Ohtani — with personalized coaching designed for young athletes.",
-} as const;
-
-/**
- * `answer` is prose, `items` is a list. A question uses one or the other, which
- * is what lets the "Why Baseball Sensei" row hold its bullets without needing a
- * second component.
- *
- * The wireframe's last four answers are one placeholder sentence repeated, and
- * it asks the same question twice. The questions are kept; the answers are the
- * real ones, because shipping four identical answers would be worse than
- * departing from a greybox.
- */
 export const faqHeading = {
-  eyebrow: "FAQ",
-  title: "Straight answers.",
+  lead: "Straight",
+  highlight: "answers",
 } as const;
 
 export const faqs = [
   {
-    q: "What age?",
-    answer: "Players 10 and up — little league to pro-track.",
+    q: "Why Baseball Sensei?",
+    /*
+      AUTHORED. The Figma's answer is the same fragment printed twice and cut
+      mid-clause — "…experienced Japanese baseball coaches—noYou get
+      personalized feedback from experienced Japanese baseball coaches—no". The
+      duplication is a paste artefact and the "—no" is a truncation, so there is
+      no complete sentence in the file to transcribe. This finishes the thought
+      the fragment starts, using the claims the design makes elsewhere ("no
+      robots", "real pro coach"). Needs Audrey's eye.
+    */
+    a: "You get personalized feedback from experienced Japanese baseball coaches — not an algorithm, and not a generic tip sheet. Every review is done by a real coach who watches your reps and answers you directly.",
   },
   {
-    q: "Why Baseball Sensei",
-    items: [
-      "Human coaching",
-      "Japanese baseball philosophy",
-      "Professional experience",
-      "Personalized advice",
-      "Trusted expertise",
-    ],
+    q: "What can I send?",
+    a: "Send a video, photos, or notes about your hitting, pitching, or another part of your game. Tell us what you're working on or where you're struggling.",
+  },
+  {
+    q: "What will I get back?",
+    a: "Your coach will review your submission and send personalized feedback explaining what they see, what to improve, and what to work on next.",
   },
   {
     q: "How long does feedback take?",
-    answer: `Personal video reply within ${site.turnaround}.`,
-  },
-  {
-    q: "What do I film?",
-    answer: "One side-angle clip on your phone. We send a guide.",
-  },
-  {
-    q: "What video format should I use?",
-    answer:
-      "MP4 or MOV, straight off the phone. Keep it under five minutes so your coach sees the reps, not the warm-up.",
+    a: `You'll receive your coach's feedback within ${site.turnaround} of submitting your request.`,
   },
   {
     q: "Who are the coaches?",
-    answer:
-      "Professional coaches and former players from the Japanese system. Every review is done by a real coach — nothing is automated.",
+    a: "Our coaches have experience in Japan's professional baseball system and bring that knowledge to developing players of different ages and skill levels.",
   },
   {
-    q: "Can I send more than one file?",
-    answer:
-      "Yes. One submission carries a pack of files, so send a couple of angles, a still, or an old report together — your coach reviews them as one. Need a second opinion later? Each review is purchased individually, so send another whenever you like.",
+    q: "What age or skill level is this for?",
+    a: "Baseball Sensei is designed for players ages 10+—from developing youth players to more advanced athletes looking to sharpen their game.",
+  },
+  {
+    q: "Can I submit more than one thing?",
+    a: "Yes. You can include multiple videos, photos, and notes when they relate to the same coaching question or area you'd like reviewed.",
+  },
+  {
+    q: "Do I need a subscription?",
+    a: "No. Baseball Sensei is pay-per-submission. Send something when you need feedback—no membership or ongoing commitment.",
   },
 ] as const;
 
+export const closing = {
+  title: { lead: "Be the player", highlight: "your team counts on" },
+  body: "Build your skills. Grow your confidence. Step onto the field ready to contribute, compete, and be part of something bigger.",
+  /**
+   * The photo strip along the bottom of the band.
+   *
+   * **Four tiles, where the design draws six.** Three of its six slots share
+   * one image — the same "Screenshot 2026-08-06" placed as three separate
+   * layers — so the file holds four distinct photographs, not six. Repeating
+   * one three times across a single row reads as a mistake at any size, so the
+   * strip ships with what actually exists. Two more photographs fill it out.
+   */
+  gallery: [
+    "/images/gallery-player-1.webp",
+    "/images/gallery-screenshot.webp",
+    "/images/gallery-generated.webp",
+    "/images/gallery-player-2.webp",
+  ],
+} as const;
+
 export const finalCta = {
-  title: "Send your first clip.",
-  subtitle: "Fix one thing before your next game.",
+  title: { lead: "Send your", highlight: "first clip" },
+  cta: "Start now",
 } as const;

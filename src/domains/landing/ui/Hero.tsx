@@ -1,75 +1,68 @@
+import Image from "next/image";
 import { ButtonLink, Container } from "@/shared/ui";
-import { site } from "@/shared/config/site";
-import { heroClaims, heroEyebrow, heroHighlights } from "../model/copy";
-import { Chip } from "./Chip";
-import { MediaFrame } from "./MediaFrame";
-import { StickerCard } from "./StickerCard";
+import { hero } from "../model/copy";
+import { SectionHeading } from "./SectionHeading";
 
 /**
- * The hook. Two columns: the argument on the left, the image on the right with
- * the Highlights card tilted across its bottom-left corner.
+ * The opening band: a full-bleed photograph, the promise over it, two calls to
+ * action.
  *
- * Both CTAs are real destinations — `/start` enters the paid flow and "How it
- * Works" scrolls to the section that answers it. The wireframe's CTAs go
- * nowhere, because a static mockup has nowhere to go.
+ * **The gradient is what makes the type legible**, not a mood. The photograph
+ * is bright sky on its right and mid-tone dirt on its left, so white text laid
+ * straight onto it fails contrast in patches that move as the image is cropped
+ * at different widths. The left-to-right black ramp guarantees the copy column
+ * a dark ground at every breakpoint, which is why it stops around the midpoint
+ * rather than veiling the whole picture.
+ *
+ * `priority` because this is the largest contentful paint on the site — without
+ * it Next defers the fetch and the hero lands after the fold has already been
+ * painted empty.
+ *
+ * The header floats over this section (see `SiteChrome`), so the top padding
+ * has to clear its 79px itself; there is no header box above to push it down.
  */
 export function Hero() {
   return (
-    <section id="hero" className="bg-surface text-ink">
-      <Container className="grid items-center gap-14 py-16 lg:grid-cols-2 lg:gap-16 lg:py-24">
-        <div>
-          <Chip>{heroEyebrow}</Chip>
+    <section className="relative isolate overflow-hidden bg-ink">
+      <Image
+        src="/images/hero-home.webp"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-[70%_center]"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent lg:to-40%" />
 
-          <h1 className="mt-8 text-[44px] font-medium leading-[1.06] tracking-tight sm:text-6xl lg:text-[64px]">
-            {site.tagline}
-          </h1>
-
-          <p className="mt-6 max-w-xl text-lg leading-relaxed sm:text-xl">
-            {site.subhead}
+      <Container className="relative pb-20 pt-[140px] lg:pb-28 lg:pt-[190px]">
+        <div className="max-w-[520px]">
+          <p className="flex items-center gap-2 font-display text-[11px] font-medium uppercase tracking-[0.08em] text-highlight">
+            <span
+              aria-hidden
+              className="inline-block h-1.5 w-1.5 rounded-full bg-highlight"
+            />
+            {hero.eyebrow}
           </p>
 
-          <div className="mt-9 flex flex-wrap gap-4">
-            <ButtonLink href="/start" variant="outline" size="lg">
-              Submit a video
+          <SectionHeading
+            as="h1"
+            tone="onDark"
+            title={hero.title}
+            className="mt-4 text-[40px] lg:text-[52px]"
+          />
+
+          <p className="mt-5 max-w-[440px] text-[16px] leading-[1.45] text-paper lg:text-[18px]">
+            {hero.body}
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <ButtonLink href="/start" variant="primary">
+              {hero.primaryCta} <span aria-hidden>→</span>
             </ButtonLink>
-            <ButtonLink href="/#how-it-works" variant="outline" size="lg">
-              How it Works
+            <ButtonLink href="#how-it-works" variant="onDark">
+              {hero.secondaryCta}
             </ButtonLink>
           </div>
-
-          <ul className="mt-10 flex flex-wrap gap-3">
-            {heroClaims.map((claim) => (
-              <li key={claim}>
-                <Chip className="px-6 py-2">{claim}</Chip>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/*
-          The sticker overlaps the image, so the two share a stacking context.
-          Below `lg` they stack instead: an overlap needs room the phone
-          viewport doesn't have, and a tilted card half off-screen reads as a
-          bug rather than a flourish.
-        */}
-        <div className="relative">
-          <MediaFrame
-            label="Hero image"
-            className="min-h-[320px] sm:min-h-[440px] lg:min-h-[620px]"
-          />
-          <StickerCard className="mt-6 lg:absolute lg:-bottom-10 lg:-left-14 lg:mt-0 lg:w-[340px]">
-            <h2 className="text-3xl font-medium tracking-tight">
-              {heroHighlights.title}
-            </h2>
-            <ul className="mt-4 space-y-1.5 text-[15px] text-ink-soft">
-              {heroHighlights.items.map((item) => (
-                <li key={item} className="flex gap-2.5">
-                  <span aria-hidden>•</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </StickerCard>
         </div>
       </Container>
     </section>

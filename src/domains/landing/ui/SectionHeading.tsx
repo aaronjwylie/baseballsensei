@@ -1,47 +1,42 @@
-import { Chip } from "./Chip";
+import type { SplitHeading } from "../model/copy";
 
 /**
- * The heading every landing section opens with: a chip, a large title, and an
- * optional line of prose.
+ * The page's one heading shape: a phrase in the ground's own text colour, with
+ * its second half picked out in the brand's other colour.
  *
- * Alignment is a prop because the wireframe uses both — the argument sections
- * (method, coach, use case) run left, and the two that address the reader
- * directly (pricing, FAQ) sit centred.
+ * Five sections use it and the pairing flips with the ground — lime on the dark
+ * and blue bands, blue on the light ones. That flip is not decoration: lime on
+ * paper measures 1.22:1 and is unreadable, which is exactly why `tone` is a
+ * required choice rather than a default.
  *
- * Colour is inherited, not set. The method section is white type on the dark
- * band and every other section is ink on paper; a `text-ink` here would have to
- * be overridden in one of the two.
+ * The design sets every one of these in uppercase while the copy stores them in
+ * sentence case. `uppercase` here rather than shouting in the source keeps the
+ * strings readable for whoever edits them, and keeps screen readers from
+ * spelling out words letter by letter.
  */
 export function SectionHeading({
-  eyebrow,
   title,
-  subtitle,
+  tone,
   align = "left",
   className = "",
+  as: Tag = "h2",
 }: {
-  eyebrow?: string;
-  title: string;
-  subtitle?: string;
+  title: SplitHeading;
+  tone: "onDark" | "onLight";
   align?: "left" | "center";
   className?: string;
+  as?: "h1" | "h2";
 }) {
-  const centered = align === "center";
-
   return (
-    <div className={`${centered ? "text-center" : ""} ${className}`}>
-      {eyebrow ? <Chip className="mb-7">{eyebrow}</Chip> : null}
-      <h2 className="text-[38px] font-medium leading-[1.08] tracking-tight sm:text-5xl lg:text-[56px]">
-        {title}
-      </h2>
-      {subtitle ? (
-        <p
-          className={`mt-6 text-lg leading-relaxed opacity-80 ${
-            centered ? "mx-auto max-w-2xl" : "max-w-2xl"
-          }`}
-        >
-          {subtitle}
-        </p>
-      ) : null}
-    </div>
+    <Tag
+      className={`font-display text-[32px] font-medium uppercase leading-[1.02] tracking-[-0.02em] lg:text-[42px] ${
+        tone === "onDark" ? "text-paper" : "text-ink"
+      } ${align === "center" ? "text-center" : ""} ${className}`}
+    >
+      {title.lead}{" "}
+      <span className={tone === "onDark" ? "text-highlight" : "text-accent"}>
+        {title.highlight}
+      </span>
+    </Tag>
   );
 }

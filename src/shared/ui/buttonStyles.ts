@@ -9,28 +9,47 @@
   declarations, two elements — not a duplicate. The alternative was a global
   rule on every anchor, which would have made ordinary prose links press.
 */
+/**
+ * Square, not rounded. Audrey's `button-submit-arrow-blue`, `button-stroke-blue`
+ * and `button-stroke-lime` sets all draw a 2px border at zero radius, and they
+ * are the only buttons she designed — the 4px-radius input in the file is a
+ * stock Untitled-UI component (Inter, #475467 hints) dropped in for layout, not
+ * part of her system, so it does not get a vote on the brand's control shape.
+ *
+ * The label is Oswald 600 at 14px, uppercase, tracked 2% — taken from the
+ * component sets, where every variant shares that one spec.
+ */
 const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-colors active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:translate-y-0";
+  "inline-flex items-center justify-center gap-2 border-2 font-display text-[14px] font-semibold uppercase leading-[21px] tracking-[0.02em] transition-colors active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:translate-y-0";
 
 const SIZES = {
-  md: "px-6 py-2.5 text-sm",
-  lg: "px-7 py-3 text-[15px]",
+  md: "px-6 py-2",
+  lg: "px-8 py-3",
 } as const;
 
 /**
- * Three shapes, one language — the approved wireframe draws every control as a
- * 12px rounded rectangle in ink and white, and never in a second colour.
+ * Four shapes, one language.
  *
- * - `outline` is the landing page's call to action: white, ink-bordered.
- * - `primary` stays a solid ink fill for the app's forms, where an outline
- *   button would be too quiet to be the thing you're meant to press.
- * - `onDark` is the same control inverted, for the header and footer bands,
- *   where an ink border would vanish.
+ * **The hover is a colour swap, not a shade shift.** Every one of Audrey's
+ * button variants flips to a lime fill with blue text on hover — that exchange
+ * *is* the interaction, and darkening the blue instead would read as a
+ * different design system.
+ *
+ * - `primary` — the blue fill. The page's call to action, and the app's too.
+ * - `outline` — blue border on paper, for the secondary actions in the portal.
+ * - `onLime` — blue border for use where lime is already the ground.
+ * - `onDark` — lime border and lime text, for the hero and the blue bands,
+ *   where a blue-bordered button would disappear into the background.
  */
 const VARIANTS = {
-  primary: "bg-ink text-surface hover:bg-ink-soft",
-  outline: "border-2 border-ink bg-surface text-ink hover:bg-paper-alt",
-  onDark: "bg-surface text-ink hover:bg-paper-alt",
+  primary:
+    "border-accent bg-accent text-paper hover:border-highlight hover:bg-highlight hover:text-accent focus-visible:ring-accent",
+  outline:
+    "border-accent bg-transparent text-accent hover:border-highlight hover:bg-highlight hover:text-accent focus-visible:ring-accent",
+  onLime:
+    "border-accent bg-highlight text-accent hover:border-accent hover:bg-accent hover:text-paper focus-visible:ring-accent",
+  onDark:
+    "border-highlight bg-transparent text-highlight hover:bg-highlight hover:text-accent focus-visible:ring-highlight",
 } as const;
 
 export type ButtonVariant = keyof typeof VARIANTS;

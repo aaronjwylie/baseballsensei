@@ -43,7 +43,15 @@ export const site = {
    * — landing page, checkout, upload confirmation, emails — reads this, so
    * tightening or relaxing it is one edit, not a hunt.
    */
-  turnaround: "48 hours",
+  /*
+    72, not 48. Audrey's signed-off design promises "within 72 hours" in the
+    hero, the ticker and the pricing list; this value had said 48. It is read by
+    the confirmation email and the status page as well as the landing copy, so
+    the two could not both stay — a customer told 48 here and 72 there is a
+    complaint either way. Changed 2026-08-15 to match the design; if 48 was the
+    real commitment, change it here and the design has to follow.
+  */
+  turnaround: "72 hours",
 } as const;
 
 /**

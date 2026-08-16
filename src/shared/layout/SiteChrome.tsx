@@ -17,12 +17,21 @@ import { usePathname } from "next/navigation";
  */
 const PORTAL = /^\/(admin|coach|account|login|forgot-password|reset-password)(\/|$)/;
 
+/**
+ * The landing page opens on a full-bleed photograph and the design floats the
+ * header over it; every other page starts on paper and needs the header to
+ * carry its own ground.
+ */
+const OVERLAY_HEADER = /^\/$/;
+
 export function SiteChrome({
   header,
+  overlayHeader,
   footer,
   children,
 }: {
   header: ReactNode;
+  overlayHeader: ReactNode;
   footer: ReactNode;
   children: ReactNode;
 }) {
@@ -30,7 +39,7 @@ export function SiteChrome({
   if (PORTAL.test(pathname)) return <>{children}</>;
   return (
     <>
-      {header}
+      {OVERLAY_HEADER.test(pathname) ? overlayHeader : header}
       {children}
       {footer}
     </>

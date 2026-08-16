@@ -4,34 +4,44 @@ import { Logo } from "@/shared/layout/Logo";
 import { navLinks } from "@/shared/layout/navLinks";
 
 /**
- * The dark bar the approved wireframe opens with — full-bleed ink, the wordmark
- * and section links on the left, the one call to action on the right.
+ * The site header — wordmark and section links left, the one call to action
+ * right, on a 79px bar.
  *
- * **Not sticky**, which is a change. The wireframe draws it a little over 200px
- * tall; pinning that to the top would eat a fifth of a laptop viewport on every
- * scroll. The page carries its CTA in the hero, the pricing card, the use-case
- * section and the final band, so nothing is lost by letting the header go.
+ * **Two grounds, one bar.** On the landing page the design floats it over the
+ * hero photograph with no fill of its own; everywhere else there is no
+ * photograph to float over, so it takes an ink fill. The wordmark is white in
+ * both cases, which is the whole reason the interior variant is dark rather
+ * than paper — see `Logo`.
+ *
+ * **Not sticky.** The page carries its CTA in the hero, the pricing card and
+ * the closing band, so pinning the bar would spend a slice of every viewport to
+ * repeat something already three times on the page.
  *
  * The section links collapse below `md` rather than becoming a hamburger — on a
- * page this short, scrolling *is* the navigation, and a menu button would be
- * more machinery than the page earns. The CTA stays visible at every width,
- * because that's the one thing a phone visitor needs to reach.
+ * page this short, scrolling *is* the navigation. The CTA stays visible at
+ * every width, because that's the one thing a phone visitor needs to reach.
  */
-export function SiteHeader() {
+export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
   return (
-    <header className="bg-ink text-surface">
-      <Container className="flex items-center justify-between gap-6 py-6 lg:py-[74px]">
+    <header
+      className={
+        transparent
+          ? "absolute inset-x-0 top-0 z-50 text-paper"
+          : "bg-ink text-paper"
+      }
+    >
+      <Container className="flex h-[79px] items-center justify-between gap-6">
         <div className="flex items-center gap-10 lg:gap-14">
           <Link href="/" aria-label="Home" className="shrink-0">
             <Logo />
           </Link>
 
-          <nav className="hidden items-center gap-8 md:flex lg:gap-10">
+          <nav className="hidden items-center gap-8 md:flex lg:gap-9">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-[15px] transition-opacity hover:opacity-70 lg:text-[17px]"
+                className="text-[12px] font-medium transition-opacity hover:opacity-70"
               >
                 {link.label}
               </Link>
@@ -39,8 +49,8 @@ export function SiteHeader() {
           </nav>
         </div>
 
-        <ButtonLink href="/start" variant="onDark" className="shrink-0">
-          Submit a video
+        <ButtonLink href="/start" variant="primary" className="shrink-0">
+          Get coach feedback
         </ButtonLink>
       </Container>
     </header>

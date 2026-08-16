@@ -1,31 +1,37 @@
+import { Closing } from "./Closing";
 import { Coach } from "./Coach";
 import { Faq } from "./Faq";
-import { FooterCta } from "./FooterCta";
+import { FinalCta } from "./FinalCta";
 import { Hero } from "./Hero";
 import { HowItWorks } from "./HowItWorks";
 import { Pricing } from "./Pricing";
-import { UseCase } from "./UseCase";
+import { Ticker } from "./Ticker";
 
 /**
  * The landing page composition — section order is the pitch:
- * hook → process → who → price → objections → proof → ask.
+ * hook → proof → process → who → price → objections → belief → ask.
  *
- * Seven sections, in the order of Audrey's approved wireframe
- * (`docs/reference/Home • Desktop.svg`). Note the proof section lands *after*
- * the FAQ, not before it: the wireframe answers the objections first, then
- * shows a sample review as the last thing before the ask. Reordering these is a
- * marketing decision, and this is where it's made.
+ * Eight sections, in the order of Audrey's Figma ("Final design", 2026-08-15).
+ * The order changed with the redesign: the wireframe answered objections and
+ * then showed a sample review, where this puts the FAQ late and closes on the
+ * emotional band instead. Reordering these is a marketing decision, and this is
+ * where it's made.
+ *
+ * The bands alternate ground deliberately — dark, blue, light, dark, blue,
+ * light, dark. No two adjacent sections share a background, which is what keeps
+ * a page this long from reading as one undifferentiated column.
  */
 export function LandingPage() {
   return (
     <>
       <Hero />
+      <Ticker />
       <HowItWorks />
       <Coach />
       <Pricing />
       <Faq />
-      <UseCase />
-      <FooterCta />
+      <Closing />
+      <FinalCta />
     </>
   );
 }
