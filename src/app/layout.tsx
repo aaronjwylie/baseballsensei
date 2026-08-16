@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Jost } from "next/font/google";
+import { Geist_Mono, Lexend, Oswald } from "next/font/google";
 import "./globals.css";
 import { env } from "@/shared/config/env";
 import { site } from "@/shared/config/site";
@@ -8,12 +8,25 @@ import { SiteFooter } from "@/shared/layout/SiteFooter";
 import { SiteChrome } from "@/shared/layout/SiteChrome";
 
 /**
- * The wireframe sets its type in a geometric sans — single-storey `a`, tall
- * ascenders, wedge apostrophe. Jost is the closest freely-licensed match.
- * TODO(2026-07-30, Ben): confirm the exact face with Audrey before launch.
+ * Two faces, from Audrey's `Colours+typography` board (Figma
+ * `Bassball Coaching Design`, read 2026-08-15). This replaces Jost, which was
+ * only ever a guess at the wireframe's face — the open TODO here asked for
+ * exactly this confirmation.
+ *
+ * **Oswald carries every heading and every button label.** It is condensed, so
+ * it holds a 52px H1 in the width the design gives it; the design uses 500 for
+ * display sizes and 600 at 14px for buttons and eyebrows.
+ *
+ * **Lexend carries body copy**, 400 through 700. Both are variable fonts, so
+ * no weight array is needed and the whole range costs one file each.
  */
-const jost = Jost({
-  variable: "--font-jost",
+const oswald = Oswald({
+  variable: "--font-oswald",
+  subsets: ["latin"],
+});
+
+const lexend = Lexend({
+  variable: "--font-lexend",
   subsets: ["latin"],
 });
 
@@ -45,7 +58,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${jost.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${oswald.variable} ${lexend.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink">
         <SiteChrome header={<SiteHeader />} footer={<SiteFooter />}>

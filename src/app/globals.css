@@ -1,17 +1,23 @@
 @import "tailwindcss";
 
 /**
- * Design tokens — Audrey's approved wireframe
- * (`docs/reference/Home • Desktop.svg`, 2026-07-30).
+ * Design tokens — Audrey's Figma, `Bassball Coaching Design`, page
+ * "Final design" (file `nZ2cQxvViIVzxrA9ILchVt`, read 2026-08-15).
  *
- * The palette is monochrome by design: every hex below is sampled straight out
- * of the wireframe, which uses exactly six values and no accent hue. Emphasis
- * is carried by weight and contrast — ink on paper, a dark band, a grey band —
- * not by colour. That is why `--color-accent` resolves to ink: the token name
- * survives for the rest of the app, but there is no second colour to point it at.
+ * **This supersedes the monochrome wireframe palette.** The note that used to
+ * stand here said there was "no second colour to point `--color-accent` at" and
+ * that a brand colour arriving later would be a one-file change. It arrived,
+ * and this is that one file.
  *
- * Everything visual is a token here and consumed by name, so a brand colour
- * arriving later stays a one-file change — no component holds a hex value.
+ * The values are read off the `Colours+typography` board rather than imported:
+ * the file publishes no styles and its Variables endpoint is closed to us, so
+ * there are no upstream token *names* to adopt — only values. The names below
+ * are therefore ours, and are the ones the rest of the app already speaks.
+ *
+ * Three values that appear in the file are deliberately **not** here, because
+ * they are Figma furniture rather than design: `#9747ff` (Figma's own
+ * component-set boundary stroke), `#fee8a2` (the designer's sticky notes), and
+ * the Nunito face (annotation labels only — no product text is set in it).
  */
 @theme {
   /* Ground */
@@ -19,28 +25,52 @@
   --color-paper-alt: #f2f2f2;
   --color-surface: #ffffff;
 
-  /* Ink — the dark header/footer, body copy, and the muted third step down */
-  --color-ink: #161616;
-  --color-ink-soft: #4f4f52;
+  /* Ink — the dark header/footer, body copy, and the muted third step down.
+     The board draws ink twice, as #19191b and #161616; they are one colour
+     drawn on two days, and #19191b wins on frequency. */
+  --color-ink: #19191b;
+  --color-ink-soft: #454546;
   --color-ink-muted: #818184;
 
-  /* Lines. The wireframe draws borders in ink at 2px, never a hairline grey;
-     `line` exists for the form surfaces the wireframe doesn't cover. */
-  --color-line: #e3e3e3;
+  /* Lines. Now the ramp's own light step rather than a value invented for the
+     forms the wireframe never covered. */
+  --color-line: #d9d9da;
 
-  /* Band — full-bleed feature bands and the placeholder blocks standing in for
-     photography until real assets land. */
-  --color-band: #b3b3b5;
+  /**
+   * Brand. **`accent` keeps its existing meaning** — the emphasis colour for
+   * links and focus rings — and that role is blue in this design. It is also
+   * the primary button's fill.
+   *
+   * Lime is *not* accent, despite outnumbering blue in the file roughly 3:1.
+   * It never appears as text on paper: the design uses it as a fill with blue
+   * text on top, or as text on a blue band. Pointing `accent` at it would set
+   * nine portal links and the form focus ring to #c9f950 on white — about
+   * 1.5:1, and invisible. It gets its own name for its own job.
+   *
+   * The authority for "which one is primary" is the `button-submit-arrow-blue`
+   * component set, whose rest state is blue and whose hover flips to lime —
+   * not a census of how often each hex appears.
+   */
+  --color-accent: #313fd2;
+  --color-accent-deep: #0e1554;
+  --color-highlight: #c9f950;
 
-  /* Accent — no hue in the approved design; ink carries every emphasis. */
-  --color-accent: #161616;
-  --color-accent-dark: #000000;
-  --color-accent-soft: #f2f2f2;
+  /* Band — the grey blocks standing in for photography until real assets
+     land. The design's full-bleed feature sections are brand blue and say so
+     with `bg-accent`; conflating the two here would turn the portal's inert
+     grey rails blue. */
+  --color-band: #d9d9da;
 
-  /* Affirmative — not used on the landing page; kept for the app's forms. */
+  /* Affirmative — no equivalent in the design; kept for the app's forms. */
   --color-success: #1d9e75;
 
-  --font-sans: var(--font-jost), ui-sans-serif, system-ui, sans-serif;
+  /**
+   * Display vs body. Oswald is condensed and sets every heading and button
+   * label; Lexend sets running text. `font-display` is the utility for the
+   * former — it is not the browser's `font-display` descriptor.
+   */
+  --font-display: var(--font-oswald), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
