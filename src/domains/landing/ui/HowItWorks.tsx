@@ -1,7 +1,6 @@
 import Image from "next/image";
-import { Container } from "@/shared/ui";
+import { Container, SectionHeading } from "@/shared/ui";
 import { method } from "../model/copy";
-import { SectionHeading } from "./SectionHeading";
 
 /**
  * The method — three cards on the first of the two blue bands.

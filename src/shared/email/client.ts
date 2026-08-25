@@ -18,6 +18,16 @@ export interface EmailMessage {
   to: string;
   subject: string;
   html: string;
+  /**
+   * Where a reply should go, when that is not us.
+   *
+   * Every message this app sends is *from* the brand, so `from` stays
+   * `EMAIL_FROM` and callers never touch it. The contact form is the one case
+   * where the person who should receive a reply is not the person who sent the
+   * mail: the operator gets it, and hitting reply has to reach the customer who
+   * wrote in, not the app's own outbox.
+   */
+  replyTo?: string;
 }
 
 /**
@@ -52,6 +62,7 @@ export async function sendEmail({
   to,
   subject,
   html,
+  replyTo,
 }: EmailMessage): Promise<SendResult> {
   const apiKey = env.resendApiKey;
   if (!apiKey) {
@@ -68,7 +79,13 @@ export async function sendEmail({
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from: env.emailFrom, to, subject, html }),
+      body: JSON.stringify({
+        from: env.emailFrom,
+        to,
+        subject,
+        html,
+        ...(replyTo ? { reply_to: replyTo } : {}),
+      }),
     });
     if (!res.ok) {
       console.error(`[email] Resend ${res.status}: ${await res.text()}`);

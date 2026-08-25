@@ -16,12 +16,11 @@
 import { site } from "@/shared/config/site";
 
 /**
- * A heading the design sets in two colours — the second half picked out in lime
- * on dark grounds, blue on light ones. Splitting it here rather than in the
- * component keeps the break a copy decision, which is what it is: move a word
- * across and the emphasis moves with it.
+ * Re-exported so the copy in this file and the component that renders it name
+ * the same type. The definition lives in `shared/ui`, which is also where the
+ * contact page and the checkout flow reach for it.
  */
-export type SplitHeading = { lead: string; highlight: string };
+export type { SplitHeading } from "@/shared/ui";
 
 export const hero = {
   eyebrow: "Professional Baseball Coaching",

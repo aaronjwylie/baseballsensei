@@ -1,7 +1,6 @@
 import Image from "next/image";
-import { Container } from "@/shared/ui";
+import { Container, SectionHeading } from "@/shared/ui";
 import { closing } from "../model/copy";
-import { SectionHeading } from "./SectionHeading";
 
 /**
  * The emotional close before the ask — the promise stated plainly, over a strip

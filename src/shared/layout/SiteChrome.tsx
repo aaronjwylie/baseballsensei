@@ -18,11 +18,13 @@ import { usePathname } from "next/navigation";
 const PORTAL = /^\/(admin|coach|account|login|forgot-password|reset-password)(\/|$)/;
 
 /**
- * The landing page opens on a full-bleed photograph and the design floats the
- * header over it; every other page starts on paper and needs the header to
- * carry its own ground.
+ * Three pages open on a full-bleed photograph and the design floats the header
+ * over it: the landing page, the contact page and the feedback flow. Everywhere
+ * else starts on paper and needs the header to carry its own ground — the
+ * wordmark is white, so a transparent header on a light page is an invisible
+ * one.
  */
-const OVERLAY_HEADER = /^\/$/;
+const OVERLAY_HEADER = /^\/(contact|start)?$/;
 
 export function SiteChrome({
   header,

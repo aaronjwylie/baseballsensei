@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Container } from "@/shared/ui";
+import Image from "next/image";
+import { ButtonLink, Container, SectionHeading } from "@/shared/ui";
 import { site } from "@/shared/config/site";
+import { ContactForm, sendContactAction } from "@/domains/contact";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -9,40 +10,72 @@ export const metadata: Metadata = {
 };
 
 /**
- * The wireframe's header, footer, and pricing card all point at Contact, so the
- * page exists. It is deliberately a mailto and not a form: a contact form needs
- * a route, validation, spam handling, and somewhere for the message to land,
- * and none of that is worth building before anyone has written in.
+ * Two bands, from Audrey's Figma: the form on a dark ground, then the nudge for
+ * anyone who came here ready to buy rather than ready to ask.
  *
- * TODO(2026-07-30, Ben): confirm `contact@baseball-sensei.com` is a real,
- * monitored mailbox — this page is a dead end otherwise.
+ * **This replaces a deliberate mailto stub.** That page's own comment said a
+ * form "needs a route, validation, spam handling, and somewhere for the message
+ * to land, and none of that is worth building before anyone has written in".
+ * All four now exist — a server action, a shared Zod schema, a honeypot, and
+ * `site.email` — so the reason has expired rather than been overruled.
+ *
+ * The design's second band exists because a contact form is the wrong tool for
+ * "I want coaching": it puts a person in a queue for a reply when they were
+ * ready to start. Sending them to `/start` instead is the whole point of it.
  */
 export default function ContactPage() {
   return (
-    <section className="py-20 lg:py-28">
-      <Container className="max-w-xl text-center">
-        <h1 className="text-[40px] font-medium leading-tight tracking-tight sm:text-5xl">
-          Get in touch
-        </h1>
-        <p className="mt-6 text-lg leading-relaxed text-ink-soft">
-          Questions before you send a clip, or something not right with a review
-          you&rsquo;ve already had back? Email us and a person will answer.
-        </p>
+    <>
+      <section className="relative isolate overflow-hidden bg-ink">
+        <Image
+          src="/images/contact-ground.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-ink/80" />
 
-        <p className="mt-8 text-xl font-medium">
-          <a href={`mailto:${site.email}`} className="underline">
-            {site.email}
-          </a>
-        </p>
+        <Container className="relative pb-24 pt-[140px] lg:pb-28 lg:pt-[170px]">
+          <SectionHeading
+            as="h1"
+            tone="onDark"
+            align="center"
+            title={{ lead: "Have a", highlight: "question?" }}
+          />
 
-        <p className="mt-10 text-sm text-ink-soft">
-          Already sent a video?{" "}
-          <Link href="/status" className="underline">
-            Check your status
-          </Link>{" "}
-          — it&rsquo;s usually the fastest answer.
-        </p>
-      </Container>
-    </section>
+          <div className="mt-12">
+            <ContactForm onSubmit={sendContactAction} />
+          </div>
+        </Container>
+      </section>
+
+      <section className="relative isolate overflow-hidden bg-ink py-16 lg:py-20">
+        <Image
+          src="/images/footer-band.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-ink/70" />
+
+        <Container className="relative flex flex-col items-center gap-5 text-center">
+          <SectionHeading
+            tone="onDark"
+            align="center"
+            title={{ lead: "Ready for", highlight: "coaching?" }}
+          />
+          <p className="max-w-[520px] text-[15px] leading-[1.5] text-paper">
+            If you&rsquo;re ready to get feedback on your game, you can skip the
+            contact form and send your materials directly to a coach.
+          </p>
+          <ButtonLink href="/start" variant="primary">
+            Get coach feedback <span aria-hidden>→</span>
+          </ButtonLink>
+        </Container>
+      </section>
+    </>
   );
 }
