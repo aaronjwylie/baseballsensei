@@ -106,11 +106,23 @@ export async function setOperatorPassword(
   operatorId: string,
   newPassword: string,
 ): Promise<void> {
-  const passwordHash = await bcrypt.hash(newPassword, COST);
-  await db
-    .update(credentialTable)
-    .set({ passwordHash, updatedAt: new Date() })
-    .where(eq(credentialTable.operatorId, operatorId));
+  /*
+    Delegates, because this and `createCredential` are the same write.
+
+    It used to be its own `UPDATE ... WHERE operator_id = $1`, and an UPDATE
+    matching no row succeeds having changed nothing. An operator with no
+    credential row is a real state — the doc at the top of this file says so,
+    and `scripts/seed.ts` produced exactly that for every operator it made after
+    migration 0013 — so both reset paths reported success and left the password
+    untouched. The person then met "invalid password" using a password they had
+    just set, and nothing anywhere recorded a failure.
+
+    Fixing it made the two bodies identical, which is its own hazard: two copies
+    of one write is how one of them gets corrected later and the other doesn't,
+    which is the shape of the bug this comment is about. So there is one write,
+    and two names for the two intents that reach it.
+  */
+  await writeCredential(operatorId, newPassword);
 }
 
 /**
@@ -141,6 +153,20 @@ export async function verifyPassword(
  * rows — and the schema can now say what the code always meant.
  */
 export async function createCredential(
+  operatorId: string,
+  password: string,
+): Promise<void> {
+  await writeCredential(operatorId, password);
+}
+
+/**
+ * The one write. Hash the secret and put it where the login path reads it,
+ * whether or not a row is already there.
+ *
+ * Private: callers say which of the two things they mean — granting a login or
+ * changing a password — and both arrive here.
+ */
+async function writeCredential(
   operatorId: string,
   password: string,
 ): Promise<void> {

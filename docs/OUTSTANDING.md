@@ -35,6 +35,7 @@ row — git remembers.
 | **Record each coach's languages** in the portal | Translation need is the intersection of the coach's languages and the customer's. A coach with none recorded produces "no languages recorded for this coach" rather than a prompt — correct, but the rule does nothing until someone fills them in. |
 | **Revoke the Figma token** | `figd_TTJa…` was pasted into a transcript on 2026-08-15 and written to `.env.figma`. Read-only and file-scoped, but it does not expire on its own. Revoke and delete the file when the design work is done. |
 | **Rotate the production DB password** | Exposed in a transcript 2026-08-05. |
+| **Confirm the admin login works in production** | `0018_repair_orphaned_logins` runs on deploy and rebuilds the missing credential and grant rows from the legacy columns. It can only recover a password that is still in `operator.password_hash`; an admin seeded with no legacy hash at all needs an explicit reset — see below. |
 
 ---
 
@@ -74,7 +75,37 @@ row — git remembers.
 
 ---
 
-## 5 · Deferred by choice
+## 5 · If the admin still cannot sign in
+
+`0018` repairs operators whose legacy `operator.password_hash` survived. If one
+does not have that column populated, there is no password to recover and it has
+to be set. Two ways, both safe to repeat:
+
+1. **Forgot password** at `/forgot-password`. This now works for an operator
+   with no credential row, which is exactly what it could not do before.
+2. **Re-run the seed against production** with `SEED_ADMIN_EMAIL` and
+   `SEED_ADMIN_PASSWORD` set. It is idempotent and now self-repairing: for an
+   operator that already exists it adds the credential and grant rows it is
+   missing without disturbing anything else.
+
+To check the state directly:
+
+```sql
+SELECT o.email,
+       (c.operator_id IS NOT NULL)      AS has_credential,
+       string_agg(g.role::text, ',')    AS grants
+FROM operator o
+LEFT JOIN operator_credential c ON c.operator_id = o.id
+LEFT JOIN operator_role_grant g ON g.operator_id = o.id
+GROUP BY o.email, c.operator_id;
+```
+
+`has_credential = false` means they cannot sign in. An empty `grants` means they
+can sign in and reach nothing.
+
+---
+
+## 6 · Deferred by choice
 
 Not gaps — decisions to do these later, recorded so they are not rediscovered as
 bugs: an in-app `/feedback/[id]` viewer, coach deactivation UI, resumable uploads

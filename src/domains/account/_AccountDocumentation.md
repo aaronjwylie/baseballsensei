@@ -108,6 +108,49 @@ reads.
   this table makes cheap and is worth doing when the portal grows a security
   view.
 
+### The 2026-08-15 outage: a login that could not be used
+
+**Nobody seeded after 2026-08-06 could sign in, and resetting their password
+made no difference.** Worth writing down in full, because every individual piece
+was correct.
+
+`0013` moved the hash into `operator_credential` and `0015` moved the role into
+`operator_role_grant`. Both backfilled the operators that existed when they ran,
+so everyone already in the database kept working and the change looked complete.
+
+`scripts/seed.ts` was not updated with them. It went on writing one `operator`
+row carrying `password_hash` and `role` — columns the login path had stopped
+reading, and which still exist because the expand-only step deliberately kept
+them. So the row looked complete, `tsc` was satisfied, and `verifyCredentials`
+found no credential and returned `null`. The login page reports that as an
+invalid password, which is the one explanation that sends someone to reset it.
+
+Resetting it did nothing, and said so to nobody. `setOperatorPassword` was
+`UPDATE … WHERE operator_id = $1`, and **an UPDATE that matches no row succeeds**
+— zero rows changed is not an error. Both reset paths reported success over a
+password that had not moved.
+
+Three fixes, because the bug had three halves:
+
+1. **`setOperatorPassword` upserts.** There is no caller for whom "change it if
+   a row exists, otherwise quietly do nothing" was the intent.
+2. **The seed writes the credential and the grant**, and repairs those rows when
+   re-run against an operator that predates the fix.
+3. **`0018_repair_orphaned_logins`** re-runs both backfills for whoever is still
+   missing them — the half no new code can reach, since the broken rows already
+   exist in production.
+
+Fixing (1) made `setOperatorPassword` and `createCredential` identical, so they
+now share one private `writeCredential`. Two copies of one write is how one gets
+corrected later and the other doesn't, which is the shape of this bug.
+
+**What would have caught it:** nothing that existed. `tsc` was happy — the
+legacy columns are still declared. The simulation was happy — it granted roles
+through the domain functions, which write the right rows. `scripts/simulate.ts`
+now asks the login path itself, from the outside, whether a freshly created
+operator can actually sign in and whether a reset actually changes a password.
+Reverting either fix turns those checks red.
+
 ## Where we came from
 
 - **Before 2026-08-06** — `password_hash` was a column on `operator`. The
