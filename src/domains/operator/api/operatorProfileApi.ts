@@ -34,7 +34,11 @@ import { grantRole } from "./operatorRoleApi";
 /** The one place two rows become one `OperatorProfile`. */
 export function toProfile(
   operator: typeof operatorTable.$inferSelect,
-  profile: typeof operatorProfileTable.$inferSelect,
+  /**
+   * Null for an operator with no profile row — an **admin**, who does no work
+   * and so carries none. Every field a profile would hold reads as empty.
+   */
+  profile: typeof operatorProfileTable.$inferSelect | null,
   /**
    * Availability **for the kind that was asked about**, off the grant — not
    * `operator.isActive`, which is whether they may sign in at all. A coach who
@@ -47,10 +51,10 @@ export function toProfile(
     email: operator.email,
     name: operator.name,
     isActive,
-    specialties: profile.specialties,
-    languages: profile.languages,
-    imageUrl: profile.imageUrl ?? undefined,
-    bio: profile.bio ?? undefined,
+    specialties: profile?.specialties ?? [],
+    languages: profile?.languages ?? [],
+    imageUrl: profile?.imageUrl ?? undefined,
+    bio: profile?.bio ?? undefined,
   };
 }
 
@@ -78,6 +82,29 @@ function grantedQuery() {
     .select()
     .from(operatorTable)
     .innerJoin(
+      operatorProfileTable,
+      eq(operatorProfileTable.operatorId, operatorTable.id),
+    )
+    .innerJoin(
+      operatorRoleGrantTable,
+      eq(operatorRoleGrantTable.operatorId, operatorTable.id),
+    );
+}
+
+/**
+ * The roster variant: grants filtered, profile **optional**.
+ *
+ * `grantedQuery` inner-joins the profile because assignment needs someone who
+ * does the work. The admin roster does not: an admin holds a grant and no
+ * profile, and a `leftJoin` is the difference between listing them and dropping
+ * them silently — which is exactly what an inner join did to the first
+ * profile-less admin.
+ */
+function grantedRosterQuery() {
+  return db
+    .select()
+    .from(operatorTable)
+    .leftJoin(
       operatorProfileTable,
       eq(operatorProfileTable.operatorId, operatorTable.id),
     )
@@ -280,12 +307,12 @@ export interface OperatorListing extends OperatorProfile {
  */
 export async function listOperators(role?: Role): Promise<OperatorListing[]> {
   const rows = role
-    ? await grantedQuery()
+    ? await grantedRosterQuery()
         .where(eq(operatorRoleGrantTable.role, role))
         .orderBy(asc(operatorTable.name))
     : await profileQuery().orderBy(asc(operatorTable.name));
 
-  const seen = new Map<string, { operator: typeof operatorTable.$inferSelect; profile: typeof operatorProfileTable.$inferSelect }>();
+  const seen = new Map<string, { operator: typeof operatorTable.$inferSelect; profile: typeof operatorProfileTable.$inferSelect | null }>();
   for (const r of rows) seen.set(r.operator.id, { operator: r.operator, profile: r.operator_profile });
 
   const byId = await grantsForMany([...seen.keys()]);
@@ -307,12 +334,15 @@ export async function listOperators(role?: Role): Promise<OperatorListing[]> {
  */
 function whatIsMissing(person: OperatorProfile, grants: RoleGrant[]): string[] {
   const holds = (role: Role) => grants.some((g) => g.role === role);
+  // Only someone who does the work needs either field. An admin reviews nothing
+  // and carries no profile, so an empty profile is complete for them, not
+  // incomplete — flagging "languages" on an admin would be a gap they can't and
+  // shouldn't fill.
+  const doesWork = holds("coach") || holds("translator");
   const gaps: string[] = [];
-  if (!person.languages.length) gaps.push("languages");
+  if (doesWork && !person.languages.length) gaps.push("languages");
   // Specialties are the coaching focuses. A translator needs them to know what
   // vocabulary a submission calls for; an admin does not review anything.
-  if ((holds("coach") || holds("translator")) && !person.specialties.length) {
-    gaps.push("specialties");
-  }
+  if (doesWork && !person.specialties.length) gaps.push("specialties");
   return gaps;
 }
