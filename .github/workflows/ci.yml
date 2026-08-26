@@ -1,0 +1,94 @@
+name: CI
+
+# Phase 1 of the QA plan (docs/qa/qa-plan.md): turn the gates that already run
+# at Vercel-build-time into a pre-merge net, and close the schema/migration
+# hazards that have bitten this project twice.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch supersedes an in-flight run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Static (types · lint · architecture)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      # Types first — the one check that only runs inside `next build` today, so
+      # a type error currently reaches Vercel before anyone sees it. Runs on a
+      # clean checkout (no stale `.next/types`), so it sees only real source.
+      - run: npm run typecheck
+      - run: npm run lint
+      # The custom architectural gates, the same ones `build` runs.
+      - run: npm run check:names
+      - run: npm run check:doctrine
+      - run: npm run check:structure
+
+  db:
+    name: Schema + funnel probes
+    runs-on: ubuntu-latest
+    # A throwaway Postgres, fresh every run, so tests never depend on leftover
+    # state and the whole migration chain is proven against an empty database.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      # A dummy is enough: no probe verifies a token, but a domain import might
+      # read it. Never a real secret.
+      AUTH_SECRET: ci-placeholder-not-a-real-secret
+      # Deliberately unset — RESEND_API_KEY (email skip-and-logs),
+      # BLOB_READ_WRITE_TOKEN (storage falls back to local disk), and STRIPE_*
+      # (no probe makes a Stripe network call; they only write id strings).
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+
+      # 1 · The whole migration chain must apply cleanly onto an empty database.
+      #     This is the SSG-at-build and migration-drift incidents, caught pre-merge.
+      - name: Apply migrations to a fresh database
+        run: npm run db:migrate
+
+      # 2 · The schema must match its migrations — nothing un-generated.
+      - name: Assert no migration drift
+        run: |
+          npm run db:generate
+          if [ -n "$(git status --porcelain drizzle/)" ]; then
+            echo "::error::'drizzle-kit generate' produced changes — schema is ahead of its migrations. Run 'npm run db:generate' locally and commit the result."
+            git --no-pager status --porcelain drizzle/
+            git --no-pager diff -- drizzle/
+            exit 1
+          fi
+          echo "No drift — schema matches migrations."
+
+      # 3 · The seed applies, and the funnel logic runs end-to-end against a real
+      #     database (the browser-only bits — Stripe card, Blob handshake, the
+      #     verify-code UI — are covered by Phase 4 E2E and the Phase 2 smoke).
+      - run: npm run db:seed
+      - run: npm run flow
+      - run: npm run simulate
