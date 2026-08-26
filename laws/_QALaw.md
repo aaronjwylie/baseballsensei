@@ -141,11 +141,17 @@ to test the failures at all.**
 
 ### The record and the loop
 
-**Q11 · One record, shared — not one per participant.**
-Two people run a pass and a third follows it; state kept in one browser is invisible to the other two.
-Whatever holds the marks must be readable by everyone who needs it, or the pass ends with three partial
-accounts and no result. *Evidence: a checklist built for a watcher to follow stored its marks in
-`localStorage`, where the watcher could not reach them — the one thing it existed to do.*
+**Q11 · One record, live and shared — not one per participant.**
+Two people run a pass and a third follows it. State kept in one browser is invisible to the other two,
+and a record that only settles at the end is no use while the run is happening. Whatever holds the
+marks must be **readable by everyone who needs it, as they are made** — including by someone with no
+checkout, which is why a link beats a file. *Evidence: a checklist built for a watcher to follow stored
+its marks in `localStorage`, where the watcher could not reach them — the one thing it existed to do.*
+
+> **The instrument and the record remove different narration.** The instrument says what happened, so
+> the tester need not describe their actions. The record says where the run is, so they need not
+> describe their position. Missing either, the tester ends up reading their session aloud, which is
+> slower than doing it alone.
 
 **Q12 · A finding a gate could have caught becomes a gate, and the itinerary shrinks.**
 This is the loop that keeps QA from becoming ceremony. Every pass should end with two lists: what to
@@ -200,19 +206,40 @@ acknowledged gap ([PRINCIPLES §10](../PRINCIPLES.md)) — the same rule the gat
 
 ---
 
-## 6 · The record is a deliverable, not a byproduct
+## 6 · The record has two jobs, and they are not the same job
 
-A pass produces something other people read: which checks passed, which failed, what the failures were,
-and what was consciously skipped. That is a **document with an audience**, and it outlives the session
-that made it.
+**During the pass it is a shared cursor. Afterwards it is the report.** Most records are built for the
+second job and are then useless for the first, which is the more demanding of the two.
 
-What it must do:
+### During — the cursor
 
-- **Carry the ids** (Q7), so a finding and its check are the same thing.
-- **Hold state where everyone can see it** (Q11).
-- **Distinguish not-yet-run from passed.** Two people need to know where to resume.
-- **Let a failure carry a sentence.** A failed check with no note is a finding nobody can act on.
-- **Filter to the failures**, because that view is the actual output of the pass.
+A pass is long, is run by more than one person, and is watched by someone who is not clicking. What
+holds it together is a surface all of them can see:
+
+- **Live.** A mark by one participant reaches the others in seconds, not at the end. Without that, two
+  testers re-run each other's checks and neither notices.
+- **Reachable by a link.** The person following may have no repository, no editor and no local copy. A
+  file in the source tree fails this test precisely when it matters — a designer, a client, or a second
+  pair of eyes brought in for an hour.
+- **Navigable.** Eleven phases and a few hundred checks; jumping to a phase has to be one click, and it
+  has to be obvious which phase is finished.
+- **Showing what is LEFT, not only what is done.** Remaining is the number that decides whether to
+  carry on, break, or stop — and it is the one a checklist usually omits.
+- **Cheap to update.** A tick. Anything heavier and the record silently stops matching the run, which
+  is worse than no record because it is believed.
+- **Honest about where it stores things.** A record that says "shared" while writing to one browser is
+  a lie in the direction of safety. Say which mode it is in, on the page.
+
+### Afterwards — the report
+
+The same document, read cold by someone who was not there:
+
+- **Carries the ids** (Q7), so a finding and its check are the same thing.
+- **Distinguishes not-yet-run from passed**, so a resumed pass starts in the right place.
+- **Lets a failure carry a sentence.** A failed check with no note is a finding nobody can act on.
+- **Filters to the failures**, because that view is the actual output of the pass.
+- **Names what was skipped and why** — an unexercised check recorded as passed is the one outcome that
+  makes the whole document untrustworthy.
 
 > **The record is not a bug tracker and should not become one.** It says what happened during a pass.
 > What happens *next* — priority, owner, whether it ships — belongs wherever that project already
@@ -237,6 +264,10 @@ Each of these looks like QA and produces nothing.
   looks like.
 - **A pass run against data that cannot afford it.** QA generates real records in whatever it points
   at. Settle retention, access and reversibility *before* the first check, not after.
+- **A record only the tester can see.** The people following ask what is happening, the tester
+  narrates, and the pass runs at the speed of description. Q11.
+- **A record that settles only at the end.** Useful as a report, useless as a cursor: two testers
+  duplicate each other's checks and nobody notices until the totals disagree. Q11.
 - **Findings that never become gates.** The same pass is run forever, finding the same things. Q12.
 
 ---

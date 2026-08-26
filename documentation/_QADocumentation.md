@@ -67,10 +67,31 @@ everything on its own (Q6).
 what CI should gate. The two are cross-linked and answer different questions. Q12 moves lines from the
 itinerary into that plan; **a check automated there is deleted here.**
 
-**The record is an artifact that publishes itself.** A tick embeds the marks in the page and republishes
-it, so both testers and whoever is following see one set of marks (Q11). The first version stored them
-in `localStorage`, where the watcher could not read them — which is the evidence behind Q11 and is cited
-in the law.
+### The record is a published artifact, and it does both of §6's jobs
+
+**As the cursor, during the run.** A link — no checkout, no editor, nothing to install — that two
+testers and a watcher hold open at once. Ticking a check embeds the marks in the page and republishes
+it, and every open view reloads to the result, so a mark made by one person is on everyone's screen
+within seconds. It carries live counts (**pass · fail · skip · to go**), a phase rail that goes green
+when a phase is clean and red when something in it failed, and a filter down to what is left. The
+toolbar states which mode it is in — **Shared**, **Saving…**, **Local only**, **Read-only** — because a
+record claiming to be shared while writing to one browser is a lie in the direction of safety.
+
+**As the report, afterwards.** The same page, filtered to failures, with each failure carrying the
+sentence its tester wrote and every check still bearing its id.
+
+Three implementation notes worth keeping:
+
+- **Ticks are batched.** A publish reloads the view, so one per click would be unusable; a burst
+  collapses into a single publish about a second after the last one, and scroll position survives it.
+- **A conflict is expected, not an error.** Two testers ticking at once means one wins and both views
+  reload to it. The page does nothing about it, which is the correct handling.
+- **It regenerates itself from authored source**, never by serialising the DOM — the live DOM carries
+  injected runtime scripts. The round-trip was proven idempotent across three hops before it shipped,
+  because a page that rewrites itself imperfectly corrupts itself slowly.
+
+**The first version stored marks in `localStorage`**, where the watcher — the entire reason it
+existed — could not read them. That is the evidence behind Q11 and is cited in the law.
 
 ---
 
