@@ -414,6 +414,22 @@
   .sync[data-mode="read"] { color: var(--fail); border-color: var(--fail); }
   .sync[data-mode="read"] .dot { background: var(--fail); }
   .sync[data-mode="pending"] { color: var(--ink-muted); }
+  .saved-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    z-index: 20;
+    background: var(--pass);
+    color: #fff;
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    box-shadow: var(--shadow);
+  }
   .ro-notice {
     margin: 0 0 22px;
     padding: 12px 14px;
@@ -430,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 8</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 9</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1624,6 +1640,7 @@ function note(kind, detail) {
 let shared = null;            // the artifact namespace, once it answers
 let readOnly = false;
 let pending = null;           // debounce handle
+let lastChange = null;        // what to confirm after the reload
 
 /* A chip is enough for a state that is working. It is not enough for one that
    silently changes what an hour of ticking is worth. */
@@ -1736,6 +1753,17 @@ async function publishNow() {
     /* The whole-page path reloads this view, so anything worth keeping goes
        into sessionStorage first. */
     sessionStorage.setItem("qa-scroll", String(window.scrollY));
+    /* The whole-page publish reloads this view about two seconds after a tick,
+       and an unexplained jump reads as "that didn't register" — so the next
+       click un-does the mark that had in fact saved. Observed exactly that,
+       twice, before the page said anything about it. Leaving a note for the
+       reloaded page to show is cheaper than trying to suppress the reload,
+       which the host will not allow on a shared artifact anyway. */
+    try {
+      if (lastChange) {
+        sessionStorage.setItem("qa-just-saved", JSON.stringify(lastChange));
+      }
+    } catch (e) {}
     await shared.publish(renderDocument(currentState()));
     setSync("shared", "Shared");
   } catch (err) {
@@ -1751,6 +1779,23 @@ async function publishNow() {
     setSync("local", "Local only — save failed");
   }
 }
+
+/* Shown once, after the reload a save causes. Says what was saved, so the
+   jump reads as completion rather than failure. */
+(function confirmLastSave() {
+  try {
+    const raw = sessionStorage.getItem("qa-just-saved");
+    if (!raw) return;
+    sessionStorage.removeItem("qa-just-saved");
+    const { id, v } = JSON.parse(raw);
+    const el = document.createElement("div");
+    el.className = "saved-toast";
+    el.setAttribute("role", "status");
+    el.textContent = v ? `Saved — ${id} marked ${v}` : `Saved — ${id} cleared`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  } catch (e) { /* a missing confirmation is not worth an error */ }
+})();
 
 try {
   const y = sessionStorage.getItem("qa-scroll");
@@ -1902,6 +1947,7 @@ document.getElementById("phases").addEventListener("click", (e) => {
   marks[id] = Object.assign({}, marks[id], { v: next });
   if (!next && !(marks[id].note || "").trim()) delete marks[id];
   note(next ? "mark" : "unmark", { id: id, v: next, was: current || null });
+  lastChange = { id: id, v: next };
   save();
   row.dataset.state = next || "";
   row.classList.remove("marked-pass", "marked-fail", "marked-skip");
