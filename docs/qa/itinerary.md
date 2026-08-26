@@ -30,13 +30,23 @@ happened, never what should have.
 | 0.1 | **Close the Supabase Data API.** Settings → API → Exposed schemas, remove `public`. **Dashboard only — no one but you can do this.** | Every table is currently readable with the publishable key, including password hashes and children's names. QA generates *more* real data into a database anyone can read. See OUTSTANDING §0. Migration `0021` revokes the underlying grants on deploy as defence in depth, but the dashboard setting is the fix. |
 | 0.2 | **Rotate the publishable key**, and the production DB password. | Both are known-exposed. |
 | 0.3 | **Reactivate `ben.j.wylie@gmail.com`.** Run [`phase-0.sql`](phase-0.sql) §1–§2 in the Supabase SQL editor. | It reads `is_active = false` because the operator edit form used to write that on every save — an absent checkbox read as `=== "on"`. Aaron fixed the cause in `0d6bbf0`; the row it already wrote still needs repairing. You cannot run Phase 5 without an admin login. |
-| 0.4 | **Stripe: live keys + webhook.** See Phase 0a below. | Phases 2.4 onward are the money path and cannot be tested without it. |
+| 0.4 | **Nothing.** Stripe stays in **test mode** for the pass. | Established 2026-08-26: production runs on test keys (`livemode=False` on a real paid submission), and the whole path already works — those payments reached `new` and `sent_to_coach`, so intent, webhook, fulfilment and ladder all ran. Test mode is *better* for QA: decline and 3-D Secure can be triggered on demand, and nothing is charged. **Phase 0a moves to the end** — see Phase 11. |
 | 0.5 | **Confirm `NEXT_PUBLIC_SITE_URL` is `https://www.baseball-sensei.com`** in Vercel, then redeploy. | It builds the links inside customer emails *and* the 3-D Secure return target. It is inlined at build time, so it needs a redeploy, and a mismatch strands a customer **after** they are charged. |
 | 0.6 | **Decide the Basic Auth question.** Leave the gate on for QA. | With it on, only you can reach the site — which is what you want while generating test submissions. |
 | 0.7 | **Set `QA_TOKEN`** in Vercel → Production, then redeploy. | Arms the instrument. It is already generated and sitting in `.env.local`; `grep '^QA_TOKEN=' .env.local \| cut -d= -f2- \| pbcopy` puts it on your clipboard without it passing through a chat log. |
 | 0.8 | **Arm your browser**: visit `/api/qa/session?token=<QA_TOKEN>`. | You should be redirected home. Nothing visible changes — that is correct. |
 
-### Phase 0a · Stripe production setup
+### ~~Phase 0a~~ · moved to Phase 11
+
+Going live is a credentials swap, not a code change, and doing it first would
+mean every payment check costs a real charge and a refund — while removing the
+ability to test a decline or 3-D Secure at all. The steps now live at the end of
+this document.
+
+<details>
+<summary>Original Phase 0a steps (kept for reference — run them at Phase 11)</summary>
+
+### Stripe production setup
 
 | # | Do | Check |
 | --- | --- | --- |
@@ -48,9 +58,7 @@ happened, never what should have.
 | 0a.6 | **Redeploy** so the inlined publishable key and the env vars take effect. | |
 | 0a.7 | In Stripe, confirm the endpoint shows a successful `200` after your first real payment (2.4). | This is the check that the whole chain works. |
 
-> **A live-mode payment is a real charge on a real card.** Do 2.4 with your own
-> card and refund it in Stripe afterwards, or run the payment phase in test mode
-> first and repeat only 2.4 live.
+</details>
 
 ---
 
@@ -145,14 +153,17 @@ Run this **twice**: once abandoning partway (2.7), once to completion.
 | 2.3.9 | Remove a file, add another | Works |
 | 2.3.10 | Continue | Advances to step 4 |
 
-### 2.4 Step 4 — payment ⚠️ real money in live mode
+### 2.4 Step 4 — payment · **test mode**
+
+Test cards: success `4242 4242 4242 4242` · decline `4000 0000 0000 0002` ·
+3-D Secure `4000 0025 0000 3155`. Any future expiry, any CVC.
 
 | # | Check | Expected |
 | --- | --- | --- |
 | 2.4.1 | Pill reads "Step 04 — Checkout"; amount matches settings | |
 | 2.4.2 | Card field renders (Stripe Elements, on our page) | Not a redirect to Stripe |
-| 2.4.3 | **Declined card** (`4000 0000 0000 0002` in test) | Error shown; **you stay on step 4 with files intact**; a "way back in" email arrives |
-| 2.4.4 | **3-D Secure card** (`4000 0025 0000 3155` in test) | Redirects, authenticates, returns to `/start?paid=1` — **not** to a broken URL |
+| 2.4.3 | **Declined card** (`4000 0000 0000 0002`) | Error shown; **you stay on step 4 with files intact**; a "way back in" email arrives |
+| 2.4.4 | **3-D Secure card** (`4000 0025 0000 3155`) | Redirects, authenticates, returns to `/start?paid=1` — **not** to a broken URL |
 | 2.4.5 | Successful payment | Confirmation state |
 | 2.4.6 | Stripe dashboard → the webhook endpoint | `payment_intent.succeeded` delivered, `200` |
 | 2.4.7 | Receipt email | Arrives, **lists every uploaded file** |
@@ -311,6 +322,24 @@ Run this **twice**: once abandoning partway (2.7), once to completion.
 | 10.6 | Two tabs, same flow | Doesn't corrupt either |
 | 10.7 | Slow connection (throttle) | Loading states appear |
 | 10.8 | Offline mid-upload | Fails honestly, offers retry |
+
+---
+
+## Phase 11 · Go live on Stripe — after everything above passes
+
+Only now, and only once. Every step above has been proven in test mode, so this
+phase is checking **configuration**, not behaviour.
+
+| # | Do | Check |
+| --- | --- | --- |
+| 11.1 | Stripe dashboard → toggle **Test mode off** → **Developers → API keys** | Copy `sk_live_…` and `pk_live_…` |
+| 11.2 | Vercel → Production: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | |
+| 11.3 | Stripe → **Webhooks → Add endpoint** → `https://www.baseball-sensei.com/api/webhooks/stripe` | |
+| 11.4 | Subscribe to **`payment_intent.succeeded`** and **`payment_intent.payment_failed`** only | |
+| 11.5 | Copy **that endpoint's** signing secret → Vercel `STRIPE_WEBHOOK_SECRET` | ⚠️ Test and live have **different** signing secrets. A test `whsec_` in production fails every signature check **silently**, and payments never mark as paid. |
+| 11.6 | **Redeploy** | The publishable key is inlined at build time |
+| 11.7 | One real payment with your own card, then **refund it in Stripe** | The submission reaches `new`, the receipt arrives, and Stripe shows the webhook `200` |
+| 11.8 | Confirm `livemode=true` on that payment intent | The check that proves it, rather than assumes it |
 
 ---
 
