@@ -4,6 +4,7 @@ import { Container } from "@/shared/ui";
 import {
   QaBoard,
   itinerary,
+  itineraryMeta,
   qaAccess,
   readMarks,
   setMarkAction,
@@ -103,7 +104,6 @@ export default async function QaPage({
     updatedAt: r.updatedAt.toISOString(),
   }));
 
-  const all = itinerary.flatMap((p) => p.groups.flatMap((g) => g.checks));
 
   return (
     <section className="py-10">
@@ -115,10 +115,39 @@ export default async function QaPage({
           QA run
         </h1>
         <p className="mt-3 max-w-[60ch] text-[15px] text-ink-soft">
-          {all.length} checks, {itinerary.length} phases. Marks are shared — whoever
-          armed a browser for the pass can set them, and the other person sees them
-          within a few seconds without reloading.
+          {itineraryMeta.live} live checks across {itinerary.length} phases. Marks
+          are shared: set one and the other person sees it within a few seconds,
+          without reloading.
         </p>
+
+        {/*
+          Which itinerary this is. Unambiguous in a way the artifact's number
+          never could be — the page is server-rendered from a deploy, so what
+          you are reading is what was built, and two people comparing this line
+          are comparing the same thing.
+        */}
+        <dl className="mt-5 flex flex-wrap gap-x-6 gap-y-1 border-t-2 border-ink pt-3 font-display text-[11px] uppercase tracking-[0.08em]">
+          <div className="flex gap-2">
+            <dt className="text-ink-muted">Itinerary</dt>
+            <dd className="bg-highlight px-1.5 font-semibold text-ink">
+              Build {itineraryMeta.build}
+            </dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-ink-muted">Generated</dt>
+            <dd className="tabular-nums text-ink">
+              {itineraryMeta.generatedAt.slice(0, 16).replace("T", " ")}Z
+            </dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-ink-muted">Checks</dt>
+            <dd className="tabular-nums text-ink">
+              {itineraryMeta.live} live
+              {itineraryMeta.retired > 0 && ` · ${itineraryMeta.retired} retired`}
+              {itineraryMeta.edited > 0 && ` · ${itineraryMeta.edited} reworded`}
+            </dd>
+          </div>
+        </dl>
 
         <div className="mt-8">
           <QaBoard

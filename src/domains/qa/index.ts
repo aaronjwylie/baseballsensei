@@ -10,10 +10,12 @@ export { recordEvents, readEvents, clearEvents } from "./api/qaApi";
 export { readMarks, setMark } from "./api/qaMarkApi";
 export { qaAccess, type QaAccess } from "./api/qaAccess";
 export { setMarkAction } from "./api/qaMarkActions";
-export { itinerary } from "./model/itinerary";
+export { itinerary, itineraryMeta } from "./model/itinerary";
 export {
   MARK_VALUES,
   type Check,
+  type Edit,
+  type ItineraryMeta,
   type Group,
   type Mark,
   type MarkValue,

@@ -220,8 +220,17 @@ export function QaBoard({
                         <span className="pt-0.5 font-display text-[12px] font-semibold tabular-nums text-accent">
                           {check.id}
                         </span>
-                        <span className="text-sm text-ink">
+                        <span
+                          className={`text-sm ${
+                            check.retired ? "text-ink-muted line-through" : "text-ink"
+                          }`}
+                        >
                           {check.what}
+                          {check.retired && (
+                            <span className="ml-2 border border-line px-1.5 py-0.5 align-[2px] font-display text-[9px] font-semibold uppercase tracking-[0.1em] text-ink-muted no-underline">
+                              Retired
+                            </span>
+                          )}
                           {check.flag === "flag" && (
                             <span className="ml-2 bg-highlight px-1.5 py-0.5 align-[2px] font-display text-[9px] font-semibold uppercase tracking-[0.1em] text-ink">
                               Watch
@@ -236,7 +245,7 @@ export function QaBoard({
                             <button
                               key={mv}
                               type="button"
-                              disabled={busy === check.id}
+                              disabled={busy === check.id || (check.retired && v !== mv)}
                               onClick={() => void mark(check.id, mv)}
                               aria-pressed={v === mv}
                               aria-label={`${check.id} ${mv}`}
@@ -254,6 +263,24 @@ export function QaBoard({
                             </button>
                           ))}
                         </span>
+                        {check.history && check.history.length > 0 && (
+                          <details className="col-start-2 mt-1 text-[11px] text-ink-muted">
+                            <summary className="cursor-pointer">
+                              Reworded {check.history.length}×  — a verdict given
+                              earlier was against different words
+                            </summary>
+                            <ul className="mt-1 space-y-1 border-l-2 border-line pl-3">
+                              {check.history.map((h, hi) => (
+                                <li key={hi}>
+                                  <span className="tabular-nums">
+                                    {h.at.slice(0, 10)}
+                                  </span>{" "}
+                                  — “{h.what}”
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        )}
                         {row?.actor && v && (
                           <span className="col-start-2 text-[11px] text-ink-muted">
                             {row.actor}
