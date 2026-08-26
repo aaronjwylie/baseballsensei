@@ -47,7 +47,12 @@ export async function GET(req: NextRequest) {
     the landing page looked like a different destination than the first one.
     Nothing needed it: whether a run is armed is the cookie's business.
   */
-  const res = NextResponse.redirect(new URL("/", req.nextUrl));
+  /* Where to land afterwards. Only a same-site path is honoured — a `next`
+     taken at face value is an open redirect, and this endpoint is reachable by
+     anyone who has the token. */
+  const requested = req.nextUrl.searchParams.get("next") ?? "/";
+  const target = /^\/(?!\/)[^\\]*$/.test(requested) ? requested : "/";
+  const res = NextResponse.redirect(new URL(target, req.nextUrl));
 
   if (off) {
     res.cookies.delete(QA_AUTH_COOKIE);
