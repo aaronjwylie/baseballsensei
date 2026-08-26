@@ -130,8 +130,18 @@ test("operator: assign → hand off → (coach) feedback → approve → complet
   // --- Coach: pick up the files, upload feedback, send for approval -------
   await signIn(page, COACH.email, COACH.password);
   await page.goto("/coach");
-  const coachCard = page.locator("li", { hasText: playerName }).first();
+  let coachCard = page.locator("li", { hasText: playerName }).first();
   await expect(coachCard).toBeVisible();
+
+  // Pick up the customer's files first — the coach downloading them moves the
+  // submission sent_to_coach → in_review, which "send for approval" requires.
+  await Promise.all([
+    page.waitForEvent("download").catch(() => {}),
+    coachCard.locator('a[href^="/api/files/"]').first().click(),
+  ]);
+  await page.reload();
+  coachCard = page.locator("li", { hasText: playerName }).first();
+
   await coachCard.locator('input[type="file"]').setInputFiles(fixture);
   // The button enables only once the feedback upload finishes.
   const sendForApproval = coachCard.getByRole("button", { name: "Send for approval" });
