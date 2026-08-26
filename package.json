@@ -29,7 +29,8 @@
     "check:structure": "node scripts/check-structure.mjs",
     "qa:tail": "node scripts/qa-tail.mjs",
     "qa:build": "node scripts/qa-build.mjs",
-    "qa:check": "node scripts/qa-build.mjs --check"
+    "qa:check": "node scripts/qa-build.mjs --check",
+    "qa:trail": "node scripts/qa-trail.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",

@@ -72,8 +72,8 @@ conversation, it is QA, and trying to gate it produces a flaky gate and a resent
 
 ## 3 · The rails
 
-Fourteen. Q1–Q6 govern the instrument, Q7–Q10 the itinerary and the run, Q11–Q14 the record, the
-loop, how a pass is watched, and how the two documents stay one.
+Fifteen. Q1–Q6 govern the instrument, Q7–Q10 the itinerary and the run, Q11–Q15 the record, the loop,
+how a pass is watched, how the two documents stay one, and the record's own instrumentation.
 
 ### The instrument
 
@@ -181,6 +181,22 @@ mid-pass:
 **And the generator refuses to guess.** A row that looks like a check but cannot be parsed is a hard
 error, never a skip — a quietly dropped check makes the record claim *less* than the itinerary
 promises, in the one direction nobody audits.
+
+**Q15 · Instrument the record too, as far as its host allows — and say where it cannot be.**
+The record is a surface people use, and how they used it is evidence: which phase was being read, a
+tick someone changed their mind about, a filter to failures that says the run has moved from testing to
+reviewing. A verdict with no account of how it was reached is thinner than it looks.
+
+**It will almost never be instrumentable the way the product is.** A record lives in someone else's
+host — a sandboxed viewer, a wiki, a spreadsheet — and typically cannot post anywhere. Carry its trail
+inside whatever the record already saves, accept that it arrives later and coarser, and **write down
+what it cannot see** rather than implying parity. Q5 applies unchanged: which check a note belongs to,
+never a word of it.
+
+**The version is part of this.** A shared record acquires copies — a pinned link, a stale tab, a
+downloaded page — and every question about a finding then starts with *which version were you looking
+at?* **Stamp a build number where it is read before the content is**, so that question takes a glance
+instead of an inference.
 
 ---
 
@@ -330,6 +346,9 @@ Each of these looks like QA and produces nothing.
 - **A record that settles only at the end.** Useful as a report, useless as a cursor: two testers
   duplicate each other's checks and nobody notices until the totals disagree. Q11.
 - **Findings that never become gates.** The same pass is run forever, finding the same things. Q12.
+- **A record nobody instrumented.** The product's every click is captured and the document holding the
+  verdicts records nothing, so how a judgement was reached is lost while how a button was pressed is
+  kept. Q15.
 - **Two copies of the checks.** One in the document people edit, one in the thing people tick. They
   agree on the day they are made and never again, and the first person to notice is a tester ticking a
   check that no longer exists. Q14.

@@ -92,6 +92,22 @@ That is what makes it safe to edit the itinerary mid-pass, which Q12 guarantees 
 hand-transcribed array inside the artifact. They agreed for exactly as long as nobody edited either.
 That is the evidence behind Q14.
 
+### The record is instrumented too (Q15)
+
+The page keeps a bounded trail of how it was used — opened, which phase is being read, jumps from the
+rail, filter changes, marks and un-marks, and *that* a note was started on a check (never a word of it).
+`npm run qa:trail -- <saved-artifact.html>` prints it in the reader's timezone.
+
+**It cannot report the way the app does, and the difference is structural.** The viewer sandbox blocks
+requests to other hosts, so there is no posting to `/api/qa/events`: the trail rides along in the state
+the page already publishes and reaches the watcher when the page is next read.
+
+**What it cannot see** — a session that never publishes. Somebody reading the record without marking
+anything leaves no trace at all. That is a blind spot, not a gap to be closed later.
+
+**The header carries a build number**, stamped by `npm run qa:build` from `docs/qa/version.json`. It
+exists because "are we on the same version?" was asked and answering it meant inferring from content.
+
 ### The record is a published artifact, and it does both of §6's jobs
 
 **As the cursor, during the run.** A link — no checkout, no editor, nothing to install — that two

@@ -113,6 +113,16 @@
   }
   h1 { font-size: clamp(28px, 5vw, 42px); text-transform: uppercase; letter-spacing: -.02em; line-height: 1.02; }
   .lede { color: var(--ink-soft); font-size: 15px; max-width: 60ch; margin: 10px 0 0; }
+  /* The answer to "are we looking at the same page?" — readable before
+     anything else on it, because the question is asked before the content
+     matters. */
+  .build {
+    color: var(--ink);
+    background: var(--lime);
+    padding: 2px 7px;
+    margin-left: 6px;
+    letter-spacing: .1em;
+  }
 
   /* ── Overall progress ───────────────────────────────────────────────────── */
   .scoreboard { display: flex; gap: 22px; align-items: flex-end; flex-wrap: wrap; }
@@ -405,7 +415,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production</p>
+      <p class="eyebrow">Manual pass · production <span class="build">__BUILD_LABEL__</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -482,6 +492,37 @@ function localMarks() {
 const embedded = embeddedMarks();
 let marks = Object.keys(embedded).length ? embedded : localMarks();
 
+/* ── The record is a surface too ───────────────────────────────────────────
+   The product is instrumented and the watcher reads that log; this page was
+   not, so a verdict arrived with no account of how it was reached — which
+   phase was being read, a tick someone changed their mind about, a filter to
+   failures that says the run has moved from testing to reviewing.
+
+   It cannot report the way the product does. The viewer sandbox blocks
+   requests to other hosts, so there is no posting to the app's ingest: the
+   trail rides along in the state this page already publishes, and reaches the
+   watcher when the page is next read. Coarser than the live log, and
+   deliberately so — see the note on what this cannot see.
+
+   Descriptions, never contents (Q5): which check a note belongs to, never a
+   word of it. */
+const TRAIL_MAX = 300;
+let trail = (function () {
+  try {
+    const el = document.getElementById("qa-state");
+    return (JSON.parse((el && el.textContent) || "{}").trail) || [];
+  } catch (e) { return []; }
+})();
+
+function note(kind, detail) {
+  try {
+    trail.push({ t: new Date().toISOString(), kind: kind, d: detail || null });
+    // Bounded, oldest dropped: an unbounded trail grows the document that
+    // carries it until publishing it becomes the slow part of ticking a box.
+    if (trail.length > TRAIL_MAX) trail = trail.slice(-TRAIL_MAX);
+  } catch (e) { /* never interfere with the run */ }
+}
+
 let shared = null;            // the artifact namespace, once it answers
 let readOnly = false;
 let pending = null;           // debounce handle
@@ -540,7 +581,11 @@ async function publishNow() {
        sessionStorage first. Losing your scroll position every few ticks
        would make the shared mode worse than the local one. */
     sessionStorage.setItem("qa-scroll", String(window.scrollY));
-    await shared.publish(renderDocument({ marks: marks, savedAt: new Date().toISOString() }));
+    await shared.publish(renderDocument({
+      marks: marks,
+      trail: trail,
+      savedAt: new Date().toISOString(),
+    }));
   } catch (err) {
     const code = err && err.code;
     if (code === "conflict") return;               // every view reloads to the winner
@@ -672,18 +717,41 @@ document.getElementById("phases").addEventListener("click", (e) => {
   const next = current === v ? null : v;
   marks[id] = Object.assign({}, marks[id], { v: next });
   if (!next && !(marks[id].note || "").trim()) delete marks[id];
+  note(next ? "mark" : "unmark", { id: id, v: next, was: current || null });
   save();
   row.dataset.state = next || "";
   row.classList.remove("marked-pass", "marked-fail", "marked-skip");
   if (next) row.classList.add("marked-" + next);
   row.querySelectorAll(".state").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === next)));
   row.querySelector(".note").classList.toggle("hidden", next !== "fail");
-  refresh();
+  /* Which phase is on screen. Reported on change only — a scroll position per
+   frame would be a firehose nobody reads, and the phase is the unit the run is
+   actually organised in. */
+let lastPhase = null;
+const phaseWatcher = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    if (!e.isIntersecting) continue;
+    const id = e.target.id;
+    if (id && id !== lastPhase) { lastPhase = id; note("reading", { phase: id }); }
+  }
+}, { rootMargin: "-25% 0px -60% 0px" });
+document.querySelectorAll(".phase").forEach((el) => phaseWatcher.observe(el));
+
+document.querySelectorAll("[data-rail-for]").forEach((a) => {
+  a.addEventListener("click", () => note("jump", { phase: a.dataset.railFor }));
 });
 
+note("open", { marks: Object.keys(marks).length });
+
+refresh();
+});
+
+let notedFor = null;
 document.getElementById("phases").addEventListener("input", (e) => {
   if (e.target.tagName !== "TEXTAREA") return;
   const id = e.target.closest(".check").dataset.id;
+  // Once per check, not per keystroke — and never the text itself.
+  if (notedFor !== id) { notedFor = id; note("note", { id: id }); }
   marks[id] = Object.assign({}, marks[id], { note: e.target.value });
   save();
 });
@@ -691,6 +759,7 @@ document.getElementById("phases").addEventListener("input", (e) => {
 document.querySelectorAll("[data-filter]").forEach(b => {
   b.addEventListener("click", () => {
     filter = b.dataset.filter;
+    note("filter", { to: filter });
     document.querySelectorAll("[data-filter]").forEach(o =>
       o.setAttribute("aria-pressed", String(o === b)));
     applyFilter();

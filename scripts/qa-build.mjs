@@ -27,6 +27,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE = join(ROOT, "docs/qa/itinerary.md");
 const TEMPLATE = join(ROOT, "docs/qa/template.html");
 const OUTPUT = join(ROOT, "docs/qa/qa-run.html");
+const VERSION = join(ROOT, "docs/qa/version.json");
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes("--check");
@@ -167,6 +168,17 @@ if (marksFile && existsSync(marksFile)) {
   if (m) { try { marks = (JSON.parse(m[1]) || {}).marks ?? {}; } catch { /* start clean */ } }
 }
 
+/* The trail is carried across a rebuild too. It records how the record was
+   used, and an itinerary edit is no reason to forget it. */
+let trail = [];
+if (marksFile && existsSync(marksFile)) {
+  trail = (JSON.parse(readFileSync(marksFile, "utf8")).trail) || [];
+} else if (existsSync(OUTPUT)) {
+  const prev = readFileSync(OUTPUT, "utf8");
+  const m = prev.match(/<script id="qa-state" type="application\/json">([\s\S]*?)<\/script>/);
+  if (m) { try { trail = (JSON.parse(m[1]) || {}).trail || []; } catch { /* start clean */ } }
+}
+
 const ids = new Set(seen.keys());
 const orphans = Object.keys(marks).filter((id) => !ids.has(id));
 for (const id of orphans) delete marks[id];
@@ -182,21 +194,36 @@ console.log(`[qa:build] ${marked} mark(s) carried over` + (orphans.length ? `, $
 
 if (checkOnly) process.exit(0);
 
+/* A build number, stamped into the masthead.
+   "Are we on the same version?" was asked, and answering it meant reading the
+   page's content and inferring — which is archaeology for a question that
+   should take a glance. It increments here rather than tracking git, because
+   the build happens before the commit that would name it. */
+const version = existsSync(VERSION)
+  ? JSON.parse(readFileSync(VERSION, "utf8"))
+  : { build: 0 };
+version.build += 1;
+version.builtAt = new Date().toISOString();
+writeFileSync(VERSION, JSON.stringify(version, null, 2) + "\n");
+const label = `Build ${version.build}`;
+
 const template = readFileSync(TEMPLATE, "utf8");
 const html = template
   .replace(
     /const PHASES = \/\*__PHASES__\*\/[\s\S]*?\/\*__END_PHASES__\*\/;/,
     "const PHASES = " + JSON.stringify(phases, null, 2) + ";",
   )
+  .replace("__BUILD_LABEL__", label)
   .replace(
     "/*__STATE__*/",
-    JSON.stringify({ marks, builtAt: null }).replace(/</g, "\\u003c"),
+    JSON.stringify({ marks, trail, build: version.build }).replace(/</g, "\\u003c"),
   );
 
-if (html.includes("__PHASES__") || html.includes("__STATE__")) {
+if (html.includes("__PHASES__") || html.includes("__STATE__") || html.includes("__BUILD_LABEL__")) {
   console.error("[qa:build] a placeholder survived — the template and this script disagree");
   process.exit(1);
 }
 
 writeFileSync(OUTPUT, html);
-console.log(`[qa:build] wrote docs/qa/qa-run.html (${Math.round(html.length / 1024)} KB)`);
+console.log(`[qa:build] ${trail.length} trail entr${trail.length === 1 ? "y" : "ies"} carried over`);
+console.log(`[qa:build] wrote docs/qa/qa-run.html — ${label} (${Math.round(html.length / 1024)} KB)`);
