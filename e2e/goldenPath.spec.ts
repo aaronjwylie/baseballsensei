@@ -133,7 +133,10 @@ test("operator: assign → hand off → (coach) feedback → approve → complet
   const coachCard = page.locator("li", { hasText: playerName }).first();
   await expect(coachCard).toBeVisible();
   await coachCard.locator('input[type="file"]').setInputFiles(fixture);
-  await coachCard.getByRole("button", { name: "Send for approval" }).click();
+  // The button enables only once the feedback upload finishes.
+  const sendForApproval = coachCard.getByRole("button", { name: "Send for approval" });
+  await expect(sendForApproval).toBeEnabled({ timeout: 45_000 });
+  await sendForApproval.click();
   await expect(coachCard.getByText(/sent for approval/i)).toBeVisible();
 
   // --- Admin: approve, which completes it and emails the customer ---------
