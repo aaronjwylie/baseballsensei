@@ -154,6 +154,19 @@ its marks in `localStorage`, where the watcher could not reach them — the one 
 > describe their position. Missing either, the tester ends up reading their session aloud, which is
 > slower than doing it alone.
 
+**The two jobs of §6 may want two homes, and usually do.** The cursor needs shared authenticated
+state — several people writing at once, everyone seeing it within seconds. The report needs to be
+readable by someone with no login at all. One artefact rarely does both well, and the attempt is
+expensive: **a document that republishes itself is the wrong shape for multi-writer live state.** Every
+tick becomes a new version, writers need granting individually, viewers can be pinned to an old copy,
+and the page must rebuild itself perfectly each time or it corrupts by degrees. *Evidence: a
+self-publishing record cost a wiped stylesheet, a verdict lost to a reload nobody expected, and an hour
+of sharing puzzles — before the same thing was rebuilt as one page and one table inside the product
+under test, where it worked immediately.*
+
+**So: put the cursor where the testers are already authenticated — the product itself is usually the
+cheapest such place — and publish the report separately when the pass is done.**
+
 **Q12 · A finding a gate could have caught becomes a gate, and the itinerary shrinks.**
 This is the loop that keeps QA from becoming ceremony. Every pass should end with two lists: what to
 fix, and **what should have been mechanical**. The second list is an amendment to
@@ -187,11 +200,13 @@ The record is a surface people use, and how they used it is evidence: which phas
 tick someone changed their mind about, a filter to failures that says the run has moved from testing to
 reviewing. A verdict with no account of how it was reached is thinner than it looks.
 
-**It will almost never be instrumentable the way the product is.** A record lives in someone else's
-host — a sandboxed viewer, a wiki, a spreadsheet — and typically cannot post anywhere. Carry its trail
-inside whatever the record already saves, accept that it arrives later and coarser, and **write down
-what it cannot see** rather than implying parity. Q5 applies unchanged: which check a note belongs to,
-never a word of it.
+**The cheapest way to instrument the record is to put it on the instrumented surface.** A record hosted
+elsewhere — a sandboxed viewer, a wiki, a spreadsheet — usually cannot report at all: it cannot reach
+your ingest, so its trail has to ride inside whatever the record itself saves, arriving later and
+coarser, with gaps you must **write down rather than imply**. A record living inside the product under
+test has none of that problem: the probe already on every page covers it, and the record's clicks and
+the product's clicks land in one log, in order, which is what makes a session readable as a single
+story. Q5 applies either way: which check a note belongs to, never a word of it.
 
 **The version is part of this.** A shared record acquires copies — a pinned link, a stale tab, a
 downloaded page — and every question about a finding then starts with *which version were you looking
@@ -348,6 +363,8 @@ Each of these looks like QA and produces nothing.
 - **One view only.** The tester clicks, and nobody is reading anything but the screen. What gets found
   is what someone happened to notice, and no disagreement is possible because there is nothing to
   disagree with. Q13.
+- **A record whose home fights its job.** A shared document that must be republished to save, granted
+  per writer, and unpinned per reader is a filing cabinet being used as a whiteboard. Q11.
 - **A record only the tester can see.** The people following ask what is happening, the tester
   narrates, and the pass runs at the speed of description. Q11.
 - **A record that settles only at the end.** Useful as a report, useless as a cursor: two testers

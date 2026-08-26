@@ -7,7 +7,19 @@
  * Everything here is designed to be deleted. See `_QaDocumentation.md`.
  */
 export { recordEvents, readEvents, clearEvents } from "./api/qaApi";
+export { readMarks, setMark } from "./api/qaMarkApi";
+export { setMarkAction } from "./api/qaMarkActions";
+export { itinerary } from "./model/itinerary";
+export {
+  MARK_VALUES,
+  type Check,
+  type Group,
+  type Mark,
+  type MarkValue,
+  type Phase,
+} from "./model/qaMark";
 export { QaProbe } from "./ui/QaProbe";
+export { QaBoard } from "./ui/QaBoard";
 export {
   QA_AUTH_COOKIE,
   QA_FLAG_COOKIE,

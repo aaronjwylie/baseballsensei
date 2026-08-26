@@ -1,0 +1,1084 @@
+[
+  {
+    "n": "0",
+    "title": "Prerequisites",
+    "id": "p0",
+    "note": "Mostly settled already. Kept visible because each one is a thing that would silently ruin a later phase if it were not true.",
+    "groups": [
+      {
+        "head": null,
+        "checks": [
+          {
+            "id": "0.1",
+            "what": "Close the Supabase Data API. Settings → API → Exposed schemas, remove public. Dashboard only — no one but you can do this.",
+            "expect": "Every table is currently readable with the publishable key, including password hashes and children's names. QA generates more real data into a database anyone can read. See OUTSTANDING §0. Migration 0021 revokes the underlying grants on deploy as defence in depth, but the dashboard setting is the fix.",
+            "flag": "done"
+          },
+          {
+            "id": "0.2",
+            "what": "Rotate the publishable key, and the production DB password.",
+            "expect": "Both are known-exposed."
+          },
+          {
+            "id": "0.3",
+            "what": "Reactivate ben.j.wylie@gmail.com. Run phase-0.sql §1–§2 in the Supabase SQL editor.",
+            "expect": "It reads is_active = false because the operator edit form used to write that on every save — an absent checkbox read as === \"on\". Aaron fixed the cause in 0d6bbf0; the row it already wrote still needs repairing. You cannot run Phase 5 without an admin login.",
+            "flag": "done"
+          },
+          {
+            "id": "0.4",
+            "what": "Nothing. Stripe stays in test mode for the pass.",
+            "expect": "Established 2026-08-26: production runs on test keys (livemode=False on a real paid submission), and the whole path already works — those payments reached new and sent_to_coach, so intent, webhook, fulfilment and ladder all ran. Test mode is better for QA: decline and 3-D Secure can be triggered on demand, and nothing is charged. Phase 0a moves to the end — see Phase 11.",
+            "flag": "done"
+          },
+          {
+            "id": "0.5",
+            "what": "Confirm NEXT_PUBLIC_SITE_URL is https://www.baseball-sensei.com in Vercel, then redeploy.",
+            "expect": "It builds the links inside customer emails and the 3-D Secure return target. It is inlined at build time, so it needs a redeploy, and a mismatch strands a customer after they are charged."
+          },
+          {
+            "id": "0.6",
+            "what": "Decide the Basic Auth question. Leave the gate on for QA.",
+            "expect": "With it on, only you can reach the site — which is what you want while generating test submissions.",
+            "flag": "done"
+          },
+          {
+            "id": "0.7",
+            "what": "Set QA_TOKEN in Vercel → Production, then redeploy.",
+            "expect": "Arms the instrument. It is already generated and sitting in .env.local; `grep '^QA_TOKEN=' .env.local \\",
+            "flag": "done"
+          },
+          {
+            "id": "0.8",
+            "what": "Arm your browser: visit /api/qa/session?token=<QA_TOKEN>.",
+            "expect": "You should be redirected home. Nothing visible changes — that is correct.",
+            "flag": "done"
+          },
+          {
+            "id": "0.9",
+            "what": "Confirm the version in the record's own version picker matches the one you were told, and that its label describes the change.",
+            "expect": "A shared record acquires copies — a pinned link, a stale tab. The host's number is the version; we do not keep a second one, because a page that republishes itself cannot carry an accurate copy of it.",
+            "flag": "flag"
+          },
+          {
+            "id": "0.10",
+            "what": "Mark one check, then have the trail read back.",
+            "expect": "The record carries its own instrumentation (Q15), but it cannot post from the viewer sandbox — the trail travels only when the page publishes, which is when somebody marks something. Marking is what proves it works.",
+            "flag": "flag"
+          }
+        ]
+      },
+      {
+        "head": "Phase 0a · moved to Phase 11",
+        "checks": []
+      }
+    ]
+  },
+  {
+    "n": "1",
+    "title": "Public pages",
+    "id": "p1",
+    "note": "Three of these are judgement calls made against Audrey's file rather than defects to find — 1.1.6, 1.1.7 and 1.1.10. If one of them looks wrong, that is a decision to argue with, not a bug.",
+    "groups": [
+      {
+        "head": "1.1 Landing (/)",
+        "checks": [
+          {
+            "id": "1.1.1",
+            "what": "Page loads, hero photograph renders",
+            "expect": "Header floats over the photo, wordmark legible"
+          },
+          {
+            "id": "1.1.2",
+            "what": "Headings are condensed (Oswald), body is Lexend",
+            "expect": "If the type looks like one family, the font swap didn't deploy"
+          },
+          {
+            "id": "1.1.3",
+            "what": "Claim ticker scrolls",
+            "expect": "Six claims, looping seamlessly"
+          },
+          {
+            "id": "1.1.4",
+            "what": "Nav links: How it works / Coaches / Pricing / FAQ",
+            "expect": "Each scrolls to its section"
+          },
+          {
+            "id": "1.1.5",
+            "what": "Contact nav link",
+            "expect": "Goes to /contact"
+          },
+          {
+            "id": "1.1.6",
+            "what": "Three step cards render with images and badges 1, 2, 3",
+            "expect": "Not \"1, 1, 1\"",
+            "flag": "flag"
+          },
+          {
+            "id": "1.1.7",
+            "what": "Coach section: photo, round inset, stats",
+            "expect": "Eyebrow is blue here, not lime",
+            "flag": "flag"
+          },
+          {
+            "id": "1.1.8",
+            "what": "Price shows $80",
+            "expect": "Read from settings — change it in 5.6 and confirm it follows"
+          },
+          {
+            "id": "1.1.9",
+            "what": "FAQ: first row open, others closed; click to expand",
+            "expect": "+ becomes −; keyboard (Tab + Enter) works"
+          },
+          {
+            "id": "1.1.10",
+            "what": "Closing strip shows 4 photographs",
+            "expect": "",
+            "flag": "flag"
+          },
+          {
+            "id": "1.1.11",
+            "what": "Every \"Get coach feedback\" / \"Start now\" button",
+            "expect": "All go to /start"
+          },
+          {
+            "id": "1.1.12",
+            "what": "Footer: logo, 5 links, Check status, terms, copyright",
+            "expect": ""
+          },
+          {
+            "id": "1.1.13",
+            "what": "375px — resize or use a phone",
+            "expect": "Nothing overflows horizontally; ticker still works"
+          },
+          {
+            "id": "1.1.14",
+            "what": "Reduced motion (OS setting)",
+            "expect": "Ticker stops, no layout break"
+          }
+        ]
+      },
+      {
+        "head": "1.2 Contact (/contact)",
+        "checks": [
+          {
+            "id": "1.2.1",
+            "what": "Page loads on dark ground",
+            "expect": ""
+          },
+          {
+            "id": "1.2.2",
+            "what": "Submit empty",
+            "expect": "Four field errors, nothing sent"
+          },
+          {
+            "id": "1.2.3",
+            "what": "Bad email (foo@)",
+            "expect": "\"valid email address\""
+          },
+          {
+            "id": "1.2.4",
+            "what": "Message under 10 chars",
+            "expect": "\"at least a sentence\""
+          },
+          {
+            "id": "1.2.5",
+            "what": "Leave consent unchecked",
+            "expect": "\"Please agree to the privacy policy\""
+          },
+          {
+            "id": "1.2.6",
+            "what": "Privacy policy link",
+            "expect": "Goes to /terms — which is a placeholder; note it"
+          },
+          {
+            "id": "1.2.7",
+            "what": "Valid submit",
+            "expect": "Form is replaced by \"Message sent\""
+          },
+          {
+            "id": "1.2.8",
+            "what": "Check contact@baseball-sensei.com",
+            "expect": "Mail arrives, subject names the sender"
+          },
+          {
+            "id": "1.2.9",
+            "what": "Hit reply on that mail",
+            "expect": "Goes to the address you typed in the form, not to ourselves",
+            "flag": "flag"
+          },
+          {
+            "id": "1.2.10",
+            "what": "Message body",
+            "expect": "Your text, intact, and any <tags> shown as text not markup"
+          },
+          {
+            "id": "1.2.11",
+            "what": "Submit a second time",
+            "expect": "Works; no duplicate-send guard needed"
+          }
+        ]
+      },
+      {
+        "head": "1.3 Terms (/terms)",
+        "checks": [
+          {
+            "id": "1.3.1",
+            "what": "Loads, says it is a placeholder",
+            "expect": "Flag for legal copy"
+          }
+        ]
+      },
+      {
+        "head": "1.4 Not-found / errors",
+        "checks": [
+          {
+            "id": "1.4.1",
+            "what": "Visit /nonsense",
+            "expect": "A 404 page, not a stack trace"
+          },
+          {
+            "id": "1.4.2",
+            "what": "Visit /status/garbage-token",
+            "expect": "A handled \"not found\", not a crash"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "n": "2",
+    "title": "The customer flow (/start)",
+    "id": "p2",
+    "note": "Run this twice: once abandoning partway (2.7), once to completion. Test cards — success 4242 4242 4242 4242 · decline 4000 0000 0000 0002 · 3-D Secure 4000 0025 0000 3155. Any future expiry, any CVC.",
+    "groups": [
+      {
+        "head": "2.1 Step 1 — details",
+        "checks": [
+          {
+            "id": "2.1.1",
+            "what": "Step pill reads \"Step 01 — About you\", progress shows 1 of 4",
+            "expect": ""
+          },
+          {
+            "id": "2.1.2",
+            "what": "Submit empty",
+            "expect": "Field-level errors"
+          },
+          {
+            "id": "2.1.3",
+            "what": "Invalid email",
+            "expect": "Rejected"
+          },
+          {
+            "id": "2.1.4",
+            "what": "Player age: 0, 200, abc",
+            "expect": "Rejected sensibly"
+          },
+          {
+            "id": "2.1.5",
+            "what": "Focus dropdown",
+            "expect": "Hitting / Pitching / Fielding / Catching / Other"
+          },
+          {
+            "id": "2.1.6",
+            "what": "Language choice",
+            "expect": "Defaults to English; both selectable"
+          },
+          {
+            "id": "2.1.7",
+            "what": "Notes field",
+            "expect": "Labelled \"Notes for your coach\", Audrey's example as placeholder"
+          },
+          {
+            "id": "2.1.8",
+            "what": "Submit valid",
+            "expect": "Advances to step 2; code email sent"
+          },
+          {
+            "id": "2.1.9",
+            "what": "If the code email fails to send",
+            "expect": "You are held on step 1 with an error — not advanced",
+            "flag": "flag"
+          }
+        ]
+      },
+      {
+        "head": "2.2 Step 2 — email verification",
+        "checks": [
+          {
+            "id": "2.2.1",
+            "what": "Code email arrives, 6 digits",
+            "expect": "Check spam too"
+          },
+          {
+            "id": "2.2.2",
+            "what": "Wrong code",
+            "expect": "Inline error, stays put"
+          },
+          {
+            "id": "2.2.3",
+            "what": "Wrong code 5 times",
+            "expect": "Locked out; must reissue"
+          },
+          {
+            "id": "2.2.4",
+            "what": "\"Resend\"",
+            "expect": "New code arrives; the old one stops working"
+          },
+          {
+            "id": "2.2.5",
+            "what": "\"Check delivery\"",
+            "expect": "Reports what Resend knows"
+          },
+          {
+            "id": "2.2.6",
+            "what": "Go back to step 1 and change the email",
+            "expect": "Verification resets; a new code goes to the new address"
+          },
+          {
+            "id": "2.2.7",
+            "what": "Correct code",
+            "expect": "Advances to step 3"
+          }
+        ]
+      },
+      {
+        "head": "2.3 Step 3 — upload",
+        "checks": [
+          {
+            "id": "2.3.1",
+            "what": "Pill reads \"Step 03 — Show your coach\"; body quotes the real file limit",
+            "expect": ""
+          },
+          {
+            "id": "2.3.2",
+            "what": "Dropzone reads \"Click to upload or drag and drop\"",
+            "expect": ""
+          },
+          {
+            "id": "2.3.3",
+            "what": "Upload one small video",
+            "expect": "Progress, then listed"
+          },
+          {
+            "id": "2.3.4",
+            "what": "Upload a file over 4.5 MB",
+            "expect": "Must succeed — this is the direct-to-Blob path; failure here means /api/upload/blob isn't being used in production",
+            "flag": "flag"
+          },
+          {
+            "id": "2.3.5",
+            "what": "Upload a photo and a PDF",
+            "expect": "Accepted"
+          },
+          {
+            "id": "2.3.6",
+            "what": "Upload a disallowed type (.exe)",
+            "expect": "Refused with a clear reason"
+          },
+          {
+            "id": "2.3.7",
+            "what": "Exceed the file-count limit",
+            "expect": "\"That's the maximum of N files\""
+          },
+          {
+            "id": "2.3.8",
+            "what": "Exceed the size limit",
+            "expect": "Refused, names the limit"
+          },
+          {
+            "id": "2.3.9",
+            "what": "Remove a file, add another",
+            "expect": "Works"
+          },
+          {
+            "id": "2.3.10",
+            "what": "Continue",
+            "expect": "Advances to step 4"
+          }
+        ]
+      },
+      {
+        "head": "2.4 Step 4 — payment · test mode",
+        "checks": [
+          {
+            "id": "2.4.1",
+            "what": "Pill reads \"Step 04 — Checkout\"; amount matches settings",
+            "expect": ""
+          },
+          {
+            "id": "2.4.2",
+            "what": "Card field renders (Stripe Elements, on our page)",
+            "expect": "Not a redirect to Stripe"
+          },
+          {
+            "id": "2.4.3",
+            "what": "Declined card (4000 0000 0000 0002)",
+            "expect": "Error shown; you stay on step 4 with files intact; a \"way back in\" email arrives",
+            "flag": "flag"
+          },
+          {
+            "id": "2.4.4",
+            "what": "3-D Secure card (4000 0025 0000 3155)",
+            "expect": "Redirects, authenticates, returns to /start?paid=1 — not to a broken URL",
+            "flag": "flag"
+          },
+          {
+            "id": "2.4.5",
+            "what": "Successful payment",
+            "expect": "Confirmation state"
+          },
+          {
+            "id": "2.4.6",
+            "what": "Stripe dashboard → the webhook endpoint",
+            "expect": "payment_intent.succeeded delivered, 200"
+          },
+          {
+            "id": "2.4.7",
+            "what": "Receipt email",
+            "expect": "Arrives, lists every uploaded file"
+          },
+          {
+            "id": "2.4.8",
+            "what": "Admin notification email",
+            "expect": "An admin is told a payment landed"
+          },
+          {
+            "id": "2.4.9",
+            "what": "Pay, then refresh /start",
+            "expect": "Clean step 1 — no resume, no double charge"
+          }
+        ]
+      },
+      {
+        "head": "2.5 Confirmation",
+        "checks": [
+          {
+            "id": "2.5.1",
+            "what": "\"You're all set\", file count and player name correct",
+            "expect": ""
+          },
+          {
+            "id": "2.5.2",
+            "what": "\"Send another video\"",
+            "expect": "Returns to a clean step 1"
+          },
+          {
+            "id": "2.5.3",
+            "what": "\"Check your status\"",
+            "expect": "Goes to /status"
+          }
+        ]
+      },
+      {
+        "head": "2.6 Guards",
+        "checks": [
+          {
+            "id": "2.6.1",
+            "what": "Try /start step 3 without verifying (refresh mid-flow)",
+            "expect": "Always restarts at step 1"
+          },
+          {
+            "id": "2.6.2",
+            "what": "\"Start over\" link",
+            "expect": "Abandons; server lets go of the submission"
+          }
+        ]
+      },
+      {
+        "head": "2.7 Abandonment",
+        "checks": [
+          {
+            "id": "2.7.1",
+            "what": "Begin a submission, upload a file, walk away",
+            "expect": "After the unpaid window it is swept (verify in 9.1)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "n": "3",
+    "title": "Status lookup",
+    "id": "p3",
+    "note": null,
+    "groups": [
+      {
+        "head": null,
+        "checks": [
+          {
+            "id": "3.1",
+            "what": "/status, enter the email you used",
+            "expect": "Access code sent"
+          },
+          {
+            "id": "3.2",
+            "what": "Wrong code",
+            "expect": "Refused"
+          },
+          {
+            "id": "3.3",
+            "what": "Correct code",
+            "expect": "Lands on /status/[token]"
+          },
+          {
+            "id": "3.4",
+            "what": "Status wording",
+            "expect": "A calm sentence — not awaiting_approval or any raw enum"
+          },
+          {
+            "id": "3.5",
+            "what": "An email with no submissions",
+            "expect": "Same response as one with — no enumeration",
+            "flag": "flag"
+          },
+          {
+            "id": "3.6",
+            "what": "Before the coach has replied",
+            "expect": "No download offered"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "n": "4",
+    "title": "Operator authentication",
+    "id": "p4",
+    "note": "4.1–4.3 are the same message three ways, on purpose: it is what stops the endpoint being used to discover which addresses have logins. It is also what made a deactivated admin look like a wrong password for two weeks.",
+    "groups": [
+      {
+        "head": null,
+        "checks": [
+          {
+            "id": "4.1",
+            "what": "/login with a wrong password",
+            "expect": "\"Invalid password\""
+          },
+          {
+            "id": "4.2",
+            "what": "With an unknown email",
+            "expect": "Identical message — no enumeration",
+            "flag": "flag"
+          },
+          {
+            "id": "4.3",
+            "what": "With a deactivated account",
+            "expect": "Identical message again (this is what bit us)",
+            "flag": "flag"
+          },
+          {
+            "id": "4.4",
+            "what": "Valid admin login",
+            "expect": "Lands on /admin"
+          },
+          {
+            "id": "4.5",
+            "what": "Valid coach login",
+            "expect": "Lands on /coach, and /admin redirects away"
+          },
+          {
+            "id": "4.6",
+            "what": "Valid translator login",
+            "expect": "Lands on /translator"
+          },
+          {
+            "id": "4.7",
+            "what": "Someone holding two roles",
+            "expect": "Reaches both portals"
+          },
+          {
+            "id": "4.8",
+            "what": "/forgot-password with a real address",
+            "expect": "Reset email arrives"
+          },
+          {
+            "id": "4.9",
+            "what": "/forgot-password with an unknown address",
+            "expect": "Same visible response, no email"
+          },
+          {
+            "id": "4.10",
+            "what": "Use the reset link",
+            "expect": "Password changes; you can log in with the new one",
+            "flag": "flag"
+          },
+          {
+            "id": "4.11",
+            "what": "Use the same link twice",
+            "expect": "Refused — single use"
+          },
+          {
+            "id": "4.12",
+            "what": "An expired link",
+            "expect": "Refused with a clear message"
+          },
+          {
+            "id": "4.13",
+            "what": "/account → change password",
+            "expect": "Requires the current one; wrong current is refused"
+          },
+          {
+            "id": "4.14",
+            "what": "Log out",
+            "expect": "Session gone; /admin bounces to /login"
+          },
+          {
+            "id": "4.15",
+            "what": "Visit /admin logged out",
+            "expect": "Redirect, not a 500"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "n": "5",
+    "title": "Admin panel (/admin)",
+    "id": "p5",
+    "note": "5.13.3 and 5.13.10 are the two that were actually broken this week. Verify them explicitly rather than assuming the fix held.",
+    "groups": [
+      {
+        "head": null,
+        "checks": [
+          {
+            "id": "5.1",
+            "what": "Queue lists submissions, newest sensible order",
+            "expect": ""
+          },
+          {
+            "id": "5.2",
+            "what": "Status filters",
+            "expect": "Each narrows correctly"
+          },
+          {
+            "id": "5.3",
+            "what": "Open one submission",
+            "expect": "Player, customer, files, progress, trail"
+          },
+          {
+            "id": "5.4",
+            "what": "Assign a coach",
+            "expect": "Status moves to assigned; coach appears"
+          },
+          {
+            "id": "5.5",
+            "what": "Notify the coach",
+            "expect": "Coach gets an email; status moves to sent_to_coach"
+          },
+          {
+            "id": "5.6",
+            "what": "Archive a submission",
+            "expect": "Leaves the active queue"
+          },
+          {
+            "id": "5.7",
+            "what": "Reset a status to an earlier rung",
+            "expect": "Recorded in the trail with your name and a reason"
+          },
+          {
+            "id": "5.8",
+            "what": "Purge a folder",
+            "expect": "Files gone; the rows survive; /api/files/[id] answers 410, not 404",
+            "flag": "flag"
+          },
+          {
+            "id": "5.9",
+            "what": "Assign a translator (Japanese-only coach)",
+            "expect": "Translation rungs appear"
+          },
+          {
+            "id": "5.10",
+            "what": "A coach who shares the customer's language",
+            "expect": "Translation steps are skipped entirely"
+          },
+          {
+            "id": "5.11",
+            "what": "A coach with no languages recorded",
+            "expect": "Says so plainly rather than prompting"
+          }
+        ]
+      },
+      {
+        "head": "5.12 Settings (/admin/settings)",
+        "checks": [
+          {
+            "id": "5.12.1",
+            "what": "Change the price",
+            "expect": "Landing page and step 4 both follow (allow 5 min for the landing cache)"
+          },
+          {
+            "id": "5.12.2",
+            "what": "Change max file size / count",
+            "expect": "Step 3 enforces the new values"
+          },
+          {
+            "id": "5.12.3",
+            "what": "Change retention windows",
+            "expect": "Reflected in the sweep (9.1)"
+          },
+          {
+            "id": "5.12.4",
+            "what": "Enter nonsense (negative, zero, huge)",
+            "expect": "Rejected"
+          }
+        ]
+      },
+      {
+        "head": "5.13 Operators (/admin/operators)",
+        "checks": [
+          {
+            "id": "5.13.1",
+            "what": "List shows everyone with their kinds",
+            "expect": ""
+          },
+          {
+            "id": "5.13.2",
+            "what": "Create a coach — name, email, password, languages, specialties",
+            "expect": "Appears in the list"
+          },
+          {
+            "id": "5.13.3",
+            "what": "That coach can log in",
+            "expect": "The exact thing that was broken — verify explicitly",
+            "flag": "flag"
+          },
+          {
+            "id": "5.13.4",
+            "what": "Create a translator",
+            "expect": "Same, and can log in"
+          },
+          {
+            "id": "5.13.5",
+            "what": "Create a second admin",
+            "expect": "Same, and reaches /admin"
+          },
+          {
+            "id": "5.13.6",
+            "what": "Edit someone's languages/specialties",
+            "expect": "Persists"
+          },
+          {
+            "id": "5.13.7",
+            "what": "Pause a role",
+            "expect": "Still holds the role; not offered for assignment"
+          },
+          {
+            "id": "5.13.8",
+            "what": "Revoke a role",
+            "expect": "Drops off that list; other roles survive"
+          },
+          {
+            "id": "5.13.9",
+            "what": "Revoke every role",
+            "expect": "Person remains, reaches nothing — there is no hard delete; confirm that's acceptable",
+            "flag": "flag"
+          },
+          {
+            "id": "5.13.10",
+            "what": "Reset another operator's password as admin",
+            "expect": "Also previously broken — confirm they can then log in",
+            "flag": "flag"
+          },
+          {
+            "id": "5.13.11",
+            "what": "Deactivate an operator",
+            "expect": "Cannot log in"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "n": "6",
+    "title": "Coach portal (/coach)",
+    "id": "p6",
+    "note": null,
+    "groups": [
+      {
+        "head": null,
+        "checks": [
+          {
+            "id": "6.1",
+            "what": "Sees only their assigned submissions",
+            "expect": ""
+          },
+          {
+            "id": "6.2",
+            "what": "Cannot reach another coach's submission by URL",
+            "expect": "Refused",
+            "flag": "flag"
+          },
+          {
+            "id": "6.3",
+            "what": "Download a file",
+            "expect": "Works — and this is what earns in_review"
+          },
+          {
+            "id": "6.4",
+            "what": "Status after that first download",
+            "expect": "in_review, in the trail"
+          },
+          {
+            "id": "6.5",
+            "what": "Upload a feedback file",
+            "expect": "Accepted"
+          },
+          {
+            "id": "6.6",
+            "what": "Upload a large feedback file (>4.5 MB)",
+            "expect": "Must succeed"
+          },
+          {
+            "id": "6.7",
+            "what": "Send for approval",
+            "expect": "Status moves to awaiting_approval; admin notified"
+          },
+          {
+            "id": "6.8",
+            "what": "Admin approves and completes",
+            "expect": "Status complete; customer emailed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "n": "7",
+    "title": "Translator portal (/translator)",
+    "id": "p7",
+    "note": null,
+    "groups": [
+      {
+        "head": null,
+        "checks": [
+          {
+            "id": "7.1",
+            "what": "Sees assigned translations only",
+            "expect": ""
+          },
+          {
+            "id": "7.2",
+            "what": "Download the intake files",
+            "expect": "Earns intake_translating"
+          },
+          {
+            "id": "7.3",
+            "what": "Upload the translation",
+            "expect": "Lands in the intake_translation folder"
+          },
+          {
+            "id": "7.4",
+            "what": "Hand back",
+            "expect": "Status advances; the coach can now see it"
+          },
+          {
+            "id": "7.5",
+            "what": "Repeat for the feedback direction",
+            "expect": "feedback_translating → feedback_translated"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "n": "8",
+    "title": "Delivery and collection",
+    "id": "p8",
+    "note": null,
+    "groups": [
+      {
+        "head": null,
+        "checks": [
+          {
+            "id": "8.1",
+            "what": "Customer gets the \"feedback ready\" email",
+            "expect": "Contains a working link"
+          },
+          {
+            "id": "8.2",
+            "what": "Follow the link, request the access code",
+            "expect": "Code arrives"
+          },
+          {
+            "id": "8.3",
+            "what": "Download the feedback",
+            "expect": "Works"
+          },
+          {
+            "id": "8.4",
+            "what": "That download stamps collected",
+            "expect": "Retention clock starts here",
+            "flag": "flag"
+          },
+          {
+            "id": "8.5",
+            "what": "Admin sees the collection",
+            "expect": "Trail records it"
+          },
+          {
+            "id": "8.6",
+            "what": "Download a second time",
+            "expect": "Still works; collected not re-stamped"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "n": "9",
+    "title": "System jobs",
+    "id": "p9",
+    "note": null,
+    "groups": [
+      {
+        "head": null,
+        "checks": [
+          {
+            "id": "9.1",
+            "what": "Hit /api/cron/sweep with the CRON_SECRET",
+            "expect": "Warns first, then purges per the windows"
+          },
+          {
+            "id": "9.2",
+            "what": "Without the secret",
+            "expect": "Refused — and with CRON_SECRET unset the sweep refuses to run at all"
+          },
+          {
+            "id": "9.3",
+            "what": "A swept submission's file",
+            "expect": "/api/files/[id] → 410 Gone"
+          },
+          {
+            "id": "9.4",
+            "what": "Deletion-warning email",
+            "expect": "Sent once, and stamped even if the send failed"
+          },
+          {
+            "id": "9.5",
+            "what": "Resend webhook",
+            "expect": "Delivery/bounce events appear in the trail"
+          },
+          {
+            "id": "9.6",
+            "what": "Resend webhook with a bad signature",
+            "expect": "Rejected"
+          },
+          {
+            "id": "9.7",
+            "what": "Replay a webhook older than 5 minutes",
+            "expect": "Rejected"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "n": "10",
+    "title": "Cross-cutting",
+    "id": "p10",
+    "note": null,
+    "groups": [
+      {
+        "head": null,
+        "checks": [
+          {
+            "id": "10.1",
+            "what": "Every page at 375px",
+            "expect": "No horizontal scroll"
+          },
+          {
+            "id": "10.2",
+            "what": "Keyboard-only through the whole customer flow",
+            "expect": "Everything reachable, focus visible"
+          },
+          {
+            "id": "10.3",
+            "what": "Form labels",
+            "expect": "Every input has one"
+          },
+          {
+            "id": "10.4",
+            "what": "Images",
+            "expect": "Meaningful ones have alt text; decorative ones are empty"
+          },
+          {
+            "id": "10.5",
+            "what": "Browser back button mid-flow",
+            "expect": "Doesn't strand you"
+          },
+          {
+            "id": "10.6",
+            "what": "Two tabs, same flow",
+            "expect": "Doesn't corrupt either"
+          },
+          {
+            "id": "10.7",
+            "what": "Slow connection (throttle)",
+            "expect": "Loading states appear"
+          },
+          {
+            "id": "10.8",
+            "what": "Offline mid-upload",
+            "expect": "Fails honestly, offers retry"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "n": "11",
+    "title": "Go live on Stripe",
+    "id": "p11",
+    "note": "Only now, and only once. Every step above has been proven in test mode, so this phase is checking configuration, not behaviour.",
+    "groups": [
+      {
+        "head": null,
+        "checks": [
+          {
+            "id": "11.1",
+            "what": "Stripe dashboard → toggle Test mode off → Developers → API keys",
+            "expect": "Copy sk_live_… and pk_live_…"
+          },
+          {
+            "id": "11.2",
+            "what": "Vercel → Production: STRIPE_SECRET_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+            "expect": ""
+          },
+          {
+            "id": "11.3",
+            "what": "Stripe → Webhooks → Add endpoint → https://www.baseball-sensei.com/api/webhooks/stripe",
+            "expect": ""
+          },
+          {
+            "id": "11.4",
+            "what": "Subscribe to payment_intent.succeeded and payment_intent.payment_failed only",
+            "expect": ""
+          },
+          {
+            "id": "11.5",
+            "what": "Copy that endpoint's signing secret → Vercel STRIPE_WEBHOOK_SECRET",
+            "expect": "Test and live have different signing secrets. A test whsec_ in production fails every signature check silently, and payments never mark as paid.",
+            "flag": "flag"
+          },
+          {
+            "id": "11.6",
+            "what": "Redeploy",
+            "expect": "The publishable key is inlined at build time"
+          },
+          {
+            "id": "11.7",
+            "what": "One real payment with your own card, then refund it in Stripe",
+            "expect": "The submission reaches new, the receipt arrives, and Stripe shows the webhook 200"
+          },
+          {
+            "id": "11.8",
+            "what": "Confirm livemode=true on that payment intent",
+            "expect": "The check that proves it, rather than assumes it"
+          }
+        ]
+      }
+    ]
+  }
+]

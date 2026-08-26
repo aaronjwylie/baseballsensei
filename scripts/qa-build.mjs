@@ -27,6 +27,10 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE = join(ROOT, "docs/qa/itinerary.md");
 const TEMPLATE = join(ROOT, "docs/qa/template.html");
 const OUTPUT = join(ROOT, "docs/qa/qa-run.html");
+/* The site's /qa page renders from this. Same parse, same source, so the
+   in-app record and the shareable artifact cannot disagree about what the
+   itinerary says. */
+const DATA = join(ROOT, "src/domains/qa/model/itinerary.json");
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes("--check");
@@ -234,6 +238,29 @@ if (html.includes("__PHASES__") || html.includes("__STATE__") || html.includes("
   console.error("[qa:build] a placeholder survived — the template and this script disagree");
   process.exit(1);
 }
+
+/* Emitted before the HTML, so a failure here stops both outputs rather than
+   leaving the page and the artifact describing different runs. */
+writeFileSync(
+  DATA,
+  JSON.stringify(
+    phases.map((p) => ({
+      ...p,
+      groups: p.groups.map((g) => ({
+        head: g.head,
+        checks: g.checks.map(([id, what, expect, flag]) => ({
+          id,
+          what,
+          expect,
+          ...(flag ? { flag } : {}),
+        })),
+      })),
+    })),
+    null,
+    2,
+  ) + "\n",
+);
+console.log(`[qa:build] wrote src/domains/qa/model/itinerary.json`);
 
 writeFileSync(OUTPUT, html);
 console.log(`[qa:build] ${trail.length} trail entr${trail.length === 1 ? "y" : "ies"} carried over`);

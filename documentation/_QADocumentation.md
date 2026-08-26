@@ -67,6 +67,36 @@ everything on its own (Q6).
 what CI should gate. The two are cross-linked and answer different questions. Q12 moves lines from the
 itinerary into that plan; **a check automated there is deleted here.**
 
+### The record lives at `/qa`, on the site
+
+| Piece | Where |
+|---|---|
+| The page | [`src/app/qa/page.tsx`](../src/app/qa/page.tsx) — 404 without `QA_TOKEN` and the arming cookie |
+| The board | [`src/domains/qa/ui/QaBoard.tsx`](../src/domains/qa/ui/QaBoard.tsx) |
+| The state | `qa_mark` — one row per check, check id as the primary key |
+| The itinerary | `model/itinerary.json`, emitted by `npm run qa:build` from the markdown |
+
+**Both testers are already authenticated** by the site's own gate, so there is nobody to grant and
+nothing to share. Marks are last-writer-wins: two people ticking one row is a correction, not a
+conflict. The page polls every four seconds (paused when the tab is hidden), which is ample for two
+people working a list and far less machinery than a socket for a page built to be deleted.
+
+**It is instrumented by the same probe as every other page** — the record's clicks and the product's
+clicks land in one log, in order. That is the argument for putting it here rather than anywhere else,
+and it is now Q15's preferred answer.
+
+**The artifact is not retired; it changed jobs.** It is the *report* — shareable with anyone who has no
+login, published when the pass is done. The site page is the *cursor*. §6 always said the record has two
+jobs; it turned out they wanted two homes.
+
+### What the artifact version cost, before that was clear
+
+Recorded because Q11 now cites it: a self-publishing document had to rebuild itself perfectly on every
+tick, and did not — one careless selector wrote the platform's reset stylesheet out as the whole
+stylesheet and the page came back unstyled. A tick that saved correctly reloaded the view two seconds
+later, which read as failure, so it was clicked again and the verdict lost. Writers had to be granted
+one at a time; readers could be pinned to an old version. None of those exist on a page in the app.
+
 ### The pipeline (Q14)
 
 ```
