@@ -27,12 +27,14 @@ happened, never what should have.
 
 | # | Do | Why it blocks |
 | --- | --- | --- |
-| 0.1 | **Close the Supabase Data API.** Settings → API → Exposed schemas, remove `public`. Then enable RLS on every table. | Every table is currently readable with the publishable key, including password hashes and children's names. QA generates *more* real data into a database anyone can read. See OUTSTANDING §0. |
+| 0.1 | **Close the Supabase Data API.** Settings → API → Exposed schemas, remove `public`. **Dashboard only — no one but you can do this.** | Every table is currently readable with the publishable key, including password hashes and children's names. QA generates *more* real data into a database anyone can read. See OUTSTANDING §0. Migration `0021` revokes the underlying grants on deploy as defence in depth, but the dashboard setting is the fix. |
 | 0.2 | **Rotate the publishable key**, and the production DB password. | Both are known-exposed. |
-| 0.3 | **Reactivate `ben.j.wylie@gmail.com`** — set `is_active = true`, and confirm it holds an `admin` grant. | You cannot run Phase 5 without an admin login. |
+| 0.3 | **Reactivate `ben.j.wylie@gmail.com`.** Run [`phase-0.sql`](phase-0.sql) §1–§2 in the Supabase SQL editor. | It reads `is_active = false` because the operator edit form used to write that on every save — an absent checkbox read as `=== "on"`. Aaron fixed the cause in `0d6bbf0`; the row it already wrote still needs repairing. You cannot run Phase 5 without an admin login. |
 | 0.4 | **Stripe: live keys + webhook.** See Phase 0a below. | Phases 2.4 onward are the money path and cannot be tested without it. |
 | 0.5 | **Confirm `NEXT_PUBLIC_SITE_URL` is `https://www.baseball-sensei.com`** in Vercel, then redeploy. | It builds the links inside customer emails *and* the 3-D Secure return target. It is inlined at build time, so it needs a redeploy, and a mismatch strands a customer **after** they are charged. |
 | 0.6 | **Decide the Basic Auth question.** Leave the gate on for QA. | With it on, only you can reach the site — which is what you want while generating test submissions. |
+| 0.7 | **Set `QA_TOKEN`** in Vercel → Production, then redeploy. | Arms the instrument. It is already generated and sitting in `.env.local`; `grep '^QA_TOKEN=' .env.local \| cut -d= -f2- \| pbcopy` puts it on your clipboard without it passing through a chat log. |
+| 0.8 | **Arm your browser**: visit `/api/qa/session?token=<QA_TOKEN>`. | You should be redirected home. Nothing visible changes — that is correct. |
 
 ### Phase 0a · Stripe production setup
 

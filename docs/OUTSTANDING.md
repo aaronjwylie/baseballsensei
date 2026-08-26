@@ -33,6 +33,12 @@ thing standing between this data and anyone is that nobody has tried.
 cannot exist, and the sandbox refused it. Until someone checks, assume writes
 may also be open.
 
+**Migration `0021_revoke_data_api_access.sql` now revokes `anon` and
+`authenticated` privileges on deploy**, which closes this without touching RLS —
+a strictly smaller blast radius, since the app's own role owns these tables and
+is unaffected. That is defence in depth. **The fix is still turning the Data API
+off**, and only someone with dashboard access can do it.
+
 **The fix is unusually cheap here: turn the Data API off.** This app does not
 use it. There is no `supabase-js` dependency, nothing in `src/` imports one, and
 `shared/db/client.ts` talks to Postgres directly over `DATABASE_URL` through
@@ -79,6 +85,7 @@ script. So:
 | **Record each coach's languages** in the portal | Translation need is the intersection of the coach's languages and the customer's. A coach with none recorded produces "no languages recorded for this coach" rather than a prompt — correct, but the rule does nothing until someone fills them in. |
 | **Revoke the Figma token** | `figd_TTJa…` was pasted into a transcript on 2026-08-15 and written to `.env.figma`. Read-only and file-scoped, but it does not expire on its own. Revoke and delete the file when the design work is done. |
 | **Rotate the production DB password** | Exposed in a transcript 2026-08-05. |
+| **Reactivate `ben.j.wylie@gmail.com`** | `is_active = false`, written by the operator edit form on save — an absent checkbox read as `=== "on"`. Cause fixed by Aaron in `0d6bbf0`; the row needs repairing with `docs/qa/phase-0.sql`. |
 | **Confirm the admin login works in production** | `0018_repair_orphaned_logins` runs on deploy and rebuilds the missing credential and grant rows from the legacy columns. It can only recover a password that is still in `operator.password_hash`; an admin seeded with no legacy hash at all needs an explicit reset — see below. |
 
 ---
