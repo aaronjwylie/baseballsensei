@@ -21,7 +21,10 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  // No retries: the golden path shares state across its serial steps, so a retry
+  // re-runs the customer path against a submission the first run already
+  // processed. A deterministic single pass is the honest signal.
+  retries: 0,
   timeout: 90_000,
   expect: { timeout: 15_000 },
   reporter: process.env.CI

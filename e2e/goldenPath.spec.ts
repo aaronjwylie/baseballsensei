@@ -109,7 +109,7 @@ test("customer: details → verify → upload → pay → confirmation → statu
   aren't confirmed end to end yet. `fixme` keeps the nightly green on the customer
   path until these selectors are tuned against a run.
 */
-test.fixme("operator: assign → hand off → (coach) feedback → approve → complete", async ({
+test("operator: assign → hand off → (coach) feedback → approve → complete", async ({
   page,
 }) => {
   // --- Admin: expand the row and assign the coach -------------------------
