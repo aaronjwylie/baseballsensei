@@ -430,7 +430,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 6</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 8</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1908,26 +1908,6 @@ document.getElementById("phases").addEventListener("click", (e) => {
   if (next) row.classList.add("marked-" + next);
   row.querySelectorAll(".state").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === next)));
   row.querySelector(".note").classList.toggle("hidden", next !== "fail");
-  /* Which phase is on screen. Reported on change only — a scroll position per
-   frame would be a firehose nobody reads, and the phase is the unit the run is
-   actually organised in. */
-let lastPhase = null;
-const phaseWatcher = new IntersectionObserver((entries) => {
-  for (const e of entries) {
-    if (!e.isIntersecting) continue;
-    const id = e.target.id;
-    if (id && id !== lastPhase) { lastPhase = id; note("reading", { phase: id }); }
-  }
-}, { rootMargin: "-25% 0px -60% 0px" });
-document.querySelectorAll(".phase").forEach((el) => phaseWatcher.observe(el));
-
-document.querySelectorAll("[data-rail-for]").forEach((a) => {
-  a.addEventListener("click", () => note("jump", { phase: a.dataset.railFor }));
-});
-
-note("open", { marks: Object.keys(marks).length });
-
-refresh();
 });
 
 let notedFor = null;
@@ -1957,6 +1937,27 @@ document.getElementById("reset").addEventListener("click", () => {
   document.getElementById("phases").innerHTML = PHASES.map(buildPhase).join("");
   refresh();
 });
+
+refresh();
+
+/* Which phase is on screen. Reported on change only — a scroll position per
+ frame would be a firehose nobody reads, and the phase is the unit the run is
+ actually organised in. */
+let lastPhase = null;
+const phaseWatcher = new IntersectionObserver((entries) => {
+for (const e of entries) {
+  if (!e.isIntersecting) continue;
+  const id = e.target.id;
+  if (id && id !== lastPhase) { lastPhase = id; note("reading", { phase: id }); }
+}
+}, { rootMargin: "-25% 0px -60% 0px" });
+document.querySelectorAll(".phase").forEach((el) => phaseWatcher.observe(el));
+
+document.querySelectorAll("[data-rail-for]").forEach((a) => {
+a.addEventListener("click", () => note("jump", { phase: a.dataset.railFor }));
+});
+
+note("open", { marks: Object.keys(marks).length });
 
 refresh();
 </script>
