@@ -10,6 +10,7 @@ the wrong file.
 | [`_NomenclatureLaw`](../laws/_NomenclatureLaw.md) | [`_NomenclatureDocumentation`](_NomenclatureDocumentation.md) | the glossary — what "intake" means here |
 | [`_SecurityLaw`](../laws/_SecurityLaw.md) | [`_SecurityDocumentation`](_SecurityDocumentation.md) | our threat model, boundaries, open findings |
 | [`_VerificationLaw`](../laws/_VerificationLaw.md) | [`_VerificationDocumentation`](_VerificationDocumentation.md) | our gate roster and what each has caught |
+| [`_QALaw`](../laws/_QALaw.md) | [`_QADocumentation`](_QADocumentation.md) | our probe, our itinerary, and what a pass has caught |
 | [`_CommerceLaw`](../laws/_CommerceLaw.md) | [`_CommerceDocumentation`](_CommerceDocumentation.md) | one payment, one submission — and which rails don't bind |
 | [`_DesignLaw`](../laws/_DesignLaw.md) | [`_DesignDocumentation`](_DesignDocumentation.md) | our tokens and rulings |
 

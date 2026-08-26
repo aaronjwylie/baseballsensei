@@ -1127,7 +1127,7 @@ For anything ambiguous: **the accepted proposal (v4) is the source of truth for 
 
 - **[OPERATIONS.md](OPERATIONS.md)** — Account setup, database + storage provisioning, admin seeding, webhook configuration, Resend domain, Vercel, DNS, go-live checklist, and the operator workflow _(being swept to match the pivot as each piece is built)_
 - **[PRINCIPLES.md](PRINCIPLES.md)** — the constitution: *why* we build this way. One per project, outranks the laws
-- **[laws/](laws/)** — six laws, copied verbatim between projects: structure · nomenclature · security · verification · commerce · design
+- **[laws/](laws/)** — seven laws, copied verbatim between projects: structure · nomenclature · security · verification · qa · commerce · design
 - **[documentation/](documentation/)** — this project's instance of each law. **Start at [documentation/README.md](documentation/README.md)** for the map
 - **[docs/design/rollout.md](docs/design/rollout.md)** — the route from what's deployed to the northstar pipeline, with phases, dependencies, and red flags
 - **[docs/design/northstar/](docs/design/northstar/)** — the pipeline as it should be: every step, substep, trail row and message. Edit `northstar.py`, then run `build.py`
