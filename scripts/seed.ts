@@ -11,10 +11,32 @@ import "./loadEnv";
 import bcrypt from "bcryptjs";
 import { count, eq } from "drizzle-orm";
 import { db } from "@/shared/db";
-import { operatorTable, operatorProfileTable, submissionTable } from "@/db/schema";
+import {
+  operatorTable,
+  operatorProfileTable,
+  credentialTable,
+  operatorRoleGrantTable,
+  submissionTable,
+} from "@/db/schema";
 import { createSubmission } from "@/domains/submission";
 import { storeUploadedFile } from "@/domains/upload";
 
+/**
+ * Create an operator who can actually sign in.
+ *
+ * **Three rows, not one.** Until 2026-08-15 this wrote a single `operator` row
+ * carrying `password_hash` and `role`, which is where both of those lived when
+ * it was written. Migration 0013 moved the hash to `operator_credential` and
+ * 0015 moved the role to `operator_role_grant`; each backfilled the rows that
+ * existed at the time, so everyone seeded *before* them kept working and the
+ * seed looked fine. Every operator seeded *after* them got a row the login path
+ * does not read: `verifyCredentials` found no credential and returned null, so
+ * a fresh admin met "invalid password" with the password they had just seeded.
+ *
+ * It writes through the same tables the app does rather than calling
+ * `createOperator`, because the seed's job is to be runnable against a bare
+ * database — but the shape it writes has to match, and that is what broke.
+ */
 async function ensureUser(
   email: string,
   password: string,
@@ -26,14 +48,37 @@ async function ensureUser(
     .from(operatorTable)
     .where(eq(operatorTable.email, email))
     .limit(1);
-  if (existing[0]) return { id: existing[0].id, created: false };
+  if (existing[0]) {
+    // Idempotent, and self-repairing: an operator seeded by the old shape is
+    // missing the two rows below, and re-running the seed should fix them
+    // rather than report "exists" over a login that does not work.
+    await grantAccess(existing[0].id, role, password);
+    return { id: existing[0].id, created: false };
+  }
 
-  const passwordHash = await bcrypt.hash(password, 10);
   const [row] = await db
     .insert(operatorTable)
-    .values({ email, passwordHash, role, name })
+    .values({ email, name })
     .returning({ id: operatorTable.id });
+  await grantAccess(row.id, role, password);
   return { id: row.id, created: true };
+}
+
+/** The credential and the role grant — the two rows the login path reads. */
+async function grantAccess(
+  operatorId: string,
+  role: "admin" | "coach",
+  password: string,
+): Promise<void> {
+  const passwordHash = await bcrypt.hash(password, 10);
+  await db
+    .insert(credentialTable)
+    .values({ operatorId, passwordHash })
+    .onConflictDoNothing();
+  await db
+    .insert(operatorRoleGrantTable)
+    .values({ operatorId, role })
+    .onConflictDoNothing();
 }
 
 async function main() {

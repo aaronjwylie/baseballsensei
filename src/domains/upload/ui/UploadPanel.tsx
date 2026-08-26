@@ -174,16 +174,10 @@ export function UploadPanel({
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-ink-soft">
-          Add the clips you want reviewed. You can also attach photos or
-          documents.
-        </p>
-        <p className="mt-2 text-sm text-ink-muted">
-          Up to {maxFiles} file{maxFiles === 1 ? "" : "s"}, {maxFileSizeMb} MB
-          each · {describeAllowedTypes()}
-        </p>
-      </div>
+      <p className="text-center text-sm text-band">
+        Up to {maxFiles} file{maxFiles === 1 ? "" : "s"}, {maxFileSizeMb} MB each
+        · {describeAllowedTypes()}
+      </p>
 
       <ul className="space-y-3">
         {cards.map((card) => (
@@ -208,7 +202,7 @@ export function UploadPanel({
         <button
           type="button"
           onClick={() => setCards((current) => [...current, emptyCard()])}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line px-4 py-3 text-sm font-semibold text-ink-soft transition-colors hover:border-ink hover:text-ink"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-paper/40 px-4 py-3 text-sm font-semibold text-paper transition-colors hover:border-highlight hover:text-highlight"
         >
           <span aria-hidden className="text-lg leading-none">
             +
@@ -218,7 +212,7 @@ export function UploadPanel({
       )}
 
       {atLimit && (
-        <p className="text-sm text-ink-muted">
+        <p className="text-center text-sm text-band">
           That&rsquo;s the maximum of {maxFiles} file
           {maxFiles === 1 ? "" : "s"}.
         </p>
@@ -256,8 +250,14 @@ function FileCard({
 }) {
   if (state.status === "empty") {
     return (
-      <label className="flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-line bg-surface px-4 py-8 text-center transition-colors hover:border-ink">
-        <span className="text-sm font-semibold text-ink">Choose a file</span>
+      <label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-line bg-surface px-4 py-10 text-center transition-colors hover:border-accent">
+        <span aria-hidden className="text-2xl leading-none text-accent">
+          ⤒
+        </span>
+        <span className="text-sm text-ink">
+          <span className="font-semibold text-accent">Click to upload</span> or
+          drag and drop
+        </span>
         <span className="text-xs text-ink-muted">
           {describeAllowedTypes()} · up to {maxFileSizeMb} MB
         </span>

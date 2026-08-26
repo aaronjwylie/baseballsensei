@@ -28,6 +28,7 @@ import {
 import type { CheckoutStep, FlowStep } from "../model/steps";
 import { stepNumber } from "../model/steps";
 import { StepIndicator } from "./StepIndicator";
+import { StepHeading } from "./StepHeading";
 
 /**
  * The four-step path from "I want feedback" to "you've been charged".
@@ -242,14 +243,16 @@ export function CheckoutFlow({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 [--field-error:var(--color-highlight)] [--field-hint:var(--color-band)] [--field-label:var(--color-paper)]">
       <StepIndicator current={step} canGoTo={canGoTo} onGoTo={goTo} />
+
+      <StepHeading step={step} maxFiles={maxFiles} />
 
       {/* The verify panel shows its own errors inline, next to the input. */}
       {error && step !== "verify" && (
         <p
           role="alert"
-          className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+          className="border-2 border-highlight px-4 py-3 text-center text-sm text-paper"
         >
           {error}
         </p>
@@ -292,11 +295,11 @@ export function CheckoutFlow({
         let go of their submission rather than waiting out the idle window.
       */}
       {step !== "details" && (
-        <p className="text-center text-sm text-ink-muted">
+        <p className="text-center text-sm text-band">
           <button
             type="button"
             onClick={startOver}
-            className="underline hover:text-ink"
+            className="underline hover:text-paper"
           >
             Start over
           </button>
@@ -332,19 +335,19 @@ function Confirmation({
     <div className="text-center">
       <div
         aria-hidden
-        className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-surface text-2xl"
+        className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-highlight text-2xl text-accent"
       >
         ✓
       </div>
-      <h2 className="mt-6 text-3xl font-medium tracking-tight text-ink">
+      <h2 className="mt-6 font-display text-[26px] font-medium uppercase tracking-[-0.01em] text-highlight">
         You&rsquo;re all set
       </h2>
-      <p className="mt-4 text-ink-soft">
+      <p className="mt-4 text-paper">
         We&rsquo;ve got {fileCount} file{fileCount === 1 ? "" : "s"} for{" "}
         {playerName} and your payment went through. A receipt is on its way to
         your inbox.
       </p>
-      <p className="mt-2 text-ink-soft">
+      <p className="mt-2 text-paper">
         A coach will send a personal video walkthrough — we&rsquo;ll email you
         the moment it&rsquo;s ready.
       </p>

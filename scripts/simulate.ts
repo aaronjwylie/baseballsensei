@@ -57,6 +57,8 @@ import { approveAndComplete, resolveSubmission, sendFeedbackForApproval } from "
 import { runRetentionSweep } from "@/domains/upload";
 import { getSettings } from "@/domains/settings";
 import { isOperatorSession } from "@/domains/account/model/session";
+import { createOperator, verifyCredentials } from "@/domains/account/api/loginApi";
+import { setOperatorPassword } from "@/domains/account/api/credentialApi";
 import { grantRole, rolesFor, listByRole, setRoles, setGrants, grantsFor, listOperators, listCoaches } from "@/domains/operator";
 import { operatorRoleGrantTable } from "@/domains/operator/model/operatorRoleGrantTable";
 import { issueCode, isEmailVerified, verifyCode } from "@/domains/verification";
@@ -633,6 +635,55 @@ function checkLanguageRule() {
   check(parse("Klingon").join() === "English", "an answer we don't offer falls back too");
 }
 
+/**
+ * A login that was granted can actually be used.
+ *
+ * This exists because the whole of it failed silently on 2026-08-15. Migrations
+ * 0013 and 0015 moved the password hash and the role out of `operator` into
+ * their own tables and backfilled everyone who existed; `scripts/seed.ts` kept
+ * writing the old columns, so every operator it made afterwards had a row that
+ * looked complete and could not sign in. `setOperatorPassword` was an UPDATE,
+ * so resetting the password reported success and changed nothing.
+ *
+ * Nothing caught it. `tsc` was happy — the legacy columns still exist. The
+ * simulation was happy — it granted roles through the domain functions, which
+ * write the right rows. The only thing that would have caught it is asking the
+ * login path itself, from the outside, whether a fresh operator can get in.
+ */
+async function loginWorks() {
+  console.log("\n━━ a granted login can be used ━━");
+  const email = `sim-login-${Date.now()}@sim.local`;
+  const password = "sim-password-not-a-secret";
+
+  const created = await createOperator(email, password, "Sim Login");
+  await setRoles(created.id, ["admin"], null);
+
+  const ok = await verifyCredentials(email, password);
+  check(!!ok, "   a new operator can sign in with their password");
+  check(
+    (ok?.roles ?? []).join() === "admin",
+    "   and arrives holding the kind they were granted",
+  );
+
+  check(
+    (await verifyCredentials(email, "not-the-password")) === null,
+    "   the wrong password is still refused",
+  );
+
+  /*
+    The reset path, which is where the silent failure lived: it has to work for
+    someone whose credential row is missing, not only for someone whose row
+    exists. An UPDATE passes the second case and fails the first.
+  */
+  await setOperatorPassword(created.id, "a-different-password");
+  check(
+    !!(await verifyCredentials(email, "a-different-password")),
+    "   a password reset actually changes the password",
+  );
+
+  await db.delete(operatorTable).where(eq(operatorTable.email, email));
+}
+
 async function main() {
   console.log("Simulating the whole ladder — both paths, real domain functions.");
   checkLanguageRule();
@@ -640,6 +691,7 @@ async function main() {
   await walk("Japanese-only coach — full translation path", true);
   await sessionShape();
   await multiRole();
+  await loginWorks();
 
   console.log(`\n${"─".repeat(56)}`);
   console.log(fail === 0 ? `All ${pass} checks passed.` : `FAILED — ${fail} of ${pass + fail}`);

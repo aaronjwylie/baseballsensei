@@ -1,7 +1,6 @@
 import Image from "next/image";
-import { Container } from "@/shared/ui";
+import { Container, SectionHeading } from "@/shared/ui";
 import { coach } from "../model/copy";
-import { SectionHeading } from "./SectionHeading";
 
 /**
  * Who does the reviewing — the photograph and the credentials, side by side.

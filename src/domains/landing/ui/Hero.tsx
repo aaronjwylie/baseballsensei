@@ -1,7 +1,6 @@
 import Image from "next/image";
-import { ButtonLink, Container } from "@/shared/ui";
+import { ButtonLink, Container, SectionHeading } from "@/shared/ui";
 import { hero } from "../model/copy";
-import { SectionHeading } from "./SectionHeading";
 
 /**
  * The opening band: a full-bleed photograph, the promise over it, two calls to

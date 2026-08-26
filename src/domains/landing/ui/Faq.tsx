@@ -1,6 +1,5 @@
-import { Container } from "@/shared/ui";
+import { Container, SectionHeading } from "@/shared/ui";
 import { faqHeading, faqs } from "../model/copy";
-import { SectionHeading } from "./SectionHeading";
 
 /**
  * The objections, on the second blue band.

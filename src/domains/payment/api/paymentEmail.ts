@@ -8,7 +8,7 @@
  *
  * Fired once, gated on `justPaid`, so a redelivered webhook can't send a second.
  */
-import { emailShell, sendEmail } from "@/shared/email";
+import { emailShell, escapeHtml, sendEmail } from "@/shared/email";
 import { site } from "@/shared/config/site";
 import { formatFileSize, type SubmissionFile } from "@/domains/submission";
 
@@ -142,11 +142,3 @@ function formatMoney(cents: number, currency: string): string {
  * Filenames and player names come from the customer and land in an HTML email.
  * Escaping them is the difference between a receipt and an injection vector.
  */
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}

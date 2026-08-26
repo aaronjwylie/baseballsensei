@@ -131,7 +131,7 @@ export function PlayerInfoForm({
       />
 
       <Field
-        label="Anything you want the coach to look at?"
+        label="Notes for your coach"
         optional
         hint="Optional — a specific issue, a recent change, a goal."
         error={errors.customerNotes?.message}
@@ -139,7 +139,7 @@ export function PlayerInfoForm({
         <textarea
           {...register("customerNotes")}
           rows={3}
-          placeholder="e.g. Trying to fix an early bat drop on inside pitches."
+          placeholder="Example: I’m having trouble making consistent contact and feel like I’m late on faster pitches. What should I work on?"
           className={`${inputClass} resize-none`}
         />
       </Field>

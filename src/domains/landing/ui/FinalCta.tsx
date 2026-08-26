@@ -1,7 +1,6 @@
 import Image from "next/image";
-import { ButtonLink, Container } from "@/shared/ui";
+import { ButtonLink, Container, SectionHeading } from "@/shared/ui";
 import { finalCta } from "../model/copy";
-import { SectionHeading } from "./SectionHeading";
 
 /**
  * The ask — a short dark band, one heading, one button.
