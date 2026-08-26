@@ -81,7 +81,7 @@ test("customer: details → verify → upload → pay → confirmation → statu
   // The status lookup finds it by email.
   await page.goto("/status");
   await page.getByPlaceholder("you@example.com").fill(customerEmail);
-  await page.getByRole("button", { name: "Check status" }).click();
+  await page.getByRole("button", { name: "See my submissions" }).click();
   await expect(page.getByText(playerName)).toBeVisible();
 });
 
@@ -124,6 +124,6 @@ test("operator: assign → hand off → (coach) feedback → approve → complet
   // it as ready on the status page.
   await page.goto("/status");
   await page.getByPlaceholder("you@example.com").fill(customerEmail);
-  await page.getByRole("button", { name: "Check status" }).click();
+  await page.getByRole("button", { name: "See my submissions" }).click();
   await expect(page.getByText(/feedback ready|ready|delivered/i)).toBeVisible();
 });
