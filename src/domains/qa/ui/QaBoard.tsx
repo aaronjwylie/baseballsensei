@@ -25,23 +25,37 @@ import { MARK_VALUES, type Mark, type MarkValue, type Phase } from "../model/qaM
 export function QaBoard({
   phases,
   initialMarks,
-  actor,
+  initialName,
   onMark,
 }: {
   phases: Phase[];
   initialMarks: Mark[];
-  actor: string;
+  initialName: string;
   onMark: (
     id: string,
     v: MarkValue | null,
     note: string | null,
-    actor: string,
+    actor: string | null,
   ) => Promise<{ ok: boolean }>;
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [filter, setFilter] = useState<"all" | "todo" | "fail">("all");
   const [busy, setBusy] = useState<string | null>(null);
+  /* Who is ticking.
+
+     Every mark landed with an empty actor, so the record could say a check
+     passed but not who decided that — most of what you want from a shared
+     record when two people work one list and one of them later disagrees.
+
+     Deliberately NOT React state. The name is remembered per browser, and
+     initialising state from localStorage either renders differently on the
+     server than the client, or needs an effect that sets state during commit —
+     which cascades renders and which the lint rule is right to refuse. An
+     uncontrolled input sidesteps both: the server renders it empty, an effect
+     fills the DOM node (an external system, which is what effects are for),
+     and a click reads whatever is in it. */
+  const nameRef = useRef<HTMLInputElement>(null);
   /* Optimistic overlay: the server is the truth, but a tick has to look
      instant or a tester clicks it again — which is exactly how a verdict got
      lost in the artifact version. */
@@ -64,6 +78,13 @@ export function QaBoard({
 
   /* Poll for the other person's ticks. Paused while the tab is hidden — a
      background tab refreshing every four seconds all afternoon is rude. */
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("qa-actor");
+      if (saved && nameRef.current) nameRef.current.value = saved;
+    } catch { /* private mode — the field still works for this session */ }
+  }, []);
+
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
     const tick = () => {
@@ -90,7 +111,7 @@ export function QaBoard({
     });
     setBusy(id);
     const existing = byId.get(id)?.note ?? null;
-    await onMark(id, next, next ? existing : null, actor);
+    await onMark(id, next, next ? existing : null, nameRef.current?.value.trim() || null);
     setBusy(null);
     startTransition(() => router.refresh());
   }
@@ -117,7 +138,20 @@ export function QaBoard({
             {f === "all" ? "All" : f === "todo" ? "To go" : "Failures"}
           </button>
         ))}
-        <p className="ml-auto font-display text-[11px] uppercase tracking-[0.08em] text-ink-muted">
+        <label className="ml-auto flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] text-ink-muted">
+          <span className="font-display">You are</span>
+          <input
+            ref={nameRef}
+            defaultValue={initialName}
+            onChange={(e) => {
+              try { localStorage.setItem("qa-actor", e.target.value); } catch { /* ignore */ }
+            }}
+            placeholder="name"
+            aria-label="Your name, shown beside marks you make"
+            className="w-24 border-2 border-line bg-paper px-2 py-1 text-[12px] normal-case tracking-normal text-ink outline-none focus:border-accent"
+          />
+        </label>
+        <p className="font-display text-[11px] uppercase tracking-[0.08em] text-ink-muted">
           <span className="text-success">{count("pass")} pass</span>
           {" · "}
           <span className="text-rose-700">{count("fail")} fail</span>

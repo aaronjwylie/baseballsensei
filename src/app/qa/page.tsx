@@ -124,7 +124,7 @@ export default async function QaPage({
           <QaBoard
             phases={itinerary}
             initialMarks={marks}
-            actor=""
+            initialName=""
             onMark={setMarkAction}
           />
         </div>

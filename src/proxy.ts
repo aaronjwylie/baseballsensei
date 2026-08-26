@@ -16,10 +16,50 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/shared/auth/token";
 import { env } from "@/shared/config/env";
+import { QA_AUTH_COOKIE, QA_FLAG_COOKIE } from "@/domains/qa/model/qaEvent";
 import { HOME_FOR_ROLE, portalsFor, isOperatorSession } from "@/domains/account/model/session";
 import type { Role } from "@/domains/operator/model/operatorRoleEnum";
 
 /** HTTP Basic Auth over the whole site. Returns a 401 challenge, or null to pass. */
+/**
+ * Arm the QA probe for a browser that just proved itself at the front door.
+ *
+ * The probe posts to `/api/qa/events`, which sits OUTSIDE this gate — `/api`
+ * is excluded by the matcher — so the ingest genuinely needs its own key and
+ * keeps it. But a person who has already given the site's Basic Auth
+ * credentials is on the team by definition, and asking them for a second
+ * secret before their clicks are visible produced exactly one outcome: one
+ * tester watched and the other invisible, writing to the same record.
+ *
+ * So the cookie is set for them. It is the same value `/api/qa/session` sets,
+ * and everything downstream still validates it — this only removes a step that
+ * was asking authenticated people to authenticate again.
+ *
+ * Does nothing when `QA_TOKEN` is unset: no token, no instrumentation, nothing
+ * to arm.
+ */
+function armProbe(req: NextRequest, res: NextResponse): NextResponse {
+  const token = env.qaToken;
+  if (!token) return res;
+  if (req.cookies.get(QA_AUTH_COOKIE)?.value === token) return res;
+
+  res.cookies.set(QA_AUTH_COOKIE, token, {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: req.nextUrl.protocol === "https:",
+    maxAge: 60 * 60 * 8,
+  });
+  res.cookies.set(QA_FLAG_COOKIE, "1", {
+    path: "/",
+    httpOnly: false,
+    sameSite: "lax",
+    secure: req.nextUrl.protocol === "https:",
+    maxAge: 60 * 60 * 8,
+  });
+  return res;
+}
+
 function siteGate(req: NextRequest): NextResponse | null {
   const user = env.basicAuthUser;
   const pass = env.basicAuthPassword;
@@ -56,7 +96,7 @@ export async function proxy(req: NextRequest) {
   const isPortal = Object.values(HOME_FOR_ROLE).some((portal) => pathname.startsWith(portal));
 
   // Public pages have nothing more to check once the site gate has passed.
-  if (!isPortal && pathname !== "/login") return NextResponse.next();
+  if (!isPortal && pathname !== "/login") return armProbe(req, NextResponse.next());
 
   const verified = await verifySessionToken<unknown>(
     req.cookies.get(SESSION_COOKIE)?.value,
@@ -94,7 +134,7 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return armProbe(req, NextResponse.next());
 }
 
 export const config = {
