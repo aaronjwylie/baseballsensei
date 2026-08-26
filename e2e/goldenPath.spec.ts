@@ -39,8 +39,12 @@ test("customer: details → verify → upload → pay → confirmation → statu
     .getByRole("button", { name: "Continue to email verification" })
     .click();
 
-  // Step 2 — verify. The fixed code, because E2E_TEST=1 short-circuits generateCode.
-  await page.getByLabel("Verification code").fill(VERIFICATION_CODE);
+  // Step 2 — verify. The fixed code, because E2E_TEST=1 short-circuits
+  // generateCode. Wait for the panel first, so a step-1 stall fails here with a
+  // clear message rather than filling the code into the wrong field.
+  const codeField = page.getByLabel("Verification code");
+  await expect(codeField).toBeVisible();
+  await codeField.fill(VERIFICATION_CODE);
   await page.getByRole("button", { name: "Verify and continue" }).click();
 
   // Step 3 — upload. The file input is hidden inside the "empty" card's label;

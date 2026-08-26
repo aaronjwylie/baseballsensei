@@ -28,7 +28,12 @@ export async function setSignedCookie(
   const store = await cookies();
   store.set(name, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // Secure in production — except a Playwright run, which is a production
+    // build served over http://localhost, where a Secure cookie would never be
+    // sent back and the flow/session would silently break. `E2E_TEST` is set
+    // only by the e2e workflow, never a deployed environment.
+    secure:
+      process.env.NODE_ENV === "production" && process.env.E2E_TEST !== "1",
     sameSite: "lax",
     path: "/",
     maxAge: maxAgeSeconds,
