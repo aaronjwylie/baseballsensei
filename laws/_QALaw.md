@@ -142,36 +142,30 @@ to test the failures at all.**
 
 ### The record, the loop, and the watching
 
-**Q11 · One record, live and shared — not one per participant.**
+**Q11 · One record, live and shared — and hosted where the testers already are.**
 Two people run a pass and a third follows it. State kept in one browser is invisible to the other two,
-and a record that only settles at the end is no use while the run is happening. Whatever holds the
-marks must be **readable by everyone who needs it, as they are made** — including by someone with no
-checkout, which is why a link beats a file. *Evidence: a checklist built for a watcher to follow stored
-its marks in `localStorage`, where the watcher could not reach them — the one thing it existed to do.*
+and a record that only settles at the end is no use while the run is happening. **Build it into the
+product under test**: everyone who can reach the product can write it, marks appear for the others in
+seconds, and the probe already on every page instruments it for nothing (§6). *Evidence: a checklist
+built for a watcher to follow stored its marks in `localStorage`, where the watcher could not reach
+them — the one thing it existed to do. Its replacement, hosted elsewhere as a self-publishing
+document, cost a wiped stylesheet and a lost verdict before the same thing inside the product worked
+immediately.*
 
 > **The instrument and the record remove different narration.** The instrument says what happened, so
 > the tester need not describe their actions. The record says where the run is, so they need not
 > describe their position. Missing either, the tester ends up reading their session aloud, which is
 > slower than doing it alone.
 
-**The two jobs of §6 may want two homes, and usually do.** The cursor needs shared authenticated
-state — several people writing at once, everyone seeing it within seconds. The report needs to be
-readable by someone with no login at all. One artefact rarely does both well, and the attempt is
-expensive: **a document that republishes itself is the wrong shape for multi-writer live state.** Every
-tick becomes a new version, writers need granting individually, viewers can be pinned to an old copy,
-and the page must rebuild itself perfectly each time or it corrupts by degrees. *Evidence: a
-self-publishing record cost a wiped stylesheet, a verdict lost to a reload nobody expected, and an hour
-of sharing puzzles — before the same thing was rebuilt as one page and one table inside the product
-under test, where it worked immediately.*
-
-**So: put the cursor where the testers are already authenticated — the product itself is usually the
-cheapest such place — and publish the report separately when the pass is done.**
+**The report is a separate artefact, published at the end**, for whoever has no access to the product.
+One thing rarely does both jobs well, and forcing it is where the cost lands.
 
 **Q12 · A finding a gate could have caught becomes a gate, and the itinerary shrinks.**
 This is the loop that keeps QA from becoming ceremony. Every pass should end with two lists: what to
 fix, and **what should have been mechanical**. The second list is an amendment to
-[`_VerificationLaw`](_VerificationLaw.md)'s roster, and the corresponding check is then **deleted
-here**. An itinerary that never loses a line is one nobody is learning from.
+[`_VerificationLaw`](_VerificationLaw.md)'s roster, and the corresponding check is then **retired
+here** — struck through, keeping the verdicts already recorded against it, and offered no new ones
+(§6). An itinerary that never retires a line is one nobody is learning from.
 
 **Q13 · Someone must hold a view the testers do not.**
 Not for oversight — for triangulation (§7). A watcher reading the instrument, and where possible the
@@ -180,8 +174,8 @@ see meaning, which no log carries. **Staff the pass so at least two different ki
 the room**, because every disagreement between them is a finding neither would have produced alone.
 
 **Q14 · The itinerary and the record are one source and one generated output.**
-An itinerary that is edited and a record that is ticked are the same 166 facts written twice, and the
-pair drifts the first time either is touched — which is guaranteed, because Q12 removes checks and
+An itinerary that is edited and a record that is ticked are the same facts written twice, and the pair
+drifts the first time either is touched — which is guaranteed, because Q12 removes checks and
 findings add them **while the pass is running**. So: the itinerary is the source, the record is built
 from it by a script, and **nothing is hand-copied between them**. Two properties make that safe to run
 mid-pass:
@@ -195,30 +189,30 @@ mid-pass:
 error, never a skip — a quietly dropped check makes the record claim *less* than the itinerary
 promises, in the one direction nobody audits.
 
-**Q15 · Instrument the record too, as far as its host allows — and say where it cannot be.**
+**The generator is also where §6's id rules are enforced**, because it is the only place that sees the
+itinerary's previous state and its next one at once. It keeps a **ledger** beside the itinerary — every
+id ever issued, its current wording, its previous wordings, whether it is retired — and fails the build
+on a deletion, on a reused id, or on a rewording it was not allowed to record. Rules a person has to
+remember are rules that hold until the afternoon everyone is busy, which is the afternoon of the pass.
+
+**Q15 · Instrument the record too — by hosting it where the instrument already runs.**
 The record is a surface people use, and how they used it is evidence: which phase was being read, a
 tick someone changed their mind about, a filter to failures that says the run has moved from testing to
 reviewing. A verdict with no account of how it was reached is thinner than it looks.
 
-**The cheapest way to instrument the record is to put it on the instrumented surface.** A record hosted
-elsewhere — a sandboxed viewer, a wiki, a spreadsheet — usually cannot report at all: it cannot reach
-your ingest, so its trail has to ride inside whatever the record itself saves, arriving later and
-coarser, with gaps you must **write down rather than imply**. A record living inside the product under
-test has none of that problem: the probe already on every page covers it, and the record's clicks and
-the product's clicks land in one log, in order, which is what makes a session readable as a single
-story. Q5 applies either way: which check a note belongs to, never a word of it.
+**A record inside the product needs nothing extra.** The probe on every page covers it, so the
+record's clicks and the product's clicks arrive in one log, in order — which is the whole argument for
+putting it there. **A record hosted elsewhere usually cannot report at all**: it cannot reach your
+ingest, so its trail must ride inside whatever the record itself saves, arriving later and coarser,
+with gaps you must **write down rather than imply**. Q5 applies either way: which check a note belongs
+to, never a word of it.
 
-**The version is part of this.** A shared record acquires copies — a pinned link, a stale tab, a
-downloaded page — and every question about a finding then starts with *which version were you looking
-at?* That question has to be answerable at a glance.
-
-**But do not invent a second numbering if the host already has one.** Two schemes side by side are two
-names for one thing, and the one you control is the one that will be wrong. It is worse than that for a
-record that publishes itself: the host assigns a version *at publish*, after the page is written, so a
-number baked into the page cannot include its own — and every time a viewer's tick republishes the
-page, it carries the old stamp while the host increments underneath it. **Use the host's version, and
-spend your effort on naming it**: a label saying what changed is worth more beside a version row than a
-number repeated in two places. Stamp your own only where the host offers none.
+**And it must say which itinerary it is showing.** A record acquires copies — a stale tab, an old
+deploy, a downloaded page — and every question about a finding otherwise begins with *which version
+were you looking at?* A page served from a deploy can answer that honestly, because what is on screen
+is what was built. A document that rewrites itself cannot: it carries whatever stamp was baked in while
+its host moves on. Where the host already numbers things, use its number and spend your effort naming
+it; where it does not, stamp your own.
 
 ---
 
@@ -267,39 +261,99 @@ acknowledged gap ([PRINCIPLES §10](../PRINCIPLES.md)) — the same rule the gat
 
 ---
 
-## 6 · The record has two jobs, and they are not the same job
+## 6 · The record: build it inside the product under test
 
-**During the pass it is a shared cursor. Afterwards it is the report.** Most records are built for the
-second job and are then useless for the first, which is the more demanding of the two.
+**During the pass the record is a shared cursor; afterwards it is the report.**
+Most records are built for the second job and are then useless for the first, which is the more
+demanding of the two.
 
-### During — the cursor
+### Put the cursor on the product
 
-A pass is long, is run by more than one person, and is watched by someone who is not clicking. What
-holds it together is a surface all of them can see:
+The record needs several people writing at once, everyone seeing it within seconds, and no ceremony
+between a decision and its being written down. That is an application, not a document — and the
+cheapest application you have is **the one already under test**. A temporary page inside it gets, for
+free, everything a hosted document makes you build or beg for:
 
-- **Live.** A mark by one participant reaches the others in seconds, not at the end. Without that, two
-  testers re-run each other's checks and neither notices.
-- **Reachable by a link.** The person following may have no repository, no editor and no local copy. A
-  file in the source tree fails this test precisely when it matters — a designer, a client, or a second
-  pair of eyes brought in for an hour.
-- **Navigable.** Eleven phases and a few hundred checks; jumping to a phase has to be one click, and it
-  has to be obvious which phase is finished.
-- **Showing what is LEFT, not only what is done.** Remaining is the number that decides whether to
-  carry on, break, or stop — and it is the one a checklist usually omits.
-- **Cheap to update.** A tick. Anything heavier and the record silently stops matching the run, which
-  is worse than no record because it is believed.
-- **Honest about where it stores things.** A record that says "shared" while writing to one browser is
-  a lie in the direction of safety. Say which mode it is in, on the page.
+| | A document hosted elsewhere | A page in the product |
+| --- | --- | --- |
+| **Who may write** | granted per person, by whoever owns it | whoever is already through the product's own gate |
+| **Saving** | republish the whole thing | an ordinary write |
+| **Seeing each other** | reload, if not pinned to an old copy | seconds, automatically |
+| **Versioning** | a number the document cannot honestly hold | it is a deploy, like everything else |
+| **Instrumentation** | its own, coarser, later (Q15) | **the probe already on every page** |
 
-### Afterwards — the report
+That last row is the one that decides it. A record inside the product is instrumented by the same
+probe as the product, so **the record's clicks and the product's clicks land in one log, in order** —
+and a session reads as one story rather than two that have to be aligned by hand.
 
-The same document, read cold by someone who was not there:
+> **A document that republishes itself is the wrong shape for multi-writer live state.** Every tick
+> mints a version, writers are granted one at a time, readers can be pinned to an old copy, and the
+> page must rebuild itself perfectly each time or it corrupts by degrees. *Evidence: one cost a wiped
+> stylesheet, a verdict lost to a reload nobody expected, and an afternoon of sharing puzzles — then
+> worked immediately when rebuilt as one page and one table inside the product.*
 
-- **Carries the ids** (Q7), so a finding and its check are the same thing.
-- **Distinguishes not-yet-run from passed**, so a resumed pass starts in the right place.
-- **Lets a failure carry a sentence.** A failed check with no note is a finding nobody can act on.
-- **Filters to the failures**, because that view is the actual output of the pass.
-- **Names what was skipped and why** — an unexercised check recorded as passed is the one outcome that
+### What the page needs
+
+- **A gate that matches the protection already there.** If the product is behind a login or a holding
+  gate, that is who may write the record; asking those people for a second secret is friction that
+  buys nothing. If the product is public, the record needs its own key. **With neither, it must not
+  exist** — a public list of every check in a product is a map of where to look. Make the rule one
+  function that the page and the write path both call: two answers to *may you write this?* is how a
+  page lets someone tick a box that then quietly does nothing.
+- **State in a table, not a document.** One row per check, the check id as the key. Two people marking
+  the same row is a correction, not a conflict — last writer wins, and nobody is asked to resolve a
+  merge mid-pass.
+- **Polling is enough.** A few seconds is well inside what two people working a list need, and a
+  socket is machinery for a page built to be deleted.
+- **Optimistic marks.** A tick must look instant or it gets clicked again, which un-ticks it.
+- **It says who.** A verdict with no author is half a record the moment two people disagree about it.
+- **A teardown, written when it is built.** The page and its tables go when the pass is over. A
+  temporary page nobody removed is a permanent page nobody designed.
+
+### Instrumentation: piggyback, then add the one thing that cannot be piggybacked
+
+The probe is already loaded on this page, so ticks, filters and phase navigation arrive in the log
+beside the product's own events with no new code (Q15). Two things it will not tell you, because they
+are not interactions:
+
+- **Who gave the verdict**, if the record's gate is a shared one. A shared secret makes everyone
+  anonymous, and a verdict nobody owns is one nobody can be asked about. Take a name and store it on
+  the mark.
+- **What a failure was.** A click says a box was ticked; only a note says what went wrong. Make the
+  note part of marking a failure rather than a field beside it.
+
+Everything else — the phase someone was reading, a tick reversed a minute later, the moment the run
+turned from testing to reviewing — the probe already has, and it has it **in the same stream as the
+product's clicks**, which is what makes a session readable as one story.
+
+### Ids are permanent, and the build enforces it
+
+A record that outlives a single afternoon needs its ids to mean one thing forever (Q7). Three rules,
+mechanical rather than remembered:
+
+- **A check is retired, never deleted.** Deleting frees the id for reuse, and a reused id makes every
+  verdict recorded against the old check silently describe the new one — **the one way a QA record can
+  lie with nobody editing it.** Retired checks stay visible, struck through, keeping their verdicts,
+  and are not offered fresh ones.
+- **An id is never reused.** One that was retired and returns saying something different is a new
+  check wearing an old name. Refuse it; make the author take a new number.
+- **A rewording leaves a breadcrumb.** *"5.4 passed"* means something different if 5.4 used to say
+  something else, so keep the previous wordings and show them on the row.
+
+Keep this in a **ledger beside the itinerary**, in version control, so its history is reviewable the
+same way the checks are — and have the build fail on a violation rather than trusting anyone to
+remember.
+
+### The report, afterwards
+
+The same content, read cold by someone who was not there, and **usually somewhere else** — a person
+reviewing a pass may have no login to the product at all. Publish it when the pass is done. It must:
+
+- **Carry the ids** (Q7), so a finding and its check are the same thing.
+- **Distinguish not-yet-run from passed**, so a resumed pass starts in the right place.
+- **Let a failure carry a sentence.** A failed check with no note is a finding nobody can act on.
+- **Filter to the failures**, because that view is the actual output of the pass.
+- **Name what was skipped and why** — an unexercised check recorded as passed is the one outcome that
   makes the whole document untrustworthy.
 
 > **The record is not a bug tracker and should not become one.** It says what happened during a pass.
@@ -393,6 +447,11 @@ The order that works:
 3. **Write the itinerary as you go**, giving every check an id from the first one.
 4. **At the end, split the findings** into *fix this* and *this should have been mechanical*.
 5. **Then write your Documentation** — the itinerary, the probe, the roster of what a pass has caught.
+
+**And build the record last, not first.** It is tempting to start with the pretty checklist; the pass
+does not need one until there is something to record. Build the instrument, prove it sees, write the
+itinerary, and let the record be the smallest page that holds verdicts — inside the product, where the
+gate and the instrument already are.
 
 ---
 

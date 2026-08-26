@@ -59,113 +59,142 @@ everything on its own (Q6).
 
 | Thing | Where |
 |---|---|
-| The itinerary | [`docs/qa/itinerary.md`](../docs/qa/itinerary.md) — 168 checks, eleven phases |
-| The record | A published artifact — tickable, shared, notes on failure |
+| The itinerary — the source | [`docs/qa/itinerary.md`](../docs/qa/itinerary.md) — 168 checks, twelve phases |
+| The ledger — every id ever issued | [`docs/qa/ledger.json`](../docs/qa/ledger.json) |
+| The record — the live cursor | [`/qa`](../src/app/qa/page.tsx), a temporary page on the site itself |
 | Phase 0 helpers | [`docs/qa/phase-0.sql`](../docs/qa/phase-0.sql) |
 
 **Its sibling is [`docs/qa/qa-plan.md`](../docs/qa/qa-plan.md)**, which is the automation strategy —
 what CI should gate. The two are cross-linked and answer different questions. Q12 moves lines from the
-itinerary into that plan; **a check automated there is deleted here.**
+itinerary into that plan; **a check automated there is retired here, never deleted** — it keeps the
+verdicts already recorded against it and is offered no new ones.
 
-### The record lives at `/qa`, on the site
+### The record is a temporary page inside the product
 
 | Piece | Where |
 |---|---|
-| The page | [`src/app/qa/page.tsx`](../src/app/qa/page.tsx) — 404 without `QA_TOKEN` and the arming cookie |
+| The page | [`src/app/qa/page.tsx`](../src/app/qa/page.tsx) — server component, three access outcomes |
+| The gate | [`src/domains/qa/api/qaAccess.ts`](../src/domains/qa/api/qaAccess.ts) |
 | The board | [`src/domains/qa/ui/QaBoard.tsx`](../src/domains/qa/ui/QaBoard.tsx) |
-| The state | `qa_mark` — one row per check, check id as the primary key |
-| The itinerary | `model/itinerary.json`, emitted by `npm run qa:build` from the markdown |
+| The state | `qa_mark` — one row per check, **check id as the primary key** |
+| The checks it renders | `src/domains/qa/model/itinerary.json`, emitted by `npm run qa:build` |
 
-**Both testers are already authenticated** by the site's own gate, so there is nobody to grant and
-nothing to share. Marks are last-writer-wins: two people ticking one row is a correction, not a
-conflict. The page polls every four seconds (paused when the tab is hidden), which is ample for two
-people working a list and far less machinery than a socket for a page built to be deleted.
+It is a page in the app under test, which is the whole point: it is already deployed, already gated,
+already instrumented, and it is deleted with its table when the pass ends — the teardown the law asks
+for at build time is recorded in [`docs/OUTSTANDING.md`](../docs/OUTSTANDING.md).
 
-**It is instrumented by the same probe as every other page** — the record's clicks and the product's
-clicks land in one log, in order. That is the argument for putting it here rather than anywhere else,
-and it is now Q15's preferred answer.
+**The gate follows the protection that is already there** (§6). While the site sits behind HTTP Basic
+Auth, anyone who reached `/qa` at all has passed it, and asking them for a second secret buys nothing —
+so `qaAccess()` returns `granted`. Once Basic Auth is lifted the page falls back to its own key,
+`QA_TOKEN`, held in a `qa_auth` cookie. With neither set the page **404s** rather than existing
+unprotected, because a public list of every check in the product is a map of where to look.
 
-**The artifact is not retired; it changed jobs.** It is the *report* — shareable with anyone who has no
-login, published when the pass is done. The site page is the *cursor*. §6 always said the record has two
-jobs; it turned out they wanted two homes.
+```
+Basic Auth on   →  granted        (the site's gate is the record's gate)
+QA_TOKEN set    →  needs-token    (?token=… → /api/qa/session → cookie → /qa)
+neither         →  absent         (404 — the page does not exist)
+```
 
-### What the artifact version cost, before that was clear
+`/api/qa/session` exists because a Server Component may not set a cookie during render; the route
+validates the token and a same-site `?next=`, then redirects. **The page and the write path call the
+same `qaAccess()`** — two answers to *may you write this?* is how a board lets someone tick a box that
+then quietly does nothing.
 
-Recorded because Q11 now cites it: a self-publishing document had to rebuild itself perfectly on every
-tick, and did not — one careless selector wrote the platform's reset stylesheet out as the whole
-stylesheet and the page came back unstyled. A tick that saved correctly reloaded the view two seconds
-later, which read as failure, so it was clicked again and the verdict lost. Writers had to be granted
-one at a time; readers could be pinned to an old version. None of those exist on a page in the app.
+**Sync, without ceremony.** Marks are last-writer-wins on the check id: two people ticking one row is a
+correction, not a conflict, and nobody is asked to resolve a merge mid-pass. The board polls
+`router.refresh()` every four seconds, paused when the tab is hidden. A tick paints immediately and the
+optimistic overlay is reconciled **at render**, not in an effect, so a slow write never un-ticks itself
+under the tester's cursor. **Verified in both directions** on 2026-08-26 with two testers on separate
+machines.
+
+**It says who.** The gate is shared, so a mark would otherwise be anonymous; the board carries a name
+field and stores it on the row. A verdict nobody owns is one nobody can be asked about.
+
+### Ids are permanent, and `qa:build` enforces it
+
+Q12 guarantees the itinerary changes *while the pass is running*, so the ids have to mean one thing
+afterwards. Three rules, all mechanical — `npm run qa:build` fails rather than trusting anyone to
+remember them mid-pass:
+
+| Rule | What the build does |
+|---|---|
+| A check is **retired, never deleted** | an id in the ledger that vanishes from the markdown fails the build: *"…has been deleted. Retire it instead — strike the text through with `~~…~~`"* |
+| An id is **never reused** | a retired id that returns with different wording fails the build |
+| A rewording **leaves a breadcrumb** | the previous wording is appended to that id's `history[]` and shown on the row |
+
+Retirement is a markdown convention, so it lives in the source: `~~struck through~~` renders the row
+with a line through it and a **Retired** badge, keeping any verdict already recorded and disabling the
+buttons unless it is already marked. A reworded check shows a `<details>` disclosure — *"Reworded N× — a
+verdict given earlier was against different words"* — because *"5.4 passed"* means something different
+if 5.4 used to say something else.
+
+[`docs/qa/ledger.json`](../docs/qa/ledger.json) holds every id ever issued with its wording, its
+history, and its retired flag. All three guarantees were tested by deliberately breaking the itinerary,
+then restored: **168 ids, 0 retired, 0 edited** at Build 13.
+
+### The version stamp
+
+The page's header reads, server-rendered from the deploy:
+
+```
+Itinerary · Build 13 · Generated 2026-08-26 22:00Z · Checks 168 live [· N retired · N reworded]
+```
+
+It is honest **because the page is server-rendered from a build**: what is on screen is what was
+generated, so a stale tab shows a stale number rather than a fresh one. That is the property a
+self-rewriting document could not have — its stamp is written before the publish that assigns the
+version.
 
 ### The pipeline (Q14)
 
 ```
-docs/qa/itinerary.md   ──  npm run qa:build  ──▶  docs/qa/qa-run.html  ──▶  published artifact
-       (source)                    │                    (generated)
-                                   └── marks read back from the live artifact and merged by id
+docs/qa/itinerary.md  ──  npm run qa:build  ──▶  src/domains/qa/model/itinerary.json  ──▶  /qa
+      (source)                    │                          (generated)
+                                  ├──▶  docs/qa/ledger.json   (id permanence, history, retirement)
+                                  └──▶  docs/qa/qa-run.html   (the shareable report, published at the end)
 ```
 
-`docs/qa/template.html` is the page with the data punched out; `scripts/qa-build.mjs` parses the
-itinerary's tables and fills it. **Edit the markdown, run `npm run qa:build`, republish.** Nothing is
-hand-copied, and `npm run qa:check` parses without writing so a pull request can say whether the
-itinerary still reads.
+**Edit the markdown, run `npm run qa:build`, deploy.** Nothing is hand-copied. `npm run qa:check` parses
+without writing, so a pull request can say whether the itinerary still reads.
 
-**Two conventions the build reads out of the markdown**, so flags live in the source too: an
-expectation opening **⚠️** becomes a *Watch* badge (a decision to ratify, or a failure that hurts), and
-one opening **✅** becomes *Settled*. 19 and 6 of them respectively today.
+**Marks survive a rebuild** — they live in `qa_mark`, keyed by check id, entirely outside the generated
+file, so editing the itinerary mid-pass cannot cost anyone a verdict. A mark whose check has been
+retired is still shown, on its struck-through row, rather than dropped.
 
-**Marks are merged, not overwritten.** The build takes the live marks — read back from the published
-artifact — and carries them across by id, reporting any whose check has gone rather than dropping it.
-That is what makes it safe to edit the itinerary mid-pass, which Q12 guarantees will happen.
+**The generator refuses to guess.** A row that looks like a check but will not parse is a hard error,
+never a skip. Two conventions are read out of the markdown so flags live in the source too: an
+expectation opening **⚠️** becomes a *Watch* badge (a decision to ratify, or a failure that would hurt)
+and one opening **✅** becomes *Settled* — 19 and 6 of them today.
 
 **Before the pipeline existed the checks were written twice**: as tables in the markdown and as a
-hand-transcribed array inside the artifact. They agreed for exactly as long as nobody edited either.
-That is the evidence behind Q14.
+hand-transcribed array in the record. They agreed for exactly as long as nobody edited either. That is
+the evidence behind Q14.
 
-### The record is instrumented too (Q15)
+### The record is instrumented by the site's own probe (Q15)
 
-The page keeps a bounded trail of how it was used — opened, which phase is being read, jumps from the
-rail, filter changes, marks and un-marks, and *that* a note was started on a check (never a word of it).
-`npm run qa:trail -- <saved-artifact.html>` prints it in the reader's timezone.
+**Nothing was added.** `/qa` is a page in the app, so the probe that is on every other page is on it,
+and the record's clicks arrive in `/api/qa/events` **in the same stream, in order** as the product's
+clicks. A session reads as one story: tick 3.4, open the flow, submit, fail, tick 3.5 fail with a note.
+That single stream is the argument for putting the record here rather than anywhere else, and it is now
+Q15's preferred answer.
 
-**It cannot report the way the app does, and the difference is structural.** The viewer sandbox blocks
-requests to other hosts, so there is no posting to `/api/qa/events`: the trail rides along in the state
-the page already publishes and reaches the watcher when the page is next read.
+The probe reports interactions by accessible name, so the trail carries which phase was being read, a
+tick reversed a minute later, a filter to failures that says the run has turned from testing to
+reviewing — and, per Q5, *that* a note was typed on a check, never a word of it. `npm run qa:tail`
+prints the stream in the reader's timezone.
 
-**What it cannot see** — a session that never publishes. Somebody reading the record without marking
-anything leaves no trace at all. That is a blind spot, not a gap to be closed later.
+**It self-arms.** `src/proxy.ts` sets the `qa_auth` and `qa_on` cookies once a request has passed Basic
+Auth, so a tester does not have to be talked through turning the instrument on before the pass can
+start.
 
-**Versions are the host's, not ours.** A build counter was added and then removed within the hour: the
-artifact host already numbers every publish and shows it in a picker, and a second scheme beside it is
-two names for one thing. It could not have been kept honest anyway — the version is assigned at publish,
-after the file is written, and a tick that republishes the page carries the old stamp while the host
-increments underneath it. Each publish gets a **label** instead, so the picker row says what changed.
+**What it still cannot see** — a session that only reads. Someone scrolling the record without clicking
+anything leaves no trace. That is a blind spot, not a gap to be closed later.
 
-### The record is a published artifact, and it does both of §6's jobs
+### The report, afterwards
 
-**As the cursor, during the run.** A link — no checkout, no editor, nothing to install — that two
-testers and a watcher hold open at once. Ticking a check embeds the marks in the page and republishes
-it, and every open view reloads to the result, so a mark made by one person is on everyone's screen
-within seconds. It carries live counts (**pass · fail · skip · to go**), a phase rail that goes green
-when a phase is clean and red when something in it failed, and a filter down to what is left. The
-toolbar states which mode it is in — **Shared**, **Saving…**, **Local only**, **Read-only** — because a
-record claiming to be shared while writing to one browser is a lie in the direction of safety.
-
-**As the report, afterwards.** The same page, filtered to failures, with each failure carrying the
-sentence its tester wrote and every check still bearing its id.
-
-Three implementation notes worth keeping:
-
-- **Ticks are batched.** A publish reloads the view, so one per click would be unusable; a burst
-  collapses into a single publish about a second after the last one, and scroll position survives it.
-- **A conflict is expected, not an error.** Two testers ticking at once means one wins and both views
-  reload to it. The page does nothing about it, which is the correct handling.
-- **It regenerates itself from authored source**, never by serialising the DOM — the live DOM carries
-  injected runtime scripts. The round-trip was proven idempotent across three hops before it shipped,
-  because a page that rewrites itself imperfectly corrupts itself slowly.
-
-**The first version stored marks in `localStorage`**, where the watcher — the entire reason it
-existed — could not read them. That is the evidence behind Q11 and is cited in the law.
+`qa:build` also emits [`docs/qa/qa-run.html`](../docs/qa/qa-run.html): the same checks, standalone,
+publishable to whoever has no login to the site. It is the *report* — §6's second job — and it is
+published when the pass is done, not ticked during it. The site page is the *cursor*.
 
 ---
 
@@ -175,7 +204,7 @@ existed — could not read them. That is the evidence behind Q11 and is cited in
 |---|---|---|
 | The screen | Ben, Aaron | the product itself |
 | The instrument | Claude | `npm run qa:tail` — every action, refusal and failed request |
-| The record | all three | the shared artifact — verdicts and what is left |
+| The record | all three | `/qa` on the site — verdicts and what is left, live for everyone |
 | **The system's state** | Claude | production Postgres over `PROD_DATABASE_URL`, read-only |
 
 **The fourth view is what closes the loop.** A tester clicks *assign a coach*; the instrument confirms
@@ -185,7 +214,7 @@ kinds of evidence for one action, with nobody narrating.
 ⚠️ **`PROD_DATABASE_URL` is production.** It is deliberately not `DATABASE_URL` — for a period both
 names were set in `.env.local` and the second won, which pointed `npm run simulate`, `flow`, `db:seed`
 and `test:integration` at the live database. Those create *and delete* rows. The watcher's fourth view
-is read-only by discipline, not by credential, and that is a known limit (§5).
+is read-only by discipline, not by credential, and that is a known limit (§6).
 
 ---
 
@@ -223,7 +252,52 @@ whether it became a gate under Q12.)*
 
 ---
 
-## 5 · Known limits of this pass
+## 5 · Where we came from
+
+Past tense, append-only. Each of these is cited as evidence in a rail of the law, which is why it is
+kept rather than tidied.
+
+### The record was a `localStorage` checklist — retired 2026-08-26
+
+The first version stored its marks in the tester's own browser, where the watcher — the entire reason
+it existed — could not read them. It did the one thing it was built to do in the one place nobody
+else could see. **Evidence behind Q11.**
+
+### The record was a published artifact — retired 2026-08-26
+
+Its replacement was a self-publishing document, hosted outside the product: a link two testers and a
+watcher held open at once, which embedded its marks in its own HTML and republished itself on every
+tick. The idea was sound and the shape was wrong, in four ways that a page inside the product does not
+have:
+
+- **It had to rebuild itself perfectly on every tick, and did not.** One careless selector —
+  `document.querySelector("style")` — matched the platform's injected reset rather than the page's own
+  stylesheet, and wrote the reset out as the whole stylesheet. The record came back unstyled.
+  *(`scripts/qa-selfpublish-check.mjs` survives from this: it asserts the round-trip is idempotent
+  before anything is published.)*
+- **A save reloaded the view.** A tick that had in fact saved reloaded two seconds later, which read
+  as a failure, so it was clicked again — and the second click un-ticked it. A verdict was lost this
+  way before the cause was understood.
+- **Writers were granted one at a time, and readers could be pinned to an old copy.** Getting the
+  second tester write access was a support question in the middle of a QA run.
+- **It could not honestly say which version it was.** The host assigns a version at publish, *after*
+  the file is written, so a page that republishes itself always carries the previous stamp. A build
+  counter was added, removed as duplicative of the host's numbering, then restored — and only settled
+  once the record moved somewhere server-rendered, where the number on screen is the number that was
+  built.
+
+It also could not report to `/api/qa/events` at all: the viewer sandbox blocks requests to other
+hosts, so its trail had to ride inside the state it published and arrived later and coarser than the
+product's own. **Evidence behind Q11 and Q15**, both of which now name the in-product page as the
+answer.
+
+**The artifact is not gone; it changed jobs.** `qa:build` still emits `docs/qa/qa-run.html`, which is
+the *report* for whoever has no login — §6's second job, published once at the end. What moved into
+the product was the *cursor*.
+
+---
+
+## 6 · Known limits of this pass
 
 Stated because coverage claimed but not exercised is worse than an acknowledged gap.
 

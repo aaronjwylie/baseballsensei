@@ -185,6 +185,14 @@ changelog would be written by the three people who already know.
 shipped when across 242 untagged commits is the expensive half; tagging forward costs seconds. *Offered
 2026-08-26, not yet taken up.*
 
+**Tear down the QA page when the pass is over** (2026-08-26). `/qa` is deliberately temporary — a page
+inside the product, which is why it works (`_QALaw` §6) and also why it must not become permanent
+furniture. When the pass closes, delete in one commit: `src/app/qa/`, `src/domains/qa/ui/QaBoard.tsx`,
+`src/app/api/qa/session/`, the `qa_mark` table (a migration), and the `QA_TOKEN` env var in Vercel.
+**Keep** the probe, `docs/qa/itinerary.md`, `docs/qa/ledger.json`, and the published
+`docs/qa/qa-run.html` report — those are the record, not the scaffolding. Written now, while it is
+obvious what is scaffolding and what is not.
+
 ---
 
 ## 7 · Deferred by choice
