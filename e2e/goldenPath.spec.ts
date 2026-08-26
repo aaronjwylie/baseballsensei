@@ -42,10 +42,10 @@ test("customer: details → verify → upload → pay → confirmation → statu
   // Step 2 — verify. The fixed code, because E2E_TEST=1 short-circuits
   // generateCode. Wait for the panel first, so a step-1 stall fails here with a
   // clear message rather than filling the code into the wrong field.
-  const codeField = page.getByLabel("Verification code");
+  // Target the input by its placeholder — its label is sr-only, and getByLabel
+  // was resolving to the hidden <label>, not the field.
+  const codeField = page.getByPlaceholder("123456");
   await expect(codeField).toBeVisible();
-  // Type it — this input transforms on each keystroke, and `fill` sets the value
-  // without driving that onChange, so the button never enables.
   await codeField.click();
   await codeField.pressSequentially(VERIFICATION_CODE);
   const verifyButton = page.getByRole("button", { name: "Verify and continue" });
