@@ -102,8 +102,15 @@ export function QaProbe() {
         return `${el.tagName.toLowerCase()}${text ? ` (near "${text}")` : " (no target)"}`;
       }
       const tag = node.tagName.toLowerCase();
+      /*
+        A `<select>`'s innerText is every option it contains, so reading it
+        produced `select "Not sure / general Hitting Pitching Fielding…"` — the
+        whole menu, for a click that chose none of it. The field's name is what
+        identifies it; which option was chosen arrives separately as a `field`
+        event.
+      */
       const text = (node.getAttribute("aria-label") ||
-        (node as HTMLElement).innerText ||
+        (tag === "select" ? node.getAttribute("name") : (node as HTMLElement).innerText) ||
         node.getAttribute("title") ||
         node.getAttribute("name") ||
         "")
@@ -262,6 +269,50 @@ export function QaProbe() {
       originalError(...args);
     };
 
+    /*
+      Rendered errors, which are the ones that matter here.
+
+      This app reports failure by putting a message on the screen: a server
+      action answers `{ ok: false, error }` over **HTTP 200**, and the flow
+      renders it into a `role="alert"`. Nothing about that is a window error, a
+      console line, or a failed request — so the first real run showed a
+      customer submitting a verification code and then, as far as the log was
+      concerned, simply stopping. The most common failure mode in the whole
+      product was the one thing the instrument could not see.
+
+      An observer watches for alerts appearing anywhere and records their text.
+      Text, not values: an alert says what went wrong, and what went wrong is
+      exactly what a QA log is for.
+    */
+    const seenAlerts = new WeakSet<Element>();
+    const reportAlert = (el: Element) => {
+      if (seenAlerts.has(el)) return;
+      seenAlerts.add(el);
+      const text = (el as HTMLElement).innerText?.replace(/\s+/g, " ").trim();
+      if (text) push("error", { target: `shown: ${text.slice(0, 200)}` });
+    };
+
+    const scanForAlerts = (root: ParentNode) => {
+      try {
+        if (root instanceof Element && root.getAttribute?.("role") === "alert") {
+          reportAlert(root);
+        }
+        root.querySelectorAll?.('[role="alert"]').forEach(reportAlert);
+      } catch {
+        /* never interfere with rendering */
+      }
+    };
+
+    const alertObserver = new MutationObserver((records) => {
+      for (const record of records) {
+        record.addedNodes.forEach((n) => {
+          if (n.nodeType === 1) scanForAlerts(n as Element);
+        });
+      }
+    });
+    alertObserver.observe(document.body, { childList: true, subtree: true });
+    scanForAlerts(document);
+
     push("nav", { target: lastPath, detail: "run started" });
 
     document.addEventListener("click", onClick, true);
@@ -282,6 +333,7 @@ export function QaProbe() {
       window.removeEventListener("unhandledrejection", onRejection);
       window.removeEventListener("hashchange", watchPath);
       document.removeEventListener("visibilitychange", onHide);
+      alertObserver.disconnect();
       clearInterval(pathTimer);
       clearInterval(flushTimer);
       console.error = originalError;
