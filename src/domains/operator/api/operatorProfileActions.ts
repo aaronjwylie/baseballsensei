@@ -116,7 +116,11 @@ export async function updateProfiledOperatorAction(
   const languages = languagesForChoice(
     readLanguageChoice(formData.get("languages"), DEFAULT_LANGUAGE_CHOICE),
   );
-  const isActive = formData.get("isActive") === "on";
+  // The edit form has no "active" toggle, so an absent field must mean "leave it
+  // as it is", not "deactivate". Reading it as `=== "on"` set isActive=false on
+  // every save — which, now that login enforces `operator.isActive`, silently
+  // locked operators out. Only touch it when the form actually carries it.
+  const activeField = formData.get("isActive");
   const password = String(formData.get("password") ?? "");
   const bio = String(formData.get("bio") ?? "").trim();
 
@@ -145,7 +149,8 @@ export async function updateProfiledOperatorAction(
 
   try {
     await updateProfiledOperator(id, role, {
-      name, email, specialties, languages, isActive, bio,
+      name, email, specialties, languages, bio,
+      ...(activeField !== null ? { isActive: activeField === "on" } : {}),
       ...(password ? { password } : {}),
       ...(imageUrl ? { imageUrl } : {}),
     });
