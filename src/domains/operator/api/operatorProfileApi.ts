@@ -162,7 +162,18 @@ export async function getByRole(id: string, role: Role): Promise<OperatorProfile
  * several: arriving from the admins tab must not hide that they are a coach.
  */
 export async function getOperatorProfile(id: string): Promise<OperatorProfile | null> {
-  const [row] = await profileQuery().where(eq(operatorTable.id, id)).limit(1);
+  // Left join, not `profileQuery`'s inner one: this loads the edit page, and an
+  // admin has no profile row — inner-joining it turned "edit this admin" into a
+  // 404. A null profile reads as empty fields through `toProfile`.
+  const [row] = await db
+    .select()
+    .from(operatorTable)
+    .leftJoin(
+      operatorProfileTable,
+      eq(operatorProfileTable.operatorId, operatorTable.id),
+    )
+    .where(eq(operatorTable.id, id))
+    .limit(1);
   return row ? toProfile(row.operator, row.operator_profile, true) : null;
 }
 
@@ -270,8 +281,11 @@ export async function updateProfiledOperator(
   // An admin reset — no current-password check; the admin's authority is the guard.
   if (password) await setOperatorPassword(id, password);
 
-  const updated = await getByRole(id, role);
-  if (!updated) throw new Error(`${role} ${id} vanished mid-update`);
+  // By id, not by role: `getByRole` inner-joins the profile, so editing a
+  // profile-less admin threw "vanished mid-update" the moment the update itself
+  // succeeded. The row we just wrote is what we want back, whatever their kind.
+  const updated = await getOperatorProfile(id);
+  if (!updated) throw new Error(`operator ${id} vanished mid-update`);
   return updated;
 }
 
