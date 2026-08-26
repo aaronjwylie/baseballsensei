@@ -33,7 +33,7 @@ const checkOnly = args.includes("--check");
 const marksFile = args[args.indexOf("--marks") + 1];
 /* The same string is passed to the publish, so the page and the host's version
    picker carry identical text. Matching them needs no version number. */
-const buildLabel = args.includes("--label") ? args[args.indexOf("--label") + 1] : "unlabelled build";
+const VERSION = join(ROOT, "docs/qa/version.json");
 
 /* ── Parse ────────────────────────────────────────────────────────────────
    Deliberately strict. A row that looks like a check but cannot be read is a
@@ -196,14 +196,27 @@ console.log(`[qa:build] ${marked} mark(s) carried over` + (orphans.length ? `, $
 
 if (checkOnly) process.exit(0);
 
-/* No build number of our own.
+/* An incrementing build number, stamped in the masthead.
+
+   Tried and dropped once in favour of matching the host's version, then
+   brought back: the host's number is not knowable at build time, and a build
+   number that is ours answers the only question being asked — "are we both
+   looking at the thing you just published?" — without pretending to be the
+   host's. The publish also carries a label, so the picker row says what
+   changed. Two identifiers for two different jobs, not two for one.
+
+   Superseded note kept for the record:
    The host already versions every publish and shows it in a picker, and a
    second scheme beside it is two names for one thing — the drift this project
    spends its nomenclature law preventing. It cannot be mirrored honestly
    either: the version is assigned at publish, after this file is written, and
    when the page republishes ITSELF to save a tick it carries whatever was
-   baked in while the host increments underneath it. So the picker is the
-   version, and the publish carries a human-readable label beside it. */
+   baked in while the host increments underneath it. */
+const version = existsSync(VERSION) ? JSON.parse(readFileSync(VERSION, "utf8")) : { build: 0 };
+version.build += 1;
+version.builtAt = new Date().toISOString();
+writeFileSync(VERSION, JSON.stringify(version, null, 2) + "\n");
+const buildLabel = `Build ${version.build}`;
 
 const template = readFileSync(TEMPLATE, "utf8");
 const html = template
@@ -225,4 +238,4 @@ if (html.includes("__PHASES__") || html.includes("__STATE__") || html.includes("
 writeFileSync(OUTPUT, html);
 console.log(`[qa:build] ${trail.length} trail entr${trail.length === 1 ? "y" : "ies"} carried over`);
 console.log(`[qa:build] wrote docs/qa/qa-run.html (${Math.round(html.length / 1024)} KB)`);
-console.log(`[qa:build] label "${buildLabel}" — pass the SAME string to the publish so page and picker match`);
+console.log(`[qa:build] ${buildLabel} — stamped in the masthead; give the publish a label too`);

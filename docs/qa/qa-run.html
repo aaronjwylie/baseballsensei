@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Lexend:wght@300;400;500;600;700&display=swap">
 
-<style>
+<style id="qa-style">
   /* ── Tokens: the product's own palette, from src/app/globals.css ────────── */
   :root {
     --paper:      #ffffff;
@@ -430,7 +430,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">sync diagnosis · label stamp</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 6</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -470,12 +470,12 @@
 </div>
 
 <footer>
-  Marks are stored in this browser only — they are not shared between people or devices.
+  Marks are shared when this view can write to the record — the chip in the toolbar says which.
   The companion document <code>docs/qa/qa-plan.md</code> covers what CI should gate; this one
   covers what a person clicks. When a check here gets automated, delete it and say so there.
 </footer>
 </div>
-<script id="qa-state" type="application/json">{"marks":{"0.1":{"v":"pass"},"0.3":{"v":"pass"},"0.4":{"v":"pass"},"0.6":{"v":"pass"},"0.7":{"v":"pass"},"0.8":{"v":"pass"},"0.2":{"v":"skip"}},"trail":[]}</script>
+<script id="qa-state" type="application/json">{"marks":{"0.1":{"v":"pass"},"0.3":{"v":"pass"},"0.4":{"v":"pass"},"0.6":{"v":"pass"},"0.7":{"v":"pass"},"0.8":{"v":"pass"},"0.2":{"v":"skip"}},"trail":[{"t":"2026-08-26T21:07:38.366Z","kind":"mark","d":{"id":"0.5","v":"pass","was":null}},{"t":"2026-08-26T21:07:38.367Z","kind":"open","d":{"marks":8}},{"t":"2026-08-26T21:07:38.374Z","kind":"reading","d":{"phase":"p0"}},{"t":"2026-08-26T21:07:39.448Z","kind":"unmark","d":{"id":"0.5","v":null,"was":"pass"}},{"t":"2026-08-26T21:07:39.449Z","kind":"open","d":{"marks":7}},{"t":"2026-08-26T21:07:39.458Z","kind":"reading","d":{"phase":"p0"}}]}</script>
 <script id="app">
 const PHASES = [
   {
@@ -1651,7 +1651,19 @@ function setSync(mode, label) {
    publish rebuilds the document the way it was authored rather than
    serializing this viewer's session. */
 const AUTHORED_ROOT = document.getElementById("root").outerHTML;
-const AUTHORED_CSS = document.querySelector("style").textContent;
+/* By id, not by tag.
+
+   This read `document.querySelector("style")`, which in the viewer is the
+   PLATFORM's injected reset — a dozen bytes of `body{margin:0}` sitting ahead
+   of ours. So every time the page republished itself it wrote that out as the
+   whole stylesheet and threw away four hundred lines, and the page came back
+   unstyled. It survived every check I ran because I only ever tested the
+   template through the build, never through a self-publish in a real frame. */
+const AUTHORED_CSS = (function () {
+  const own = document.getElementById("qa-style");
+  if (!own) throw new Error("qa-style stylesheet missing — refusing to publish a page without it");
+  return own.textContent;
+})();
 const AUTHORED_APP = document.getElementById("app").textContent;
 
 function renderDocument(state) {
@@ -1666,7 +1678,7 @@ function renderDocument(state) {
     '<link rel="preconnect" href="https://fonts.googleapis.com">',
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
     '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Lexend:wght@300;400;500;600;700&display=swap">',
-    "<style>" + AUTHORED_CSS + "</style>",
+    '<style id="qa-style">' + AUTHORED_CSS + "</style>",
     "</head>",
     "<body>",
     AUTHORED_ROOT,
@@ -1687,18 +1699,44 @@ function save() {
   pending = setTimeout(publishNow, 1200);
 }
 
+/* Files first, whole-page second.
+
+   Publishing the whole page reloads the view that did it — and the first real
+   use showed exactly what that costs: a tester marked 0.5, the page jumped
+   under them, they clicked again believing it had not registered, and the
+   second click un-marked it. 1.1 seconds, one lost verdict, and neither person
+   any the wiser.
+
+   The files form writes only the state and leaves this view running, so a tick
+   stays ticked and nothing moves. It is not available everywhere — a publicly
+   shared artifact is one of the cases it refuses — so a refusal falls back to
+   the whole-page publish rather than failing. */
+const STATE_FILE = "data/state.json";
+let filesForm = true;
+
+function currentState() {
+  return { marks: marks, trail: trail, savedAt: new Date().toISOString() };
+}
+
 async function publishNow() {
   if (!shared || readOnly) return;
   try {
-    /* This view reloads on success, so anything worth keeping goes into
-       sessionStorage first. Losing your scroll position every few ticks
-       would make the shared mode worse than the local one. */
+    if (filesForm) {
+      try {
+        await shared.publish({ [STATE_FILE]: JSON.stringify(currentState()) });
+        setSync("shared", "Shared");
+        return;
+      } catch (err) {
+        const code = err && err.code;
+        if (code !== "capability_disabled" && code !== "transform_error") throw err;
+        // Not offered here — take the reloading path from now on.
+        filesForm = false;
+      }
+    }
+    /* The whole-page path reloads this view, so anything worth keeping goes
+       into sessionStorage first. */
     sessionStorage.setItem("qa-scroll", String(window.scrollY));
-    await shared.publish(renderDocument({
-      marks: marks,
-      trail: trail,
-      savedAt: new Date().toISOString(),
-    }));
+    await shared.publish(renderDocument(currentState()));
     setSync("shared", "Shared");
   } catch (err) {
     const code = err && err.code;
@@ -1719,6 +1757,24 @@ try {
   if (y) { sessionStorage.removeItem("qa-scroll"); requestAnimationFrame(() => window.scrollTo(0, Number(y))); }
 } catch (e) {}
 
+/* A files publish leaves the page's HTML untouched, so a view that reloads
+   gets the embedded state — which is older than the state file. Read the file
+   first where there is one; fall back to what is embedded. */
+async function adoptStateFile() {
+  try {
+    const res = await fetch(STATE_FILE, { cache: "no-store" });
+    if (!res.ok) return;
+    const saved = await res.json();
+    if (!saved || typeof saved !== "object") return;
+    if (saved.marks && Object.keys(saved.marks).length >= Object.keys(marks).length) {
+      marks = saved.marks;
+      trail = saved.trail || trail;
+      document.getElementById("phases").innerHTML = PHASES.map(buildPhase).join("");
+      refresh();
+    }
+  } catch (e) { /* no file, or not served here — the embedded state stands */ }
+}
+
 if (window.claude && typeof window.claude.use === "function") {
   window.claude.use("artifact").then((ns) => {
     if (!ns) { setSync("local", "Local only"); return; }
@@ -1736,6 +1792,7 @@ if (window.claude && typeof window.claude.use === "function") {
       succeeds upgrades it.
     */
     setSync("pending", "Checking access…");
+    void adoptStateFile();
   }).catch(() => setSync("local", "Local only"));
 } else {
   setSync("local", "Local only");

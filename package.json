@@ -28,7 +28,7 @@
     "check:doctrine": "node scripts/check-doctrine.mjs",
     "check:structure": "node scripts/check-structure.mjs",
     "qa:tail": "node scripts/qa-tail.mjs",
-    "qa:build": "node scripts/qa-build.mjs",
+    "qa:build": "node scripts/qa-build.mjs && node scripts/qa-selfpublish-check.mjs",
     "qa:check": "node scripts/qa-build.mjs --check",
     "qa:trail": "node scripts/qa-trail.mjs"
   },
