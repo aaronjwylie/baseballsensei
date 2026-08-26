@@ -26,7 +26,8 @@
     "db:baseline": "tsx --tsconfig tsconfig.json scripts/baseline-migrations.ts",
     "check:names": "node scripts/check-names.mjs",
     "check:doctrine": "node scripts/check-doctrine.mjs",
-    "check:structure": "node scripts/check-structure.mjs"
+    "check:structure": "node scripts/check-structure.mjs",
+    "qa:tail": "node scripts/qa-tail.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",

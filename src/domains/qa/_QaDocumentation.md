@@ -39,7 +39,21 @@ rather than by what anyone remembers doing.
 
 ## 2 · How a run works
 
+**Times.** `qa_event.at` is `timestamp with time zone` — an absolute instant,
+not a wall clock. That is the only defensible storage for a team split between
+Vancouver and Tokyo, and it is the same call `shared/ui/LocalTime` makes for the
+portal. But reading rows back raw prints UTC, so the log says 19:28 while the
+person who did the clicking is looking at 12:28. `npm run qa:tail` prints the
+reader's own zone with the UTC instant beside it — the second half matters
+because Stripe, Resend and Vercel are all UTC, and a run spends its time
+cross-referencing them.
+
 ```bash
+# Follow a run in your own timezone
+npm run qa:tail            # live
+npm run qa:tail -- --once  # print and stop
+npm run qa:tail -- --clear # wipe the log
+
 # 1. Arm this browser (once, in the address bar)
 https://www.baseball-sensei.com/api/qa/session?token=$QA_TOKEN
 
