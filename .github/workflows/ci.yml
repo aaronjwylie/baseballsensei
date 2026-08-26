@@ -95,3 +95,7 @@ jobs:
       - run: npm run db:seed
       - run: npm run flow
       - run: npm run simulate
+      # Phase 3 layer 2: DB-backed regression tests against the same migrated
+      # database — the query-level bugs (roster/edit inner-join, deactivate-on-
+      # save) that pure unit tests can't see.
+      - run: npm run test:integration
