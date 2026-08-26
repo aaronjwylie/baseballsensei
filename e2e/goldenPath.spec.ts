@@ -14,8 +14,11 @@ import { ADMIN, COACH, VERIFICATION_CODE } from "./actors";
  */
 test.describe.configure({ mode: "serial" });
 
-const customerEmail = `e2e-customer-${Date.now()}@e2e.test`;
-const playerName = "E2E Player";
+const runId = Date.now();
+const customerEmail = `e2e-customer-${runId}@e2e.test`;
+// Unique per run, and the queue displays the player name (not the email), so
+// this is what scopes the operator's row — unambiguous even across a retry.
+const playerName = `E2E Player ${runId}`;
 const fixture = path.join(process.cwd(), "e2e", "fixtures", "clip.png");
 
 async function signIn(page: Page, email: string, password: string) {
@@ -106,7 +109,7 @@ test("operator: assign → hand off → (coach) feedback → approve → complet
   await page.goto("/admin");
 
   // Scope every action to the row for THIS run's submission (unique email).
-  const row = page.locator("tr, li", { hasText: customerEmail }).first();
+  const row = page.locator("tr, li", { hasText: playerName }).first();
   await expect(row).toBeVisible();
 
   // Assign the seeded coach by name (AssignCoachSelect is a <select>).
@@ -130,7 +133,7 @@ test("operator: assign → hand off → (coach) feedback → approve → complet
   // --- Admin: approve, which completes it and emails the customer ---------
   await signIn(page, ADMIN.email, ADMIN.password);
   await page.goto("/admin");
-  const approveRow = page.locator("tr, li", { hasText: customerEmail }).first();
+  const approveRow = page.locator("tr, li", { hasText: playerName }).first();
   await approveRow.getByRole("button", { name: /Approve/ }).click();
 
   // It has left the active queue as a completed review — the customer now sees
