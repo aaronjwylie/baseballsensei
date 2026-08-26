@@ -137,7 +137,10 @@ test("operator: assign → hand off → (coach) feedback → approve → complet
   const sendForApproval = coachCard.getByRole("button", { name: "Send for approval" });
   await expect(sendForApproval).toBeEnabled({ timeout: 45_000 });
   await sendForApproval.click();
-  await expect(coachCard.getByText(/sent for approval/i)).toBeVisible();
+  // The send button disappearing is the stable signal it completed (the card
+  // moves to the submitted section) — and gives the action time to persist
+  // before we switch to the admin.
+  await expect(sendForApproval).toBeHidden();
 
   // --- Admin: approve, which completes it and emails the customer ---------
   await signIn(page, ADMIN.email, ADMIN.password);
