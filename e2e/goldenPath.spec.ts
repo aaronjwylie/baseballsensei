@@ -27,6 +27,21 @@ async function signIn(page: Page, email: string, password: string) {
   await expect(page).not.toHaveURL(/\/login/);
 }
 
+/**
+ * The status lookup is code-gated now: enter the email, request a code (fixed in
+ * E2E), read it back, and the submissions render. Leaves the results on screen
+ * for the caller to assert on.
+ */
+async function lookUpStatus(page: Page, email: string) {
+  await page.goto("/status");
+  await page.getByPlaceholder("you@example.com").fill(email);
+  await page.getByRole("button", { name: "Email me a code" }).click();
+  const codeField = page.getByLabel("6-digit code");
+  await expect(codeField).toBeVisible();
+  await codeField.pressSequentially(VERIFICATION_CODE);
+  await page.getByRole("button", { name: "See my submissions" }).click();
+}
+
 test("customer: details → verify → upload → pay → confirmation → status", async ({
   page,
 }) => {
@@ -78,10 +93,8 @@ test("customer: details → verify → upload → pay → confirmation → statu
   // Confirmation.
   await expect(page.getByText(/you.?re all set/i)).toBeVisible({ timeout: 30_000 });
 
-  // The status lookup finds it by email.
-  await page.goto("/status");
-  await page.getByPlaceholder("you@example.com").fill(customerEmail);
-  await page.getByRole("button", { name: "See my submissions" }).click();
+  // The status lookup finds it by email (behind the 6-digit code gate).
+  await lookUpStatus(page, customerEmail);
   await expect(page.getByText(playerName)).toBeVisible();
 });
 
@@ -122,8 +135,6 @@ test("operator: assign → hand off → (coach) feedback → approve → complet
 
   // It has left the active queue as a completed review — the customer now sees
   // it as ready on the status page.
-  await page.goto("/status");
-  await page.getByPlaceholder("you@example.com").fill(customerEmail);
-  await page.getByRole("button", { name: "See my submissions" }).click();
+  await lookUpStatus(page, customerEmail);
   await expect(page.getByText(/feedback ready|ready|delivered/i)).toBeVisible();
 });
