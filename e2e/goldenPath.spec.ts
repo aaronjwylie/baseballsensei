@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, type Locator } from "@playwright/test";
 import path from "node:path";
 import { ADMIN, COACH, VERIFICATION_CODE } from "./actors";
 
@@ -28,6 +28,17 @@ async function signIn(page: Page, email: string, password: string) {
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).not.toHaveURL(/\/login/);
+}
+
+/**
+ * Expand a queue row's disclosure, but only if it isn't already open — the open
+ * state persists across reloads, so an unconditional click would toggle it shut.
+ */
+async function expandRow(row: Locator, name: string) {
+  const header = row.getByRole("button", { name: new RegExp(name) });
+  if ((await header.getAttribute("aria-expanded")) !== "true") {
+    await header.click();
+  }
 }
 
 /**
@@ -120,7 +131,7 @@ test("operator: assign → hand off → (coach) feedback → approve → complet
   // name, expand it (the header button), then act in the revealed panel.
   const row = page.locator("div.border-b").filter({ hasText: playerName }).first();
   await expect(row).toBeVisible();
-  await row.getByRole("button", { name: new RegExp(playerName) }).click();
+  await expandRow(row, playerName);
 
   await row.getByRole("combobox").selectOption({ label: COACH.name });
   await row.getByRole("button", { name: "Save" }).click();
@@ -156,7 +167,7 @@ test("operator: assign → hand off → (coach) feedback → approve → complet
   await signIn(page, ADMIN.email, ADMIN.password);
   await page.goto("/admin");
   const approveRow = page.locator("div.border-b").filter({ hasText: playerName }).first();
-  await approveRow.getByRole("button", { name: new RegExp(playerName) }).click();
+  await expandRow(approveRow, playerName);
   await approveRow.getByRole("button", { name: /Approve/ }).click();
 
   // It has left the active queue as a completed review — the customer now sees
