@@ -396,7 +396,17 @@
   .sync[data-mode="saving"] .dot { background: var(--brand); }
   .sync[data-mode="local"] { color: var(--skip); border-color: var(--skip); }
   .sync[data-mode="local"] .dot { background: var(--skip); }
-  .sync[data-mode="read"] { color: var(--ink-muted); }
+  .sync[data-mode="read"] { color: var(--fail); border-color: var(--fail); }
+  .sync[data-mode="read"] .dot { background: var(--fail); }
+  .sync[data-mode="pending"] { color: var(--ink-muted); }
+  .ro-notice {
+    margin: 0 0 22px;
+    padding: 12px 14px;
+    border: 2px solid var(--fail);
+    background: var(--fail-bg);
+    color: var(--ink);
+    font-size: 13.5px;
+  }
 
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -517,6 +527,21 @@ let shared = null;            // the artifact namespace, once it answers
 let readOnly = false;
 let pending = null;           // debounce handle
 
+/* A chip is enough for a state that is working. It is not enough for one that
+   silently changes what an hour of ticking is worth. */
+function showReadOnlyNotice() {
+  if (document.getElementById("ro-notice")) return;
+  const el = document.createElement("p");
+  el.id = "ro-notice";
+  el.className = "ro-notice";
+  el.setAttribute("role", "alert");
+  el.textContent =
+    "This view cannot write to the shared record — your marks are saved on this device only, " +
+    "and nobody else will see them. Ask the owner for edit access, then reload.";
+  const bar = document.querySelector(".toolbar");
+  if (bar && bar.parentNode) bar.parentNode.insertBefore(el, bar.nextSibling);
+}
+
 function setSync(mode, label) {
   const el = document.getElementById("sync");
   if (!el) return;
@@ -576,12 +601,14 @@ async function publishNow() {
       trail: trail,
       savedAt: new Date().toISOString(),
     }));
+    setSync("shared", "Shared");
   } catch (err) {
     const code = err && err.code;
     if (code === "conflict") return;               // every view reloads to the winner
     if (code === "not_writer" || code === "not_granted" || code === "not_declared") {
       readOnly = true;
-      setSync("read", "Read-only");
+      setSync("read", "Read-only — marks stay on this device");
+      showReadOnlyNotice();
       return;
     }
     if (code === "rate_limited") { clearTimeout(pending); pending = setTimeout(publishNow, 5000); return; }
@@ -598,7 +625,19 @@ if (window.claude && typeof window.claude.use === "function") {
   window.claude.use("artifact").then((ns) => {
     if (!ns) { setSync("local", "Local only"); return; }
     shared = ns;
-    setSync("shared", "Shared");
+    /*
+      Not "Shared" — not yet.
+
+      Resolving the namespace means this view can RUN the capability, not that
+      it may write: a read-only viewer resolves it too and only meets
+      `not_writer` on the first publish. Claiming "Shared" here told a viewer
+      their marks were reaching everyone while they were going nowhere, and
+      they had no way to find out until they had spent an hour ticking.
+
+      So the label states what is actually known, and only a publish that
+      succeeds upgrades it.
+    */
+    setSync("pending", "Checking access…");
   }).catch(() => setSync("local", "Local only"));
 } else {
   setSync("local", "Local only");
