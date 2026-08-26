@@ -95,3 +95,43 @@ ORDER BY grantee, table_name;
 --   END $$;
 --
 -- Rollback is the same loop with DISABLE.
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- 5 · What "exposed schemas" actually is, and why you may not find it
+--
+-- Supabase runs **PostgREST**, a service that reads your Postgres schema and
+-- turns every table in it into a REST endpoint automatically. "Exposed schemas"
+-- is the list of schemas PostgREST is allowed to look at. `public` is on that
+-- list by default, which is why every table in it had a URL.
+--
+-- That setting and the grants this file checks are **different layers**:
+--
+--   exposed schemas → whether PostgREST serves the schema at all  (→ 404)
+--   role grants     → whether `anon` may read a table it serves   (→ 401)
+--
+-- As of 2026-08-26 the grants are revoked, so the tables answer 401. The
+-- service is still running and still knows the schema exists; it simply has no
+-- permission. Removing `public` from the exposed list would make it stop
+-- looking altogether.
+--
+-- Where the setting lives has moved between dashboard versions. Try, in order:
+--
+--   Project Settings → API            → "Exposed schemas" / "Data API Settings"
+--   Project Settings → Data API       → "Exposed schemas"   (its own page now)
+--   Project Settings → Data API       → a switch to disable the Data API wholly
+--
+-- If none of those exist in your project, you are not blocked: the revoke has
+-- already closed the exposure, and this app never used the Data API — no
+-- `supabase-js` dependency, nothing in `src/` importing one, and every query
+-- going over a direct Postgres connection through Drizzle.
+--
+-- To verify from outside at any time (should print 401, not a row):
+--
+--   curl -s -o /dev/null -w '%{http_code}\n' \
+--     "$PROD_REST_URL/rest/v1/operator?select=id&limit=1" \
+--     -H "apikey: $PROD_REST_KEY" -H "Authorization: Bearer $PROD_REST_KEY"
+--
+-- ⚠️ One way this reopens: `0021` revoked `USAGE ON SCHEMA public` from `anon`
+-- and `authenticated`. If Supabase Auth, Realtime or Storage policies are
+-- adopted later, they may expect those roles to have access, and re-granting
+-- broadly would undo this. Re-grant per table, never per schema.

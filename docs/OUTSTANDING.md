@@ -10,7 +10,25 @@ row — git remembers.
 
 ## 0 · Security — act before anything else
 
-### The Supabase Data API exposes every table to a publishable key
+### ~~The Supabase Data API exposes every table to a publishable key~~ — CLOSED 2026-08-26
+
+**Closed by migration `0021_revoke_data_api_access.sql`**, which shipped on the
+deploy of `124f2dd`. Verified from outside: every table that previously returned
+rows now returns **401 permission denied** to the publishable key — `operator`,
+`operator_credential`, `operator_role_grant`, `submission`, `submission_file`,
+`setting`, `qa_event`.
+
+**Still worth doing, as durable hardening:** the revoke removes the *grants*;
+disabling the Data API removes the *service*. A future `GRANT` — run by hand, or
+by a Supabase feature being switched on — would reopen what the revoke closed,
+whereas a disabled Data API has nothing to reopen. See the "what this setting
+actually does" note in [`qa/phase-0.sql`](qa/phase-0.sql).
+
+**Two things that did not become safe just because the door shut:** the
+publishable key and the bcrypt hashes were readable for an unknown window, so
+both still want rotating, and the disclosure question is unchanged.
+
+The original finding, for the record:
 
 **Found 2026-08-15.** A `GET` against the production PostgREST endpoint with the
 **publishable** (anon) key returns rows from every table checked:
