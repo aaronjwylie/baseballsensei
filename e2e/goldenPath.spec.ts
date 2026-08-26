@@ -65,7 +65,9 @@ test("customer: details → verify → upload → pay → confirmation → statu
   // the first real run — the trace will show the exact structure if this misses.
   const payButton = page.getByRole("button", { name: /^Pay / });
   await expect(payButton).toBeVisible();
-  const card = page.frameLocator('iframe[title="Secure payment input frame"]');
+  // The PaymentElement mounts two same-titled iframes — an accessory frame and
+  // the fields ("easel") frame, in that order. The card fields are in the last.
+  const card = page.frameLocator('iframe[title="Secure payment input frame"]').last();
   await card.getByPlaceholder("1234 1234 1234 1234").fill("4242424242424242");
   await card.getByPlaceholder("MM / YY").fill("12 / 34");
   await card.getByPlaceholder("CVC").fill("123");
