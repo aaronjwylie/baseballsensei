@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { env } from "@/shared/config/env";
 import { runRetentionSweep } from "@/domains/upload";
 
@@ -31,8 +32,15 @@ export async function GET(request: Request) {
     return new Response("Not configured", { status: 503 });
   }
 
-  const provided = request.headers.get("authorization");
-  if (provided !== `Bearer ${env.cronSecret}`) {
+  // Constant-time compare so the response latency can't leak the secret a byte
+  // at a time. Length is compared first because `timingSafeEqual` throws on a
+  // length mismatch — and length alone isn't the secret.
+  const provided = request.headers.get("authorization") ?? "";
+  const expected = `Bearer ${env.cronSecret}`;
+  const ok =
+    provided.length === expected.length &&
+    timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+  if (!ok) {
     return new Response("Unauthorized", { status: 401 });
   }
 

@@ -5,12 +5,23 @@
  * mapper) sees a Drizzle row or a column name. The customer's uploaded files
  * are a separate table with its own module, `submissionFileApi.ts`.
  */
-import { and, desc, eq, inArray, isNotNull, isNull, lt, or } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  notInArray,
+  or,
+} from "drizzle-orm";
 import { db } from "@/shared/db";
 import { submissionTable } from "../model/submissionTable";
 import { submissionAssignmentTable } from "../model/submissionAssignmentTable";
 import {
   SUBMISSION_STATUSES,
+  isPaid,
   isReleased,
   type NewSubmission,
   type Submission,
@@ -140,6 +151,92 @@ export async function updateSubmission(
 
     return fromRow(row);
   });
+}
+
+/** The rungs that mean "money has changed hands", derived from `isPaid` so the
+ * list can't stop matching when the ladder grows — the same discipline
+ * `RELEASED_STATUSES` uses. */
+const PAID_STATUSES = SUBMISSION_STATUSES.filter((status) => isPaid({ status }));
+
+/**
+ * Flip a submission to `new` (paid) **only if it isn't already paid** — in one
+ * atomic statement.
+ *
+ * This is the idempotency guard for fulfillment (ADR 003), and it has to be
+ * race-proof: the Stripe webhook and the browser confirming its own intent can
+ * arrive in the same instant. A read-then-write (`getSubmission` → `if paid` →
+ * `update`) let both see an unpaid row and both flip it, so both sent a receipt.
+ *
+ * The conditional `UPDATE … WHERE status NOT IN (paid)` closes that: Postgres
+ * takes a row lock, so the two updates serialise, and the second finds the row
+ * already `new` and matches nothing. Exactly one caller gets a row back — the
+ * one that owes the receipt (`justPaid: true`). The event is stamped inside the
+ * same transaction, and only on the winning flip, so the trail never doubles.
+ *
+ * Returns `null` only when no such submission exists at all.
+ */
+export async function markPaidIfUnpaid(
+  id: string,
+  paid: { stripePaymentId: string; stripeAmount: number; paidAt: string },
+): Promise<{ submission: Submission; justPaid: boolean } | null> {
+  return db.transaction(async (tx) => {
+    const [flipped] = await tx
+      .update(submissionTable)
+      .set({
+        status: "new",
+        stripePaymentId: paid.stripePaymentId,
+        stripeAmount: paid.stripeAmount,
+        paidAt: new Date(paid.paidAt),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(submissionTable.id, id),
+          notInArray(submissionTable.status, PAID_STATUSES),
+        ),
+      )
+      .returning();
+
+    if (flipped) {
+      await recordSubmissionEvent(id, "new", undefined, tx);
+      return { submission: fromRow(flipped), justPaid: true };
+    }
+
+    // Nothing flipped: either already paid (the common race) or unknown. Read
+    // the current row so the caller still has a submission to work with.
+    const [current] = await tx
+      .select()
+      .from(submissionTable)
+      .where(eq(submissionTable.id, id))
+      .limit(1);
+    return current ? { submission: fromRow(current), justPaid: false } : null;
+  });
+}
+
+/**
+ * Is this operator assigned to this submission, in any capacity?
+ *
+ * The ownership half of the `/api/files/[id]` gate: an operator session proves
+ * they're staff, this proves the work is *theirs*. Admins bypass it (they
+ * review everything); a coach or translator passes only for a submission they
+ * were actually put on. Any `produces` role counts — a translator carrying the
+ * intake leg still needs the intake bytes.
+ */
+export async function isAssignedToSubmission(
+  submissionId: string,
+  operatorId: string,
+): Promise<boolean> {
+  const rows = await db
+    .select({ submissionId: submissionAssignmentTable.submissionId })
+    .from(submissionAssignmentTable)
+    .where(
+      and(
+        eq(submissionAssignmentTable.submissionId, submissionId),
+        eq(submissionAssignmentTable.operatorId, operatorId),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
 }
 
 /**
@@ -431,6 +528,7 @@ export async function lookupPublicSubmissions(
 export async function findResolvedDue(
   collectedBefore: Date,
   deliveredBefore: Date,
+  warnedBefore: Date | null = null,
 ): Promise<Submission[]> {
   const rows = await db
     .select()
@@ -439,6 +537,22 @@ export async function findResolvedDue(
       and(
         isNull(submissionTable.filesPurgedAt),
         inArray(submissionTable.status, RELEASED_STATUSES),
+        /*
+          Never purge something that wasn't warned, and wasn't warned long
+          enough ago. When warnings are on the caller passes
+          `warnedBefore = now - warnBeforeDeletionDays`, so a submission is
+          deleted only once its warning has had the full notice period to land —
+          which holds even when a cron gap makes warn and purge come due in the
+          same run (the just-stamped warning is `now`, not `< warnedBefore`).
+          A never-warned row (`deletionWarnedAt` null) is excluded outright, so
+          the never-collected backstop can't delete files no one was told about.
+        */
+        ...(warnedBefore
+          ? [
+              isNotNull(submissionTable.deletionWarnedAt),
+              lt(submissionTable.deletionWarnedAt, warnedBefore),
+            ]
+          : []),
         /*
           Two clocks, and the later one wins.
 
@@ -477,12 +591,17 @@ export async function findResolvedDue(
  * `deletionWarnedAt` is for. Without it this would send every night for seven
  * nights.
  *
- * Only submissions with a collection clock are warned. One that was never
- * collected is running on the backstop, and warning someone about files they
- * never came for would be the first they'd heard of any of it.
+ * **Both clocks are warned, mirroring `findResolvedDue`.** A collected
+ * submission is warned before its collection deadline; a never-collected one is
+ * warned before the delivery backstop deletes it. The backstop used to be
+ * silent — never-collected files were purged at `retainDeliveredDays` with no
+ * warning ever sent, because this query required a collection timestamp. That
+ * destroyed feedback a customer had paid for and never downloaded, with no
+ * notice. Warning the backstop too is the fix: nothing is deleted unwarned.
  */
 export async function findWarningDue(
   collectedBefore: Date,
+  deliveredBefore: Date,
 ): Promise<Submission[]> {
   const rows = await db
     .select()
@@ -492,8 +611,17 @@ export async function findWarningDue(
         isNull(submissionTable.filesPurgedAt),
         isNull(submissionTable.deletionWarnedAt),
         inArray(submissionTable.status, RELEASED_STATUSES),
-        isNotNull(submissionTable.collectedAt),
-        lt(submissionTable.collectedAt, collectedBefore),
+        or(
+          and(
+            isNotNull(submissionTable.collectedAt),
+            lt(submissionTable.collectedAt, collectedBefore),
+          ),
+          and(
+            isNull(submissionTable.collectedAt),
+            isNotNull(submissionTable.completedAt),
+            lt(submissionTable.completedAt, deliveredBefore),
+          ),
+        ),
       ),
     );
   return rows.map(fromRow);

@@ -188,12 +188,19 @@ async function main() {
     "the customer collecting starts the retention clock",
   );
 
-  // Backdate the collection past the retention window.
+  // Backdate the collection past the retention window — and the warning past
+  // its notice period. The purge waits on the *age of the warning* now, not just
+  // the retention deadline, so a submission has to have been warned days ago to
+  // be deleted. Setting both here is the one-sweep equivalent of "warned last
+  // week, now overdue".
   await db
     .update(submissionTable)
     .set({
       collectedAt: new Date(
         Date.now() - (settings.retainCollectedDays + 1) * 24 * 3600_000,
+      ),
+      deletionWarnedAt: new Date(
+        Date.now() - (settings.warnBeforeDeletionDays + 1) * 24 * 3600_000,
       ),
     })
     .where(eqFn(submissionTable.id, submission.id));

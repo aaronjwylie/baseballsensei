@@ -26,6 +26,7 @@ import {
   assigneeFor,
 } from "@/domains/submission";
 import { getCoach } from "./coachApi";
+import { listAssignable } from "./operatorProfileApi";
 import { sendAssignmentEmail } from "./handoffEmail";
 import {
   createProfiledOperatorAction,
@@ -78,6 +79,19 @@ export async function assignCoachAction(
       error:
         "This has already gone out to a coach. Move the status back first if you need to reassign it.",
     };
+  }
+
+  /*
+    The target must be an active coach *now*, not just when the dropdown
+    rendered. A paused coach still shows in a stale tab (deactivating hides them
+    on the next load, not retroactively), and nothing downstream re-checks the
+    grant — `getCoach` at hand-off doesn't filter on `isActive`. So a stale post
+    could put a paused coach on the work and email them. `listAssignable` is the
+    active set; membership is the guard.
+  */
+  const assignable = await listAssignable("coach");
+  if (!assignable.some((coach) => coach.id === coachId)) {
+    return { error: "That coach isn't active — reload and pick another." };
   }
 
   await assignSubmissionCoach(submissionId, coachId);

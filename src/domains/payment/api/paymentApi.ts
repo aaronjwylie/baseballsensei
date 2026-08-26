@@ -40,6 +40,18 @@ async function resolveAmount(): Promise<{ amount: number; currency: string }> {
         `Stripe price ${env.stripePriceId} has no unit_amount — it may be a tiered or metered price, which this flow can't charge.`,
       );
     }
+    /*
+      The charge and the receipt must agree on currency. The receipt template
+      formats in `site.price.currency` (it has no per-submission currency to
+      read), so a Stripe price in a different currency would charge in one and
+      bill in another — a silent mislabel and a dispute waiting to happen.
+      Refuse loudly at checkout instead of shipping the mismatch.
+    */
+    if (price.currency !== site.price.currency) {
+      throw new Error(
+        `Stripe price ${env.stripePriceId} is in ${price.currency.toUpperCase()}, but the site is configured for ${site.price.currency.toUpperCase()}. Point STRIPE_PRICE_ID at a ${site.price.currency.toUpperCase()} price, or change site.price.currency — the charge and the receipt have to match.`,
+      );
+    }
     return { amount: price.unit_amount, currency: price.currency };
   }
 
