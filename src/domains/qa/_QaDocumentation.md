@@ -73,8 +73,16 @@ endpoint, so it wants the length of a real secret rather than a word.
 - 🔶 **No rate limit on ingest.** The arming cookie requires the token, so the
   exposure is small, but a compromised token could write rows until someone
   noticed.
-- 🔶 Fetch/XHR failures are not captured yet — only `console.error`, which
-  catches most of them indirectly.
+- ✅ **Failed requests are captured** — a wrapped `fetch` records non-2xx
+  responses and network failures by status and path. Only the path: the query
+  string is where tokens travel. `/api/qa/*` is skipped, or reporting a failure
+  would post a request whose failure would be reported.
+- ✅ **Hash navigations are captured.** They were not at first, and the first
+  real run made it obvious: this site navigates mostly by anchor, so four
+  anchor clicks in a row recorded four clicks and no movement, which is the one
+  thing worth checking on a page built out of anchors.
+- 🔶 XHR (as opposed to `fetch`) is still uninstrumented. Nothing in this app
+  uses it; a third-party script might.
 
 ---
 

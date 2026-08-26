@@ -40,7 +40,14 @@ export async function GET(req: NextRequest) {
   }
 
   const off = req.nextUrl.searchParams.get("off") === "1";
-  const res = NextResponse.redirect(new URL(off ? "/" : "/?qa=1", req.nextUrl));
+  /*
+    Home, with nothing appended. The arming redirect used to land on `/?qa=1`
+    as a visible confirmation, and the marker then stuck to every subsequent
+    visit — so one page read as two in the log, and every anchor link back to
+    the landing page looked like a different destination than the first one.
+    Nothing needed it: whether a run is armed is the cookie's business.
+  */
+  const res = NextResponse.redirect(new URL("/", req.nextUrl));
 
   if (off) {
     res.cookies.delete(QA_AUTH_COOKIE);

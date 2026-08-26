@@ -153,13 +153,69 @@ export function QaProbe() {
     const onRejection = (e: PromiseRejectionEvent) =>
       push("error", { target: `unhandled rejection: ${String(e.reason).slice(0, 300)}` });
 
-    // Route changes: the App Router navigates without a load event.
-    let lastPath = location.pathname + location.search;
+    /*
+      Route changes: the App Router navigates without a load event.
+
+      **The hash is part of the location here**, and was not at first. This site
+      navigates mostly by anchor — the whole landing nav is `/#pricing`,
+      `/#faq` — so comparing only `pathname + search` recorded the click and
+      then nothing, and a run of four anchor clicks looked identical whether
+      the page had scrolled or not. That is precisely the thing worth checking
+      on a page built out of anchors.
+
+      `path` on each event stays pathname+search so one page reads as one page;
+      the hash rides on the nav event's target, where the movement is the point.
+    */
+    const here = () => location.pathname + location.search + location.hash;
+    let lastPath = here();
     const watchPath = () => {
-      const now = location.pathname + location.search;
+      const now = here();
       if (now !== lastPath) {
         lastPath = now;
         push("nav", { target: now });
+      }
+    };
+    // Fires immediately on an anchor click, rather than waiting for the poll.
+    window.addEventListener("hashchange", watchPath);
+
+    /*
+      Failed requests.
+
+      The first run showed no errors at all, which is reassuring but also
+      incomplete: a server action returning 500, an upload rejected by Blob, or
+      a dropped connection produce no window error and often no console output
+      either. During a QA pass those are exactly the failures worth seeing, and
+      "it just didn't work" is what a tester would otherwise have to report.
+
+      Only the path is recorded — never the query string, which is where tokens
+      travel. The QA endpoints are skipped, or reporting a failure would post a
+      request whose failure would be reported.
+    */
+    const originalFetch = window.fetch;
+    window.fetch = async (...args: Parameters<typeof fetch>) => {
+      let url = "";
+      try {
+        const raw = args[0];
+        url = typeof raw === "string" ? raw : raw instanceof URL ? raw.href : raw.url;
+      } catch {
+        /* exotic input — let it through unrecorded */
+      }
+      const isQa = url.includes("/api/qa/");
+      try {
+        const res = await originalFetch(...args);
+        if (!isQa && !res.ok) {
+          let path = url;
+          try {
+            path = new URL(url, location.origin).pathname;
+          } catch {
+            /* keep the raw value */
+          }
+          push("fetch", { target: `${res.status} ${path}` });
+        }
+        return res;
+      } catch (err) {
+        if (!isQa) push("fetch", { target: `network failure ${url.slice(0, 120)}` });
+        throw err;
       }
     };
 
@@ -191,10 +247,12 @@ export function QaProbe() {
       document.removeEventListener("change", onChange, true);
       window.removeEventListener("error", onError);
       window.removeEventListener("unhandledrejection", onRejection);
+      window.removeEventListener("hashchange", watchPath);
       document.removeEventListener("visibilitychange", onHide);
       clearInterval(pathTimer);
       clearInterval(flushTimer);
       console.error = originalError;
+      window.fetch = originalFetch;
       void flush();
     };
   }, []);
