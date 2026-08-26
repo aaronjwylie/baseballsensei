@@ -29,6 +29,9 @@ happened, never what should have.
 
 ## Phase 0 · Prerequisites — do these first
 
+Mostly settled already. Kept visible because each one is a thing that would silently ruin a later
+phase if it were not true.
+
 | # | Do | Why it blocks |
 | --- | --- | --- |
 | 0.1 | **Close the Supabase Data API.** Settings → API → Exposed schemas, remove `public`. **Dashboard only — no one but you can do this.** | ✅ Every table is currently readable with the publishable key, including password hashes and children's names. QA generates *more* real data into a database anyone can read. See OUTSTANDING §0. Migration `0021` revokes the underlying grants on deploy as defence in depth, but the dashboard setting is the fix.|
@@ -67,6 +70,9 @@ this document.
 ---
 
 ## Phase 1 · Public pages
+
+Three of these are judgement calls made against Audrey's file rather than defects to find — 1.1.6,
+1.1.7 and 1.1.10. If one of them looks wrong, that is a decision to argue with, not a bug.
 
 ### 1.1 Landing (`/`)
 
@@ -114,7 +120,9 @@ this document.
 
 ## Phase 2 · The customer flow (`/start`) — the money path
 
-Run this **twice**: once abandoning partway (2.7), once to completion.
+Run this **twice**: once abandoning partway (2.7), once to completion. Test cards — success
+`4242 4242 4242 4242` · decline `4000 0000 0000 0002` · 3-D Secure `4000 0025 0000 3155`. Any future
+expiry, any CVC.
 
 ### 2.1 Step 1 — details
 
@@ -203,6 +211,10 @@ Test cards: success `4242 4242 4242 4242` · decline `4000 0000 0000 0002` ·
 
 ## Phase 4 · Operator authentication
 
+4.1–4.3 are the same message three ways, on purpose: it is what stops the endpoint being used to
+discover which addresses have logins. It is also what made a deactivated admin look like a wrong
+password for two weeks.
+
 | # | Check | Expected |
 | --- | --- | --- |
 | 4.1 | `/login` with a wrong password | "Invalid password" |
@@ -224,6 +236,9 @@ Test cards: success `4242 4242 4242 4242` · decline `4000 0000 0000 0002` ·
 ---
 
 ## Phase 5 · Admin panel (`/admin`)
+
+5.13.3 and 5.13.10 are the two that were actually broken this week. Verify them explicitly rather
+than assuming the fix held.
 
 | # | Check | Expected |
 | --- | --- | --- |

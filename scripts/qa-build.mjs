@@ -44,7 +44,16 @@ const phases = [];
 let phase = null;
 let group = null;
 let inRetired = false;
+let noteLines = [];
 const problems = [];
+
+/** Attach the collected prose to the phase it followed, once. */
+function flushNote() {
+  if (phase && !phase.note && noteLines.length) {
+    phase.note = strip(noteLines.join(" "));
+  }
+  noteLines = [];
+}
 const seen = new Map();
 
 const CHECK_ROW = /^\|\s*(\d+(?:\.\d+)*)\s*\|(.*)$/;
@@ -65,12 +74,28 @@ lines.forEach((line, i) => {
     phase = { n: ph[1], title: ph[2].replace(/\s*—.*$/, "").replace(/`/g, ""), id: `p${ph[1]}`, note: null, groups: [] };
     phases.push(phase);
     group = null;
+    noteLines = [];
     return;
+  }
+
+  /* Prose between a phase heading and its first group or table is the phase's
+     note — the sentence that says how to read the phase, which test cards to
+     use, or which rows are decisions rather than defects. The first version of
+     this parser read only tables and silently dropped all twelve of them,
+     including the one carrying the payment test-card numbers. */
+  if (phase && !inRetired && !group && phase.groups.length === 0) {
+    if (/^\s*$/.test(line) || /^[|#>]/.test(line) || /^<details/.test(line)) {
+      if (noteLines.length && !/^\s*$/.test(line)) flushNote();
+    } else {
+      noteLines.push(line.trim());
+      return;
+    }
   }
   if (/^##\s+Results/.test(line)) { phase = null; return; }
 
   const gh = line.match(GROUP_HEAD);
   if (gh && phase && !inRetired) {
+    flushNote();
     group = { head: gh[1].replace(/[*`~]/g, "").trim(), checks: [] };
     phase.groups.push(group);
     return;
@@ -78,6 +103,7 @@ lines.forEach((line, i) => {
 
   const row = line.match(CHECK_ROW);
   if (!row || inRetired) return;
+  flushNote();
   if (!phase) { problems.push(`${at}: check ${row[1]} outside any phase`); return; }
 
   const cells = row[2].split("|").map((c) => c.trim());
