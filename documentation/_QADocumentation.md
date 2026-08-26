@@ -67,6 +67,31 @@ everything on its own (Q6).
 what CI should gate. The two are cross-linked and answer different questions. Q12 moves lines from the
 itinerary into that plan; **a check automated there is deleted here.**
 
+### The pipeline (Q14)
+
+```
+docs/qa/itinerary.md   ──  npm run qa:build  ──▶  docs/qa/qa-run.html  ──▶  published artifact
+       (source)                    │                    (generated)
+                                   └── marks read back from the live artifact and merged by id
+```
+
+`docs/qa/template.html` is the page with the data punched out; `scripts/qa-build.mjs` parses the
+itinerary's tables and fills it. **Edit the markdown, run `npm run qa:build`, republish.** Nothing is
+hand-copied, and `npm run qa:check` parses without writing so a pull request can say whether the
+itinerary still reads.
+
+**Two conventions the build reads out of the markdown**, so flags live in the source too: an
+expectation opening **⚠️** becomes a *Watch* badge (a decision to ratify, or a failure that hurts), and
+one opening **✅** becomes *Settled*. 19 and 6 of them respectively today.
+
+**Marks are merged, not overwritten.** The build takes the live marks — read back from the published
+artifact — and carries them across by id, reporting any whose check has gone rather than dropping it.
+That is what makes it safe to edit the itinerary mid-pass, which Q12 guarantees will happen.
+
+**Before the pipeline existed the checks were written twice**: as tables in the markdown and as a
+hand-transcribed array inside the artifact. They agreed for exactly as long as nobody edited either.
+That is the evidence behind Q14.
+
 ### The record is a published artifact, and it does both of §6's jobs
 
 **As the cursor, during the run.** A link — no checkout, no editor, nothing to install — that two

@@ -16,6 +16,10 @@ id (`2.3`) so we can refer to one precisely while we run it.
 rest either can't be tested or shouldn't be run until it's done. Record results
 in the table at the bottom as you go.
 
+**Two markers, and they are read by the build.** An expectation opening with **⚠️** is a row to be
+picky about — a decision to ratify, or a failure that hurts. One opening with **✅** is already settled.
+`npm run qa:build` turns both into badges on the shared record.
+
 **Instrumentation:** with the QA probe armed, I see every click, navigation,
 form submit and error as you go, so you don't need to narrate. You do need to
 tell me what you *expected* when something looks wrong — the probe records what
@@ -27,14 +31,14 @@ happened, never what should have.
 
 | # | Do | Why it blocks |
 | --- | --- | --- |
-| 0.1 | **Close the Supabase Data API.** Settings → API → Exposed schemas, remove `public`. **Dashboard only — no one but you can do this.** | Every table is currently readable with the publishable key, including password hashes and children's names. QA generates *more* real data into a database anyone can read. See OUTSTANDING §0. Migration `0021` revokes the underlying grants on deploy as defence in depth, but the dashboard setting is the fix. |
+| 0.1 | **Close the Supabase Data API.** Settings → API → Exposed schemas, remove `public`. **Dashboard only — no one but you can do this.** | ✅ Every table is currently readable with the publishable key, including password hashes and children's names. QA generates *more* real data into a database anyone can read. See OUTSTANDING §0. Migration `0021` revokes the underlying grants on deploy as defence in depth, but the dashboard setting is the fix.|
 | 0.2 | **Rotate the publishable key**, and the production DB password. | Both are known-exposed. |
-| 0.3 | **Reactivate `ben.j.wylie@gmail.com`.** Run [`phase-0.sql`](phase-0.sql) §1–§2 in the Supabase SQL editor. | It reads `is_active = false` because the operator edit form used to write that on every save — an absent checkbox read as `=== "on"`. Aaron fixed the cause in `0d6bbf0`; the row it already wrote still needs repairing. You cannot run Phase 5 without an admin login. |
-| 0.4 | **Nothing.** Stripe stays in **test mode** for the pass. | Established 2026-08-26: production runs on test keys (`livemode=False` on a real paid submission), and the whole path already works — those payments reached `new` and `sent_to_coach`, so intent, webhook, fulfilment and ladder all ran. Test mode is *better* for QA: decline and 3-D Secure can be triggered on demand, and nothing is charged. **Phase 0a moves to the end** — see Phase 11. |
+| 0.3 | **Reactivate `ben.j.wylie@gmail.com`.** Run [`phase-0.sql`](phase-0.sql) §1–§2 in the Supabase SQL editor. | ✅ It reads `is_active = false` because the operator edit form used to write that on every save — an absent checkbox read as `=== "on"`. Aaron fixed the cause in `0d6bbf0`; the row it already wrote still needs repairing. You cannot run Phase 5 without an admin login.|
+| 0.4 | **Nothing.** Stripe stays in **test mode** for the pass. | ✅ Established 2026-08-26: production runs on test keys (`livemode=False` on a real paid submission), and the whole path already works — those payments reached `new` and `sent_to_coach`, so intent, webhook, fulfilment and ladder all ran. Test mode is *better* for QA: decline and 3-D Secure can be triggered on demand, and nothing is charged. **Phase 0a moves to the end** — see Phase 11.|
 | 0.5 | **Confirm `NEXT_PUBLIC_SITE_URL` is `https://www.baseball-sensei.com`** in Vercel, then redeploy. | It builds the links inside customer emails *and* the 3-D Secure return target. It is inlined at build time, so it needs a redeploy, and a mismatch strands a customer **after** they are charged. |
-| 0.6 | **Decide the Basic Auth question.** Leave the gate on for QA. | With it on, only you can reach the site — which is what you want while generating test submissions. |
-| 0.7 | **Set `QA_TOKEN`** in Vercel → Production, then redeploy. | Arms the instrument. It is already generated and sitting in `.env.local`; `grep '^QA_TOKEN=' .env.local \| cut -d= -f2- \| pbcopy` puts it on your clipboard without it passing through a chat log. |
-| 0.8 | **Arm your browser**: visit `/api/qa/session?token=<QA_TOKEN>`. | You should be redirected home. Nothing visible changes — that is correct. |
+| 0.6 | **Decide the Basic Auth question.** Leave the gate on for QA. | ✅ With it on, only you can reach the site — which is what you want while generating test submissions.|
+| 0.7 | **Set `QA_TOKEN`** in Vercel → Production, then redeploy. | ✅ Arms the instrument. It is already generated and sitting in `.env.local`; `grep '^QA_TOKEN=' .env.local \| cut -d= -f2- \| pbcopy` puts it on your clipboard without it passing through a chat log. |
+| 0.8 | **Arm your browser**: visit `/api/qa/session?token=<QA_TOKEN>`. | ✅ You should be redirected home. Nothing visible changes — that is correct.|
 
 ### ~~Phase 0a~~ · moved to Phase 11
 
@@ -73,11 +77,11 @@ this document.
 | 1.1.3 | Claim ticker scrolls | Six claims, looping seamlessly |
 | 1.1.4 | Nav links: How it works / Coaches / Pricing / FAQ | Each scrolls to its section |
 | 1.1.5 | Contact nav link | Goes to `/contact` |
-| 1.1.6 | Three step cards render with images and badges **1, 2, 3** | Not "1, 1, 1" |
-| 1.1.7 | Coach section: photo, round inset, stats | Eyebrow is **blue** here, not lime |
+| 1.1.6 | Three step cards render with images and badges **1, 2, 3** | ⚠️ Not "1, 1, 1"|
+| 1.1.7 | Coach section: photo, round inset, stats | ⚠️ Eyebrow is **blue** here, not lime|
 | 1.1.8 | Price shows **$80** | Read from settings — change it in 5.6 and confirm it follows |
 | 1.1.9 | FAQ: first row open, others closed; click to expand | `+` becomes `−`; keyboard (Tab + Enter) works |
-| 1.1.10 | Closing strip shows 4 photographs | |
+| 1.1.10 | Closing strip shows 4 photographs | ⚠️ |
 | 1.1.11 | Every "Get coach feedback" / "Start now" button | All go to `/start` |
 | 1.1.12 | Footer: logo, 5 links, Check status, terms, copyright | |
 | 1.1.13 | **375px** — resize or use a phone | Nothing overflows horizontally; ticker still works |
@@ -95,7 +99,7 @@ this document.
 | 1.2.6 | Privacy policy link | Goes to `/terms` — **which is a placeholder**; note it |
 | 1.2.7 | Valid submit | Form is **replaced** by "Message sent" |
 | 1.2.8 | Check `contact@baseball-sensei.com` | Mail arrives, subject names the sender |
-| 1.2.9 | **Hit reply on that mail** | Goes to the address *you typed in the form*, not to ourselves |
+| 1.2.9 | **Hit reply on that mail** | ⚠️ Goes to the address *you typed in the form*, not to ourselves|
 | 1.2.10 | Message body | Your text, intact, and any `<tags>` shown as text not markup |
 | 1.2.11 | Submit a second time | Works; no duplicate-send guard needed |
 
@@ -124,7 +128,7 @@ Run this **twice**: once abandoning partway (2.7), once to completion.
 | 2.1.6 | Language choice | Defaults to English; both selectable |
 | 2.1.7 | Notes field | Labelled "Notes for your coach", Audrey's example as placeholder |
 | 2.1.8 | Submit valid | Advances to step 2; **code email sent** |
-| 2.1.9 | If the code email fails to send | You are **held on step 1** with an error — not advanced |
+| 2.1.9 | If the code email fails to send | ⚠️ You are **held on step 1** with an error — not advanced|
 
 ### 2.2 Step 2 — email verification
 
@@ -145,7 +149,7 @@ Run this **twice**: once abandoning partway (2.7), once to completion.
 | 2.3.1 | Pill reads "Step 03 — Show your coach"; body quotes the real file limit | |
 | 2.3.2 | Dropzone reads "Click to upload or drag and drop" | |
 | 2.3.3 | Upload one small video | Progress, then listed |
-| 2.3.4 | **Upload a file over 4.5 MB** | Must succeed — this is the direct-to-Blob path; failure here means `/api/upload/blob` isn't being used in production |
+| 2.3.4 | **Upload a file over 4.5 MB** | ⚠️ Must succeed — this is the direct-to-Blob path; failure here means `/api/upload/blob` isn't being used in production|
 | 2.3.5 | Upload a photo and a PDF | Accepted |
 | 2.3.6 | Upload a disallowed type (`.exe`) | Refused with a clear reason |
 | 2.3.7 | Exceed the file-count limit | "That's the maximum of N files" |
@@ -162,8 +166,8 @@ Test cards: success `4242 4242 4242 4242` · decline `4000 0000 0000 0002` ·
 | --- | --- | --- |
 | 2.4.1 | Pill reads "Step 04 — Checkout"; amount matches settings | |
 | 2.4.2 | Card field renders (Stripe Elements, on our page) | Not a redirect to Stripe |
-| 2.4.3 | **Declined card** (`4000 0000 0000 0002`) | Error shown; **you stay on step 4 with files intact**; a "way back in" email arrives |
-| 2.4.4 | **3-D Secure card** (`4000 0025 0000 3155`) | Redirects, authenticates, returns to `/start?paid=1` — **not** to a broken URL |
+| 2.4.3 | **Declined card** (`4000 0000 0000 0002`) | ⚠️ Error shown; **you stay on step 4 with files intact**; a "way back in" email arrives|
+| 2.4.4 | **3-D Secure card** (`4000 0025 0000 3155`) | ⚠️ Redirects, authenticates, returns to `/start?paid=1` — **not** to a broken URL|
 | 2.4.5 | Successful payment | Confirmation state |
 | 2.4.6 | Stripe dashboard → the webhook endpoint | `payment_intent.succeeded` delivered, `200` |
 | 2.4.7 | Receipt email | Arrives, **lists every uploaded file** |
@@ -192,7 +196,7 @@ Test cards: success `4242 4242 4242 4242` · decline `4000 0000 0000 0002` ·
 | 3.2 | Wrong code | Refused |
 | 3.3 | Correct code | Lands on `/status/[token]` |
 | 3.4 | Status wording | A calm sentence — not `awaiting_approval` or any raw enum |
-| 3.5 | An email with **no** submissions | Same response as one with — no enumeration |
+| 3.5 | An email with **no** submissions | ⚠️ Same response as one with — no enumeration|
 | 3.6 | Before the coach has replied | No download offered |
 
 ---
@@ -202,15 +206,15 @@ Test cards: success `4242 4242 4242 4242` · decline `4000 0000 0000 0002` ·
 | # | Check | Expected |
 | --- | --- | --- |
 | 4.1 | `/login` with a wrong password | "Invalid password" |
-| 4.2 | With an unknown email | **Identical** message — no enumeration |
-| 4.3 | With a **deactivated** account | Identical message again (this is what bit us) |
+| 4.2 | With an unknown email | ⚠️ **Identical** message — no enumeration|
+| 4.3 | With a **deactivated** account | ⚠️ Identical message again (this is what bit us)|
 | 4.4 | Valid admin login | Lands on `/admin` |
 | 4.5 | Valid coach login | Lands on `/coach`, and `/admin` redirects away |
 | 4.6 | Valid translator login | Lands on `/translator` |
 | 4.7 | Someone holding two roles | Reaches both portals |
 | 4.8 | `/forgot-password` with a real address | Reset email arrives |
 | 4.9 | `/forgot-password` with an unknown address | Same visible response, no email |
-| 4.10 | Use the reset link | Password changes; **you can log in with the new one** |
+| 4.10 | Use the reset link | ⚠️ Password changes; **you can log in with the new one**|
 | 4.11 | Use the same link **twice** | Refused — single use |
 | 4.12 | An expired link | Refused with a clear message |
 | 4.13 | `/account` → change password | Requires the current one; wrong current is refused |
@@ -230,7 +234,7 @@ Test cards: success `4242 4242 4242 4242` · decline `4000 0000 0000 0002` ·
 | 5.5 | **Notify the coach** | Coach gets an email; status moves to `sent_to_coach` |
 | 5.6 | Archive a submission | Leaves the active queue |
 | 5.7 | **Reset a status** to an earlier rung | Recorded in the trail **with your name and a reason** |
-| 5.8 | **Purge a folder** | Files gone; the *rows* survive; `/api/files/[id]` answers **410**, not 404 |
+| 5.8 | **Purge a folder** | ⚠️ Files gone; the *rows* survive; `/api/files/[id]` answers **410**, not 404|
 | 5.9 | Assign a **translator** (Japanese-only coach) | Translation rungs appear |
 | 5.10 | A coach who shares the customer's language | Translation steps are **skipped** entirely |
 | 5.11 | A coach with **no languages recorded** | Says so plainly rather than prompting |
@@ -250,7 +254,7 @@ Test cards: success `4242 4242 4242 4242` · decline `4000 0000 0000 0002` ·
 | 5.13.6 | Edit someone's languages/specialties | Persists |
 | 5.13.7 | **Pause** a role | Still holds the role; **not offered for assignment** |
 | 5.13.8 | **Revoke** a role | Drops off that list; other roles survive |
-| 5.13.9 | Revoke every role | Person remains, reaches nothing — **there is no hard delete**; confirm that's acceptable |
+| 5.13.9 | Revoke every role | ⚠️ Person remains, reaches nothing — **there is no hard delete**; confirm that's acceptable|
 | 5.13.10 | Reset another operator's password as admin | ⚠️ Also previously broken — confirm they can then log in |
 | 5.13.11 | Deactivate an operator | Cannot log in |
 
@@ -261,7 +265,7 @@ Test cards: success `4242 4242 4242 4242` · decline `4000 0000 0000 0002` ·
 | # | Check | Expected |
 | --- | --- | --- |
 | 6.1 | Sees **only** their assigned submissions | |
-| 6.2 | Cannot reach another coach's submission by URL | Refused |
+| 6.2 | Cannot reach another coach's submission by URL | ⚠️ Refused|
 | 6.3 | **Download a file** | Works — and this is what earns `in_review` |
 | 6.4 | Status after that first download | `in_review`, in the trail |
 | 6.5 | Upload a feedback file | Accepted |
@@ -290,7 +294,7 @@ Test cards: success `4242 4242 4242 4242` · decline `4000 0000 0000 0002` ·
 | 8.1 | Customer gets the "feedback ready" email | Contains a working link |
 | 8.2 | Follow the link, request the access code | Code arrives |
 | 8.3 | Download the feedback | Works |
-| 8.4 | **That download stamps `collected`** | Retention clock starts here |
+| 8.4 | **That download stamps `collected`** | ⚠️ Retention clock starts here|
 | 8.5 | Admin sees the collection | Trail records it |
 | 8.6 | Download a second time | Still works; `collected` not re-stamped |
 

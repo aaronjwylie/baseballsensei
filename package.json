@@ -27,7 +27,9 @@
     "check:names": "node scripts/check-names.mjs",
     "check:doctrine": "node scripts/check-doctrine.mjs",
     "check:structure": "node scripts/check-structure.mjs",
-    "qa:tail": "node scripts/qa-tail.mjs"
+    "qa:tail": "node scripts/qa-tail.mjs",
+    "qa:build": "node scripts/qa-build.mjs",
+    "qa:check": "node scripts/qa-build.mjs --check"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",

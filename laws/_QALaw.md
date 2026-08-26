@@ -72,8 +72,8 @@ conversation, it is QA, and trying to gate it produces a flaky gate and a resent
 
 ## 3 · The rails
 
-Thirteen. Q1–Q6 govern the instrument, Q7–Q10 the itinerary and the run, Q11–Q12 the record and the
-loop, and Q13 how a pass is watched.
+Fourteen. Q1–Q6 govern the instrument, Q7–Q10 the itinerary and the run, Q11–Q14 the record, the
+loop, how a pass is watched, and how the two documents stay one.
 
 ### The instrument
 
@@ -165,6 +165,22 @@ Not for oversight — for triangulation (§7). A watcher reading the instrument,
 system's own state, can see the consequence of an action rather than only the action; the testers can
 see meaning, which no log carries. **Staff the pass so at least two different kinds of evidence are in
 the room**, because every disagreement between them is a finding neither would have produced alone.
+
+**Q14 · The itinerary and the record are one source and one generated output.**
+An itinerary that is edited and a record that is ticked are the same 166 facts written twice, and the
+pair drifts the first time either is touched — which is guaranteed, because Q12 removes checks and
+findings add them **while the pass is running**. So: the itinerary is the source, the record is built
+from it by a script, and **nothing is hand-copied between them**. Two properties make that safe to run
+mid-pass:
+
+- **Marks survive a rebuild**, carried across by id. A rebuild that discarded progress would be
+  unusable at exactly the moment it is needed.
+- **A mark whose check has gone is reported, not dropped.** Silently losing a verdict is how a record
+  comes to claim a coverage nobody achieved.
+
+**And the generator refuses to guess.** A row that looks like a check but cannot be parsed is a hard
+error, never a skip — a quietly dropped check makes the record claim *less* than the itinerary
+promises, in the one direction nobody audits.
 
 ---
 
@@ -314,6 +330,9 @@ Each of these looks like QA and produces nothing.
 - **A record that settles only at the end.** Useful as a report, useless as a cursor: two testers
   duplicate each other's checks and nobody notices until the totals disagree. Q11.
 - **Findings that never become gates.** The same pass is run forever, finding the same things. Q12.
+- **Two copies of the checks.** One in the document people edit, one in the thing people tick. They
+  agree on the day they are made and never again, and the first person to notice is a tester ticking a
+  check that no longer exists. Q14.
 
 ---
 
