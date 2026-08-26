@@ -95,7 +95,27 @@ existed — could not read them. That is the evidence behind Q11 and is cited in
 
 ---
 
-## 3 · What a pass has caught
+## 3 · Our three views (Q13)
+
+| View | Who holds it | Reads |
+|---|---|---|
+| The screen | Ben, Aaron | the product itself |
+| The instrument | Claude | `npm run qa:tail` — every action, refusal and failed request |
+| The record | all three | the shared artifact — verdicts and what is left |
+| **The system's state** | Claude | production Postgres over `PROD_DATABASE_URL`, read-only |
+
+**The fourth view is what closes the loop.** A tester clicks *assign a coach*; the instrument confirms
+the click; the database confirms the row moved to `assigned` and the trail recorded who did it. Three
+kinds of evidence for one action, with nobody narrating.
+
+⚠️ **`PROD_DATABASE_URL` is production.** It is deliberately not `DATABASE_URL` — for a period both
+names were set in `.env.local` and the second won, which pointed `npm run simulate`, `flow`, `db:seed`
+and `test:integration` at the live database. Those create *and delete* rows. The watcher's fourth view
+is read-only by discipline, not by credential, and that is a known limit (§5).
+
+---
+
+## 4 · What a pass has caught
 
 Past tense, permanent, never pruned ([PRINCIPLES §12a](../PRINCIPLES.md)).
 
@@ -129,7 +149,7 @@ whether it became a gate under Q12.)*
 
 ---
 
-## 4 · Known limits of this pass
+## 5 · Known limits of this pass
 
 Stated because coverage claimed but not exercised is worse than an acknowledged gap.
 
@@ -142,3 +162,5 @@ Stated because coverage claimed but not exercised is worse than an acknowledged 
 - **No accessibility audit.** Token contrast was checked by hand; `ink-muted` on paper is 3.88:1 and
   below AA, which is the designer's own ramp step and so was left rather than quietly changed.
 - **Phase 9's sweep and webhook checks touch production data** and are ordered last for that reason.
+- **The watcher's database view is read-only by discipline, not by credential.** The connection can
+  write. Nothing enforces that it does not.

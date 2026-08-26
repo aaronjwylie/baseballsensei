@@ -72,7 +72,8 @@ conversation, it is QA, and trying to gate it produces a flaky gate and a resent
 
 ## 3 · The rails
 
-Twelve. Q1–Q6 govern the instrument, Q7–Q10 the itinerary and the run, Q11–Q12 the record and the loop.
+Thirteen. Q1–Q6 govern the instrument, Q7–Q10 the itinerary and the run, Q11–Q12 the record and the
+loop, and Q13 how a pass is watched.
 
 ### The instrument
 
@@ -139,7 +140,7 @@ a provider's test mode, a fault-injecting proxy, a throttled network — and lea
 final configuration check. **Testing in the irreversible mode first costs money and removes the ability
 to test the failures at all.**
 
-### The record and the loop
+### The record, the loop, and the watching
 
 **Q11 · One record, live and shared — not one per participant.**
 Two people run a pass and a third follows it. State kept in one browser is invisible to the other two,
@@ -158,6 +159,12 @@ This is the loop that keeps QA from becoming ceremony. Every pass should end wit
 fix, and **what should have been mechanical**. The second list is an amendment to
 [`_VerificationLaw`](_VerificationLaw.md)'s roster, and the corresponding check is then **deleted
 here**. An itinerary that never loses a line is one nobody is learning from.
+
+**Q13 · Someone must hold a view the testers do not.**
+Not for oversight — for triangulation (§7). A watcher reading the instrument, and where possible the
+system's own state, can see the consequence of an action rather than only the action; the testers can
+see meaning, which no log carries. **Staff the pass so at least two different kinds of evidence are in
+the room**, because every disagreement between them is a finding neither would have produced alone.
 
 ---
 
@@ -247,7 +254,42 @@ The same document, read cold by someone who was not there:
 
 ---
 
-## 7 · The ways a pass is silently not one
+## 7 · Three views, and the value of their disagreement
+
+A pass run well has the same run visible three ways at once, held by different people:
+
+| View | Sees | Is blind to |
+|---|---|---|
+| **The screen** — the testers | what it looks like, reads like, feels like; whether a step made sense | the network, the database, and their own memory of what they just did |
+| **The instrument** — the watcher | every action and refusal, exactly, in order | meaning. It cannot tell you an image failed to load or a sentence is wrong |
+| **The record** — everyone | the agreed verdict, and how much is left | anything nobody has formed an opinion about yet |
+
+A fourth, where the watcher can reach it: **the system's own state** — the row that moved, the trail
+that was written, the mail that was accepted. That is what closes the loop from *"I clicked assign"* to
+*"the assignment happened, and here is the evidence."*
+
+> **The disagreements are the point.** Not the redundancy — the *contradiction*. When the instrument
+> says nothing happened and the tester says something did, one of them is wrong, and finding out which
+> is a finding either way.
+
+*Evidence: every defect found in one pass's first hour came from a disagreement, not an assertion. The
+log showed a tester submit a code and then fall silent while the tester was looking at an error message
+— which exposed that the product's characteristic refusal was uninstrumented (Q3). The log reported four
+network failures while the testers saw nothing wrong — which exposed that the instrument was reporting
+the framework's own cancelled prefetches (Q4). Neither view alone said anything was wrong.*
+
+**What this asks of how a pass is staffed.** One person clicking while another watches is not
+supervision and should not be described as it; it is two instruments pointed at one system from
+different angles. A pass where everyone holds the same view produces only the findings somebody thought
+to notice on screen — which is the smallest of the three sets.
+
+**And it is why Q4 is load-bearing.** A watcher only keeps watching while the log stays worth reading.
+A stream with routine false alarms in it collapses this section back to one view within an hour, and
+nobody announces that it has happened.
+
+---
+
+## 8 · The ways a pass is silently not one
 
 Each of these looks like QA and produces nothing.
 
@@ -264,6 +306,9 @@ Each of these looks like QA and produces nothing.
   looks like.
 - **A pass run against data that cannot afford it.** QA generates real records in whatever it points
   at. Settle retention, access and reversibility *before* the first check, not after.
+- **One view only.** The tester clicks, and nobody is reading anything but the screen. What gets found
+  is what someone happened to notice, and no disagreement is possible because there is nothing to
+  disagree with. Q13.
 - **A record only the tester can see.** The people following ask what is happening, the tester
   narrates, and the pass runs at the speed of description. Q11.
 - **A record that settles only at the end.** Useful as a report, useless as a cursor: two testers
@@ -272,7 +317,7 @@ Each of these looks like QA and produces nothing.
 
 ---
 
-## 8 · Writing your own
+## 9 · Writing your own
 
 **Do not adopt this law before you have run a pass without one.** The rails above are each a
 description of something that went wrong; adopted in advance they read as bureaucracy, and the two or
