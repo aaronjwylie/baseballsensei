@@ -168,7 +168,7 @@ test("operator: assign → hand off → (coach) feedback → approve → complet
   await page.goto("/admin");
   const approveRow = page.locator("div.border-b").filter({ hasText: playerName }).first();
   await expandRow(approveRow, playerName);
-  await approveRow.getByRole("button", { name: /Approve/ }).click();
+  await approveRow.getByRole("button", { name: /Approve & send/ }).click();
 
   // It has left the active queue as a completed review — the customer now sees
   // it as ready on the status page.
