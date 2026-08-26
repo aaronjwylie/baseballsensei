@@ -8,6 +8,50 @@ row — git remembers.
 
 ---
 
+## 0 · Security — act before anything else
+
+### The Supabase Data API exposes every table to a publishable key
+
+**Found 2026-08-15.** A `GET` against the production PostgREST endpoint with the
+**publishable** (anon) key returns rows from every table checked:
+
+| Table | Rows readable | What that is |
+| --- | --- | --- |
+| `operator` | 7 | every operator's email and active flag |
+| `operator_credential` | 7 | **bcrypt password hashes** |
+| `operator_role_grant` | 10 | who is an admin |
+| `submission` | 30 | customer emails, player names and ages — **minors** — and notes |
+| `submission_file` | 18 | filenames and storage locators |
+| `operator_profile` | 7 | operator names and languages |
+| `setting` | 1 | the operator's knobs |
+
+Row Level Security is off, so the anon role reads everything. A publishable key
+is **designed to be public** — that is what "publishable" means — so the only
+thing standing between this data and anyone is that nobody has tried.
+
+**Write access is untested.** The probe was a `PATCH` filtered to an id that
+cannot exist, and the sandbox refused it. Until someone checks, assume writes
+may also be open.
+
+**The fix is unusually cheap here: turn the Data API off.** This app does not
+use it. There is no `supabase-js` dependency, nothing in `src/` imports one, and
+`shared/db/client.ts` talks to Postgres directly over `DATABASE_URL` through
+Drizzle. The only thing reading `PROD_REST_*` is `scripts/qa.sh`, an ad-hoc
+script. So:
+
+1. **Supabase dashboard → Settings → API → Exposed schemas**: remove `public`.
+   Nothing in the application notices.
+2. **Then** enable RLS on every table as defence in depth
+   (`ALTER TABLE <t> ENABLE ROW LEVEL SECURITY;`). The app is unaffected: it
+   connects as a privileged role, which bypasses RLS.
+3. **Rotate the publishable key** afterwards, and treat the bcrypt hashes as
+   having been exposed — they are hashed at cost 10, not plaintext, but the
+   window is unknown.
+4. Decide whether this needs disclosing. Customer emails and **the names and
+   ages of children** were readable.
+
+---
+
 ## 1 · Blocking launch
 
 ### Content and assets
