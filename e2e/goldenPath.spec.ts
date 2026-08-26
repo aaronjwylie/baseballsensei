@@ -123,6 +123,8 @@ test("operator: assign → hand off → (coach) feedback → approve → complet
   await row.getByRole("button", { name: new RegExp(playerName) }).click();
 
   await row.getByRole("combobox").selectOption({ label: COACH.name });
+  await row.getByRole("button", { name: "Save" }).click();
+  // Assigned — now hand it to the coach (assigned → sent_to_coach).
   await row.getByRole("button", { name: /Send email/ }).click();
 
   // --- Coach: pick up the files, upload feedback, send for approval -------
