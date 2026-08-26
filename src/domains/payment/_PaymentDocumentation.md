@@ -118,8 +118,11 @@ flowchart LR
 - ✅ **Idempotent fulfillment**, shared by both entry paths (webhook, browser).
 - ✅ **The receipt email** — amount, total, and every file by name and size, with the
   customer's own filenames HTML-escaped on the way in.
-- ✅ **Inline pricing from `shared/config/site.ts`** when `STRIPE_PRICE_ID` is unset, so the
-  client needn't create a Stripe Product to launch.
+- ✅ **Inline pricing from the operator's setting** (`settings.priceCents`, edited at
+  /admin/settings) when `STRIPE_PRICE_ID` is unset, so the client needn't create a Stripe
+  Product to launch and can reprice without a deploy. The receipt falls back to the same
+  setting rather than the `site.ts` constant, so a missing `stripeAmount` can't mail a
+  figure the operator retired.
 
 - ⚠️ **`npm run payment` now creates a submission first.** Payment is last, so there has to
   be something to pay for; the probe stands in for the three steps a real customer walks.

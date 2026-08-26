@@ -44,8 +44,13 @@ test("customer: details → verify → upload → pay → confirmation → statu
   // clear message rather than filling the code into the wrong field.
   const codeField = page.getByLabel("Verification code");
   await expect(codeField).toBeVisible();
-  await codeField.fill(VERIFICATION_CODE);
-  await page.getByRole("button", { name: "Verify and continue" }).click();
+  // Type it — this input transforms on each keystroke, and `fill` sets the value
+  // without driving that onChange, so the button never enables.
+  await codeField.click();
+  await codeField.pressSequentially(VERIFICATION_CODE);
+  const verifyButton = page.getByRole("button", { name: "Verify and continue" });
+  await expect(verifyButton).toBeEnabled();
+  await verifyButton.click();
 
   // Step 3 — upload. The file input is hidden inside the "empty" card's label;
   // setInputFiles drives it regardless. Wait for the proxied upload to finish
