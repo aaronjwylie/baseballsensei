@@ -59,7 +59,7 @@ everything on its own (Q6).
 
 | Thing | Where |
 |---|---|
-| The itinerary | [`docs/qa/itinerary.md`](../docs/qa/itinerary.md) — 166 checks, eleven phases |
+| The itinerary | [`docs/qa/itinerary.md`](../docs/qa/itinerary.md) — 168 checks, eleven phases |
 | The record | A published artifact — tickable, shared, notes on failure |
 | Phase 0 helpers | [`docs/qa/phase-0.sql`](../docs/qa/phase-0.sql) |
 

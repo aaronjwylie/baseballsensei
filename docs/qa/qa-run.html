@@ -415,7 +415,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 2</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 3</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -460,7 +460,7 @@
   covers what a person clicks. When a check here gets automated, delete it and say so there.
 </footer>
 </div>
-<script id="qa-state" type="application/json">{"marks":{"0.1":{"v":"pass"},"0.3":{"v":"pass"},"0.4":{"v":"pass"},"0.6":{"v":"pass"},"0.7":{"v":"pass"},"0.8":{"v":"pass"},"0.2":{"v":"skip"}},"trail":[],"build":2}</script>
+<script id="qa-state" type="application/json">{"marks":{"0.1":{"v":"pass"},"0.3":{"v":"pass"},"0.4":{"v":"pass"},"0.6":{"v":"pass"},"0.7":{"v":"pass"},"0.8":{"v":"pass"},"0.2":{"v":"skip"}},"trail":[],"build":3}</script>
 <script id="app">
 const PHASES = [
   {
@@ -517,6 +517,18 @@ const PHASES = [
             "Arm your browser: visit /api/qa/session?token=<QA_TOKEN>.",
             "You should be redirected home. Nothing visible changes — that is correct.",
             "done"
+          ],
+          [
+            "0.9",
+            "Confirm the build number in the record's header matches the one you were told.",
+            "A shared record acquires copies — a pinned link, a stale tab. Every question about a finding otherwise starts with which version were you looking at?",
+            "flag"
+          ],
+          [
+            "0.10",
+            "Mark one check, then have the trail read back.",
+            "The record carries its own instrumentation (Q15), but it cannot post from the viewer sandbox — the trail travels only when the page publishes, which is when somebody marks something. Marking is what proves it works.",
+            "flag"
           ]
         ]
       },
