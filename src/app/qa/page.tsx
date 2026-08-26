@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { Container } from "@/shared/ui";
-import { env } from "@/shared/config/env";
 import {
-  QA_AUTH_COOKIE,
   QaBoard,
   itinerary,
+  qaAccess,
   readMarks,
   setMarkAction,
   type Mark,
@@ -59,10 +57,11 @@ function NotArmed() {
  * same probe as every other — so the record's clicks and the product's clicks
  * land in one log instead of two.
  *
- * **404, not 401, and off by default.** Same rule as the rest of the QA domain:
- * with `QA_TOKEN` unset the page does not exist, and without the arming cookie
- * neither does it. `/qa` is outside the operator portal and would otherwise be
- * a page anybody could find.
+ * **The gate follows whatever protects the site.** While Basic Auth is on,
+ * everyone here already proved themselves at the front door and the record asks
+ * for nothing more. When it comes off, `QA_TOKEN` takes over — see `qaAccess`.
+ * With neither, the page 404s, because a public list of every check in the
+ * product is not something to serve.
  *
  * Temporary. It goes with the tables when the pass is over.
  */
@@ -71,11 +70,11 @@ export default async function QaPage({
 }: {
   searchParams: Promise<{ token?: string }>;
 }) {
-  /* Unset means the whole QA subsystem is off, and then this page genuinely
-     does not exist. That one stays a 404. */
-  if (!env.qaToken) notFound();
+  const [access, params] = await Promise.all([qaAccess(), searchParams]);
 
-  const [jar, params] = await Promise.all([cookies(), searchParams]);
+  /* No Basic Auth and no token means nothing is protecting this page, and a
+     public list of every check in the product is not something to serve. */
+  if (access === "absent") notFound();
 
   /* Arming from here, not only from the API route.
 
@@ -85,7 +84,7 @@ export default async function QaPage({
      because anyone can probe those; it is pointless here, because the site's
      own Basic Auth gate already stands in front of this page. So: a token in
      the query arms the browser, and no token at all explains itself. */
-  if (params.token) {
+  if (access !== "granted" && params.token) {
     /* Handed to the route that owns cookie-setting rather than done here: a
        Server Component cannot write cookies, and trying returned a 500 that
        said nothing about why. The route validates the token, so a wrong one
@@ -93,7 +92,7 @@ export default async function QaPage({
     redirect(`/api/qa/session?token=${encodeURIComponent(params.token)}&next=/qa`);
   }
 
-  if (jar.get(QA_AUTH_COOKIE)?.value !== env.qaToken) return <NotArmed />;
+  if (access !== "granted") return <NotArmed />;
 
   const rows = await readMarks();
   const marks: Mark[] = rows.map((r) => ({

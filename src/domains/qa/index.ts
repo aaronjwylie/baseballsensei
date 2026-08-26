@@ -8,6 +8,7 @@
  */
 export { recordEvents, readEvents, clearEvents } from "./api/qaApi";
 export { readMarks, setMark } from "./api/qaMarkApi";
+export { qaAccess, type QaAccess } from "./api/qaAccess";
 export { setMarkAction } from "./api/qaMarkActions";
 export { itinerary } from "./model/itinerary";
 export {
