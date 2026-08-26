@@ -1,0 +1,7 @@
+-- Remove the QA instrumentation table. Rename this to `0020_drop_qa_event.sql`
+-- and add a journal entry when the QA pass is finished.
+--
+-- Kept as `.pending` rather than applied, so the teardown is written down while
+-- the reasoning is fresh instead of being rediscovered months later — and so it
+-- cannot run before anyone means it to.
+DROP TABLE IF EXISTS "qa_event";

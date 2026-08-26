@@ -6,6 +6,7 @@ import { site } from "@/shared/config/site";
 import { SiteHeader } from "@/shared/layout/SiteHeader";
 import { SiteFooter } from "@/shared/layout/SiteFooter";
 import { SiteChrome } from "@/shared/layout/SiteChrome";
+import { QaProbe } from "@/domains/qa";
 
 /**
  * Two faces, from Audrey's `Colours+typography` board (Figma
@@ -50,6 +51,22 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * `QaProbe` is rendered unconditionally and **gates itself in the browser**.
+ *
+ * The obvious version read the arming cookie here and mounted the probe only
+ * when it was set. That reads better and is wrong: `cookies()` in the root
+ * layout opts *every route in the app* out of static rendering. It turned `/`
+ * from an ISR page into a dynamic one, and `/contact`, `/terms`, `/login` and
+ * `/status` from static into dynamic, to decide whether to render a component
+ * that is almost always nothing.
+ *
+ * So the probe ships to everyone and does nothing unless it finds the arming
+ * cookie — which only a route holding `QA_TOKEN` can set, and which is useless
+ * anyway because the ingest endpoint 404s without the same token. The cost is a
+ * few inert kilobytes in the client bundle; the alternative was every page on
+ * the site rendered from scratch on every request.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -68,6 +85,7 @@ export default function RootLayout({
         >
           <main className="flex-1">{children}</main>
         </SiteChrome>
+        <QaProbe />
       </body>
     </html>
   );

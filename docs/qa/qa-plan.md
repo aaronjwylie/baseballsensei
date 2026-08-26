@@ -1,6 +1,9 @@
 # Baseball Sensei — QA Plan (DRAFT for review)
 
 **Status:** proposal, not yet adopted. For Aaron + Ben to react to before any of it is built.
+**Partly built since:** Phase 1's CI gate now exists at `.github/workflows/ci.yml`.
+**See also:** [`itinerary.md`](itinerary.md) — the manual cover-to-cover pass, which
+is what a person runs. This file is what the machines run.
 **Author:** drafted 2026-08-05.
 **Decision owner:** Ben (per CLAUDE.md §14).
 

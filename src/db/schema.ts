@@ -54,3 +54,4 @@ export * from "@/domains/submission/model/submissionFileTable";
 export * from "@/domains/submission/model/submissionEventTable";
 export * from "@/domains/submission/model/submissionAssignmentTable";
 export * from "@/domains/settings/model/settingTable";
+export * from "@/domains/qa/model/qaEventTable";

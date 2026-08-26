@@ -52,6 +52,21 @@ export const env = {
     return required("AUTH_SECRET");
   },
 
+  /**
+   * Optional QA instrumentation token.
+   *
+   * **Unset is off, completely.** Every `/api/qa/*` route answers 404 when this
+   * is missing, and the probe is never rendered — so the instrumentation does
+   * not exist in any deploy that has not deliberately switched it on, and is
+   * turned off again by deleting one variable.
+   *
+   * It gates a production endpoint, so it needs the length of a real secret,
+   * not a word.
+   */
+  get qaToken() {
+    return optional("QA_TOKEN");
+  },
+
   // Optional site-wide HTTP Basic Auth — hides the whole site behind a browser
   // username/password prompt while it's being built. Active only when BOTH are
   // set; clear them (and redeploy) to lift the gate.
