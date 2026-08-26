@@ -117,8 +117,14 @@
      anything else on it, because the question is asked before the content
      matters. */
   .build {
-    color: var(--ink);
+    /* Lime is a brand constant — it is defined once and does not flip with the
+       theme — so the text on it must be constant too. Pairing it with
+       var(--ink) made the stamp near-white on lime in dark mode, about 1.3:1,
+       which is how a version label can be present and unfindable at the same
+       time. `.flag` above got this right; this did not. */
+    color: #19191b;
     background: var(--lime);
+    font-weight: 600;
     padding: 2px 7px;
     margin-left: 6px;
     letter-spacing: .1em;
