@@ -21,6 +21,7 @@ import {
   updateSubmission,
 } from "@/domains/submission";
 import { site } from "@/shared/config/site";
+import { getSettings } from "@/domains/settings";
 import type { PaidResult } from "../model/fulfillment";
 import { listAdminEmails } from "@/domains/operator";
 import {
@@ -38,9 +39,21 @@ export async function completePayment({
 
   const files = await listSubmissionFiles(submission.id);
 
+  /*
+    The operator's price, not the constant in `site.ts`, as the last resort.
+
+    `stripeAmount` is what Stripe actually took, so it wins whenever we have
+    it. But it is written during fulfillment, and if that write ever fails
+    the receipt still has to name a figure — and the figure it named was the
+    $80 default, which stopped being true the moment the operator changed the
+    price at /admin/settings. A receipt understating the charge is a dispute;
+    the current setting is at least the price the customer was quoted.
+  */
+  const settings = await getSettings();
+
   const receipt = await sendSubmissionReceipt(submission.customerEmail, {
     playerName: submission.playerName,
-    amountCents: submission.stripeAmount ?? site.price.amountCents,
+    amountCents: submission.stripeAmount ?? settings.priceCents,
     currency: site.price.currency,
     files,
     /*

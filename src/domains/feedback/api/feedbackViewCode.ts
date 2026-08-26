@@ -15,6 +15,7 @@
 import bcrypt from "bcryptjs";
 import { randomInt } from "node:crypto";
 import type { JWTPayload } from "jose";
+import { env } from "@/shared/config/env";
 import {
   findByCustomerEmail,
   isReleased,
@@ -43,6 +44,9 @@ export interface FeedbackGroup {
 }
 
 function generateCode(): string {
+  // A fixed code in a Playwright run — the status lookup is code-gated now, and
+  // a browser can't read the email. Hard-off in production (see env.isE2E).
+  if (env.isE2E) return "0".repeat(CODE_LENGTH);
   // `randomInt` from node:crypto, not Math.random — this gates access.
   return String(randomInt(0, 10 ** CODE_LENGTH)).padStart(CODE_LENGTH, "0");
 }

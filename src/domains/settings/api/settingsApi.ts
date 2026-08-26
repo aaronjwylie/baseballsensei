@@ -43,9 +43,24 @@ export const getSettings = cache(async function getSettings(): Promise<PlatformS
 
   if (row) return fromRow(row);
 
-  // First read on a fresh database. Insert the defaults rather than returning
-  // them, so the admin form has something to edit. `onConflictDoNothing` covers
-  // two requests racing to be first.
+  /*
+    First read on a fresh database. Insert the defaults rather than returning
+    them, so the admin form has something to edit. `onConflictDoNothing` covers
+    two requests racing to be first.
+
+    Loud about it, because this branch silently reprices the product. Reaching
+    here means no settings row existed, so the charge, the landing card and the
+    terms page all fall back to DEFAULT_SETTINGS together — they agree with each
+    other and disagree with the operator, which is the one failure that looks
+    like nothing is wrong. Expected on a fresh install and on every local test
+    run; on production it means the row was lost and the price needs re-setting.
+  */
+  console.warn(
+    `[settings] no settings row — seeding defaults, price falls back to ` +
+      `$${(DEFAULT_SETTINGS.priceCents / 100).toFixed(2)}. ` +
+      `If this is production, re-set the price at /admin/settings.`,
+  );
+
   const [created] = await db
     .insert(settingTable)
     .values({ id: SETTINGS_ID, ...DEFAULT_SETTINGS })

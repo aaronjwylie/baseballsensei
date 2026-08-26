@@ -69,7 +69,11 @@ export async function sendEmail({
     console.warn(
       `[email] RESEND_API_KEY unset — skipping email to ${to}: ${subject}`,
     );
-    return { ok: false };
+    // A Playwright run has no mail provider, and the flow is *blocked* on the
+    // verification send — so report success there (the code is a fixed constant
+    // the test already knows). Never true in a deployed environment, where an
+    // absent key must read as an absent send, not a fake one.
+    return { ok: env.isE2E };
   }
 
   try {
