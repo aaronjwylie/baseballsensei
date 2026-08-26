@@ -105,8 +105,11 @@ the page already publishes and reaches the watcher when the page is next read.
 **What it cannot see** — a session that never publishes. Somebody reading the record without marking
 anything leaves no trace at all. That is a blind spot, not a gap to be closed later.
 
-**The header carries a build number**, stamped by `npm run qa:build` from `docs/qa/version.json`. It
-exists because "are we on the same version?" was asked and answering it meant inferring from content.
+**Versions are the host's, not ours.** A build counter was added and then removed within the hour: the
+artifact host already numbers every publish and shows it in a picker, and a second scheme beside it is
+two names for one thing. It could not have been kept honest anyway — the version is assigned at publish,
+after the file is written, and a tick that republishes the page carries the old stamp while the host
+increments underneath it. Each publish gets a **label** instead, so the picker row says what changed.
 
 ### The record is a published artifact, and it does both of §6's jobs
 

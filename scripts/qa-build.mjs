@@ -27,7 +27,6 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE = join(ROOT, "docs/qa/itinerary.md");
 const TEMPLATE = join(ROOT, "docs/qa/template.html");
 const OUTPUT = join(ROOT, "docs/qa/qa-run.html");
-const VERSION = join(ROOT, "docs/qa/version.json");
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes("--check");
@@ -194,18 +193,14 @@ console.log(`[qa:build] ${marked} mark(s) carried over` + (orphans.length ? `, $
 
 if (checkOnly) process.exit(0);
 
-/* A build number, stamped into the masthead.
-   "Are we on the same version?" was asked, and answering it meant reading the
-   page's content and inferring — which is archaeology for a question that
-   should take a glance. It increments here rather than tracking git, because
-   the build happens before the commit that would name it. */
-const version = existsSync(VERSION)
-  ? JSON.parse(readFileSync(VERSION, "utf8"))
-  : { build: 0 };
-version.build += 1;
-version.builtAt = new Date().toISOString();
-writeFileSync(VERSION, JSON.stringify(version, null, 2) + "\n");
-const label = `Build ${version.build}`;
+/* No build number of our own.
+   The host already versions every publish and shows it in a picker, and a
+   second scheme beside it is two names for one thing — the drift this project
+   spends its nomenclature law preventing. It cannot be mirrored honestly
+   either: the version is assigned at publish, after this file is written, and
+   when the page republishes ITSELF to save a tick it carries whatever was
+   baked in while the host increments underneath it. So the picker is the
+   version, and the publish carries a human-readable label beside it. */
 
 const template = readFileSync(TEMPLATE, "utf8");
 const html = template
@@ -213,17 +208,17 @@ const html = template
     /const PHASES = \/\*__PHASES__\*\/[\s\S]*?\/\*__END_PHASES__\*\/;/,
     "const PHASES = " + JSON.stringify(phases, null, 2) + ";",
   )
-  .replace("__BUILD_LABEL__", label)
   .replace(
     "/*__STATE__*/",
-    JSON.stringify({ marks, trail, build: version.build }).replace(/</g, "\\u003c"),
+    JSON.stringify({ marks, trail }).replace(/</g, "\\u003c"),
   );
 
-if (html.includes("__PHASES__") || html.includes("__STATE__") || html.includes("__BUILD_LABEL__")) {
+if (html.includes("__PHASES__") || html.includes("__STATE__")) {
   console.error("[qa:build] a placeholder survived — the template and this script disagree");
   process.exit(1);
 }
 
 writeFileSync(OUTPUT, html);
 console.log(`[qa:build] ${trail.length} trail entr${trail.length === 1 ? "y" : "ies"} carried over`);
-console.log(`[qa:build] wrote docs/qa/qa-run.html — ${label} (${Math.round(html.length / 1024)} KB)`);
+console.log(`[qa:build] wrote docs/qa/qa-run.html (${Math.round(html.length / 1024)} KB)`);
+console.log(`[qa:build] version is the host's — publish with a label so the picker row says what changed`);

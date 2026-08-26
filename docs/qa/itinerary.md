@@ -42,7 +42,7 @@ phase if it were not true.
 | 0.6 | **Decide the Basic Auth question.** Leave the gate on for QA. | ✅ With it on, only you can reach the site — which is what you want while generating test submissions.|
 | 0.7 | **Set `QA_TOKEN`** in Vercel → Production, then redeploy. | ✅ Arms the instrument. It is already generated and sitting in `.env.local`; `grep '^QA_TOKEN=' .env.local \| cut -d= -f2- \| pbcopy` puts it on your clipboard without it passing through a chat log. |
 | 0.8 | **Arm your browser**: visit `/api/qa/session?token=<QA_TOKEN>`. | ✅ You should be redirected home. Nothing visible changes — that is correct.|
-| 0.9 | **Confirm the build number** in the record's header matches the one you were told. | ⚠️ A shared record acquires copies — a pinned link, a stale tab. Every question about a finding otherwise starts with *which version were you looking at?* |
+| 0.9 | **Confirm the version** in the record's own version picker matches the one you were told, and that its label describes the change. | ⚠️ A shared record acquires copies — a pinned link, a stale tab. The host's number is the version; we do not keep a second one, because a page that republishes itself cannot carry an accurate copy of it. |
 | 0.10 | **Mark one check, then have the trail read back.** | ⚠️ The record carries its own instrumentation (Q15), but it cannot post from the viewer sandbox — the trail travels only when the page publishes, which is when somebody marks something. Marking is what proves it works. |
 
 ### ~~Phase 0a~~ · moved to Phase 11

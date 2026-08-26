@@ -35,7 +35,7 @@ const clock = new Intl.DateTimeFormat(undefined, {
   hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
 });
 
-console.log(`Build ${state.build ?? "?"} · ${Object.keys(marks).length} mark(s) · ${trail.length} trail entr${trail.length === 1 ? "y" : "ies"}`);
+console.log(`${Object.keys(marks).length} mark(s) · ${trail.length} trail entr${trail.length === 1 ? "y" : "ies"} — version is whatever the host's picker says`);
 console.log(`Times in ${Intl.DateTimeFormat().resolvedOptions().timeZone}, UTC beside.\n`);
 
 const DESCRIBE = {

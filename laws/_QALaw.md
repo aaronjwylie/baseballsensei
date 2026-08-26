@@ -195,8 +195,15 @@ never a word of it.
 
 **The version is part of this.** A shared record acquires copies — a pinned link, a stale tab, a
 downloaded page — and every question about a finding then starts with *which version were you looking
-at?* **Stamp a build number where it is read before the content is**, so that question takes a glance
-instead of an inference.
+at?* That question has to be answerable at a glance.
+
+**But do not invent a second numbering if the host already has one.** Two schemes side by side are two
+names for one thing, and the one you control is the one that will be wrong. It is worse than that for a
+record that publishes itself: the host assigns a version *at publish*, after the page is written, so a
+number baked into the page cannot include its own — and every time a viewer's tick republishes the
+page, it carries the old stamp while the host increments underneath it. **Use the host's version, and
+spend your effort on naming it**: a label saying what changed is worth more beside a version row than a
+number repeated in two places. Stamp your own only where the host offers none.
 
 ---
 
