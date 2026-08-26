@@ -103,7 +103,7 @@ script. So:
 | **Record each coach's languages** in the portal | Translation need is the intersection of the coach's languages and the customer's. A coach with none recorded produces "no languages recorded for this coach" rather than a prompt — correct, but the rule does nothing until someone fills them in. |
 | **Revoke the Figma token** | `figd_TTJa…` was pasted into a transcript on 2026-08-15 and written to `.env.figma`. Read-only and file-scoped, but it does not expire on its own. Revoke and delete the file when the design work is done. |
 | **Rotate the production DB password** | Exposed in a transcript 2026-08-05. |
-| **Reactivate `ben.j.wylie@gmail.com`** | `is_active = false`, written by the operator edit form on save — an absent checkbox read as `=== "on"`. Cause fixed by Aaron in `0d6bbf0`; the row needs repairing with `docs/qa/phase-0.sql`. |
+| ~~**Reactivate `ben.j.wylie@gmail.com`**~~ — **DONE** | Verified against production 2026-08-26: `is_active = true`, credential present, holding `admin,coach,translator`. Every operator is active with credentials and grants. The cause (the edit form writing `isActive=false` on every save) was fixed by Aaron in `0d6bbf0`. A repair migration was written and then **deleted unapplied** — there was nothing left to repair, and shipping a data mutation for a problem that no longer exists is worse than not shipping one. |
 | **Confirm the admin login works in production** | `0018_repair_orphaned_logins` runs on deploy and rebuilds the missing credential and grant rows from the legacy columns. It can only recover a password that is still in `operator.password_hash`; an admin seeded with no legacy hash at all needs an explicit reset — see below. |
 
 ---
