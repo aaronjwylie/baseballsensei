@@ -33,6 +33,9 @@ jobs:
       - run: npm run check:names
       - run: npm run check:doctrine
       - run: npm run check:structure
+      # Phase 3: the pure-logic unit suite. Fast, no DB — belongs beside the
+      # other static checks rather than in the Postgres-backed `db` job.
+      - run: npm run test
 
   db:
     name: Schema + funnel probes
