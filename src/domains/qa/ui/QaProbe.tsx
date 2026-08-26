@@ -90,7 +90,17 @@ export function QaProbe() {
       const node = el.closest(
         "button,a,[role=button],summary,input,select,textarea,label",
       );
-      if (!node) return el.tagName.toLowerCase();
+      /*
+        A click that lands on nothing interactive still says something — the
+        first run recorded two bare `div`s on /start, which could equally have
+        been a mis-aimed click at a control or a tap on empty space, and the
+        log could not tell the difference. Carrying a little of the text under
+        the cursor makes that answerable.
+      */
+      if (!node) {
+        const text = (el as HTMLElement).innerText?.replace(/\s+/g, " ").trim().slice(0, 50);
+        return `${el.tagName.toLowerCase()}${text ? ` (near "${text}")` : " (no target)"}`;
+      }
       const tag = node.tagName.toLowerCase();
       const text = (node.getAttribute("aria-label") ||
         (node as HTMLElement).innerText ||
@@ -200,7 +210,20 @@ export function QaProbe() {
       } catch {
         /* exotic input — let it through unrecorded */
       }
-      const isQa = url.includes("/api/qa/");
+      /*
+        Two kinds of request are deliberately not reported.
+
+        `/api/qa/` — reporting its failure would post a request whose failure
+        would be reported.
+
+        `_rsc` — Next's React Server Component prefetch. The router fires these
+        speculatively for links it thinks you may follow, and **abandons them
+        the moment you navigate**, which is constant and correct. The first run
+        with fetch capture on recorded four "network failures" in one second,
+        all of them prefetches cancelled by the click that made them moot. A log
+        that cries wolf four times a minute is a log nobody reads by phase three.
+      */
+      const isQa = url.includes("/api/qa/") || url.includes("_rsc=");
       try {
         const res = await originalFetch(...args);
         if (!isQa && !res.ok) {
@@ -214,7 +237,17 @@ export function QaProbe() {
         }
         return res;
       } catch (err) {
-        if (!isQa) push("fetch", { target: `network failure ${url.slice(0, 120)}` });
+        /*
+          An abort is not a failure. Navigating away, a component unmounting
+          mid-request, or an explicit AbortController all land here, and none
+          of them is something a tester should be shown.
+        */
+        const aborted =
+          (err as { name?: string })?.name === "AbortError" ||
+          (args[1] as RequestInit | undefined)?.signal?.aborted;
+        if (!isQa && !aborted) {
+          push("fetch", { target: `network failure ${url.slice(0, 120)}` });
+        }
         throw err;
       }
     };
