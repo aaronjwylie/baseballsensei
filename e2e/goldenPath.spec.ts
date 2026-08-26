@@ -71,8 +71,8 @@ test("customer: details → verify → upload → pay → confirmation → statu
   await card.getByPlaceholder("1234 1234 1234 1234").fill("4242424242424242");
   await card.getByPlaceholder("MM / YY").fill("12 / 34");
   await card.getByPlaceholder("CVC").fill("123");
-  const zip = card.getByPlaceholder("ZIP");
-  if (await zip.count()) await zip.fill("12345");
+  // US test keys show a required ZIP field (placeholder "12345", label "ZIP code").
+  await card.getByLabel("ZIP code").fill("12345");
   await payButton.click();
 
   // Confirmation.
