@@ -174,7 +174,20 @@ can sign in and reach nothing.
 
 ---
 
-## 6 · Deferred by choice
+## 6 · Decided, with a trigger
+
+**`_ReleaseLaw` — write it at Phase 11** (2026-08-26). Named releases, a changelog and rollback
+procedure. Deliberately not now: the repo has version control and unusually good commit messages, so
+what is missing is *releases*, not tracking — and until production carries someone else's money the
+changelog would be written by the three people who already know.
+
+**Cheap thing that makes it cheap later: start tagging production deploys now.** Reconstructing what
+shipped when across 242 untagged commits is the expensive half; tagging forward costs seconds. *Offered
+2026-08-26, not yet taken up.*
+
+---
+
+## 7 · Deferred by choice
 
 Not gaps — decisions to do these later, recorded so they are not rediscovered as
 bugs: an in-app `/feedback/[id]` viewer, coach deactivation UI, resumable uploads
