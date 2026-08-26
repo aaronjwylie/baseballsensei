@@ -1,0 +1,73 @@
+name: E2E
+
+# Phase 4 of the QA plan: the Playwright golden path. Nightly + on demand, never
+# on the merge gate — a browser run is slower and flakier than the gate, so it
+# watches `main` continuously without blocking a PR.
+on:
+  schedule:
+    - cron: "0 7 * * *" # 07:00 UTC nightly
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Golden path (Chromium)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      AUTH_SECRET: ci-placeholder-not-a-real-secret
+      # The one behaviour change: a fixed verification code (see env.isE2E).
+      E2E_TEST: "1"
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      # Stripe TEST mode. The publishable key is inlined at build time; the secret
+      # key is read at runtime by the intent + confirm. Add these as repo secrets.
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
+      # Not exercised by the E2E (no webhook delivery to localhost), but the env
+      # getter is `required()`, so give it a harmless value.
+      STRIPE_WEBHOOK_SECRET: whsec_e2e_placeholder
+      # Deliberately unset: BASIC_AUTH_* (site gate off) and BLOB_READ_WRITE_TOKEN
+      # (uploads fall to the local-disk proxy path).
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      # Fresh database → migrate → seed the two operators the operator path uses.
+      - run: npm run db:migrate
+      - run: npm run seed:e2e
+
+      # Build once; `playwright test` then launches `next start` (webServer) with
+      # this same env. NEXT_PUBLIC_* must be present here — they're inlined now.
+      - run: npx next build
+
+      - run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

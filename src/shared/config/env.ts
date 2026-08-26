@@ -99,6 +99,19 @@ export const env = {
     return process.env.VERCEL === "1";
   },
 
+  /**
+   * Whether this process is a Playwright end-to-end run.
+   *
+   * The **only** thing it changes is that the verification code becomes a fixed
+   * constant, so a browser test can type the one input it cannot read from an
+   * inbox. Set exclusively by the `e2e.yml` workflow and never in any deployed
+   * environment — a unit test asserts it is false by default, so the fixed code
+   * can never be reachable in production.
+   */
+  get isE2E() {
+    return process.env.E2E_TEST === "1";
+  },
+
   // Stripe
   get stripeSecretKey() {
     return required("STRIPE_SECRET_KEY");

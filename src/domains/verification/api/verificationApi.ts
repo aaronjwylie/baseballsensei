@@ -9,6 +9,7 @@
 import bcrypt from "bcryptjs";
 import { randomInt } from "node:crypto";
 import { and, eq } from "drizzle-orm";
+import { env } from "@/shared/config/env";
 import { db } from "@/shared/db";
 import { submissionTable } from "@/domains/submission/model/submissionTable";
 import { noteVerification, recordSubmissionEvent } from "@/domains/submission";
@@ -26,6 +27,10 @@ import {
  * a submission, and `Math.random()` is predictable from prior outputs.
  */
 function generateCode(): string {
+  // In a Playwright run, a fixed code — the one input a browser test cannot read
+  // from an inbox. Hard-off in production: `E2E_TEST` is never set there, and a
+  // unit test asserts `env.isE2E` is false by default.
+  if (env.isE2E) return "0".repeat(CODE_LENGTH);
   const max = 10 ** CODE_LENGTH;
   return String(randomInt(0, max)).padStart(CODE_LENGTH, "0");
 }
