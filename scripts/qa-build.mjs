@@ -31,6 +31,9 @@ const OUTPUT = join(ROOT, "docs/qa/qa-run.html");
 const args = process.argv.slice(2);
 const checkOnly = args.includes("--check");
 const marksFile = args[args.indexOf("--marks") + 1];
+/* The same string is passed to the publish, so the page and the host's version
+   picker carry identical text. Matching them needs no version number. */
+const buildLabel = args.includes("--label") ? args[args.indexOf("--label") + 1] : "unlabelled build";
 
 /* ── Parse ────────────────────────────────────────────────────────────────
    Deliberately strict. A row that looks like a check but cannot be read is a
@@ -204,6 +207,7 @@ if (checkOnly) process.exit(0);
 
 const template = readFileSync(TEMPLATE, "utf8");
 const html = template
+  .replace("__LABEL__", buildLabel.replace(/</g, "\\u003c"))
   .replace(
     /const PHASES = \/\*__PHASES__\*\/[\s\S]*?\/\*__END_PHASES__\*\/;/,
     "const PHASES = " + JSON.stringify(phases, null, 2) + ";",
@@ -213,7 +217,7 @@ const html = template
     JSON.stringify({ marks, trail }).replace(/</g, "\\u003c"),
   );
 
-if (html.includes("__PHASES__") || html.includes("__STATE__")) {
+if (html.includes("__PHASES__") || html.includes("__STATE__") || html.includes("__LABEL__")) {
   console.error("[qa:build] a placeholder survived — the template and this script disagree");
   process.exit(1);
 }
@@ -221,4 +225,4 @@ if (html.includes("__PHASES__") || html.includes("__STATE__")) {
 writeFileSync(OUTPUT, html);
 console.log(`[qa:build] ${trail.length} trail entr${trail.length === 1 ? "y" : "ies"} carried over`);
 console.log(`[qa:build] wrote docs/qa/qa-run.html (${Math.round(html.length / 1024)} KB)`);
-console.log(`[qa:build] version is the host's — publish with a label so the picker row says what changed`);
+console.log(`[qa:build] label "${buildLabel}" — pass the SAME string to the publish so page and picker match`);

@@ -113,6 +113,21 @@
   }
   h1 { font-size: clamp(28px, 5vw, 42px); text-transform: uppercase; letter-spacing: -.02em; line-height: 1.02; }
   .lede { color: var(--ink-soft); font-size: 15px; max-width: 60ch; margin: 10px 0 0; }
+  /* Not a version number — the host owns those, and a page that republishes
+     itself cannot mirror one honestly. This is the LABEL the publish carried,
+     and the host's version picker shows the same string beside its number. So
+     "are we on the same one?" is answered by matching two identical strings,
+     without either side needing to know the number. Lime is theme-fixed, so
+     the text on it is too. */
+  .build {
+    color: #19191b;
+    background: var(--lime);
+    font-weight: 600;
+    padding: 2px 7px;
+    margin-left: 6px;
+    letter-spacing: .04em;
+    text-transform: none;
+  }
 
   /* ── Overall progress ───────────────────────────────────────────────────── */
   .scoreboard { display: flex; gap: 22px; align-items: flex-end; flex-wrap: wrap; }
@@ -415,7 +430,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production</p>
+      <p class="eyebrow">Manual pass · production <span class="build">sync diagnosis · label stamp</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
