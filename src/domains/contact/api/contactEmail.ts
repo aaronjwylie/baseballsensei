@@ -1,11 +1,16 @@
 import "server-only";
 import { emailShell, escapeHtml, sendEmail } from "@/shared/email";
 import { site } from "@/shared/config/site";
+import { listAdminEmails } from "@/domains/operator";
 import type { ContactInput } from "../model/contactInput";
 
 /**
- * The contact form's one message: what somebody wrote, delivered to the
- * operator's inbox.
+ * The contact form's one message: what somebody wrote, delivered to every admin.
+ *
+ * **To all admins, not just `contact@`.** It goes to `listAdminEmails()` — the
+ * admin operators plus the shared `contact@` inbox — so a message reaches the
+ * people who can answer it however the team splits the watching (Ben, QA 1.2.8),
+ * the same recipient list a coaching submission's arrival notice uses.
  *
  * **Off-spine.** The nine numbered messages in `shared/email/_EmailDocumentation.md`
  * all hang off a submission's ladder; this one has no submission and no rung —
@@ -22,12 +27,12 @@ import type { ContactInput } from "../model/contactInput";
  * escaped. That is not belt-and-braces: the name and the message are exactly
  * the fields a spam bot fills with markup.
  */
-export function sendContactMessage(input: ContactInput) {
+export async function sendContactMessage(input: ContactInput) {
   const name = escapeHtml(`${input.firstName} ${input.lastName}`.trim());
   const email = escapeHtml(input.email);
 
   return sendEmail({
-    to: site.email,
+    to: (await listAdminEmails()).join(", "),
     replyTo: input.email,
     subject: `${site.name} — message from ${name}`,
     html: emailShell(
