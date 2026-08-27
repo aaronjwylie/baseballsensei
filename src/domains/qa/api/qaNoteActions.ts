@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { NOTE_STATUSES, type NoteStatus } from "../model/qaMark";
 import { qaAccess } from "./qaAccess";
-import { addNote, setNoteStatus } from "./qaNoteApi";
+import { addNote, deleteNote, editNote, setNoteStatus } from "./qaNoteApi";
 import { addFieldCheck } from "./qaCheckApi";
 
 /** The same gate the page uses — see `qaAccess`. */
@@ -64,4 +64,34 @@ export async function addFieldCheckAction(
   if (!result.ok) return { ok: false, error: result.error };
   revalidatePath("/qa");
   return { ok: true, id: result.id };
+}
+
+export async function editNoteAction(
+  id: string,
+  body: string,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!(await allowed())) return { ok: false, error: "Not authorised." };
+  const text = body.trim();
+  if (!text || text.length > MAX_BODY) return { ok: false, error: "Say something." };
+
+  const done = await editNote(id, text);
+  if (!done) {
+    return {
+      ok: false,
+      error: "Someone has already picked this up — add a new note instead of changing this one.",
+    };
+  }
+  revalidatePath("/qa");
+  return { ok: true };
+}
+
+export async function deleteNoteAction(id: string): Promise<{ ok: boolean; error?: string }> {
+  if (!(await allowed())) return { ok: false, error: "Not authorised." };
+
+  const done = await deleteNote(id);
+  if (!done) {
+    return { ok: false, error: "Someone has already picked this up — it can no longer be deleted." };
+  }
+  revalidatePath("/qa");
+  return { ok: true };
 }

@@ -48,6 +48,8 @@ export function QaBoard({
   initialName,
   onMark,
   onNote,
+  onEditNote,
+  onDeleteNote,
   onNoteStatus,
   onAddCheck,
 }: {
@@ -68,6 +70,8 @@ export function QaBoard({
     browser: string | null,
     actor: string | null,
   ) => Promise<{ ok: boolean }>;
+  onEditNote: (id: string, body: string) => Promise<{ ok: boolean; error?: string }>;
+  onDeleteNote: (id: string) => Promise<{ ok: boolean; error?: string }>;
   onNoteStatus: (
     id: string,
     status: NoteStatus,
@@ -155,6 +159,18 @@ export function QaBoard({
   async function note(checkId: string, body: string, browser: string | null) {
     await onNote(checkId, body, browser, actorName());
     startTransition(() => router.refresh());
+  }
+
+  async function editNote(id: string, body: string) {
+    const res = await onEditNote(id, body);
+    startTransition(() => router.refresh());
+    return res;
+  }
+
+  async function deleteNote(id: string) {
+    const res = await onDeleteNote(id);
+    startTransition(() => router.refresh());
+    return res;
   }
 
   async function noteStatus(id: string, status: NoteStatus) {
@@ -323,6 +339,8 @@ export function QaBoard({
                       busy={busy === check.id}
                       onMark={(id, mv) => void mark(id, mv)}
                       onNote={note}
+                      onEditNote={editNote}
+                      onDeleteNote={deleteNote}
                       onNoteStatus={noteStatus}
                       actorName={actorName}
                     />
@@ -369,6 +387,8 @@ export function QaBoard({
                 busy={busy === f.id}
                 onMark={(id, mv) => void mark(id, mv)}
                 onNote={note}
+                onEditNote={editNote}
+                onDeleteNote={deleteNote}
                 onNoteStatus={noteStatus}
                 actorName={actorName}
               />

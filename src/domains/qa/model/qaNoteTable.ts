@@ -3,11 +3,17 @@ import { pgTable, uuid, text, timestamp, index } from "drizzle-orm/pg-core";
 /**
  * A finding written against one check, during a pass.
  *
- * **Append-only.** A note is never rewritten; a correction is a new note under
- * the same check. Editing in place would mean a fix could be made against
- * wording that no longer exists, and nobody could tell afterwards what was
- * actually read — the same reason the submission trail appends delivery
- * outcomes rather than overwriting them.
+ * **Editable only while pending.** The rule it started with was append-only —
+ * a correction is a new note — and the reason was sound: a fix made against
+ * wording that later changed leaves nobody able to say what was actually read.
+ * But that risk begins when somebody acts on a note, and while it is pending
+ * nobody has. Forcing a second note to fix a typo made the record harder to
+ * read for no protection at all.
+ *
+ * So the window is the narrow one: edit and delete while `pending`, refused
+ * the moment the status moves. And because pending does not mean *unread* —
+ * a fixer may have listed the queue and started work before marking anything —
+ * an edit keeps the previous wording in `revisions` rather than discarding it.
  *
  * **Temporary**, like everything else in this domain: dropped with the pass.
  *
@@ -41,6 +47,14 @@ export const qaNoteTable = pgTable(
     status: text().notNull().default("pending"),
     statusBy: text(),
     statusAt: timestamp({ withTimezone: true }),
+    /**
+     * Previous wordings, oldest first, as JSON — `[{ body, at }]`.
+     *
+     * Null until the first edit, which is most notes. Kept as text rather than
+     * a second table: it is read only with its note, never queried across
+     * notes, and this whole domain is torn down when the pass ends.
+     */
+    revisions: text(),
     at: timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index("qa_note_check_idx").on(table.checkId)],

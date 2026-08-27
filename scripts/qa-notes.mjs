@@ -2,11 +2,19 @@
 /**
  * The findings from the pass, for the session that has to fix them.
  *
- *   npm run qa:notes                    -- everything still pending
+ *   npm run qa:notes                    -- unclaimed work
+ *   npm run qa:notes -- --claim <id>    -- TAKE IT FIRST, before editing code
+ *   npm run qa:notes -- --fixed <id>    -- say the patch has landed
+ *   npm run qa:notes -- --unclaim <id>  -- put it back
  *   npm run qa:notes -- --all           -- every note, whatever its state
  *   npm run qa:notes -- --status blocked
- *   npm run qa:notes -- --fixed <id>    -- say a patch has landed
  *   npm run qa:notes -- --local http://localhost:3000
+ *
+ * ── Claim before you work ────────────────────────────────────────────────
+ * A tester may edit or delete a note while it is pending, because nobody has
+ * acted on it. Claiming is how you say otherwise: it locks the note, so the
+ * wording cannot change under a fix that is already being written. Read the
+ * queue, claim what you are taking, then start.
  *
  * Each finding prints with the check's own wording beside it, because "the
  * panel is see-through" is not actionable without "solid dark ground — the hero
@@ -40,15 +48,22 @@ if (!token) {
 }
 const base = valueOf("--local") ?? "https://www.baseball-sensei.com";
 
-const fixedId = valueOf("--fixed");
-if (fixedId) {
+const transitions = [
+  ["--claim", "claimed", "claimed — it is locked against edits while you work on it."],
+  ["--fixed", "fixed", "fixed — awaiting a tester's re-test."],
+  ["--unclaim", "pending", "put back — a tester may edit or delete it again."],
+];
+for (const [flag, status, said] of transitions) {
+  const id = valueOf(flag);
+  if (!id) continue;
   const res = await fetch(`${base}/api/qa/notes?token=${encodeURIComponent(token)}`, {
     method: "PATCH",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ id: fixedId, status: "fixed", by: valueOf("--by") ?? "fix session" }),
+    body: JSON.stringify({ id, status, by: valueOf("--by") ?? "fix session" }),
   });
-  console.log(res.ok ? `Marked ${fixedId} fixed — awaiting re-test.` : `Failed: ${res.status}`);
-  process.exit(res.ok ? 0 : 1);
+  const payload = await res.json().catch(() => ({}));
+  console.log(res.ok && payload.ok ? `${id} ${said}` : `Failed: ${payload.error ?? res.status}`);
+  process.exit(res.ok && payload.ok ? 0 : 1);
 }
 
 const status = has("--all") ? null : (valueOf("--status") ?? "pending");
@@ -70,7 +85,7 @@ if (status === "pending") {
   const other = new URL(`${base}/api/qa/notes`);
   other.searchParams.set("token", token);
   const all = await (await fetch(other)).json();
-  const counts = { fixed: 0, resolved: 0, blocked: 0 };
+  const counts = { claimed: 0, fixed: 0, resolved: 0, blocked: 0 };
   for (const n of all.notes) if (n.status in counts) counts[n.status]++;
   const parts = Object.entries(counts).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${k}`);
   if (parts.length) hidden = `  (not shown: ${parts.join(", ")})`;
@@ -90,9 +105,10 @@ for (const n of notes) {
   console.log();
 }
 if (notes.length) {
-  console.log("Mark one fixed:  npm run qa:notes -- --fixed <note id>");
+  console.log("Take one:        npm run qa:notes -- --claim <note id>   ← before you edit code");
+  console.log("Then, on landing: npm run qa:notes -- --fixed <note id>");
   console.log("A tester resolves it on /qa after re-testing — never this script.");
 } else {
-  console.log("Nothing pending.");
+  console.log("Nothing unclaimed.");
 }
 if (hidden) console.log("See everything:  npm run qa:notes -- --all");

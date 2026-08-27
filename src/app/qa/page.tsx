@@ -11,12 +11,25 @@ import {
   readFieldChecks,
   setMarkAction,
   addNoteAction,
+  editNoteAction,
+  deleteNoteAction,
   setNoteStatusAction,
   addFieldCheckAction,
   type FieldCheck,
   type Mark,
   type Note,
+  type NoteRevision,
 } from "@/domains/qa";
+
+function parseRevisions(raw: string | null): NoteRevision[] {
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as NoteRevision[]) : [];
+  } catch {
+    return [];
+  }
+}
 
 export const metadata: Metadata = { title: "QA run", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -121,6 +134,10 @@ export default async function QaPage({
     statusBy: n.statusBy,
     statusAt: n.statusAt?.toISOString() ?? null,
     at: n.at.toISOString(),
+    /* Parsed here rather than in the client: a malformed value is a broken
+       board, and it is better for it to be an empty list than a render that
+       throws on every poll. */
+    revisions: parseRevisions(n.revisions),
   }));
 
   /* Withdrawn rows keep their ids but leave the board — the id stays spent,
@@ -191,6 +208,8 @@ export default async function QaPage({
             initialName=""
             onMark={setMarkAction}
             onNote={addNoteAction}
+            onEditNote={editNoteAction}
+            onDeleteNote={deleteNoteAction}
             onNoteStatus={setNoteStatusAction}
             onAddCheck={addFieldCheckAction}
           />

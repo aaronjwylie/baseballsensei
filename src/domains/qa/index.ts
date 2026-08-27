@@ -8,12 +8,14 @@
  */
 export { recordEvents, readEvents, clearEvents } from "./api/qaApi";
 export { readMarks, setMark } from "./api/qaMarkApi";
-export { readNotes, addNote, setNoteStatus } from "./api/qaNoteApi";
+export { readNotes, addNote, editNote, deleteNote, setNoteStatus } from "./api/qaNoteApi";
 export { readFieldChecks, addFieldCheck, spentIds } from "./api/qaCheckApi";
 export { qaAccess, type QaAccess } from "./api/qaAccess";
 export { setMarkAction } from "./api/qaMarkActions";
 export {
   addNoteAction,
+  editNoteAction,
+  deleteNoteAction,
   setNoteStatusAction,
   addFieldCheckAction,
 } from "./api/qaNoteActions";
@@ -21,12 +23,14 @@ export { itinerary, itineraryMeta } from "./model/itinerary";
 export {
   MARK_VALUES,
   NOTE_STATUSES,
+  EDITABLE_STATUS,
   BROWSERS,
   compareCheckIds,
   isCheckId,
   type Check,
   type FieldCheck,
   type Note,
+  type NoteRevision,
   type NoteStatus,
   type Edit,
   type ItineraryMeta,

@@ -1,8 +1,8 @@
 import "server-only";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { qaNoteTable } from "../model/qaNoteTable";
-import type { NoteStatus } from "../model/qaMark";
+import { EDITABLE_STATUS, type NoteStatus } from "../model/qaMark";
 
 /** Every note, oldest first — a check's notes read as the story they are. */
 export async function readNotes() {
@@ -36,4 +36,49 @@ export async function setNoteStatus(
     .update(qaNoteTable)
     .set({ status, statusBy, statusAt: new Date() })
     .where(eq(qaNoteTable.id, id));
+}
+
+/**
+ * Reword a note, keeping what it said before.
+ *
+ * **Refused unless the note is still pending**, and the check is a condition on
+ * the UPDATE rather than a read followed by a write — the two people using this
+ * board are polling each other every four seconds, and a status that changed
+ * between the read and the write would slip straight through a check-then-act.
+ * Returns whether it applied, so the caller can say why nothing happened.
+ */
+export async function editNote(id: string, body: string) {
+  const [current] = await db
+    .select()
+    .from(qaNoteTable)
+    .where(eq(qaNoteTable.id, id));
+  if (!current || current.status !== EDITABLE_STATUS) return false;
+
+  const revisions: { body: string; at: string }[] = current.revisions
+    ? (JSON.parse(current.revisions) as { body: string; at: string }[])
+    : [];
+  revisions.push({ body: current.body, at: current.at.toISOString() });
+
+  const done = await db
+    .update(qaNoteTable)
+    .set({ body, revisions: JSON.stringify(revisions) })
+    .where(and(eq(qaNoteTable.id, id), eq(qaNoteTable.status, EDITABLE_STATUS)))
+    .returning({ id: qaNoteTable.id });
+  return done.length > 0;
+}
+
+/**
+ * Remove a note that nobody has acted on.
+ *
+ * A real delete, not a tombstone. The case this exists for is a note written
+ * into the wrong check or abandoned half-typed, and a board littered with
+ * struck-through mistakes is harder to read than one without them. A note
+ * anybody has acted on is a different thing and is not deletable at all.
+ */
+export async function deleteNote(id: string) {
+  const done = await db
+    .delete(qaNoteTable)
+    .where(and(eq(qaNoteTable.id, id), eq(qaNoteTable.status, EDITABLE_STATUS)))
+    .returning({ id: qaNoteTable.id });
+  return done.length > 0;
 }

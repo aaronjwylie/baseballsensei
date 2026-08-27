@@ -1,0 +1,1 @@
+ALTER TABLE "qa_note" ADD COLUMN "revisions" text;

@@ -58,26 +58,46 @@ export interface Phase {
 /**
  * What became of a finding.
  *
- * `blocked` is the fourth because the other three could only describe findings
- * somebody could act on today. A finding can be real, agreed, and still not
- * addressable — 1.1.7 needs photography and copy from the client, and no patch
- * will produce either. Left pending it sits in a fixer's queue being skipped
- * every time; called fixed it claims work nobody did; called resolved it claims
- * a re-test nobody ran.
+ * `pending → claimed → fixed → resolved`, with `blocked` off to one side.
  *
- * **It is deliberately not a terminal state.** `resolved` says the matter is
- * closed; `blocked` says it is open and waiting on someone. The end-of-pass
- * report needs that difference most of all — the blocked list is the handover,
- * the one set of findings that outlives the pass.
+ * **`claimed` is what makes editing safe.** A note can be edited or deleted
+ * while pending, because nobody has acted on it — but *pending* never meant
+ * *unread*: a fixer could list the queue and start work while the note still
+ * said pending, and the wording could then change underneath them. So a fixer
+ * claims a note before working on it, and claiming locks it. The window where
+ * a note is editable is now exactly the window where nobody has picked it up,
+ * rather than merely a window where nobody has finished.
  *
- * It is also the switch that takes a note out of a fixer's queue: `qa:notes`
- * lists pending work, so a blocked note stops appearing there while remaining
- * plainly visible on the board.
+ * `fixed` is the strongest thing the person who wrote the patch may claim;
+ * `resolved` belongs to whoever re-ran the check. Collapsing those two lets the
+ * board go green on one person's say-so, which is the distinction the
+ * submission ladder already draws between `complete` and `collected`.
+ *
+ * **`blocked` is deliberately not terminal.** `resolved` says the matter is
+ * closed; `blocked` says it is open and waiting on someone — client copy, a
+ * photograph, a decision. The end-of-pass report needs that difference most,
+ * because the blocked list is the handover: the findings that outlive the pass.
  */
-export const NOTE_STATUSES = ["pending", "fixed", "resolved", "blocked"] as const;
+export const NOTE_STATUSES = [
+  "pending",
+  "claimed",
+  "fixed",
+  "resolved",
+  "blocked",
+] as const;
+
+/** Only an unclaimed note may be reworded or removed — see `NOTE_STATUSES`. */
+export const EDITABLE_STATUS = "pending";
+
 export type NoteStatus = (typeof NOTE_STATUSES)[number];
 
 /** One finding written against a check. Append-only — see `qaNoteTable`. */
+/** A note's earlier wording, kept when it is edited while pending. */
+export interface NoteRevision {
+  body: string;
+  at: string;
+}
+
 export interface Note {
   id: string;
   checkId: string;
@@ -88,6 +108,7 @@ export interface Note {
   statusBy: string | null;
   statusAt: string | null;
   at: string;
+  revisions: NoteRevision[];
 }
 
 /**

@@ -32,6 +32,8 @@ export function QaCheckRow({
   busy,
   onMark,
   onNote,
+  onEditNote,
+  onDeleteNote,
   onNoteStatus,
   actorName,
 }: {
@@ -43,6 +45,8 @@ export function QaCheckRow({
   busy: boolean;
   onMark: (id: string, v: MarkValue) => void;
   onNote: (checkId: string, body: string, browser: string | null) => Promise<void>;
+  onEditNote: (id: string, body: string) => Promise<{ ok: boolean; error?: string }>;
+  onDeleteNote: (id: string) => Promise<{ ok: boolean; error?: string }>;
   onNoteStatus: (id: string, status: NoteStatus) => Promise<void>;
   actorName: () => string | null;
 }) {
@@ -50,10 +54,39 @@ export function QaCheckRow({
   const [body, setBody] = useState("");
   const [browser, setBrowser] = useState<string>(BROWSERS[0]);
   const [saving, setSaving] = useState(false);
+  /* Which note is being edited, and the draft in the box. One at a time: two
+     open editors on one check is a way to save the wrong text into the wrong
+     note. */
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [noteError, setNoteError] = useState<string | null>(null);
 
   const pending = notes.filter((n) => n.status === "pending").length;
   const fixed = notes.filter((n) => n.status === "fixed").length;
   const blocked = notes.filter((n) => n.status === "blocked").length;
+  const claimed = notes.filter((n) => n.status === "claimed").length;
+
+  async function saveEdit(id: string) {
+    if (!draft.trim() || saving) return;
+    setSaving(true);
+    const res = await onEditNote(id, draft);
+    setSaving(false);
+    if (!res.ok) {
+      setNoteError(res.error ?? "Could not save it.");
+      return;
+    }
+    setEditingId(null);
+    setNoteError(null);
+  }
+
+  async function removeNote(id: string) {
+    if (saving) return;
+    if (!window.confirm("Delete this note? Only possible while nobody has acted on it.")) return;
+    setSaving(true);
+    const res = await onDeleteNote(id);
+    setSaving(false);
+    if (!res.ok) setNoteError(res.error ?? "Could not delete it.");
+  }
 
   async function submitNote() {
     if (!body.trim() || saving) return;
@@ -146,6 +179,7 @@ export function QaCheckRow({
               only visible once you expand the note is a finding nobody scanning
               the board will see, which is the whole problem it was raised to
               avoid. */}
+          {claimed > 0 && <span className="ml-1 text-sky-700">· {claimed} being worked on</span>}
           {blocked > 0 && <span className="ml-1 text-violet-700">· {blocked} blocked</span>}
         </button>
         {mark?.actor && value && (
@@ -218,7 +252,79 @@ export function QaCheckRow({
                   </button>
                 )}
               </div>
-              <p className="mt-1 whitespace-pre-wrap text-ink">{n.body}</p>
+              {editingId === n.id ? (
+                <div className="mt-1 space-y-2">
+                  <textarea
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    rows={3}
+                    aria-label={`Edit note on ${check.id}`}
+                    className="w-full border-2 border-accent bg-paper px-2 py-1 text-[13px] text-ink outline-none"
+                  />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={!draft.trim() || saving}
+                      onClick={() => void saveEdit(n.id)}
+                      className="border-2 border-ink bg-ink px-2 py-0.5 font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-paper disabled:opacity-40"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingId(null);
+                        setNoteError(null);
+                      }}
+                      className="border border-line px-2 py-0.5 font-display text-[10px] uppercase tracking-[0.08em] text-ink-muted hover:border-ink hover:text-ink"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-1 whitespace-pre-wrap text-ink">{n.body}</p>
+              )}
+
+              {n.status === "pending" && editingId !== n.id && (
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(n.id);
+                      setDraft(n.body);
+                      setNoteError(null);
+                    }}
+                    className="font-display text-[10px] uppercase tracking-[0.08em] text-ink-muted underline-offset-2 hover:text-accent hover:underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void removeNote(n.id)}
+                    className="font-display text-[10px] uppercase tracking-[0.08em] text-ink-muted underline-offset-2 hover:text-rose-700 hover:underline"
+                  >
+                    Delete
+                  </button>
+                  {/* Only while pending. Once somebody has acted, the wording
+                      they acted on has to stay readable. */}
+                </div>
+              )}
+
+              {n.revisions.length > 0 && (
+                <details className="mt-1 text-[11px] text-ink-muted">
+                  <summary className="cursor-pointer">
+                    Edited {n.revisions.length}× — earlier wording kept
+                  </summary>
+                  <ul className="mt-1 space-y-1 border-l-2 border-line pl-3">
+                    {n.revisions.map((r, ri) => (
+                      <li key={ri} className="whitespace-pre-wrap">
+                        <span className="tabular-nums">{r.at.slice(11, 16)}Z</span> — “{r.body}”
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
               {n.statusBy && n.status !== "pending" && (
                 <p className="mt-0.5 text-[11px] text-ink-muted">
                   {n.status} by {n.statusBy}
@@ -226,6 +332,8 @@ export function QaCheckRow({
               )}
             </div>
           ))}
+
+          {noteError && <p className="text-[12px] text-rose-700">{noteError}</p>}
 
           <div className="space-y-2">
             <textarea
@@ -272,17 +380,21 @@ function StatusChip({ status }: { status: NoteStatus }) {
   const style =
     status === "pending"
       ? "border-rose-700 text-rose-700"
-      : status === "fixed"
-        ? "border-amber-600 text-amber-700"
-        : status === "blocked"
-          ? "border-violet-700 text-violet-700"
-          : "border-success text-success";
+      : status === "claimed"
+        ? "border-sky-700 text-sky-700"
+        : status === "fixed"
+          ? "border-amber-600 text-amber-700"
+          : status === "blocked"
+            ? "border-violet-700 text-violet-700"
+            : "border-success text-success";
   const label =
     status === "fixed"
       ? "fixed · awaiting re-test"
-      : status === "blocked"
-        ? "blocked · waiting on input"
-        : status;
+      : status === "claimed"
+        ? "claimed · being worked on"
+        : status === "blocked"
+          ? "blocked · waiting on input"
+          : status;
   return (
     <span
       className={`border px-1.5 py-0.5 font-display text-[10px] font-semibold uppercase tracking-[0.1em] ${style}`}
