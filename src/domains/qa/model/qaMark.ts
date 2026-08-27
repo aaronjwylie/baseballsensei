@@ -55,7 +55,20 @@ export interface Phase {
   groups: Group[];
 }
 
-export const NOTE_STATUSES = ["pending", "fixed", "resolved"] as const;
+/**
+ * What became of a finding.
+ *
+ * `accepted` is the fourth because the other three could not say "this is on
+ * purpose". A decision — the eyebrow is blue because Audrey drew it blue —
+ * is not pending (nobody will act on it), not fixed (nothing changed) and not
+ * resolved (nothing was re-tested). Filed under any of them it either nags a
+ * fixer forever or claims work that never happened, and the end-of-pass report
+ * cannot tell a ratified decision from a repaired defect.
+ *
+ * It is also the switch that takes a note out of a fixer's queue: `qa:notes`
+ * lists pending work, so an accepted note simply stops appearing.
+ */
+export const NOTE_STATUSES = ["pending", "fixed", "resolved", "accepted"] as const;
 export type NoteStatus = (typeof NOTE_STATUSES)[number];
 
 /** One finding written against a check. Append-only — see `qaNoteTable`. */

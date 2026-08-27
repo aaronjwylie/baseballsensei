@@ -7,6 +7,7 @@ import {
   readFieldChecks,
   readNotes,
   setNoteStatus,
+  NOTE_STATUSES,
   type NoteStatus,
 } from "@/domains/qa";
 
@@ -107,9 +108,12 @@ export async function PATCH(req: NextRequest) {
     status?: string;
     by?: string;
   };
-  if (!id || (status !== "pending" && status !== "fixed" && status !== "resolved")) {
+  if (!id || !NOTE_STATUSES.includes(status as NoteStatus)) {
+    /* Read from the list rather than spelled out again here. The first version
+       repeated the three names inline, which meant adding a fourth left the API
+       refusing a status the board was already setting. */
     return NextResponse.json(
-      { ok: false, error: "id and status (pending|fixed|resolved) required" },
+      { ok: false, error: `id and status (${NOTE_STATUSES.join("|")}) required` },
       { status: 400 },
     );
   }

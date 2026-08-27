@@ -2,10 +2,10 @@
 /**
  * The findings from the pass, for the session that has to fix them.
  *
- *   npm run qa:notes                 -- everything still pending
- *   npm run qa:notes -- --all        -- every note, whatever its state
- *   npm run qa:notes -- --status fixed
- *   npm run qa:notes -- --fixed <id> -- say a patch has landed
+ *   npm run qa:notes                    -- everything still pending
+ *   npm run qa:notes -- --all           -- every note, whatever its state
+ *   npm run qa:notes -- --status accepted
+ *   npm run qa:notes -- --fixed <id>    -- say a patch has landed
  *   npm run qa:notes -- --local http://localhost:3000
  *
  * Each finding prints with the check's own wording beside it, because "the
@@ -16,6 +16,12 @@
  * fixer can say; `resolved` belongs to whoever re-ran the check, and is given
  * on the board. Collapsing the two would let the record go green on the word of
  * the person who wrote the patch.
+ *
+ * **`accepted` notes are not work.** A tester marks a finding accepted when it
+ * records a decision rather than a defect — the eyebrow is blue because that is
+ * how it was drawn. They are excluded from the default listing and the count of
+ * what is excluded is printed, because a queue that filters silently is how a
+ * finding gets lost between two people who each thought the other had it.
  */
 import env from "@next/env";
 env.loadEnvConfig(process.cwd(), true, { info: () => {}, error: () => {} });
@@ -57,7 +63,20 @@ if (!res.ok) {
 }
 const { build, notes } = await res.json();
 
-console.log(`Itinerary build ${build} — ${notes.length} ${status ?? "note"}${notes.length === 1 ? "" : "s"}\n`);
+/* What this listing is not showing. Fetched separately rather than inferred,
+   so the number is the server's answer and not this script's arithmetic. */
+let hidden = "";
+if (status === "pending") {
+  const other = new URL(`${base}/api/qa/notes`);
+  other.searchParams.set("token", token);
+  const all = await (await fetch(other)).json();
+  const counts = { fixed: 0, resolved: 0, accepted: 0 };
+  for (const n of all.notes) if (n.status in counts) counts[n.status]++;
+  const parts = Object.entries(counts).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${k}`);
+  if (parts.length) hidden = `  (not shown: ${parts.join(", ")})`;
+}
+
+console.log(`Itinerary build ${build} — ${notes.length} ${status ?? "note"}${notes.length === 1 ? "" : "s"}${hidden}\n`);
 for (const n of notes) {
   console.log(`── ${n.checkId}  [${n.status}]  ${n.browser ?? "browser unstated"}`);
   if (n.check) {
@@ -73,4 +92,7 @@ for (const n of notes) {
 if (notes.length) {
   console.log("Mark one fixed:  npm run qa:notes -- --fixed <note id>");
   console.log("A tester resolves it on /qa after re-testing — never this script.");
+} else {
+  console.log("Nothing pending.");
 }
+if (hidden) console.log("See everything:  npm run qa:notes -- --all");

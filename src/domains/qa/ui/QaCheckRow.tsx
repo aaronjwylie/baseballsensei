@@ -192,6 +192,16 @@ export function QaCheckRow({
                     Re-tested — resolve
                   </button>
                 )}
+                {n.status === "pending" && (
+                  <button
+                    type="button"
+                    onClick={() => void onNoteStatus(n.id, "accepted")}
+                    title="A decision, not a defect — takes it out of the fixer's queue"
+                    className="border border-line px-1.5 py-0.5 font-display text-[10px] uppercase tracking-[0.08em] text-ink-muted hover:border-accent hover:text-accent"
+                  >
+                    No fix needed
+                  </button>
+                )}
                 {n.status !== "pending" && (
                   <button
                     type="button"
@@ -258,12 +268,20 @@ function StatusChip({ status }: { status: NoteStatus }) {
       ? "border-rose-700 text-rose-700"
       : status === "fixed"
         ? "border-amber-600 text-amber-700"
-        : "border-success text-success";
+        : status === "accepted"
+          ? "border-ink-muted text-ink-muted"
+          : "border-success text-success";
+  const label =
+    status === "fixed"
+      ? "fixed · awaiting re-test"
+      : status === "accepted"
+        ? "accepted · no fix needed"
+        : status;
   return (
     <span
       className={`border px-1.5 py-0.5 font-display text-[10px] font-semibold uppercase tracking-[0.1em] ${style}`}
     >
-      {status === "fixed" ? "fixed · awaiting re-test" : status}
+      {label}
     </span>
   );
 }
