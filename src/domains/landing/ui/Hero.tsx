@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ButtonLink, Container, SectionHeading } from "@/shared/ui";
+import { AnchorScrollButton } from "@/shared/layout/AnchorScrollButton";
 import { hero } from "../model/copy";
 
 /**
@@ -58,9 +59,9 @@ export function Hero() {
             <ButtonLink href="/start" variant="primary">
               {hero.primaryCta} <span aria-hidden>→</span>
             </ButtonLink>
-            <ButtonLink href="#how-it-works" variant="onDark">
+            <AnchorScrollButton href="#how-it-works" variant="onDark">
               {hero.secondaryCta}
-            </ButtonLink>
+            </AnchorScrollButton>
           </div>
         </div>
       </Container>
