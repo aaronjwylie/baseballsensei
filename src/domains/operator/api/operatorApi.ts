@@ -13,6 +13,7 @@
  */
 import { eq } from "drizzle-orm";
 import { db } from "@/shared/db";
+import { site } from "@/shared/config/site";
 import { operatorTable } from "../model/operatorTable";
 import { operatorRoleGrantTable } from "../model/operatorRoleGrantTable";
 import { rolesFor } from "./operatorRoleApi";
@@ -28,8 +29,12 @@ import type { Operator } from "../model/operator";
  * and `EMAIL_FROM` (who mail is sent *as*) — three jobs, three sources.
  *
  * Returns every admin, so a second one can be added by creating an operator
- * rather than by a deploy. Empty is survivable: the caller skips the send,
- * because nobody being told is better than a crash in a webhook.
+ * rather than by a deploy — **plus `site.email`**, the shared `contact@` inbox,
+ * which is an admin recipient too: it's the address the team actually watches,
+ * so every admin notification (and the contact form) copies it (Ben, QA 1.2.8).
+ * Deduplicated and lowercased, so an admin who signs in *as* `contact@` isn't
+ * mailed twice. Never empty — `site.email` is always in it — so the contact form
+ * always has somewhere to land even before any operator exists.
  */
 export async function listAdminEmails(): Promise<string[]> {
   const rows = await db
@@ -40,7 +45,8 @@ export async function listAdminEmails(): Promise<string[]> {
       eq(operatorRoleGrantTable.operatorId, operatorTable.id),
     )
     .where(eq(operatorRoleGrantTable.role, "admin"));
-  return rows.map((row) => row.email);
+  const all = [...rows.map((row) => row.email), site.email];
+  return [...new Set(all.map((email) => email.trim().toLowerCase()))];
 }
 
 /**
