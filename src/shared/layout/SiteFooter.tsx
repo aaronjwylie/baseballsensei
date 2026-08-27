@@ -51,9 +51,14 @@ export function SiteFooter() {
             © {year} {site.name}
             {" · "}Vancouver &amp; Tokyo
           </p>
-          <Link href="/terms" className="transition-opacity hover:opacity-70">
-            terms and conditions
-          </Link>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6">
+            <Link href="/terms" className="transition-opacity hover:opacity-70">
+              terms and conditions
+            </Link>
+            <Link href="/privacy" className="transition-opacity hover:opacity-70">
+              privacy policy
+            </Link>
+          </div>
         </Container>
       </div>
     </footer>

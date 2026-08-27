@@ -132,8 +132,8 @@ export function ContactForm({
         />
         <span>
           You agree to our friendly{" "}
-          <Link href="/terms" className="text-highlight underline underline-offset-2">
-            terms and conditions
+          <Link href="/privacy" className="text-highlight underline underline-offset-2">
+            privacy policy
           </Link>
           .
         </span>
