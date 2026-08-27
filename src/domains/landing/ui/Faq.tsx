@@ -14,10 +14,12 @@ import { faqHeading, faqs } from "../model/copy";
  * answer, and an accordion where nothing is expanded reads as a list of
  * problems rather than a list of resolutions.
  *
- * The `+`/`−` glyph is drawn with CSS on the open state rather than swapped in
- * markup, and hidden from assistive tech — `<summary>` already announces
- * whether it is expanded, so a screen reader that also read the sign would say
- * it twice.
+ * The `+`/`−` is drawn as two centred bars, not a text glyph: a text "+" rides
+ * high in the circle because its ink sits on the font's math axis, above the
+ * line-box centre, and no amount of flex-centring fixes that. Two absolutely
+ * centred bars sit dead-centre regardless of the font; dropping the vertical one
+ * when open leaves the minus. It stays hidden from assistive tech — `<summary>`
+ * already announces expanded state, so reading the sign too would say it twice.
  */
 export function Faq() {
   return (
@@ -36,10 +38,10 @@ export function Faq() {
                 {faq.q}
                 <span
                   aria-hidden
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-highlight text-[16px] font-bold leading-none text-ink"
+                  className="relative flex h-6 w-6 shrink-0 rounded-full bg-highlight"
                 >
-                  <span className="group-open:hidden">+</span>
-                  <span className="hidden group-open:inline">−</span>
+                  <span className="absolute left-1/2 top-1/2 h-[2px] w-[11px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink" />
+                  <span className="absolute left-1/2 top-1/2 h-[11px] w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink group-open:hidden" />
                 </span>
               </summary>
 
