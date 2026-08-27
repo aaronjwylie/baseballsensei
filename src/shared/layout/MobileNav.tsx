@@ -8,10 +8,10 @@ import { navLinks } from "./navLinks";
 /**
  * The header's small-screen navigation.
  *
- * The inline links in `SiteHeader` are `hidden hdr:flex`; below that width this
- * takes over — a menu button that drops the same five links, and the CTA the bar
- * sheds at the same point. Above `hdr` it renders nothing (`hdr:hidden`), so the
- * two never show at once.
+ * The inline links in `SiteHeader` are `hidden min-[880px]:flex`; below that
+ * width this takes over — a menu button that drops the same five links, and the
+ * CTA the bar sheds at the same point. Above 880px it renders nothing
+ * (`min-[880px]:hidden`), so the two never show at once.
  *
  * The panel carries a solid ink fill of its own on purpose: the header it hangs
  * from may be floating transparent over the hero photograph, and a menu without
@@ -32,7 +32,7 @@ export function MobileNav() {
   }, [open]);
 
   return (
-    <div className="hdr:hidden">
+    <div className="min-[880px]:hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -96,7 +96,7 @@ export function MobileNav() {
 
             {/* The CTA the bar drops below sm. Hidden from sm up, where the bar
                 shows it again, so it never appears in two places at once. */}
-            <div className="border-t border-white/10 p-4 hdr:hidden">
+            <div className="border-t border-white/10 p-4 min-[880px]:hidden">
               <ButtonLink
                 href="/start"
                 variant="primary"
