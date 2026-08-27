@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 13,
-    "generatedAt": "2026-08-26T22:00:09.081Z",
-    "checks": 168,
-    "live": 168,
+    "build": 14,
+    "generatedAt": "2026-08-27T18:48:11.136Z",
+    "checks": 178,
+    "live": 178,
     "retired": 0,
     "edited": 0
   },
@@ -87,7 +87,7 @@
       "n": "1",
       "title": "Public pages",
       "id": "p1",
-      "note": "Three of these are judgement calls made against Audrey's file rather than defects to find — 1.1.6, 1.1.7 and 1.1.10. If one of them looks wrong, that is a decision to argue with, not a bug.",
+      "note": "Three of these are judgement calls made against Audrey's file rather than defects to find — 1.1.6, 1.1.7 and 1.1.10. If one of them looks wrong, that is a decision to argue with, not a bug. 1.1.15–1.1.24 were added on 2026-08-27, after MobileNav shipped mid-setup (#11, #12). The surface did not exist when this phase was written, which is why it had no checks — an itinerary shaped like yesterday's codebase, caught before it was tested rather than after.",
       "groups": [
         {
           "head": "1.1 Landing (/)",
@@ -164,6 +164,58 @@
               "id": "1.1.14",
               "what": "Reduced motion (OS setting)",
               "expect": "Ticker stops, no layout break"
+            },
+            {
+              "id": "1.1.15",
+              "what": "375px — the five inline nav links are gone, a menu button is there instead",
+              "expect": "Never both at once. Above md the button must vanish"
+            },
+            {
+              "id": "1.1.16",
+              "what": "Tap the menu button",
+              "expect": "Panel drops below the header bar on a solid dark ground — the hero photo must not show through it"
+            },
+            {
+              "id": "1.1.17",
+              "what": "The panel's links",
+              "expect": "The same five as the footer: How it works · Coaches · Pricing · FAQ · Contact"
+            },
+            {
+              "id": "1.1.18",
+              "what": "Tap one",
+              "expect": "Panel closes and it goes to that section"
+            },
+            {
+              "id": "1.1.19",
+              "what": "Open it, then tap the page outside the panel",
+              "expect": "Closes"
+            },
+            {
+              "id": "1.1.20",
+              "what": "Open it, press Escape (iPad keyboard, or a desktop window at 375px)",
+              "expect": "Closes"
+            },
+            {
+              "id": "1.1.21",
+              "what": "Watch the button as you open and close",
+              "expect": "Icon flips hamburger ↔ ✕, and its label reads \"Open menu\" / \"Close menu\""
+            },
+            {
+              "id": "1.1.22",
+              "what": "320px (iPhone SE) — the menu button",
+              "expect": "Fully on screen, not clipped. This was #12's fix — confirm it took",
+              "flag": "flag"
+            },
+            {
+              "id": "1.1.23",
+              "what": "Below sm, \"Get coach feedback\"",
+              "expect": "In the panel, and not also in the bar — never in two places"
+            },
+            {
+              "id": "1.1.24",
+              "what": "Open the panel, then widen the window past md",
+              "expect": "Panel anchors to a hard-coded 79px header offset. If the bar's height ever changes, the panel detaches from it — check it doesn't strand mid-air",
+              "flag": "flag"
             }
           ]
         },

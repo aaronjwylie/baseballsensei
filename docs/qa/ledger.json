@@ -1175,6 +1175,76 @@
       "expect": "The check that proves it, rather than assumes it",
       "retired": false,
       "history": []
+    },
+    "1.1.15": {
+      "firstSeen": "2026-08-27T18:48:11.136Z",
+      "what": "375px — the five inline nav links are gone, a menu button is there instead",
+      "expect": "Never both at once. Above md the button must vanish",
+      "retired": false,
+      "history": []
+    },
+    "1.1.16": {
+      "firstSeen": "2026-08-27T18:48:11.136Z",
+      "what": "Tap the menu button",
+      "expect": "Panel drops below the header bar on a solid dark ground — the hero photo must not show through it",
+      "retired": false,
+      "history": []
+    },
+    "1.1.17": {
+      "firstSeen": "2026-08-27T18:48:11.136Z",
+      "what": "The panel's links",
+      "expect": "The same five as the footer: How it works · Coaches · Pricing · FAQ · Contact",
+      "retired": false,
+      "history": []
+    },
+    "1.1.18": {
+      "firstSeen": "2026-08-27T18:48:11.136Z",
+      "what": "Tap one",
+      "expect": "Panel closes and it goes to that section",
+      "retired": false,
+      "history": []
+    },
+    "1.1.19": {
+      "firstSeen": "2026-08-27T18:48:11.136Z",
+      "what": "Open it, then tap the page outside the panel",
+      "expect": "Closes",
+      "retired": false,
+      "history": []
+    },
+    "1.1.20": {
+      "firstSeen": "2026-08-27T18:48:11.136Z",
+      "what": "Open it, press Escape (iPad keyboard, or a desktop window at 375px)",
+      "expect": "Closes",
+      "retired": false,
+      "history": []
+    },
+    "1.1.21": {
+      "firstSeen": "2026-08-27T18:48:11.136Z",
+      "what": "Watch the button as you open and close",
+      "expect": "Icon flips hamburger ↔ ✕, and its label reads \"Open menu\" / \"Close menu\"",
+      "retired": false,
+      "history": []
+    },
+    "1.1.22": {
+      "firstSeen": "2026-08-27T18:48:11.136Z",
+      "what": "320px (iPhone SE) — the menu button",
+      "expect": "Fully on screen, not clipped. This was #12's fix — confirm it took",
+      "retired": false,
+      "history": []
+    },
+    "1.1.23": {
+      "firstSeen": "2026-08-27T18:48:11.136Z",
+      "what": "Below sm, \"Get coach feedback\"",
+      "expect": "In the panel, and not also in the bar — never in two places",
+      "retired": false,
+      "history": []
+    },
+    "1.1.24": {
+      "firstSeen": "2026-08-27T18:48:11.136Z",
+      "what": "Open the panel, then widen the window past md",
+      "expect": "Panel anchors to a hard-coded 79px header offset. If the bar's height ever changes, the panel detaches from it — check it doesn't strand mid-air",
+      "retired": false,
+      "history": []
     }
   }
 }

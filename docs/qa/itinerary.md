@@ -76,6 +76,10 @@ this document.
 Three of these are judgement calls made against Audrey's file rather than defects to find — 1.1.6,
 1.1.7 and 1.1.10. If one of them looks wrong, that is a decision to argue with, not a bug.
 
+**1.1.15–1.1.24 were added on 2026-08-27**, after `MobileNav` shipped mid-setup (#11, #12). The surface
+did not exist when this phase was written, which is why it had no checks — an itinerary shaped like
+yesterday's codebase, caught before it was tested rather than after.
+
 ### 1.1 Landing (`/`)
 
 | # | Check | Expected |
@@ -94,6 +98,16 @@ Three of these are judgement calls made against Audrey's file rather than defect
 | 1.1.12 | Footer: logo, 5 links, Check status, terms, copyright | |
 | 1.1.13 | **375px** — resize or use a phone | Nothing overflows horizontally; ticker still works |
 | 1.1.14 | Reduced motion (OS setting) | Ticker stops, no layout break |
+| 1.1.15 | **375px** — the five inline nav links are gone, a **menu button** is there instead | Never both at once. Above `md` the button must vanish |
+| 1.1.16 | Tap the menu button | Panel drops below the header bar on a **solid dark ground** — the hero photo must not show through it |
+| 1.1.17 | The panel's links | The same five as the footer: How it works · Coaches · Pricing · FAQ · Contact |
+| 1.1.18 | Tap one | Panel closes **and** it goes to that section |
+| 1.1.19 | Open it, then tap the page outside the panel | Closes |
+| 1.1.20 | Open it, press Escape (iPad keyboard, or a desktop window at 375px) | Closes |
+| 1.1.21 | Watch the button as you open and close | Icon flips hamburger ↔ ✕, and its label reads "Open menu" / "Close menu" |
+| 1.1.22 | **320px** (iPhone SE) — the menu button | ⚠️ Fully on screen, not clipped. This was #12's fix — confirm it took |
+| 1.1.23 | Below `sm`, "Get coach feedback" | In the panel, and **not** also in the bar — never in two places |
+| 1.1.24 | Open the panel, then widen the window past `md` | ⚠️ Panel anchors to a hard-coded 79px header offset. If the bar's height ever changes, the panel detaches from it — check it doesn't strand mid-air |
 
 ### 1.2 Contact (`/contact`)
 
