@@ -136,11 +136,20 @@ export const BROWSERS = [
   /* The two width-of-the-roster answers lead, because they are the common ones:
      most findings are either everywhere or nowhere in particular, and burying
      them under nine specific browsers made the honest answer the hardest to
-     pick. The nine follow, grouped by engine rather than alphabetically — the
+     pick.
+
+     "Not browser-specific" is first, and therefore the default, because it is
+     the only entry that claims nothing. A default of "all browsers" asserts the
+     finding was reproduced on nine browsers, which a tester who forgot to
+     change the field has not done — turning a Safari-only bug into a false
+     everywhere-bug, in the field a fix is chosen by. A default should be the
+     answer that is hardest to be wrong about.
+
+     The nine follow, grouped by engine rather than alphabetically — the
      question a fix asks is usually "which engine", and Blink spellings sitting
      together makes that readable at a glance. */
-  "all browsers",
   "not browser-specific",
+  "all browsers",
   "Chrome · macOS",
   "Chrome · Windows",
   "Chrome · Android",
