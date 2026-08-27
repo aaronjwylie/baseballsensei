@@ -76,6 +76,16 @@
 
 html {
   scroll-behavior: smooth;
+  /*
+    Reserve the scrollbar's width as a gutter, so content is laid out clear of it
+    instead of running into it — and so the page doesn't jump sideways when the
+    bar appears. Without this, on Safari/macOS with the scrollbar shown, the
+    near-edge elements at the narrowest widths (the method images, the menu's CTA)
+    sit right where the bar draws and look like they collide with it (QA 1.1.6).
+    A no-op where scrollbars overlay the content (most phones), so nothing shifts
+    there.
+  */
+  scrollbar-gutter: stable;
 }
 
 /*
