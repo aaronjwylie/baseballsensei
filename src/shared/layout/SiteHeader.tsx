@@ -19,12 +19,12 @@ import { navLinks } from "@/shared/layout/navLinks";
  * the closing band, so pinning the bar would spend a slice of every viewport to
  * repeat something already three times on the page.
  *
- * The inline section links collapse below `md`; there a `MobileNav` menu button
- * takes their place and drops the same five links. The CTA follows the room it
- * needs: from `sm` up it sits in the bar, but below that the wordmark alone is
- * ~190px wide and a full "GET COACH FEEDBACK" button beside it and the menu
- * button would overrun a phone — so under `sm` the CTA moves *into* the menu
- * panel, and the bar carries just the wordmark and the menu button.
+ * **One breakpoint, `hdr` (832px), collapses the whole bar.** Above it: wordmark,
+ * the five inline links, and the CTA. Below it: wordmark and the `MobileNav`
+ * menu button only — the links *and* the CTA fold into its panel. The single
+ * point replaced a split (links at `md`, CTA at `sm`) that left a band around
+ * 770–800px where the five links and the button no longer fit and overlapped
+ * (QA 1.1.15); `hdr` sits above that, so they're gone before they can collide.
  * (The bar carries `relative` in both variants so that menu's panel — which is
  * absolutely positioned — anchors to the header rather than the page.)
  */
@@ -43,7 +43,7 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
             <Logo />
           </Link>
 
-          <nav className="hidden items-center gap-8 md:flex lg:gap-9">
+          <nav className="hidden items-center gap-8 hdr:flex lg:gap-9">
             {navLinks.map((link) => (
               <AnchorScrollLink
                 key={link.href}
@@ -57,8 +57,9 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* In the bar from sm up; below that it lives in the menu panel. */}
-          <div className="hidden sm:block">
+          {/* In the bar above `hdr`; below that it folds into the menu panel,
+              together with the nav links — one breakpoint, no collision. */}
+          <div className="hidden hdr:block">
             <ButtonLink href="/start" variant="primary" className="shrink-0">
               Get coach feedback
             </ButtonLink>
