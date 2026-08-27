@@ -7,7 +7,7 @@ import {
 } from "@/domains/submission";
 import { noteCustomerCollected } from "@/domains/feedback";
 import { storage } from "@/shared/storage";
-import { readSession } from "@/shared/auth";
+import { getSession } from "@/domains/account";
 
 // Private blobs stream through this route rather than redirecting, so a large
 // feedback video on a slow connection needs room to finish (Hobby caps at 60s).
@@ -35,7 +35,16 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const isOperator = !!(await readSession());
+  /*
+    A *shape-checked* operator session, not a bare signature check.
+
+    `readSession` only proves the cookie was signed by us — and the customer's
+    own flow cookie (`bs_flow`) is signed by the same secret. Copied into the
+    session cookie it verified fine, read as an operator, and skipped both the
+    `isReleased` gate below and the retention clock. `getSession` verifies the
+    payload is actually an operator session, so a flow token no longer passes.
+  */
+  const isOperator = !!(await getSession());
 
   /*
     Step 14, observed rather than declared — the mirror of step 9.
@@ -64,7 +73,10 @@ export async function GET(
   return new Response(opened.stream, {
     headers: {
       "Content-Type": opened.contentType ?? "application/octet-stream",
-      "Content-Disposition": `attachment; filename="${file.filename}"`,
+      // Encode the customer-facing name — an unescaped `"` or control char in a
+      // coach's filename would break the header (or throw on the Response). The
+      // sibling /api/files/[id] does the same.
+      "Content-Disposition": `attachment; filename="${encodeURIComponent(file.filename)}"`,
       ...(opened.size ? { "Content-Length": String(opened.size) } : {}),
     },
   });

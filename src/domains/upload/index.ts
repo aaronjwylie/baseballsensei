@@ -10,7 +10,12 @@
  * `model/fileTypes` directly — that module has no server imports for exactly
  * this reason.
  */
-export { registerUpload, storeUploadedFile } from "./api/uploadApi";
+export {
+  registerUpload,
+  storeUploadedFile,
+  isUnderOurStore,
+  type RegisterResult,
+} from "./api/uploadApi";
 export {
   runRetentionSweep,
   sweepAbandoned,

@@ -36,6 +36,7 @@ export function OperatorRoleToggles({
   const [held, setHeld] = useState<RoleGrant[]>(grants);
   const [saved, setSaved] = useState(false);
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const key = (gs: RoleGrant[]) =>
@@ -62,8 +63,16 @@ export function OperatorRoleToggles({
     <form
       action={async (formData) => {
         setPending(true);
-        await setRolesAction(formData);
+        setError(null);
+        const result = await setRolesAction(formData);
         setPending(false);
+        if (result?.error) {
+          // Refused (e.g. the last-admin guard). Revert the toggles to what the
+          // server still holds, and say why.
+          setError(result.error);
+          setHeld(grants);
+          return;
+        }
         setSaved(true);
         router.refresh();
       }}
@@ -134,6 +143,8 @@ export function OperatorRoleToggles({
           <span className="text-sm text-emerald-700">Saved.</span>
         )}
       </div>
+
+      {error && <p className="text-[13px] text-red-700">{error}</p>}
     </form>
   );
 }

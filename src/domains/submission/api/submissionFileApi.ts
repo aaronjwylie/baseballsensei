@@ -20,6 +20,7 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { submissionFileTable } from "../model/submissionFileTable";
+import { submissionTable } from "../model/submissionTable";
 import {
   INTAKE_KINDS,
   FEEDBACK_KINDS,
@@ -45,6 +46,57 @@ export async function addSubmissionFile(
     })
     .returning();
   return fromFileRow(row);
+}
+
+/**
+ * Insert one intake file, but only while the submission is under its file
+ * limit — atomically, so a concurrent burst can't beat the count.
+ *
+ * `authorizeUpload` counts, then the route inserts. That check-then-act let a
+ * client fire N `/complete` calls at once: each read the same `used` count, each
+ * passed, and all N rows landed, sailing past `maxFilesPerSubmission`. Here the
+ * count and the insert happen under a row lock on the submission, so uploads to
+ * the same submission serialise and the (N+1)th sees the real count and is
+ * refused. Returns `null` when the limit is already reached. Intake only — the
+ * limit is a promise about what the *customer* may send.
+ */
+export async function addIntakeFileWithinLimit(
+  input: NewSubmissionFile,
+  maxFiles: number,
+): Promise<SubmissionFile | null> {
+  return db.transaction(async (tx) => {
+    // Lock the submission row so two concurrent uploads for it can't both pass
+    // the count below — the loser waits here, then re-reads the true count.
+    await tx
+      .select({ id: submissionTable.id })
+      .from(submissionTable)
+      .where(eq(submissionTable.id, input.submissionId))
+      .for("update");
+
+    const existing = await tx
+      .select({ id: submissionFileTable.id })
+      .from(submissionFileTable)
+      .where(
+        and(
+          eq(submissionFileTable.submissionId, input.submissionId),
+          eq(submissionFileTable.kind, "intake"),
+        ),
+      );
+    if (existing.length >= maxFiles) return null;
+
+    const [row] = await tx
+      .insert(submissionFileTable)
+      .values({
+        submissionId: input.submissionId,
+        filename: input.filename,
+        contentType: input.contentType,
+        sizeBytes: input.sizeBytes,
+        fileUrl: input.fileUrl,
+        kind: "intake",
+      })
+      .returning();
+    return fromFileRow(row);
+  });
 }
 
 /** One submission's intake files — originals and translations — oldest first. */

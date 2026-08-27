@@ -14,8 +14,17 @@
  * way the bytes arrived.
  */
 import { storage, submissionFileKey, submissionFolder } from "@/shared/storage";
-import { addSubmissionFile, type SubmissionFile } from "@/domains/submission";
+import {
+  addIntakeFileWithinLimit,
+  addSubmissionFile,
+  type SubmissionFile,
+} from "@/domains/submission";
 import { resolveContentType } from "../model/fileTypes";
+
+/** What registering a direct upload can come to. */
+export type RegisterResult =
+  | { ok: true; file: SubmissionFile }
+  | { ok: false; status: number; error: string };
 
 /** The proxied path: we hold the bytes, so we save them ourselves. */
 export async function storeUploadedFile(
@@ -40,10 +49,13 @@ export async function storeUploadedFile(
 /**
  * The direct path: the bytes are already in Blob, we record where.
  *
- * Returns null if the locator doesn't belong to this submission. That check is
- * the whole reason this isn't a straight insert — without it, a caller holding
- * a valid flow cookie could register *any* URL, including another customer's
- * object, and the coach portal would happily serve it to them.
+ * Two guards, both because the browser supplies every value here. First, the
+ * locator must belong to this submission's folder — without it a caller holding
+ * a valid flow cookie could register *any* URL, another customer's object
+ * included. Second, the insert goes through `addIntakeFileWithinLimit`, which
+ * counts and inserts under a row lock: `authorizeUpload`'s count-then-insert
+ * could be raced by concurrent `/complete` calls past `maxFilesPerSubmission`,
+ * and this is where that's actually enforced.
  */
 export async function registerUpload(
   submissionId: string,
@@ -54,26 +66,39 @@ export async function registerUpload(
     contentType?: string;
     sizeBytes: number;
   },
-): Promise<SubmissionFile | null> {
+  maxFiles: number,
+): Promise<RegisterResult> {
   const folder = submissionFolder(submissionId);
-  if (!input.pathname.startsWith(`${folder}/`)) return null;
-  if (!isUnderOurStore(input.fileUrl, input.pathname)) return null;
+  if (!input.pathname.startsWith(`${folder}/`) || !isUnderOurStore(input.fileUrl, input.pathname)) {
+    return { ok: false, status: 403, error: "That upload doesn't belong to this submission." };
+  }
 
-  return addSubmissionFile({
-    submissionId,
-    filename: input.filename,
-    contentType: resolveContentType(input.filename, input.contentType),
-    sizeBytes: input.sizeBytes,
-    fileUrl: input.fileUrl,
-  });
+  const file = await addIntakeFileWithinLimit(
+    {
+      submissionId,
+      filename: input.filename,
+      contentType: resolveContentType(input.filename, input.contentType),
+      sizeBytes: input.sizeBytes,
+      fileUrl: input.fileUrl,
+    },
+    maxFiles,
+  );
+  if (!file) {
+    return { ok: false, status: 409, error: `You can attach up to ${maxFiles} files.` };
+  }
+  return { ok: true, file };
 }
 
 /**
  * The locator must be an https Blob URL whose path ends in the pathname we just
  * authorized. Blob may append a random suffix, so this is a prefix match on the
  * final segment rather than an equality check.
+ *
+ * Exported so the feedback direct-upload path (`/api/feedback/complete`) can tie
+ * its browser-supplied `fileUrl` to the pathname it validated, the same way this
+ * path does — otherwise it would store whatever URL the browser named.
  */
-function isUnderOurStore(fileUrl: string, pathname: string): boolean {
+export function isUnderOurStore(fileUrl: string, pathname: string): boolean {
   let parsed: URL;
   try {
     parsed = new URL(fileUrl);

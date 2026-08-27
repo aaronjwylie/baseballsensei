@@ -12,6 +12,7 @@
  */
 import { cookies } from "next/headers";
 import type { JWTPayload } from "jose";
+import { env } from "@/shared/config/env";
 import {
   SESSION_COOKIE,
   SESSION_MAX_AGE_S,
@@ -30,10 +31,10 @@ export async function setSignedCookie(
     httpOnly: true,
     // Secure in production — except a Playwright run, which is a production
     // build served over http://localhost, where a Secure cookie would never be
-    // sent back and the flow/session would silently break. `E2E_TEST` is set
-    // only by the e2e workflow, never a deployed environment.
-    secure:
-      process.env.NODE_ENV === "production" && process.env.E2E_TEST !== "1",
+    // sent back and the flow/session would silently break. `env.isE2E` is the
+    // one guard for that seam, and it is force-off on Vercel — so a deployed
+    // build always sets Secure, even if `E2E_TEST` leaked into its env.
+    secure: process.env.NODE_ENV === "production" && !env.isE2E,
     sameSite: "lax",
     path: "/",
     maxAge: maxAgeSeconds,

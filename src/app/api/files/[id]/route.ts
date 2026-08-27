@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/domains/account";
-import { getSubmissionFile, isIntake } from "@/domains/submission";
+import {
+  getSubmissionFile,
+  isAssignedToSubmission,
+  isIntake,
+} from "@/domains/submission";
 import { noteCoachCollected } from "@/domains/operator";
 import { markTranslatorCollected } from "@/domains/submission";
 import { storage } from "@/shared/storage";
@@ -37,6 +41,22 @@ export async function GET(
   const { id } = await ctx.params;
   const file = await getSubmissionFile(id);
   if (!file) return new Response("Not found", { status: 404 });
+
+  /*
+    Operator *and* owner. A session proves they're staff; this proves the work
+    is theirs. The admin reviews everything, so they bypass — but a coach or
+    translator may only pull a submission they were actually assigned. Without
+    this, any operator who knew (or guessed) a file's uuid could download any
+    customer's uploads — a minor's video among them. Answered as 404, not 403,
+    so the endpoint doesn't confirm an id it won't serve.
+  */
+  if (
+    !session.roles.includes("admin") &&
+    !(await isAssignedToSubmission(file.submissionId, session.operatorId))
+  ) {
+    return new Response("Not found", { status: 404 });
+  }
+
   if (!file.fileUrl) {
     return new Response("This file has been deleted under the retention policy.", {
       status: 410,

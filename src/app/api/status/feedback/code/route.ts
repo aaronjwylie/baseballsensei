@@ -11,10 +11,12 @@ import {
 /**
  * Send a feedback access code to a customer's inbox.
  *
- * Always answers `{ ok: true }`, whether or not the email has feedback — the
- * response must not confirm which addresses exist, and a code only actually
- * lands when there's a completed review to reveal. Rate-limited, because this
- * puts mail in someone else's inbox.
+ * Always answers `{ ok: true }` **and always sets the pending cookie**, whether
+ * or not the email has feedback — the response must not confirm which addresses
+ * exist, not in its body and not in the presence of a `Set-Cookie`. A code only
+ * actually lands in an inbox when there's a completed review to reveal; the
+ * empty case sets a decoy cookie that can never verify. Rate-limited, because
+ * this puts mail in someone else's inbox.
  */
 const LIMIT = { limit: 5, windowSeconds: 60 };
 
@@ -41,9 +43,7 @@ export async function POST(request: Request) {
 
   try {
     const pending = await issueFeedbackViewCode(parsed.customerEmail);
-    if (pending) {
-      await setSignedCookie(FEEDBACK_CODE_COOKIE, pending, FEEDBACK_CODE_TTL_S);
-    }
+    await setSignedCookie(FEEDBACK_CODE_COOKIE, pending, FEEDBACK_CODE_TTL_S);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[status/feedback/code] failed:", err);

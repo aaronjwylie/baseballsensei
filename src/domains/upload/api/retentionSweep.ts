@@ -16,8 +16,12 @@
  * abandoned case, so there is no history to preserve and a kept row is just
  * noise in the queue. **Only payment earns retention** (the client, 2026-07-30).
  *
- * **The coach's feedback file is never swept.** The customer's only route to what
- * they bought is the link in their email, and that link has to keep working.
+ * **The coach's feedback is swept with everything else, but never unwarned.**
+ * The files — uploads and feedback alike — go once the retention window closes,
+ * and the window is anchored on collection *or*, for a customer who never came
+ * for it, on a delivery backstop. Either way a one-week warning is sent first
+ * (`findWarningDue` covers both clocks), so the customer always has notice and a
+ * last chance to download before the link stops working.
  *
  * The cron cadence is a separate question from the rules. The job only *notices*
  * an elapsed window when it runs, so a daily job makes "24 hours after
@@ -76,15 +80,49 @@ export async function runRetentionSweep(): Promise<SweepReport> {
     what stops it firing every night of that week.
   */
   if (settings.warnBeforeDeletionDays > 0) {
-    const warnCutoff = new Date(
+    // Two cutoffs, one per clock, each `warnBeforeDeletionDays` ahead of the
+    // deadline it guards — so a collected submission is warned before its
+    // collection deadline and a never-collected one before the delivery
+    // backstop. The backstop used to warn no one; that's what deleted paid-for
+    // feedback in silence.
+    // `Math.max(0, …)` guards the subtraction: the settings schema's cross-field
+    // refine already forbids a warning longer than either window, but a legacy
+    // or hand-edited row could still make `retain - warn` negative, which would
+    // push the cutoff into the future and warn every just-delivered submission.
+    // Clamped, the worst a bad row does is warn a touch early, never falsely.
+    const collectedWarnCutoff = new Date(
       now -
-        days(settings.retainCollectedDays - settings.warnBeforeDeletionDays),
+        days(
+          Math.max(
+            0,
+            settings.retainCollectedDays - settings.warnBeforeDeletionDays,
+          ),
+        ),
     );
-    for (const submission of await findWarningDue(warnCutoff)) {
-      const deletesOn = new Date(
-        new Date(submission.collectedAt!).getTime() +
-          days(settings.retainCollectedDays),
-      );
+    const deliveredWarnCutoff = new Date(
+      now -
+        days(
+          Math.max(
+            0,
+            settings.retainDeliveredDays - settings.warnBeforeDeletionDays,
+          ),
+        ),
+    );
+    for (const submission of await findWarningDue(
+      collectedWarnCutoff,
+      deliveredWarnCutoff,
+    )) {
+      // Whichever clock anchors this one: its own collection, or the delivery
+      // backstop when it was never collected.
+      const deletesOn = submission.collectedAt
+        ? new Date(
+            new Date(submission.collectedAt).getTime() +
+              days(settings.retainCollectedDays),
+          )
+        : new Date(
+            new Date(submission.completedAt!).getTime() +
+              days(settings.retainDeliveredDays),
+          );
       try {
         if (submission.customerEmail) {
           const result = await sendDeletionWarning({
@@ -120,16 +158,24 @@ export async function runRetentionSweep(): Promise<SweepReport> {
     ── purge: forget the bytes, keep the record ────────────────────────────
 
     **Everything goes together** — the customer's uploads and the coach's
-    response alike. That is only safe because the clock starts on collection: we
-    never delete anything the customer hasn't already got in hand.
+    response alike. Safe because nothing is deleted without a warning that has
+    had its full notice period to land: `warnedBefore` requires the warning to
+    be at least `warnBeforeDeletionDays` old, so a submission warned earlier in
+    *this* same run (stamped `now`) is not yet eligible, and the guarantee holds
+    even when a cron gap makes warn and purge come due together.
 
     The rows survive with their locators cleared, so the portal can still say
     what was there, and the submission itself is kept **forever**. Only the
     bytes go.
   */
+  const warnedBefore =
+    settings.warnBeforeDeletionDays > 0
+      ? new Date(now - days(settings.warnBeforeDeletionDays))
+      : null;
   const due = await findResolvedDue(
     new Date(now - days(settings.retainCollectedDays)),
     new Date(now - days(settings.retainDeliveredDays)),
+    warnedBefore,
   );
 
   for (const submission of due) {

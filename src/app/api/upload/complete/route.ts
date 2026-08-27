@@ -43,19 +43,20 @@ export async function POST(request: Request) {
     // A landed file is activity: push the idle timeout back.
     await touchFlowSession();
 
-    const file = await registerUpload(permit.submission.id, parsed.data);
-    if (!file) {
-      return NextResponse.json(
-        { error: "That upload doesn't belong to this submission." },
-        { status: 403 },
-      );
+    const result = await registerUpload(
+      permit.submission.id,
+      parsed.data,
+      permit.settings.maxFilesPerSubmission,
+    );
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
     }
 
     return NextResponse.json({
       file: {
-        id: file.id,
-        filename: file.filename,
-        sizeBytes: file.sizeBytes,
+        id: result.file.id,
+        filename: result.file.filename,
+        sizeBytes: result.file.sizeBytes,
       },
     });
   } catch (err) {

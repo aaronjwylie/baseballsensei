@@ -86,9 +86,11 @@ export {
   findAbandonedDue,
   findResolvedDue,
   getSubmission,
+  isAssignedToSubmission,
   listSubmissions,
   lookupPublicSubmissions,
   markCoachCollected,
+  markPaidIfUnpaid,
   markTranslatorCollected,
   assignSubmissionTranslator,
   markCustomerCollected,
@@ -100,6 +102,7 @@ export {
 
 export {
   addSubmissionFile,
+  addIntakeFileWithinLimit,
   clearFileLocators,
   countSubmissionFiles,
   deleteSubmissionFile,

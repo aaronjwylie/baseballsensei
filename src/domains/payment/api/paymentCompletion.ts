@@ -37,7 +37,22 @@ export async function completePayment({
   if (!justPaid) return;
   if (!submission.customerEmail) return;
 
-  const files = await listSubmissionFiles(submission.id);
+  /*
+    Every read below is wrapped, and the reason is the paid-flip that already
+    happened before we got here.
+
+    `justPaid` is consumed by that flip — a redelivered webhook now sees the
+    submission already paid and skips this whole function. So if a *throw* here
+    reached the webhook, it would 500, Stripe would retry, and the retry would
+    find `justPaid` false and send nothing: the receipt would be lost for good.
+    None of these reads is worth that. Each degrades to a sensible default so
+    the receipt still goes out; the emails themselves are best-effort already
+    (ADR 004) and never throw.
+  */
+  const files = await listSubmissionFiles(submission.id).catch((err) => {
+    console.error("[payment] listing files for the receipt failed:", err);
+    return [];
+  });
 
   /*
     The operator's price, not the constant in `site.ts`, as the last resort.
@@ -49,36 +64,53 @@ export async function completePayment({
     price at /admin/settings. A receipt understating the charge is a dispute;
     the current setting is at least the price the customer was quoted.
   */
-  const settings = await getSettings();
+  const settings = await getSettings().catch((err) => {
+    console.error("[payment] reading settings for the receipt failed:", err);
+    return null;
+  });
+
+  /*
+    The capability link, not the bare `/status` page. It was mailed to an
+    address that verified itself at step 2 and paid at step 4, so it goes
+    straight in. If the token can't be signed, fall back to the plain status
+    page — a receipt with a slightly less convenient link beats no receipt.
+  */
+  const statusUrl = await signStatusToken(submission.customerEmail)
+    .then((token) => `${env.siteUrl}/status/${token}`)
+    .catch((err) => {
+      console.error("[payment] signing the status token failed:", err);
+      return `${env.siteUrl}/status`;
+    });
 
   const receipt = await sendSubmissionReceipt(submission.customerEmail, {
     playerName: submission.playerName,
-    amountCents: submission.stripeAmount ?? settings.priceCents,
+    amountCents:
+      submission.stripeAmount ?? settings?.priceCents ?? site.price.amountCents,
     currency: site.price.currency,
     files,
-    /*
-      The capability link, not the bare `/status` page.
-
-      It was mailed to an address that verified itself at step 2 and paid at
-      step 4, so it goes straight in — asking them to prove themselves a third
-      time would be friction that buys nothing. The typed-email door still asks
-      for a code, because typing proves nothing.
-    */
-    statusUrl: `${env.siteUrl}/status/${await signStatusToken(submission.customerEmail)}`,
+    statusUrl,
   });
 
   void noteEmailSent(submission.id, "② receipt → customer", receipt);
 
   // The other half of ②. Gated on `justPaid` above, so a redelivered webhook
-  // announces the same sale twice to nobody.
-  const arrival = await sendPaymentReceivedEmail({
-    to: await listAdminEmails(),
-    playerName: submission.playerName,
-    focus: submission.focus,
-    fileCount: files.length,
-    queueUrl: `${env.siteUrl}/admin`,
+  // announces the same sale twice to nobody. Admin lookup is wrapped for the
+  // same reason as the reads above — a failure here must not cost the customer
+  // their receipt, which has already been sent.
+  const adminEmails = await listAdminEmails().catch((err) => {
+    console.error("[payment] listing admin emails for the arrival note failed:", err);
+    return [] as string[];
   });
-  void noteEmailSent(submission.id, "② arrival → Admin", arrival);
+  if (adminEmails.length > 0) {
+    const arrival = await sendPaymentReceivedEmail({
+      to: adminEmails,
+      playerName: submission.playerName,
+      focus: submission.focus,
+      fileCount: files.length,
+      queueUrl: `${env.siteUrl}/admin`,
+    });
+    void noteEmailSent(submission.id, "② arrival → Admin", arrival);
+  }
 }
 
 /**

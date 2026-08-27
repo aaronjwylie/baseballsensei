@@ -12,6 +12,7 @@ import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/shared/lib/actionResult";
 import { requireRole } from "@/domains/account";
 import { getSubmission, assignSubmissionTranslator } from "@/domains/submission";
+import { listAssignable } from "./operatorProfileApi";
 import {
   createProfiledOperatorAction,
   updateProfiledOperatorAction,
@@ -57,6 +58,16 @@ export async function assignTranslatorAction(
       error:
         "This leg has already been sent out. Move the status back first if you need to change who has it.",
     };
+  }
+
+  /*
+    Active-translator re-check, the mirror of `assignCoachAction`. A paused
+    translator lingers in a stale dropdown, and nothing downstream re-validates
+    the grant — so the guard is membership in the current active set.
+  */
+  const assignable = await listAssignable("translator");
+  if (!assignable.some((operator) => operator.id === operatorId)) {
+    return { error: "That translator isn't active — reload and pick another." };
   }
 
   await assignSubmissionTranslator(submissionId, operatorId, leg);

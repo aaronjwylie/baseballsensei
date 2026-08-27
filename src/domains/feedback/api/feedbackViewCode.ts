@@ -7,13 +7,21 @@
  * email, receive a code, read it back. Only someone with the inbox open can
  * finish, which is the same guarantee the emailed capability link gives.
  *
- * It's **stateless** — no schema change. The code's bcrypt hash rides in a
- * short-lived signed, httpOnly cookie (`FEEDBACK_CODE_COOKIE`); the plaintext
- * exists only long enough to be emailed. This is *not* an account (CLAUDE.md
- * §2): no password, nothing to sign into, expires in minutes.
+ * It's **stateless** — no schema change. A keyed fingerprint of the code rides
+ * in a short-lived signed, httpOnly cookie (`FEEDBACK_CODE_COOKIE`); the
+ * plaintext exists only long enough to be emailed. This is *not* an account
+ * (CLAUDE.md §2): no password, nothing to sign into, expires in minutes.
+ *
+ * **The fingerprint is an HMAC, not a bcrypt hash — deliberately.** The cookie
+ * payload is readable by whoever made the request (httpOnly stops page scripts,
+ * not the HTTP client that receives the `Set-Cookie`). A bcrypt hash of a
+ * 6-digit code sitting there is an offline brute-force: a million candidates at
+ * cost-10 fall in minutes on a handful of cores, well inside the cookie's life.
+ * An HMAC keyed to `AUTH_SECRET` can't be brute-forced without the key, which
+ * never leaves the server — so the secrecy of the code no longer rests on the
+ * rate limit alone.
  */
-import bcrypt from "bcryptjs";
-import { randomInt } from "node:crypto";
+import { createHmac, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 import type { JWTPayload } from "jose";
 import { env } from "@/shared/config/env";
 import {
@@ -30,11 +38,24 @@ export const FEEDBACK_CODE_COOKIE = "bs_fbcode";
 const CODE_LENGTH = 6;
 export const FEEDBACK_CODE_TTL_S = 10 * 60;
 
+/**
+ * How many wrong guesses one issued code tolerates before it's burned.
+ *
+ * The HMAC fingerprint makes the code offline-brute-force-proof, but *online*
+ * this stateless path leaned entirely on the per-instance rate limiter. Five
+ * tries per code — matching the flow-verification gate — bounds online grinding
+ * against a code guarding a customer's list and a child's name, without an
+ * attempt column: the count rides in the signed cookie.
+ */
+export const MAX_FEEDBACK_CODE_ATTEMPTS = 5;
+
 /** What the signed pending-code cookie carries. The code is never stored raw. */
 export interface PendingFeedbackCode extends JWTPayload {
   email: string;
   hash: string;
   purpose: "feedback-view";
+  /** Wrong guesses so far against this code — burned at the cap. */
+  attempts: number;
 }
 
 /** One customer's feedback, grouped by player — only ever returned post-verify. */
@@ -52,16 +73,27 @@ function generateCode(): string {
 }
 
 /**
- * Mint a code for an email that actually has feedback, email it, and return the
- * payload for the caller to set as the pending cookie.
+ * The keyed fingerprint that goes in the cookie. HMAC-SHA256 under `AUTH_SECRET`
+ * — an attacker who reads the cookie can't run candidates against it without the
+ * key, so a 6-digit code stops being offline-brute-forceable (see file header).
+ */
+function fingerprint(code: string): string {
+  return createHmac("sha256", env.authSecret).update(code).digest("hex");
+}
+
+/**
+ * Mint a code for an email, email it when there's something to reveal, and
+ * return the payload for the caller to set as the pending cookie.
  *
- * Returns null when the email has no completed review — the route still answers
- * "ok" so the endpoint never confirms which addresses exist, and no code lands
- * in a stranger's inbox on a guess.
+ * **Always returns a payload — even for an email with no feedback.** The route
+ * sets the cookie unconditionally, so a `Set-Cookie` header can no longer be
+ * read as "this address exists": a stranger enumerating inboxes sees the same
+ * response every time. The empty case gets a decoy fingerprint no code can
+ * match and sends no mail, so nothing lands in a stranger's inbox on a guess.
  */
 export async function issueFeedbackViewCode(
   emailRaw: string,
-): Promise<PendingFeedbackCode | null> {
+): Promise<PendingFeedbackCode> {
   const email = emailRaw.trim().toLowerCase();
   const submissions = await findByCustomerEmail(email);
   /*
@@ -72,13 +104,22 @@ export async function issueFeedbackViewCode(
     released feedback would have meant a customer mid-review couldn't see their
     own submission at all.
   */
-  if (submissions.length === 0) return null;
+  if (submissions.length === 0) {
+    // A decoy: fingerprint a value no 6-digit code can produce, and send no
+    // mail. The cookie is set exactly as in the real case, so the two are
+    // indistinguishable from outside — but verification can never pass.
+    return {
+      email,
+      hash: fingerprint(randomBytes(16).toString("hex")),
+      purpose: "feedback-view",
+      attempts: 0,
+    };
+  }
 
   const code = generateCode();
-  const hash = await bcrypt.hash(code, 10);
   // Best-effort transport (ADR 004); a send failure logs and never throws.
   await sendFeedbackViewCode(email, code);
-  return { email, hash, purpose: "feedback-view" };
+  return { email, hash: fingerprint(code), purpose: "feedback-view", attempts: 0 };
 }
 
 /**
@@ -114,8 +155,16 @@ export async function verifyFeedbackViewCode(
     return null;
   }
 
-  const matches = await bcrypt.compare(code, pending.hash);
-  if (!matches) return null;
+  // Constant-time compare of the HMAC — same-length hex, so `timingSafeEqual`
+  // is safe to call directly, and a wrong code leaks nothing through timing.
+  const expected = fingerprint(code);
+  const provided = pending.hash;
+  if (
+    expected.length !== provided.length ||
+    !timingSafeEqual(Buffer.from(expected), Buffer.from(provided))
+  ) {
+    return null;
+  }
 
   return {
     submissions: await lookupPublicSubmissions(email),

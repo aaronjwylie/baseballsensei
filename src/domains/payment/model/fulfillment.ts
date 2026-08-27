@@ -12,12 +12,7 @@
  * gates the receipt email and nothing sends twice.
  */
 import type Stripe from "stripe";
-import {
-  getSubmission,
-  isPaid,
-  updateSubmission,
-  type Submission,
-} from "@/domains/submission";
+import { markPaidIfUnpaid, type Submission } from "@/domains/submission";
 
 /**
  * The submission this payment is for.
@@ -49,23 +44,21 @@ export async function markSubmissionPaid(
     return null;
   }
 
-  const existing = await getSubmission(submissionId);
-  if (!existing) {
-    console.error(`[payment] intent ${intent.id} names unknown submission ${submissionId}`);
-    return null;
-  }
-
-  // Already through — a redelivered webhook, or the browser beating it back.
-  if (isPaid(existing)) return { submission: existing, justPaid: false };
-
-  const submission = await updateSubmission(submissionId, {
-    status: "new",
+  // One atomic conditional flip does the idempotency guard *and* the race guard:
+  // `markPaidIfUnpaid` only flips a not-yet-paid row, so a redelivered webhook
+  // and the browser confirming can't both win and both send a receipt. A `null`
+  // means the id names no submission at all.
+  const result = await markPaidIfUnpaid(submissionId, {
     stripePaymentId: intent.id,
     // `amount_received` is what actually cleared; `amount` is what was asked
     // for. They differ on a partial capture — we want the truth.
     stripeAmount: intent.amount_received ?? intent.amount,
     paidAt: new Date().toISOString(),
   });
+  if (!result) {
+    console.error(`[payment] intent ${intent.id} names unknown submission ${submissionId}`);
+    return null;
+  }
 
-  return { submission, justPaid: true };
+  return result;
 }

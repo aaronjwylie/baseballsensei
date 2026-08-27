@@ -107,9 +107,16 @@ export const env = {
    * inbox. Set exclusively by the `e2e.yml` workflow and never in any deployed
    * environment — a unit test asserts it is false by default, so the fixed code
    * can never be reachable in production.
+   *
+   * **Belt and braces: it is force-off on Vercel.** `E2E_TEST=1` is a GitHub
+   * Actions flag; the e2e workflow never runs on Vercel, so `VERCEL=1` and
+   * `E2E_TEST=1` never legitimately coexist. Requiring `VERCEL !== "1"` here
+   * means that even if someone pastes `E2E_TEST=1` into a Vercel env by mistake,
+   * the fixed code and the non-Secure cookie stay off — a single fat-fingered
+   * variable can't turn every customer's verification code into `000000`.
    */
   get isE2E() {
-    return process.env.E2E_TEST === "1";
+    return process.env.E2E_TEST === "1" && process.env.VERCEL !== "1";
   },
 
   // Stripe
