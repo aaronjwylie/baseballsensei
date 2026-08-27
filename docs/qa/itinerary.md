@@ -162,7 +162,7 @@ expiry, any CVC.
 | 2.2.2 | Wrong code | Inline error, stays put |
 | 2.2.3 | Wrong code **5 times** | Locked out; must reissue |
 | 2.2.4 | "Resend" | New code arrives; the **old one stops working** |
-| 2.2.5 | "Check delivery" | Reports what Resend knows |
+| 2.2.5 | Use a **dead domain** at step 1 (`qa@no-such-domain-xyz.com`), reach step 2 and **wait 10s without typing** | You are told the address didn't receive it and sent back to fix it. ⚠️ No button to press — the page asks by itself 5s in. Needs `email.bounced` reaching the webhook (9.5.1) |
 | 2.2.6 | Go **back** to step 1 and change the email | Verification resets; a new code goes to the new address |
 | 2.2.7 | Correct code | Advances to step 3 |
 
@@ -202,6 +202,8 @@ Test cards: success `4242 4242 4242 4242` · decline `4000 0000 0000 0002` ·
 | 2.5.1 | "You're all set", file count and player name correct | |
 | 2.5.2 | "Send another video" | Returns to a clean step 1 |
 | 2.5.3 | "Check your status" | Goes to `/status` |
+| 2.5.4 | **Every admin gets the "payment arrived" mail** — check each address in `/admin/operators` with the `admin` role | ⚠️ All of them, not just the first. Historically this failed whenever there was more than one recipient — unproven against current code |
+| 2.5.5 | If any ② send fails, the trail says **why** | ⚠️ The trail records `failed` with no reason today; the cause is only in Vercel's logs, which expire. Four past failures are now undiagnosable |
 
 ### 2.6 Guards
 | 2.6.1 | Try `/start` step 3 without verifying (refresh mid-flow) | Always restarts at step 1 |
@@ -333,13 +335,17 @@ than assuming the fix held.
 
 ## Phase 9 · System jobs
 
+**9.5 was one check covering two facts** and was split on 2026-08-27, after a pass found delivery
+working and bounce silent. A single check would have gone green on the delivery half.
+
 | # | Check | Expected |
 | --- | --- | --- |
 | 9.1 | Hit `/api/cron/sweep` with the `CRON_SECRET` | Warns first, then purges per the windows |
 | 9.2 | Without the secret | Refused — and with `CRON_SECRET` unset the sweep **refuses to run at all** |
 | 9.3 | A swept submission's file | `/api/files/[id]` → **410 Gone** |
 | 9.4 | Deletion-warning email | Sent once, and stamped even if the send failed |
-| 9.5 | Resend webhook | Delivery/bounce events appear in the trail |
+| 9.5 | Resend webhook — **delivery** | `delivered` appears in the trail within a few seconds of a send |
+| 9.5.1 | Resend webhook — **bounce** | ⚠️ `bounced` appears after a send to a dead domain. **No bounce has ever been recorded in production** (0 of 22 sends, 2026-08-27) — check `email.bounced` is subscribed in the Resend dashboard, not just `email.delivered`. Until this passes, 2.2.5 cannot |
 | 9.6 | Resend webhook with a bad signature | Rejected |
 | 9.7 | Replay a webhook older than 5 minutes | Rejected |
 

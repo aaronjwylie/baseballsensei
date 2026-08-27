@@ -359,10 +359,16 @@
     },
     "2.2.5": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
-      "what": "\"Check delivery\"",
-      "expect": "Reports what Resend knows",
+      "what": "Use a dead domain at step 1 (qa@no-such-domain-xyz.com), reach step 2 and wait 10s without typing",
+      "expect": "You are told the address didn't receive it and sent back to fix it. ⚠️ No button to press — the page asks by itself 5s in. Needs email.bounced reaching the webhook (9.5.1)",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-27T22:38:55.141Z",
+          "what": "\"Check delivery\"",
+          "expect": "Reports what Resend knows"
+        }
+      ]
     },
     "2.2.6": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -1045,10 +1051,16 @@
     },
     "9.5": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
-      "what": "Resend webhook",
-      "expect": "Delivery/bounce events appear in the trail",
+      "what": "Resend webhook — delivery",
+      "expect": "delivered appears in the trail within a few seconds of a send",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-27T22:38:55.141Z",
+          "what": "Resend webhook",
+          "expect": "Delivery/bounce events appear in the trail"
+        }
+      ]
     },
     "9.6": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -1243,6 +1255,27 @@
       "firstSeen": "2026-08-27T18:48:11.136Z",
       "what": "Open the panel, then widen the window past md",
       "expect": "Panel anchors to a hard-coded 79px header offset. If the bar's height ever changes, the panel detaches from it — check it doesn't strand mid-air",
+      "retired": false,
+      "history": []
+    },
+    "2.5.4": {
+      "firstSeen": "2026-08-27T22:38:55.141Z",
+      "what": "Every admin gets the \"payment arrived\" mail — check each address in /admin/operators with the admin role",
+      "expect": "All of them, not just the first. Historically this failed whenever there was more than one recipient — unproven against current code",
+      "retired": false,
+      "history": []
+    },
+    "2.5.5": {
+      "firstSeen": "2026-08-27T22:38:55.141Z",
+      "what": "If any ② send fails, the trail says why",
+      "expect": "The trail records failed with no reason today; the cause is only in Vercel's logs, which expire. Four past failures are now undiagnosable",
+      "retired": false,
+      "history": []
+    },
+    "9.5.1": {
+      "firstSeen": "2026-08-27T22:38:55.141Z",
+      "what": "Resend webhook — bounce",
+      "expect": "bounced appears after a send to a dead domain. No bounce has ever been recorded in production (0 of 22 sends, 2026-08-27) — check email.bounced is subscribed in the Resend dashboard, not just email.delivered. Until this passes, 2.2.5 cannot",
       "retired": false,
       "history": []
     }

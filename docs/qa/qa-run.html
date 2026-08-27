@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 14</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 15</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -875,8 +875,8 @@ const PHASES = [
           ],
           [
             "2.2.5",
-            "\"Check delivery\"",
-            "Reports what Resend knows"
+            "Use a dead domain at step 1 (qa@no-such-domain-xyz.com), reach step 2 and wait 10s without typing",
+            "You are told the address didn't receive it and sent back to fix it. ⚠️ No button to press — the page asks by itself 5s in. Needs email.bounced reaching the webhook (9.5.1)"
           ],
           [
             "2.2.6",
@@ -1015,6 +1015,18 @@ const PHASES = [
             "2.5.3",
             "\"Check your status\"",
             "Goes to /status"
+          ],
+          [
+            "2.5.4",
+            "Every admin gets the \"payment arrived\" mail — check each address in /admin/operators with the admin role",
+            "All of them, not just the first. Historically this failed whenever there was more than one recipient — unproven against current code",
+            "flag"
+          ],
+          [
+            "2.5.5",
+            "If any ② send fails, the trail says why",
+            "The trail records failed with no reason today; the cause is only in Vercel's logs, which expire. Four past failures are now undiagnosable",
+            "flag"
           ]
         ]
       },
@@ -1477,7 +1489,7 @@ const PHASES = [
     "n": "9",
     "title": "System jobs",
     "id": "p9",
-    "note": null,
+    "note": "9.5 was one check covering two facts and was split on 2026-08-27, after a pass found delivery working and bounce silent. A single check would have gone green on the delivery half.",
     "groups": [
       {
         "head": null,
@@ -1504,8 +1516,14 @@ const PHASES = [
           ],
           [
             "9.5",
-            "Resend webhook",
-            "Delivery/bounce events appear in the trail"
+            "Resend webhook — delivery",
+            "delivered appears in the trail within a few seconds of a send"
+          ],
+          [
+            "9.5.1",
+            "Resend webhook — bounce",
+            "bounced appears after a send to a dead domain. No bounce has ever been recorded in production (0 of 22 sends, 2026-08-27) — check email.bounced is subscribed in the Resend dashboard, not just email.delivered. Until this passes, 2.2.5 cannot",
+            "flag"
           ],
           [
             "9.6",

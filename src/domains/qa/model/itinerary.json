@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 14,
-    "generatedAt": "2026-08-27T18:48:11.136Z",
-    "checks": 178,
-    "live": 178,
+    "build": 15,
+    "generatedAt": "2026-08-27T22:38:55.141Z",
+    "checks": 181,
+    "live": 181,
     "retired": 0,
-    "edited": 0
+    "edited": 2
   },
   "phases": [
     {
@@ -389,8 +389,15 @@
             },
             {
               "id": "2.2.5",
-              "what": "\"Check delivery\"",
-              "expect": "Reports what Resend knows"
+              "what": "Use a dead domain at step 1 (qa@no-such-domain-xyz.com), reach step 2 and wait 10s without typing",
+              "expect": "You are told the address didn't receive it and sent back to fix it. ⚠️ No button to press — the page asks by itself 5s in. Needs email.bounced reaching the webhook (9.5.1)",
+              "history": [
+                {
+                  "at": "2026-08-27T22:38:55.141Z",
+                  "what": "\"Check delivery\"",
+                  "expect": "Reports what Resend knows"
+                }
+              ]
             },
             {
               "id": "2.2.6",
@@ -529,6 +536,18 @@
               "id": "2.5.3",
               "what": "\"Check your status\"",
               "expect": "Goes to /status"
+            },
+            {
+              "id": "2.5.4",
+              "what": "Every admin gets the \"payment arrived\" mail — check each address in /admin/operators with the admin role",
+              "expect": "All of them, not just the first. Historically this failed whenever there was more than one recipient — unproven against current code",
+              "flag": "flag"
+            },
+            {
+              "id": "2.5.5",
+              "what": "If any ② send fails, the trail says why",
+              "expect": "The trail records failed with no reason today; the cause is only in Vercel's logs, which expire. Four past failures are now undiagnosable",
+              "flag": "flag"
             }
           ]
         },
@@ -991,7 +1010,7 @@
       "n": "9",
       "title": "System jobs",
       "id": "p9",
-      "note": null,
+      "note": "9.5 was one check covering two facts and was split on 2026-08-27, after a pass found delivery working and bounce silent. A single check would have gone green on the delivery half.",
       "groups": [
         {
           "head": null,
@@ -1018,8 +1037,21 @@
             },
             {
               "id": "9.5",
-              "what": "Resend webhook",
-              "expect": "Delivery/bounce events appear in the trail"
+              "what": "Resend webhook — delivery",
+              "expect": "delivered appears in the trail within a few seconds of a send",
+              "history": [
+                {
+                  "at": "2026-08-27T22:38:55.141Z",
+                  "what": "Resend webhook",
+                  "expect": "Delivery/bounce events appear in the trail"
+                }
+              ]
+            },
+            {
+              "id": "9.5.1",
+              "what": "Resend webhook — bounce",
+              "expect": "bounced appears after a send to a dead domain. No bounce has ever been recorded in production (0 of 22 sends, 2026-08-27) — check email.bounced is subscribed in the Resend dashboard, not just email.delivered. Until this passes, 2.2.5 cannot",
+              "flag": "flag"
             },
             {
               "id": "9.6",
