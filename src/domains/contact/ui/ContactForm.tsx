@@ -133,7 +133,7 @@ export function ContactForm({
         <span>
           You agree to our friendly{" "}
           <Link href="/terms" className="text-highlight underline underline-offset-2">
-            privacy policy
+            terms and conditions
           </Link>
           .
         </span>
