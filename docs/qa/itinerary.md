@@ -345,7 +345,7 @@ working and bounce silent. A single check would have gone green on the delivery 
 | 9.3 | A swept submission's file | `/api/files/[id]` → **410 Gone** |
 | 9.4 | Deletion-warning email | Sent once, and stamped even if the send failed |
 | 9.5 | Resend webhook — **delivery** | `delivered` appears in the trail within a few seconds of a send |
-| 9.5.1 | Resend webhook — **bounce** | ⚠️ `bounced` appears after a send to a dead domain. **No bounce has ever been recorded in production** (0 of 22 sends, 2026-08-27) — check `email.bounced` is subscribed in the Resend dashboard, not just `email.delivered`. Until this passes, 2.2.5 cannot |
+| 9.5.1 | Resend webhook — **bounce** | ⚠️ `bounced` appears in the trail within a minute of a send to a dead domain. Requires `email.bounced` to be subscribed on the Resend webhook, not only `email.delivered`. 2.2.5 depends on this |
 | 9.6 | Resend webhook with a bad signature | Rejected |
 | 9.7 | Replay a webhook older than 5 minutes | Rejected |
 

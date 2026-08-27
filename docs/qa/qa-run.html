@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 15</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 16</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1522,7 +1522,7 @@ const PHASES = [
           [
             "9.5.1",
             "Resend webhook — bounce",
-            "bounced appears after a send to a dead domain. No bounce has ever been recorded in production (0 of 22 sends, 2026-08-27) — check email.bounced is subscribed in the Resend dashboard, not just email.delivered. Until this passes, 2.2.5 cannot",
+            "bounced appears in the trail within a minute of a send to a dead domain. Requires email.bounced to be subscribed on the Resend webhook, not only email.delivered. 2.2.5 depends on this",
             "flag"
           ],
           [

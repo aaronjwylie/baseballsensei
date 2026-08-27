@@ -5,6 +5,9 @@ import {
   itinerary,
   itineraryMeta,
   readFieldChecks,
+  addNote,
+  deleteNote,
+  editNote,
   readNotes,
   setNoteStatus,
   NOTE_STATUSES,
@@ -24,7 +27,18 @@ import {
  * `/api` sits outside the site's Basic Auth so a 401 here would tell an
  * anonymous caller the route exists.
  *
- * `PATCH` moves a note along its three states. It is here rather than only in
+ * `POST` writes one, `PATCH` edits it or moves its status, `DELETE` removes it —
+ * the same three things the board offers, for whoever is working from a
+ * terminal rather than a browser.
+ *
+ * **A note written here must name its author**, and the field is required
+ * rather than defaulted. Two people and a watcher share one token, so the token
+ * says nothing about who observed a thing; without a name the board would show
+ * findings that nobody can be asked about. The board takes the name from a
+ * field the tester filled in; here it is `by`, and a request without one is
+ * refused rather than filed anonymously.
+ *
+ * `PATCH` also moves a note along its states. It is here rather than only in
  * the page's server action because the fixer works from a terminal — a session
  * that has just pushed a patch should be able to say so without a browser, and
  * `resolved` is deliberately still the tester's word (the page is where it is
@@ -103,11 +117,27 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "bad json" }, { status: 400 });
   }
 
-  const { id, status, by } = (body ?? {}) as {
+  const { id, status, by, body: text } = (body ?? {}) as {
     id?: string;
     status?: string;
     by?: string;
+    body?: string;
   };
+
+  /* An edit and a status change are separate operations on one route because
+     they are one thought — "I got that wrong" — and splitting them across two
+     calls invites the second being forgotten. */
+  if (id && typeof text === "string") {
+    const done = await editNote(id, text.trim());
+    if (!done) {
+      return NextResponse.json(
+        { ok: false, error: "Not editable — someone has claimed or closed it." },
+        { status: 409 },
+      );
+    }
+    if (!status) return NextResponse.json({ ok: true });
+  }
+
   if (!id || !NOTE_STATUSES.includes(status as NoteStatus)) {
     /* Read from the list rather than spelled out again here. The first version
        repeated the three names inline, which meant adding a fourth left the API
@@ -120,4 +150,58 @@ export async function PATCH(req: NextRequest) {
 
   await setNoteStatus(id, status as NoteStatus, by ?? null);
   return NextResponse.json({ ok: true });
+}
+
+export async function POST(req: NextRequest) {
+  if (!authorised(req)) return notFound();
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ ok: false, error: "bad json" }, { status: 400 });
+  }
+
+  const { checkId, body: text, browser, by } = (body ?? {}) as {
+    checkId?: string;
+    body?: string;
+    browser?: string;
+    by?: string;
+  };
+  if (!checkId || !text?.trim()) {
+    return NextResponse.json(
+      { ok: false, error: "checkId and body required" },
+      { status: 400 },
+    );
+  }
+  if (!by?.trim()) {
+    /* Required, not defaulted — see the note at the top of this file. */
+    return NextResponse.json(
+      { ok: false, error: "by required — a finding nobody can be asked about is half a finding" },
+      { status: 400 },
+    );
+  }
+
+  const row = await addNote({
+    checkId,
+    body: text.trim(),
+    browser: browser?.trim() || null,
+    author: by.trim(),
+  });
+  return NextResponse.json({ ok: true, id: row.id });
+}
+
+export async function DELETE(req: NextRequest) {
+  if (!authorised(req)) return notFound();
+
+  const id = req.nextUrl.searchParams.get("id");
+  if (!id) return NextResponse.json({ ok: false, error: "id required" }, { status: 400 });
+
+  const done = await deleteNote(id);
+  return done
+    ? NextResponse.json({ ok: true })
+    : NextResponse.json(
+        { ok: false, error: "Not deletable — someone has claimed or closed it." },
+        { status: 409 },
+      );
 }

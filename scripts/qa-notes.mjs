@@ -3,6 +3,9 @@
  * The findings from the pass, for the session that has to fix them.
  *
  *   npm run qa:notes                    -- unclaimed work
+ *   npm run qa:notes -- --on 9.5.1 --say "what I saw" --by "Claude (watcher)"
+ *   npm run qa:notes -- --edit <id> --say "corrected wording"
+ *   npm run qa:notes -- --delete <id>
  *   npm run qa:notes -- --claim <id>    -- TAKE IT FIRST, before editing code
  *   npm run qa:notes -- --fixed <id>    -- say the patch has landed
  *   npm run qa:notes -- --unclaim <id>  -- put it back
@@ -47,6 +50,49 @@ if (!token) {
   process.exit(1);
 }
 const base = valueOf("--local") ?? "https://www.baseball-sensei.com";
+
+const say = valueOf("--say");
+const on = valueOf("--on");
+if (on) {
+  if (!say) { console.error("--on needs --say"); process.exit(1); }
+  const res = await fetch(`${base}/api/qa/notes?token=${encodeURIComponent(token)}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      checkId: on,
+      body: say,
+      browser: valueOf("--browser") ?? null,
+      by: valueOf("--by"),
+    }),
+  });
+  const payload = await res.json().catch(() => ({}));
+  console.log(payload.ok ? `Noted on ${on} — ${payload.id}` : `Failed: ${payload.error ?? res.status}`);
+  process.exit(payload.ok ? 0 : 1);
+}
+
+const editId = valueOf("--edit");
+if (editId) {
+  if (!say) { console.error("--edit needs --say"); process.exit(1); }
+  const res = await fetch(`${base}/api/qa/notes?token=${encodeURIComponent(token)}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ id: editId, body: say }),
+  });
+  const payload = await res.json().catch(() => ({}));
+  console.log(payload.ok ? `Edited ${editId} — the previous wording is kept.` : `Failed: ${payload.error ?? res.status}`);
+  process.exit(payload.ok ? 0 : 1);
+}
+
+const delId = valueOf("--delete");
+if (delId) {
+  const res = await fetch(
+    `${base}/api/qa/notes?token=${encodeURIComponent(token)}&id=${encodeURIComponent(delId)}`,
+    { method: "DELETE" },
+  );
+  const payload = await res.json().catch(() => ({}));
+  console.log(payload.ok ? `Deleted ${delId}.` : `Failed: ${payload.error ?? res.status}`);
+  process.exit(payload.ok ? 0 : 1);
+}
 
 const transitions = [
   ["--claim", "claimed", "claimed — it is locked against edits while you work on it."],

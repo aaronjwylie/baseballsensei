@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 15,
-    "generatedAt": "2026-08-27T22:38:55.141Z",
+    "build": 16,
+    "generatedAt": "2026-08-27T22:52:29.819Z",
     "checks": 181,
     "live": 181,
     "retired": 0,
-    "edited": 2
+    "edited": 3
   },
   "phases": [
     {
@@ -1050,8 +1050,15 @@
             {
               "id": "9.5.1",
               "what": "Resend webhook — bounce",
-              "expect": "bounced appears after a send to a dead domain. No bounce has ever been recorded in production (0 of 22 sends, 2026-08-27) — check email.bounced is subscribed in the Resend dashboard, not just email.delivered. Until this passes, 2.2.5 cannot",
-              "flag": "flag"
+              "expect": "bounced appears in the trail within a minute of a send to a dead domain. Requires email.bounced to be subscribed on the Resend webhook, not only email.delivered. 2.2.5 depends on this",
+              "flag": "flag",
+              "history": [
+                {
+                  "at": "2026-08-27T22:52:29.819Z",
+                  "what": "Resend webhook — bounce",
+                  "expect": "bounced appears after a send to a dead domain. No bounce has ever been recorded in production (0 of 22 sends, 2026-08-27) — check email.bounced is subscribed in the Resend dashboard, not just email.delivered. Until this passes, 2.2.5 cannot"
+                }
+              ]
             },
             {
               "id": "9.6",
