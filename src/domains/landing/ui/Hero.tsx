@@ -38,7 +38,7 @@ export function Hero() {
           <p className="flex items-center gap-2 font-display text-[11px] font-medium uppercase tracking-[0.08em] text-highlight">
             <span
               aria-hidden
-              className="inline-block h-1.5 w-1.5 rounded-full bg-highlight"
+              className="animate-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-highlight"
             />
             {hero.eyebrow}
           </p>

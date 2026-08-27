@@ -97,12 +97,32 @@ html {
 }
 
 /*
-  Someone who asked for less motion gets a static row of the same claims. The
-  strip carries no information the movement is needed to read, so stopping it
-  costs nothing.
+  The eyebrow's status dot, pulsing off and on — a small "live" cue beside
+  "Professional Baseball Coaching". Opacity only: the dot never moves, so it
+  reads as a signal rather than as motion for its own sake.
+*/
+@keyframes pulseDot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.animate-pulse-dot {
+  animation: pulseDot 1.6s ease-in-out infinite;
+}
+
+/*
+  Someone who asked for less motion gets a static row of the same claims and a
+  dot that simply rests fully lit. Neither carries information the movement is
+  needed to read, so stopping both costs nothing.
 */
 @media (prefers-reduced-motion: reduce) {
-  .animate-ticker {
+  .animate-ticker,
+  .animate-pulse-dot {
     animation: none;
   }
 }
