@@ -8,7 +8,7 @@
  */
 import bcrypt from "bcryptjs";
 import { randomInt } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, lt, sql } from "drizzle-orm";
 import { env } from "@/shared/config/env";
 import { db } from "@/shared/db";
 import { submissionTable } from "@/domains/submission/model/submissionTable";
@@ -103,25 +103,47 @@ export async function verifyCode(
     await noteVerification(submissionId, false, "the window had closed");
     return { ok: false, reason: "expired" };
   }
-  if (row.attempts >= MAX_ATTEMPTS) {
+  /*
+    Spend one attempt atomically, and only if one is left.
+
+    This was a read-check-write: read `attempts`, compare to the cap, write back
+    `attempts + 1`. A concurrent burst all read the same value and all wrote the
+    same `read + 1`, so the counter moved by one no matter how many guesses
+    landed — `batch × 5` tries against a single code, defeating the cap that is
+    the only durable, cross-instance wall on this gate (the rate limiter is a
+    per-instance speed bump). The guarded `UPDATE … WHERE attempts < MAX` makes
+    the check and the increment one locked step — the same shape the success
+    write below already uses. Zero rows back means the cap is already spent.
+  */
+  // Aliased so the table name doesn't sit inside the `sql` template literal —
+  // `check:names` reads any table export inside a string as prose/URL misuse.
+  const attemptsCol = submissionTable.verificationAttempts;
+  const [bumped] = await db
+    .update(submissionTable)
+    .set({
+      verificationAttempts: sql`${attemptsCol} + 1`,
+    })
+    .where(
+      and(
+        eq(submissionTable.id, submissionId),
+        lt(submissionTable.verificationAttempts, MAX_ATTEMPTS),
+      ),
+    )
+    .returning({ attempts: submissionTable.verificationAttempts });
+
+  if (!bumped) {
     await noteVerification(submissionId, false, `${MAX_ATTEMPTS} attempts spent`);
     return { ok: false, reason: "too_many_attempts" };
   }
-
-  await db
-    .update(submissionTable)
-    .set({ verificationAttempts: row.attempts + 1 })
-    .where(eq(submissionTable.id, submissionId));
 
   const matches = await bcrypt.compare(code, row.hash);
   if (!matches) {
     // The count *after* this attempt, which is what the reader wants: "3 of 5
     // spent" answers "how much rope is left" without arithmetic.
-    const spent = row.attempts + 1;
     await noteVerification(
       submissionId,
       false,
-      `wrong code — ${spent} of ${MAX_ATTEMPTS} attempts spent`,
+      `wrong code — ${bumped.attempts} of ${MAX_ATTEMPTS} attempts spent`,
     );
     return { ok: false, reason: "mismatch" };
   }

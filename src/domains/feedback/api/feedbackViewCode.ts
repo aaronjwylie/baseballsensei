@@ -38,11 +38,24 @@ export const FEEDBACK_CODE_COOKIE = "bs_fbcode";
 const CODE_LENGTH = 6;
 export const FEEDBACK_CODE_TTL_S = 10 * 60;
 
+/**
+ * How many wrong guesses one issued code tolerates before it's burned.
+ *
+ * The HMAC fingerprint makes the code offline-brute-force-proof, but *online*
+ * this stateless path leaned entirely on the per-instance rate limiter. Five
+ * tries per code — matching the flow-verification gate — bounds online grinding
+ * against a code guarding a customer's list and a child's name, without an
+ * attempt column: the count rides in the signed cookie.
+ */
+export const MAX_FEEDBACK_CODE_ATTEMPTS = 5;
+
 /** What the signed pending-code cookie carries. The code is never stored raw. */
 export interface PendingFeedbackCode extends JWTPayload {
   email: string;
   hash: string;
   purpose: "feedback-view";
+  /** Wrong guesses so far against this code — burned at the cap. */
+  attempts: number;
 }
 
 /** One customer's feedback, grouped by player — only ever returned post-verify. */
@@ -99,13 +112,14 @@ export async function issueFeedbackViewCode(
       email,
       hash: fingerprint(randomBytes(16).toString("hex")),
       purpose: "feedback-view",
+      attempts: 0,
     };
   }
 
   const code = generateCode();
   // Best-effort transport (ADR 004); a send failure logs and never throws.
   await sendFeedbackViewCode(email, code);
-  return { email, hash: fingerprint(code), purpose: "feedback-view" };
+  return { email, hash: fingerprint(code), purpose: "feedback-view", attempts: 0 };
 }
 
 /**

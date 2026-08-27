@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSession } from "@/domains/account";
 import { getSubmission, isAssignedTo } from "@/domains/submission";
 import { recordFeedbackFile } from "@/domains/feedback";
+import { isUnderOurStore } from "@/domains/upload";
 
 /**
  * Record a feedback file the coach's browser uploaded straight to Blob — the
@@ -40,6 +41,16 @@ export async function POST(request: Request) {
     );
   }
   const submissionId = match[1];
+
+  // Tie the browser-supplied locator to the pathname we just validated — the
+  // same guard the customer path uses. Without it, the pathname would decide
+  // ownership while an unrelated `fileUrl` got stored and served later.
+  if (!isUnderOurStore(parsed.data.fileUrl, parsed.data.pathname)) {
+    return NextResponse.json(
+      { error: "That upload isn't a feedback file." },
+      { status: 400 },
+    );
+  }
 
   const submission = await getSubmission(submissionId);
   if (!submission) {

@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { clearSignedCookie, readSignedCookie } from "@/shared/auth";
+import {
+  clearSignedCookie,
+  readSignedCookie,
+  setSignedCookie,
+} from "@/shared/auth";
 import { clientIdentifier, rateLimit } from "@/shared/lib";
 import {
   FEEDBACK_CODE_COOKIE,
+  FEEDBACK_CODE_TTL_S,
+  MAX_FEEDBACK_CODE_ATTEMPTS,
   verifyFeedbackViewCode,
   type PendingFeedbackCode,
 } from "@/domains/feedback";
@@ -50,6 +56,23 @@ export async function POST(request: Request) {
       parsed.data.code,
     );
     if (!access) {
+      /*
+        Count the miss in the signed cookie, and burn the code once the cap is
+        spent. Without this the same issued code stayed guessable for its full
+        10-minute life, leaving the (per-instance, best-effort) rate limiter as
+        the only online wall on a code that reveals a customer's list and a
+        child's name. After the cap the customer must request a fresh code.
+      */
+      const attempts = (pending?.attempts ?? 0) + 1;
+      if (!pending || attempts >= MAX_FEEDBACK_CODE_ATTEMPTS) {
+        await clearSignedCookie(FEEDBACK_CODE_COOKIE);
+      } else {
+        await setSignedCookie(
+          FEEDBACK_CODE_COOKIE,
+          { ...pending, attempts },
+          FEEDBACK_CODE_TTL_S,
+        );
+      }
       return NextResponse.json(
         { error: "That code didn't match. Check it and try again." },
         { status: 400 },

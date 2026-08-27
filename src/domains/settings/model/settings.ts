@@ -71,13 +71,30 @@ export const settingsSchema = z.object({
   maxFileSizeMb: z.coerce.number().int().min(1).max(2000),
   maxFilesPerSubmission: z.coerce.number().int().min(1).max(20),
   // Floor of 1 day on the collected clock, so a purge can never land on the
-  // same day the customer downloaded. The warning must fit inside it, which the
-  // sweep re-checks rather than trusting the form.
+  // same day the customer downloaded. The warning must fit inside both windows
+  // — enforced by the cross-field `.refine` below, not just per-field bounds.
   retainCollectedDays: z.coerce.number().int().min(1).max(3650),
   retainDeliveredDays: z.coerce.number().int().min(1).max(3650),
   warnBeforeDeletionDays: z.coerce.number().int().min(0).max(365),
   retainUnpaidHours: z.coerce.number().int().min(1).max(8760),
-});
+}).refine(
+  (s) =>
+    s.warnBeforeDeletionDays <=
+    Math.min(s.retainCollectedDays, s.retainDeliveredDays),
+  {
+    /*
+      The warning has to fit inside both retention windows. Per-field bounds
+      allow, say, a 100-day warning against a 90-day delivered window — and the
+      sweep computes its warn cutoff as `retain - warn`, which then goes
+      negative and lands in the *future*, warning every just-delivered
+      submission that a deletion is imminent. Tie the fields together here so
+      that state is unreachable from the form.
+    */
+    path: ["warnBeforeDeletionDays"],
+    message:
+      "The deletion warning must be no longer than the shorter of the two retention windows.",
+  },
+);
 
 /** Bytes, for comparing against a file size. */
 export function maxFileSizeBytes(settings: PlatformSettings): number {

@@ -17,11 +17,63 @@
  * with the portal chooser rather than here, because it is a UI preference
  * rather than a fact about the grants.
  */
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { operatorRoleGrantTable } from "../model/operatorRoleGrantTable";
 import { operatorTable } from "../model/operatorTable";
 import type { Role } from "../model/operatorRoleEnum";
+
+/**
+ * Can this operator actually act as an admin right now?
+ *
+ * "Eligible admin" is the pair the login path enforces: the account may sign in
+ * (`operator.isActive`) **and** holds an active `admin` grant. Either half off
+ * and they can't reach `/admin`. Used to keep the platform from being locked out
+ * of its own admin portal — see [[last-admin-guard]].
+ */
+export async function isEligibleAdmin(operatorId: string): Promise<boolean> {
+  const rows = await db
+    .select({ id: operatorTable.id })
+    .from(operatorTable)
+    .innerJoin(
+      operatorRoleGrantTable,
+      eq(operatorRoleGrantTable.operatorId, operatorTable.id),
+    )
+    .where(
+      and(
+        eq(operatorTable.id, operatorId),
+        eq(operatorTable.isActive, true),
+        eq(operatorRoleGrantTable.role, "admin"),
+        eq(operatorRoleGrantTable.isActive, true),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
+}
+
+/** Does an eligible admin *other than* this operator exist? The question a
+ * change that would strip the last admin has to answer "yes" before it runs. */
+export async function otherActiveAdminExists(
+  excludeOperatorId: string,
+): Promise<boolean> {
+  const rows = await db
+    .select({ id: operatorTable.id })
+    .from(operatorTable)
+    .innerJoin(
+      operatorRoleGrantTable,
+      eq(operatorRoleGrantTable.operatorId, operatorTable.id),
+    )
+    .where(
+      and(
+        ne(operatorTable.id, excludeOperatorId),
+        eq(operatorTable.isActive, true),
+        eq(operatorRoleGrantTable.role, "admin"),
+        eq(operatorRoleGrantTable.isActive, true),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
+}
 
 /** One membership: the kind, and whether they are taking that work. */
 export interface RoleGrant {

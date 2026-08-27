@@ -73,7 +73,10 @@ export async function GET(
   return new Response(opened.stream, {
     headers: {
       "Content-Type": opened.contentType ?? "application/octet-stream",
-      "Content-Disposition": `attachment; filename="${file.filename}"`,
+      // Encode the customer-facing name — an unescaped `"` or control char in a
+      // coach's filename would break the header (or throw on the Response). The
+      // sibling /api/files/[id] does the same.
+      "Content-Disposition": `attachment; filename="${encodeURIComponent(file.filename)}"`,
       ...(opened.size ? { "Content-Length": String(opened.size) } : {}),
     },
   });

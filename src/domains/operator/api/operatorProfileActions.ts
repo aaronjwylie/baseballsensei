@@ -29,6 +29,7 @@ import {
   updateProfiledOperator,
   getByRole,
 } from "./operatorProfileApi";
+import { isEligibleAdmin, otherActiveAdminExists } from "./operatorRoleApi";
 import type { Role } from "../model/operatorRoleEnum";
 
 export type OperatorProfileFormState = { error: string } | { ok: true } | undefined;
@@ -130,6 +131,21 @@ export async function updateProfiledOperatorAction(
   }
   if (password && password.length < 8) {
     return { error: "A new password must be at least 8 characters (or leave it blank)." };
+  }
+
+  // Deactivating an account blocks its login (loginApi enforces `isActive`), so
+  // deactivating the only eligible admin is a lockout by another door. Refuse it
+  // for the same reason `setRolesAction` refuses stripping the admin grant.
+  if (
+    activeField !== null &&
+    activeField !== "on" &&
+    (await isEligibleAdmin(id)) &&
+    !(await otherActiveAdminExists(id))
+  ) {
+    return {
+      error:
+        "This is the only active admin — you can't deactivate them. Grant admin to someone else first.",
+    };
   }
 
   // A new photo replaces the old one; the old object is removed so it does not
