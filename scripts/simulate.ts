@@ -354,7 +354,14 @@ async function walk(label: string, translating: boolean) {
 
   // ── rung 16: purged ──────────────────────────────────────────────────
   await db.update(submissionTable)
-    .set({ collectedAt: new Date(Date.now() - (settings.retainCollectedDays + 1) * day) })
+    .set({
+      collectedAt: new Date(Date.now() - (settings.retainCollectedDays + 1) * day),
+      // The warning went out in the previous sweep; advance its clock past the
+      // notice period too. The purge now waits on the *age of the warning*, not
+      // only the retention deadline — a real run always leaves days between warn
+      // and delete, so the simulation has to put them there as well.
+      deletionWarnedAt: new Date(Date.now() - (settings.warnBeforeDeletionDays + 1) * day),
+    })
     .where(eq(submissionTable.id, s.id));
   const swept = await runRetentionSweep();
   check(swept.resolvedPurged >= 1, `   purged (${swept.filesDeleted} files)`);
