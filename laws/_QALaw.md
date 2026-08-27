@@ -214,6 +214,79 @@ is what was built. A document that rewrites itself cannot: it carries whatever s
 its host moves on. Where the host already numbers things, use its number and spend your effort naming
 it; where it does not, stamp your own.
 
+
+### The fix loop
+
+**Q16 · A finding is a record with a fate, not a message.**
+"It's broken" said aloud is gone by the next check. A finding needs to be
+*attached* to its check, carry who saw it and where, and hold a state that says
+what became of it — because the useful question at the end of a pass is never
+"what did we say?" but "what is still true?"
+
+The states that earn their place, and why each is distinct:
+
+| State | Means | Set by |
+|---|---|---|
+| **pending** | nobody has picked it up | whoever found it |
+| **claimed** | someone is working on it now | the fixer, **before** they start |
+| **fixed** | a patch has landed | the fixer |
+| **resolved** | re-tested, and it is genuinely gone | **the tester, never the fixer** |
+| **blocked** | real, agreed, and waiting on someone else | either |
+
+Two of those distinctions are load-bearing and are usually collapsed:
+
+- **`fixed` is not `resolved`.** The strongest thing the author of a patch may
+  claim is that they wrote one. Letting them close the finding lets the board go
+  green on one person's say-so — the same conflation a delivery pipeline makes
+  when it treats *sent* as *received*.
+- **`blocked` is not `resolved`.** `resolved` says the matter is closed;
+  `blocked` says it is open and waiting. **The blocked list is the handover** —
+  the findings that outlive the pass and belong to whatever tracks work
+  afterwards. Filed as anything else, they are lost the day the record is torn
+  down.
+
+**Q17 · A finding may be corrected until someone acts on it, and claiming is how
+they say they have.**
+The first instinct is append-only — a correction is a new note — and the reason
+is sound: a fix made against wording that later changed leaves nobody able to
+say what was actually read. But applied to every note it is too wide, forcing a
+second note to repair a typo and making the record harder to read for no
+protection at all.
+
+The real boundary is **whether anyone has acted**. So: editable while pending,
+frozen the moment it moves. *Evidence: the too-wide version lasted an afternoon
+before the first typo made someone want to file a second note about a missing
+letter.*
+
+**But pending never means unread.** A fixer can list the queue and start work
+while a note still says pending, and the wording can then change underneath
+them. That is what **`claimed` closes**: a fixer takes a finding *before*
+editing code, and taking it locks the wording. The editable window is then
+exactly the window in which nobody has picked it up, rather than merely one in
+which nobody has finished.
+
+Two properties keep it honest: **an edit keeps the previous wording**, because
+the correction may land after a fixer read the original; and **a claim can be
+released**, because a session that dies must not strand a finding locked
+forever.
+
+> **The lock is a protocol, not enforcement.** It holds only if the fixer claims
+> before starting. Say so where the fixer reads, and say why — a rule whose
+> reason is written down survives contact with a hurry, and one whose reason is
+> not does not.
+
+**Q18 · The fixer reads the queue where they work, and the queue says what it is
+hiding.**
+Whoever fixes is in a terminal, not on the board, and a finding is only
+actionable **beside the check it is about** — *"the panel is see-through"* means
+nothing without *"solid dark ground; the photo must not show through it"*. So
+give the fix side a read that joins the two, filtered to what is actually
+theirs.
+
+And **print what the filter excluded** — `(not shown: 1 blocked, 2 resolved)`.
+A queue that filters silently is how a finding gets lost between two people who
+each assumed the other had it, and the cost of the line is nine words.
+
 ---
 
 ## 4 · What an instrument captures
@@ -424,6 +497,12 @@ Each of these looks like QA and produces nothing.
 - **A record that settles only at the end.** Useful as a report, useless as a cursor: two testers
   duplicate each other's checks and nobody notices until the totals disagree. Q11.
 - **Findings that never become gates.** The same pass is run forever, finding the same things. Q12.
+- **A fixer closing their own findings.** Everything reads resolved and nothing was re-tested. The
+  board is green and the product is not. Q16.
+- **A blocked finding filed as resolved.** The one set of findings that had to outlive the pass is the
+  set that disappears with it. Q16.
+- **A fix written against a note that changed underneath it.** Nobody can say afterwards which wording
+  was acted on, and the re-test is against a third version. Q17.
 - **A record nobody instrumented.** The product's every click is captured and the document holding the
   verdicts records nothing, so how a judgement was reached is lost while how a button was pressed is
   kept. Q15.
@@ -433,7 +512,45 @@ Each of these looks like QA and produces nothing.
 
 ---
 
-## 9 · Writing your own
+## 9 · Carrying this to the next project
+
+**Rebuilding the reasoning is waste; rebuilding the code is often not.**
+
+A pass needs an instrument, an itinerary, a record and a fix loop. The *rules* those must satisfy are
+this law, and they hold on any stack — the note states, the id guarantees, the record/report split,
+the gate that follows the product's own protection. Port those first, and by hand: they are a page of
+prose and a day of work in any language.
+
+**The code is portable only as far as the stack is.** Where a project shares a framework and a
+database with one that has already run a pass, copying the instrument saves a day. Where it does not,
+copying is worse than starting over, because the parts that do not fit are invisible until they fail
+mid-run.
+
+### Do not extract a platform from one instance
+
+The pull, after a pass goes well, is to make the tooling a package or a service. Resist it until the
+**third** project.
+
+- **One instance cannot tell you which parts are general.** Everything looks essential from inside the
+  only example, and an abstraction hardens exactly the decisions that turn out to be local.
+- **Two do not define a line either.** The second project is where you learn which choices were about
+  *that* product rather than about QA.
+- **Extract at the third, and extract only what all three actually shared.**
+
+**Know what a package would owe.** A record that lives inside the product needs the host's database,
+routes, and styling, and its gate must defer to the host's auth — an adapter surface easily wider than
+the copy it replaces. A standalone service escapes all of that and gives up the two properties that
+made the record work: **the site's gate is the record's gate, and the site's probe instruments the
+record for free** (Q11, Q15). Neither answer is obviously right; what is wrong is choosing without
+naming that trade.
+
+**Until then, a snapshot beats a package.** Keep the working code beside the law, stamped with the
+commit it came from, and carry improvements back to it — a copy that is refreshed is honest, and one
+that is not looks current while being wrong.
+
+---
+
+## 10 · Writing your own
 
 **Do not adopt this law before you have run a pass without one.** The rails above are each a
 description of something that went wrong; adopted in advance they read as bureaucracy, and the two or
@@ -457,6 +574,10 @@ gate and the instrument already are.
 
 ## Related
 
+- **The doctrine template's `tools/qa/`** — a working implementation of this law for one stack
+  (Next.js · Drizzle · Tailwind). Offered, not binding; §9 is when to copy it and when to ignore it.
+  Deliberately named rather than linked: a law is copied verbatim into repos that have no `tools/`
+  folder, and a link that resolves only in the template is a broken link everywhere else.
 - [`_VerificationLaw.md`](_VerificationLaw.md) — the machinery this law complements. Q12 amends its
   roster; its §2 concedes this law's territory.
 - [`_SecurityLaw.md`](_SecurityLaw.md) — Q5 and Q6 are its rails applied to an instrument. A probe is a

@@ -190,6 +190,60 @@ start.
 **What it still cannot see** — a session that only reads. Someone scrolling the record without clicking
 anything leaves no trace. That is a blind spot, not a gap to be closed later.
 
+### Findings, and the loop to the fixing session (Q16–Q18)
+
+| Piece | Where |
+|---|---|
+| The findings | `qa_note` — append-under, one row per finding |
+| Provisional checks | `qa_check` — added from the board, folded into the markdown later |
+| The fixer's read | [`/api/qa/notes`](../src/app/api/qa/notes/route.ts) + `npm run qa:notes` |
+
+**The loop, end to end.** A tester expands a check on `/qa`, writes what they saw and picks the
+browser from the roster the probe reported. In the other terminal, `npm run qa:notes` prints it
+**beside the check's own expectation** — *"the panel is see-through"* is not actionable without
+*"solid dark ground; the hero photo must not show through it"*. That session claims it, patches it,
+marks it fixed; the tester's board shows **fixed · awaiting re-test** within four seconds. Nothing was
+copied between two windows, and neither person had to describe the other's half.
+
+**`pending → claimed → fixed → resolved`, with `blocked` aside.** The two distinctions that carry
+weight are `fixed` ≠ `resolved` (the tester re-tests; the fixer never closes their own finding) and
+`blocked` ≠ `resolved` (blocked is *open and waiting*, and is the handover list that outlives the
+pass). Both are Q16.
+
+**A note is editable and deletable only while nobody has taken it.** Claiming locks it — that is what
+`claimed` is for, and it exists because *pending* never meant *unread*: a fixer could list the queue
+and start work while the wording was still changeable. An edit keeps the previous text and the row
+shows *"Edited N× — earlier wording kept"*. Delete is a real delete, for the note typed into the wrong
+check; a board of struck-through mistakes reads worse than one without them.
+
+The status check is a **condition on the UPDATE**, not a read followed by a write — two people polling
+each other every four seconds is precisely where check-then-act loses.
+
+**The queue prints what it is hiding** — `(not shown: 1 blocked, 2 resolved)` — because a filter
+nobody can see is how a finding is lost between two people who each assumed the other had it.
+
+⚠️ **The lock is a protocol, not enforcement.** It holds only if the fixing session claims before it
+starts. `qa:notes` leads with that instruction and says why; nothing compels it.
+
+### Adding a check mid-pass
+
+The board's **"+ Add a check"** takes an id, and **the id is the placement**: `1.1.15` lands at the end
+of group 1.1, `1.1.3.1` between 1.1.3 and 1.1.4, ordered componentwise so `1.1.10` follows `1.1.9`.
+Placement compares against the generated checks **in the markdown's own document order** rather than
+sorting the group — re-sorting would let the board silently disagree with the itinerary.
+
+An id whose group does not exist collects under **"Added mid-pass"** rather than being refused: a
+tester should not have to negotiate where a finding belongs before being allowed to write it down.
+
+Rows are badged **"Added here"** and are staging, not a second source — `docs/qa/itinerary.md` stays
+the source, and these fold into it at a phase boundary. **The server refuses an id already spent**,
+withdrawn rows included; the primary key settles the case where two people post the same id in one
+second.
+
+**This started as a per-row "+" that inserted beneath that check**, which quietly meant a finding could
+only be recorded where a check already existed — no use for one belonging to a phase nobody had
+reached. That is why the control is global and the id is typed.
+
 ### The report, afterwards
 
 `qa:build` also emits [`docs/qa/qa-run.html`](../docs/qa/qa-run.html): the same checks, standalone,
@@ -249,6 +303,22 @@ at all. That is Q10, learned by getting it wrong first.
 
 *(To be filled as the pass runs. Each entry: the check id, what happened, what was expected, and
 whether it became a gate under Q12.)*
+
+---
+
+### The instrument outgrew this project — 2026-08-27
+
+The probe, the board and the fix loop are now a **Tool** in the doctrine template
+(`tools/qa/`), snapshotted from this repo with the commit it came from. Not a package and not a
+service: `_QALaw` §9 says extract at the **third** project, because one instance cannot tell you which
+parts are general and two do not define a line either.
+
+What ports by hand regardless of stack is the protocol — the five note states, who may set which, the
+id guarantees, and the record/report split. What ports as code only ports to another Next.js · Drizzle
+· Tailwind project, and `qaAccess.ts` must be rewritten rather than copied in every case.
+
+**Improvements made here go back to the template.** A snapshot nobody refreshes is worse than none,
+because it looks current.
 
 ---
 
