@@ -20,6 +20,16 @@
  * the Nunito face (annotation labels only — no product text is set in it).
  */
 @theme {
+  /*
+    Header collapse point. Below this the nav links AND the "Get coach feedback"
+    button both fold into the menu button, so they can't collide in the narrow
+    band (~770–800px) where the five links and the button no longer fit side by
+    side (QA 1.1.15). One breakpoint for the whole header instead of the old
+    split — nav at md, button at sm — which left a collision window between them.
+    Set above the collision, not at md.
+  */
+  --breakpoint-hdr: 52rem; /* 832px */
+
   /* Ground */
   --color-paper: #ffffff;
   --color-paper-alt: #f2f2f2;
