@@ -12,12 +12,16 @@ import {
 } from "../model/qaMark";
 
 /**
- * One check: its verdict, its findings, and the control that adds a check
- * beneath it.
+ * One check: its verdict and its findings.
  *
- * Split out of `QaBoard` when notes arrived — the row grew three interactive
- * regions of its own and the board was becoming a file where a change to the
- * add-form risked the polling loop.
+ * Split out of `QaBoard` when notes arrived — the row grew interactive regions
+ * of its own and the board was becoming a file where a change to the notes
+ * panel risked the polling loop.
+ *
+ * **Adding a check is not here.** It briefly was, as a "+" per row that
+ * inserted beneath that check — which quietly meant a finding could only be
+ * written down somewhere an existing check already was. The board owns that
+ * control now, and the id decides where the new check lands.
  */
 export function QaCheckRow({
   check,
@@ -29,7 +33,6 @@ export function QaCheckRow({
   onMark,
   onNote,
   onNoteStatus,
-  onAddCheck,
   actorName,
 }: {
   check: Check;
@@ -41,15 +44,11 @@ export function QaCheckRow({
   onMark: (id: string, v: MarkValue) => void;
   onNote: (checkId: string, body: string, browser: string | null) => Promise<void>;
   onNoteStatus: (id: string, status: NoteStatus) => Promise<void>;
-  onAddCheck: (afterId: string, what: string, expect: string) => Promise<void>;
   actorName: () => string | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [adding, setAdding] = useState(false);
   const [body, setBody] = useState("");
   const [browser, setBrowser] = useState<string>(BROWSERS[0]);
-  const [what, setWhat] = useState("");
-  const [expect, setExpect] = useState("");
   const [saving, setSaving] = useState(false);
 
   const pending = notes.filter((n) => n.status === "pending").length;
@@ -60,16 +59,6 @@ export function QaCheckRow({
     setSaving(true);
     await onNote(check.id, body, browser);
     setBody("");
-    setSaving(false);
-  }
-
-  async function submitCheck() {
-    if (!what.trim() || saving) return;
-    setSaving(true);
-    await onAddCheck(check.id, what, expect);
-    setWhat("");
-    setExpect("");
-    setAdding(false);
     setSaving(false);
   }
 
@@ -136,16 +125,6 @@ export function QaCheckRow({
               {mv === "pass" ? "✓" : mv === "fail" ? "✕" : "–"}
             </button>
           ))}
-          <button
-            type="button"
-            onClick={() => setAdding((a) => !a)}
-            aria-expanded={adding}
-            aria-label={`Add a check after ${check.id}`}
-            title={`Add a check after ${check.id}`}
-            className="grid h-7 w-7 place-items-center border-2 border-line text-sm text-ink-muted hover:border-accent hover:text-accent"
-          >
-            +
-          </button>
         </span>
       </div>
 
@@ -182,40 +161,6 @@ export function QaCheckRow({
             ))}
           </ul>
         </details>
-      )}
-
-      {adding && (
-        <div className="mt-2 space-y-2 border-l-[3px] border-accent bg-paper/60 py-2 pl-3 md:ml-[68px]">
-          <p className="font-display text-[11px] uppercase tracking-[0.08em] text-ink-muted">
-            New check, inserted after {check.id}
-          </p>
-          <input
-            value={what}
-            onChange={(e) => setWhat(e.target.value)}
-            placeholder="What to do"
-            aria-label="What the new check tests"
-            className="w-full border-2 border-line bg-paper px-2 py-1 text-[13px] text-ink outline-none focus:border-accent"
-          />
-          <input
-            value={expect}
-            onChange={(e) => setExpect(e.target.value)}
-            placeholder="What should happen — the falsifiable half"
-            aria-label="What the new check expects"
-            className="w-full border-2 border-line bg-paper px-2 py-1 text-[13px] text-ink outline-none focus:border-accent"
-          />
-          <button
-            type="button"
-            disabled={!what.trim() || saving}
-            onClick={() => void submitCheck()}
-            className="border-2 border-accent bg-accent px-3 py-1 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-paper disabled:opacity-40"
-          >
-            {saving ? "Adding…" : "Add check"}
-          </button>
-          <span className="ml-2 text-[11px] text-ink-muted">
-            The id is issued by the server, so two people adding at once can’t
-            collide.
-          </span>
-        </div>
       )}
 
       {open && (

@@ -17,10 +17,16 @@ import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
  * lie the ledger exists to prevent, arriving through a new door.
  */
 export const qaCheckTable = pgTable("qa_check", {
-  /** The dotted id, issued by the server — "1.1.3.1". */
+  /**
+   * The dotted id, chosen by whoever added it — "1.1.3.1", "4.2.9".
+   *
+   * **The id is the placement.** It says which phase, which group and where in
+   * the order, so nothing else needs to record that. An earlier version stored
+   * the check this was added *after*, which was a second, weaker statement of
+   * the same fact — and one that would disagree with the id the moment either
+   * was edited.
+   */
   id: text().primaryKey(),
-  /** The check it was inserted after, which is what determined the id. */
-  afterId: text().notNull(),
   what: text().notNull(),
   expect: text().notNull(),
   author: text(),

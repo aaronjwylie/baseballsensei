@@ -9,7 +9,7 @@
 export { recordEvents, readEvents, clearEvents } from "./api/qaApi";
 export { readMarks, setMark } from "./api/qaMarkApi";
 export { readNotes, addNote, setNoteStatus } from "./api/qaNoteApi";
-export { readFieldChecks, addFieldCheck, nextIdAfter } from "./api/qaCheckApi";
+export { readFieldChecks, addFieldCheck, spentIds } from "./api/qaCheckApi";
 export { qaAccess, type QaAccess } from "./api/qaAccess";
 export { setMarkAction } from "./api/qaMarkActions";
 export {
@@ -23,6 +23,7 @@ export {
   NOTE_STATUSES,
   BROWSERS,
   compareCheckIds,
+  isCheckId,
   type Check,
   type FieldCheck,
   type Note,
@@ -36,6 +37,8 @@ export {
 } from "./model/qaMark";
 export { QaProbe } from "./ui/QaProbe";
 export { QaBoard } from "./ui/QaBoard";
+export { QaAddCheck } from "./ui/QaAddCheck";
+export { QaCheckRow } from "./ui/QaCheckRow";
 export {
   QA_AUTH_COOKIE,
   QA_FLAG_COOKIE,

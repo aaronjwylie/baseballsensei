@@ -79,7 +79,6 @@ export interface Note {
  */
 export interface FieldCheck {
   id: string;
-  afterId: string;
   what: string;
   expect: string;
   author: string | null;
@@ -106,6 +105,11 @@ export const BROWSERS = [
   "all browsers",
   "not browser-specific",
 ] as const;
+
+/** Digits and dots, at least two levels — "1.1", "1.1.15", "3.4.2.1". */
+export function isCheckId(id: string): boolean {
+  return /^\d+(\.\d+){1,4}$/.test(id);
+}
 
 /**
  * Componentwise numeric ordering, so "1.1.10" follows "1.1.9" and the inserted

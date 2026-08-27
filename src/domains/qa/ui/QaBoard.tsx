@@ -13,6 +13,14 @@ import {
   type Phase,
 } from "../model/qaMark";
 import { QaCheckRow } from "./QaCheckRow";
+import { QaAddCheck } from "./QaAddCheck";
+
+/** A field-added check, in the shape the row renders. */
+const asCheck = (f: FieldCheck): Check => ({
+  id: f.id,
+  what: f.what,
+  expect: f.expect,
+});
 
 /**
  * The shared record, on the site.
@@ -99,15 +107,48 @@ export function QaBoard({
 
   const notesFor = (id: string) => initialNotes.filter((n) => n.checkId === id);
 
-  /* Provisional checks hang off the check they were added after, so they
-     render in the position their id claims rather than at the end of a phase.
-     Sorted, because "1.1.3.10" must follow "1.1.3.9" and string order does not
-     agree. */
-  const childrenOf = (id: string): Check[] =>
-    initialFieldChecks
-      .filter((f) => f.afterId === id)
-      .sort((a, b) => compareCheckIds(a.id, b.id))
-      .map((f) => ({ id: f.id, what: f.what, expect: f.expect }));
+  /* Where a field-added check goes, decided entirely by its id.
+
+     A group's checks all share a prefix — 1.1.1, 1.1.2 … are group "1.1" — so
+     an added id belongs to the group whose prefix it starts with. Inside that
+     group it is placed by comparing against the generated checks in the order
+     the markdown gives them, rather than by sorting the whole group: document
+     order is the source's own statement of sequence, and re-sorting it here
+     would let the board silently disagree with the itinerary.
+
+     An id whose group does not exist — a new group, or a phase that has none —
+     is not rejected. It collects at the end under its own heading, because a
+     tester in the middle of a run should be able to write down what they found
+     without first negotiating where it belongs. */
+  const groupPrefix = (checks: Check[]): string | null => {
+    const first = checks[0]?.id;
+    if (!first) return null;
+    const parts = first.split(".");
+    return parts.slice(0, parts.length - 1).join(".");
+  };
+
+  const placedIds = new Set<string>();
+
+  const interleave = (checks: Check[]): { check: Check; provisional: boolean }[] => {
+    const prefix = groupPrefix(checks);
+    if (!prefix) return [];
+    const mine = initialFieldChecks
+      .filter((f) => f.id.startsWith(`${prefix}.`))
+      .sort((a, b) => compareCheckIds(a.id, b.id));
+    for (const f of mine) placedIds.add(f.id);
+
+    const out: { check: Check; provisional: boolean }[] = [];
+    let i = 0;
+    for (const check of checks) {
+      while (i < mine.length && compareCheckIds(mine[i].id, check.id) < 0) {
+        out.push({ check: asCheck(mine[i]), provisional: true });
+        i++;
+      }
+      out.push({ check, provisional: false });
+    }
+    for (; i < mine.length; i++) out.push({ check: asCheck(mine[i]), provisional: true });
+    return out;
+  };
 
   const actorName = () => nameRef.current?.value.trim() || null;
 
@@ -121,9 +162,10 @@ export function QaBoard({
     startTransition(() => router.refresh());
   }
 
-  async function addCheck(afterId: string, what: string, expect: string) {
-    await onAddCheck(afterId, what, expect, actorName());
+  async function addCheck(id: string, what: string, expect: string) {
+    const res = await onAddCheck(id, what, expect, actorName());
     startTransition(() => router.refresh());
+    return res;
   }
 
   /* Reconciled at render, not in an effect.
@@ -227,6 +269,8 @@ export function QaBoard({
         </p>
       </div>
 
+      <QaAddCheck onAdd={addCheck} />
+
       {phases.map((phase) => {
         const rows = phase.groups.flatMap((g) =>
           g.checks.filter((c) => {
@@ -268,10 +312,11 @@ export function QaBoard({
                       {group.head}
                     </h3>
                   )}
-                  {visible.flatMap((check) => [
+                  {interleave(visible).map(({ check, provisional }) => (
                     <QaCheckRow
                       key={check.id}
                       check={check}
+                      provisional={provisional}
                       value={valueOf(check.id)}
                       mark={byId.get(check.id)}
                       notes={notesFor(check.id)}
@@ -279,32 +324,58 @@ export function QaBoard({
                       onMark={(id, mv) => void mark(id, mv)}
                       onNote={note}
                       onNoteStatus={noteStatus}
-                      onAddCheck={addCheck}
                       actorName={actorName}
-                    />,
-                    ...childrenOf(check.id).map((kid) => (
-                      <QaCheckRow
-                        key={kid.id}
-                        check={kid}
-                        provisional
-                        value={valueOf(kid.id)}
-                        mark={byId.get(kid.id)}
-                        notes={notesFor(kid.id)}
-                        busy={busy === kid.id}
-                        onMark={(id, mv) => void mark(id, mv)}
-                        onNote={note}
-                        onNoteStatus={noteStatus}
-                        onAddCheck={addCheck}
-                        actorName={actorName}
-                      />
-                    )),
-                  ])}
+                    />
+                  ))}
                 </div>
               );
             })}
           </section>
         );
       })}
+      {(() => {
+        /* Read after every phase has rendered, so `placedIds` is complete.
+
+           A check whose group does not exist cannot be interleaved anywhere,
+           and dropping it would be the worst option available: the tester saw
+           "Added 4.9.1", the board agreed, and the row is nowhere. It lands
+           here instead, and reconciliation moves it into the markdown along
+           with the rest. */
+        const unplaced = initialFieldChecks
+          .filter((f) => !placedIds.has(f.id))
+          .sort((a, b) => compareCheckIds(a.id, b.id));
+        if (unplaced.length === 0) return null;
+        return (
+          <section className="scroll-mt-20">
+            <div className="flex items-baseline gap-3 border-b-2 border-dashed border-accent pb-2">
+              <span className="border-2 border-dashed border-accent px-2 py-0.5 font-display text-[12px] font-semibold tracking-[0.1em] text-accent">
+                +
+              </span>
+              <h2 className="font-display text-[20px] font-medium uppercase text-ink">
+                Added mid-pass
+              </h2>
+              <span className="ml-auto text-[11px] text-ink-muted">
+                ids outside any existing group
+              </span>
+            </div>
+            {unplaced.map((f) => (
+              <QaCheckRow
+                key={f.id}
+                check={asCheck(f)}
+                provisional
+                value={valueOf(f.id)}
+                mark={byId.get(f.id)}
+                notes={notesFor(f.id)}
+                busy={busy === f.id}
+                onMark={(id, mv) => void mark(id, mv)}
+                onNote={note}
+                onNoteStatus={noteStatus}
+                actorName={actorName}
+              />
+            ))}
+          </section>
+        );
+      })()}
     </div>
   );
 }

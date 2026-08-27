@@ -131,7 +131,6 @@ export default async function QaPage({
     .filter((f) => !f.withdrawnAt && !f.reconciledAt)
     .map((f) => ({
       id: f.id,
-      afterId: f.afterId,
       what: f.what,
       expect: f.expect,
       author: f.author,

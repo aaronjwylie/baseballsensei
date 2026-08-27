@@ -49,23 +49,19 @@ export async function setNoteStatusAction(
 }
 
 export async function addFieldCheckAction(
-  afterId: string,
+  id: string,
   what: string,
   expect: string,
   author: string | null,
-): Promise<{ ok: boolean; id?: string }> {
-  if (!(await allowed())) return { ok: false };
+): Promise<{ ok: boolean; id?: string; error?: string }> {
+  if (!(await allowed())) return { ok: false, error: "Not authorised." };
   const w = what.trim();
   const e = expect.trim();
-  if (!w || w.length > MAX_LINE || e.length > MAX_LINE) return { ok: false };
+  if (!w || w.length > MAX_LINE) return { ok: false, error: "Say what the check does." };
+  if (e.length > MAX_LINE) return { ok: false, error: "Expectation is too long." };
 
-  try {
-    const row = await addFieldCheck({ afterId, what: w, expect: e, author });
-    revalidatePath("/qa");
-    return { ok: true, id: row.id };
-  } catch {
-    /* An unknown parent, or a thousand siblings. Either is the caller's
-       problem to see, not a 500 in the middle of a pass. */
-    return { ok: false };
-  }
+  const result = await addFieldCheck({ id, what: w, expect: e, author });
+  if (!result.ok) return { ok: false, error: result.error };
+  revalidatePath("/qa");
+  return { ok: true, id: result.id };
 }

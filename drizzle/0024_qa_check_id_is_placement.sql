@@ -1,0 +1,1 @@
+ALTER TABLE "qa_check" DROP COLUMN "after_id";
