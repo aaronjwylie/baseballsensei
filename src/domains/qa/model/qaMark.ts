@@ -54,3 +54,73 @@ export interface Phase {
   note: string | null;
   groups: Group[];
 }
+
+export const NOTE_STATUSES = ["pending", "fixed", "resolved"] as const;
+export type NoteStatus = (typeof NOTE_STATUSES)[number];
+
+/** One finding written against a check. Append-only — see `qaNoteTable`. */
+export interface Note {
+  id: string;
+  checkId: string;
+  body: string;
+  browser: string | null;
+  author: string | null;
+  status: NoteStatus;
+  statusBy: string | null;
+  statusAt: string | null;
+  at: string;
+}
+
+/**
+ * A check added from the board and not yet in the markdown.
+ *
+ * `provisional` on a `Check` is what the board badges; this is the shape the
+ * add-form posts and the reconcile step reads.
+ */
+export interface FieldCheck {
+  id: string;
+  afterId: string;
+  what: string;
+  expect: string;
+  author: string | null;
+  at: string;
+}
+
+/**
+ * The browsers on this pass, as the probe reports them.
+ *
+ * A note has to say which browser, and typing it produces "chrome", "Chrome",
+ * "google chrome" — three spellings of one fact, in the field a fix is chosen
+ * by. The probe already knows the real list, so the form offers it.
+ */
+export const BROWSERS = [
+  "Chrome · macOS",
+  "Chrome · Windows",
+  "Chrome · Android",
+  "Safari · macOS",
+  "Safari · iOS",
+  "Firefox · Windows",
+  "Edge · Windows",
+  "Brave · Windows",
+  "Opera · Windows",
+  "all browsers",
+  "not browser-specific",
+] as const;
+
+/**
+ * Componentwise numeric ordering, so "1.1.10" follows "1.1.9" and the inserted
+ * "1.1.3.1" lands between "1.1.3" and "1.1.4".
+ *
+ * The generated checks never need this — their order is the markdown's own
+ * document order. It exists for the provisional ones, which arrive out of band
+ * and have to be placed.
+ */
+export function compareCheckIds(a: string, b: string): number {
+  const x = a.split(".").map(Number);
+  const y = b.split(".").map(Number);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    const d = (x[i] ?? -1) - (y[i] ?? -1);
+    if (d !== 0) return d;
+  }
+  return 0;
+}

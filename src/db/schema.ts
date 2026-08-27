@@ -56,3 +56,5 @@ export * from "@/domains/submission/model/submissionAssignmentTable";
 export * from "@/domains/settings/model/settingTable";
 export * from "@/domains/qa/model/qaEventTable";
 export * from "@/domains/qa/model/qaMarkTable";
+export * from "@/domains/qa/model/qaNoteTable";
+export * from "@/domains/qa/model/qaCheckTable";

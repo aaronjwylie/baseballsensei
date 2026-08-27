@@ -7,8 +7,15 @@ import {
   itineraryMeta,
   qaAccess,
   readMarks,
+  readNotes,
+  readFieldChecks,
   setMarkAction,
+  addNoteAction,
+  setNoteStatusAction,
+  addFieldCheckAction,
+  type FieldCheck,
   type Mark,
+  type Note,
 } from "@/domains/qa";
 
 export const metadata: Metadata = { title: "QA run", robots: { index: false, follow: false } };
@@ -104,6 +111,33 @@ export default async function QaPage({
     updatedAt: r.updatedAt.toISOString(),
   }));
 
+  const notes: Note[] = (await readNotes()).map((n) => ({
+    id: n.id,
+    checkId: n.checkId,
+    body: n.body,
+    browser: n.browser,
+    author: n.author,
+    status: n.status as Note["status"],
+    statusBy: n.statusBy,
+    statusAt: n.statusAt?.toISOString() ?? null,
+    at: n.at.toISOString(),
+  }));
+
+  /* Withdrawn rows keep their ids but leave the board — the id stays spent,
+     which is the whole reason the row is not deleted. Reconciled ones leave
+     too: by then the markdown carries them and rendering both would show the
+     check twice. */
+  const fieldChecks: FieldCheck[] = (await readFieldChecks())
+    .filter((f) => !f.withdrawnAt && !f.reconciledAt)
+    .map((f) => ({
+      id: f.id,
+      afterId: f.afterId,
+      what: f.what,
+      expect: f.expect,
+      author: f.author,
+      at: f.at.toISOString(),
+    }));
+
 
   return (
     <section className="py-10">
@@ -153,8 +187,13 @@ export default async function QaPage({
           <QaBoard
             phases={itinerary}
             initialMarks={marks}
+            initialNotes={notes}
+            initialFieldChecks={fieldChecks}
             initialName=""
             onMark={setMarkAction}
+            onNote={addNoteAction}
+            onNoteStatus={setNoteStatusAction}
+            onAddCheck={addFieldCheckAction}
           />
         </div>
       </Container>

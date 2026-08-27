@@ -2,7 +2,17 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { MARK_VALUES, type Mark, type MarkValue, type Phase } from "../model/qaMark";
+import {
+  compareCheckIds,
+  type Check,
+  type FieldCheck,
+  type Mark,
+  type MarkValue,
+  type Note,
+  type NoteStatus,
+  type Phase,
+} from "../model/qaMark";
+import { QaCheckRow } from "./QaCheckRow";
 
 /**
  * The shared record, on the site.
@@ -25,11 +35,18 @@ import { MARK_VALUES, type Mark, type MarkValue, type Phase } from "../model/qaM
 export function QaBoard({
   phases,
   initialMarks,
+  initialNotes,
+  initialFieldChecks,
   initialName,
   onMark,
+  onNote,
+  onNoteStatus,
+  onAddCheck,
 }: {
   phases: Phase[];
   initialMarks: Mark[];
+  initialNotes: Note[];
+  initialFieldChecks: FieldCheck[];
   initialName: string;
   onMark: (
     id: string,
@@ -37,6 +54,23 @@ export function QaBoard({
     note: string | null,
     actor: string | null,
   ) => Promise<{ ok: boolean }>;
+  onNote: (
+    checkId: string,
+    body: string,
+    browser: string | null,
+    actor: string | null,
+  ) => Promise<{ ok: boolean }>;
+  onNoteStatus: (
+    id: string,
+    status: NoteStatus,
+    actor: string | null,
+  ) => Promise<{ ok: boolean }>;
+  onAddCheck: (
+    afterId: string,
+    what: string,
+    expect: string,
+    actor: string | null,
+  ) => Promise<{ ok: boolean; id?: string }>;
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -62,6 +96,35 @@ export function QaBoard({
   const [pendingMarks, setPendingMarks] = useState<Record<string, MarkValue | null>>({});
 
   const byId = new Map(initialMarks.map((m) => [m.checkId, m]));
+
+  const notesFor = (id: string) => initialNotes.filter((n) => n.checkId === id);
+
+  /* Provisional checks hang off the check they were added after, so they
+     render in the position their id claims rather than at the end of a phase.
+     Sorted, because "1.1.3.10" must follow "1.1.3.9" and string order does not
+     agree. */
+  const childrenOf = (id: string): Check[] =>
+    initialFieldChecks
+      .filter((f) => f.afterId === id)
+      .sort((a, b) => compareCheckIds(a.id, b.id))
+      .map((f) => ({ id: f.id, what: f.what, expect: f.expect }));
+
+  const actorName = () => nameRef.current?.value.trim() || null;
+
+  async function note(checkId: string, body: string, browser: string | null) {
+    await onNote(checkId, body, browser, actorName());
+    startTransition(() => router.refresh());
+  }
+
+  async function noteStatus(id: string, status: NoteStatus) {
+    await onNoteStatus(id, status, actorName());
+    startTransition(() => router.refresh());
+  }
+
+  async function addCheck(afterId: string, what: string, expect: string) {
+    await onAddCheck(afterId, what, expect, actorName());
+    startTransition(() => router.refresh());
+  }
 
   /* Reconciled at render, not in an effect.
 
@@ -116,7 +179,11 @@ export function QaBoard({
     startTransition(() => router.refresh());
   }
 
-  const all = phases.flatMap((p) => p.groups.flatMap((g) => g.checks));
+  const generated = phases.flatMap((p) => p.groups.flatMap((g) => g.checks));
+  const all: Check[] = [
+    ...generated,
+    ...initialFieldChecks.map((f) => ({ id: f.id, what: f.what, expect: f.expect })),
+  ];
   const count = (v: MarkValue) => all.filter((c) => valueOf(c.id) === v).length;
   const done = all.filter((c) => valueOf(c.id)).length;
 
@@ -201,94 +268,37 @@ export function QaBoard({
                       {group.head}
                     </h3>
                   )}
-                  {visible.map((check) => {
-                    const v = valueOf(check.id);
-                    const row = byId.get(check.id);
-                    return (
-                      <div
-                        key={check.id}
-                        className={`grid grid-cols-[56px_minmax(0,1fr)_auto] items-start gap-3 border-b border-line px-2 py-2.5 sm:grid-cols-[56px_minmax(0,1fr)_minmax(0,0.8fr)_auto] ${
-                          v === "pass"
-                            ? "bg-emerald-50"
-                            : v === "fail"
-                              ? "bg-rose-50"
-                              : v === "skip"
-                                ? "bg-amber-50"
-                                : ""
-                        }`}
-                      >
-                        <span className="pt-0.5 font-display text-[12px] font-semibold tabular-nums text-accent">
-                          {check.id}
-                        </span>
-                        <span
-                          className={`text-sm ${
-                            check.retired ? "text-ink-muted line-through" : "text-ink"
-                          }`}
-                        >
-                          {check.what}
-                          {check.retired && (
-                            <span className="ml-2 border border-line px-1.5 py-0.5 align-[2px] font-display text-[9px] font-semibold uppercase tracking-[0.1em] text-ink-muted no-underline">
-                              Retired
-                            </span>
-                          )}
-                          {check.flag === "flag" && (
-                            <span className="ml-2 bg-highlight px-1.5 py-0.5 align-[2px] font-display text-[9px] font-semibold uppercase tracking-[0.1em] text-ink">
-                              Watch
-                            </span>
-                          )}
-                        </span>
-                        <span className="hidden text-[13px] text-ink-muted sm:block">
-                          {check.expect}
-                        </span>
-                        <span className="flex gap-1">
-                          {MARK_VALUES.map((mv) => (
-                            <button
-                              key={mv}
-                              type="button"
-                              disabled={busy === check.id || (check.retired && v !== mv)}
-                              onClick={() => void mark(check.id, mv)}
-                              aria-pressed={v === mv}
-                              aria-label={`${check.id} ${mv}`}
-                              className={`grid h-7 w-7 place-items-center border-2 text-sm disabled:opacity-40 ${
-                                v === mv
-                                  ? mv === "pass"
-                                    ? "border-success bg-success text-white"
-                                    : mv === "fail"
-                                      ? "border-rose-700 bg-rose-700 text-white"
-                                      : "border-amber-600 bg-amber-600 text-white"
-                                  : "border-line text-ink-muted hover:border-ink hover:text-ink"
-                              }`}
-                            >
-                              {mv === "pass" ? "✓" : mv === "fail" ? "✕" : "–"}
-                            </button>
-                          ))}
-                        </span>
-                        {check.history && check.history.length > 0 && (
-                          <details className="col-start-2 mt-1 text-[11px] text-ink-muted">
-                            <summary className="cursor-pointer">
-                              Reworded {check.history.length}×  — a verdict given
-                              earlier was against different words
-                            </summary>
-                            <ul className="mt-1 space-y-1 border-l-2 border-line pl-3">
-                              {check.history.map((h, hi) => (
-                                <li key={hi}>
-                                  <span className="tabular-nums">
-                                    {h.at.slice(0, 10)}
-                                  </span>{" "}
-                                  — “{h.what}”
-                                </li>
-                              ))}
-                            </ul>
-                          </details>
-                        )}
-                        {row?.actor && v && (
-                          <span className="col-start-2 text-[11px] text-ink-muted">
-                            {row.actor}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {visible.flatMap((check) => [
+                    <QaCheckRow
+                      key={check.id}
+                      check={check}
+                      value={valueOf(check.id)}
+                      mark={byId.get(check.id)}
+                      notes={notesFor(check.id)}
+                      busy={busy === check.id}
+                      onMark={(id, mv) => void mark(id, mv)}
+                      onNote={note}
+                      onNoteStatus={noteStatus}
+                      onAddCheck={addCheck}
+                      actorName={actorName}
+                    />,
+                    ...childrenOf(check.id).map((kid) => (
+                      <QaCheckRow
+                        key={kid.id}
+                        check={kid}
+                        provisional
+                        value={valueOf(kid.id)}
+                        mark={byId.get(kid.id)}
+                        notes={notesFor(kid.id)}
+                        busy={busy === kid.id}
+                        onMark={(id, mv) => void mark(id, mv)}
+                        onNote={note}
+                        onNoteStatus={noteStatus}
+                        onAddCheck={addCheck}
+                        actorName={actorName}
+                      />
+                    )),
+                  ])}
                 </div>
               );
             })}
