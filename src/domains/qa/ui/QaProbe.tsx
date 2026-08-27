@@ -25,6 +25,54 @@ import {
  * Batched on a timer rather than sent per event, so a click-heavy minute is a
  * handful of requests instead of hundreds.
  */
+/**
+ * A short name for this browser, sent once per session with `run started`.
+ *
+ * A pass run across nine browsers produces nine sessions of anonymous ids, and
+ * "the ticker does not scroll" is a different finding depending on which one it
+ * came from. The log could not answer that question, so every cross-browser
+ * finding needed a human to remember which tab was which.
+ *
+ * **A label, not the user-agent string.** The full UA is a fingerprint and is
+ * unreadable in a log line; this is the two facts a QA run actually uses. It is
+ * only ever sent by an armed session, which means a tester who has passed the
+ * site's own gate — never a customer.
+ *
+ * Order matters: Edge, Opera and Brave all carry "Chrome" in their UA, so the
+ * derivatives are tested before the thing they derive from.
+ */
+function browserLabel(): string {
+  const ua = navigator.userAgent;
+  const brave = "brave" in navigator;
+  const name = /OPR\//.test(ua)
+    ? "Opera"
+    : /Edg\//.test(ua)
+      ? "Edge"
+      : brave
+        ? "Brave"
+        : /Firefox\//.test(ua)
+          ? "Firefox"
+          : /CriOS\//.test(ua)
+            ? "Chrome iOS"
+            : /Chrome\//.test(ua)
+              ? "Chrome"
+              : /Safari\//.test(ua)
+                ? "Safari"
+                : "unknown";
+  const os = /iPhone|iPad/.test(ua)
+    ? "iOS"
+    : /Android/.test(ua)
+      ? "Android"
+      : /Mac OS X/.test(ua)
+        ? "macOS"
+        : /Windows/.test(ua)
+          ? "Windows"
+          : /Linux/.test(ua)
+            ? "Linux"
+            : "?";
+  return `${name} · ${os}`;
+}
+
 export function QaProbe() {
   const queue = useRef<QaEventInput[]>([]);
   const seq = useRef(0);
@@ -313,7 +361,7 @@ export function QaProbe() {
     alertObserver.observe(document.body, { childList: true, subtree: true });
     scanForAlerts(document);
 
-    push("nav", { target: lastPath, detail: "run started" });
+    push("nav", { target: lastPath, detail: `run started · ${browserLabel()}` });
 
     document.addEventListener("click", onClick, true);
     document.addEventListener("submit", onSubmit, true);

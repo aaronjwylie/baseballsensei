@@ -90,9 +90,30 @@ function render(events) {
 console.log(`Following ${base}`);
 console.log(`Times shown in ${ZONE}, with UTC beside them.\n`);
 
+/**
+ * Rows are de-duplicated by id, not trusted to fall outside `since`.
+ *
+ * `since` is the previous batch's last `at`, which arrives here as JSON —
+ * millisecond precision, while Postgres stores microseconds. So
+ * `at > '…:40.123'` still matches a row stored at `…:40.123456`, and that row
+ * comes back on every single poll, forever. It looked like the tester clicking
+ * the same thing eight times.
+ *
+ * `at` also cannot separate two events in the same millisecond (the table says
+ * so itself), so no timestamp cursor was ever going to be exact. The id is.
+ */
+const seen = new Set();
+const fresh = (events) => {
+  const out = events.filter((e) => !seen.has(e.id));
+  for (const e of out) seen.add(e.id);
+  // The window only needs to outlive one poll; keep it bounded anyway.
+  if (seen.size > 5000) for (const id of [...seen].slice(0, 2500)) seen.delete(id);
+  return out;
+};
+
 let since = null;
 const first = await fetchEvents(null);
-render(first.events);
+render(fresh(first.events));
 if (first.events.length) since = first.events[first.events.length - 1].at;
 if (has("--once")) process.exit(0);
 
@@ -102,7 +123,7 @@ for (;;) {
   try {
     const next = await fetchEvents(since);
     if (next.events.length) {
-      render(next.events);
+      render(fresh(next.events));
       since = next.events[next.events.length - 1].at;
     }
   } catch (err) {
