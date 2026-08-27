@@ -18,6 +18,7 @@ export { signFeedbackToken, verifyFeedbackToken } from "./api/feedbackToken";
 export {
   FEEDBACK_CODE_COOKIE,
   FEEDBACK_CODE_TTL_S,
+  MAX_FEEDBACK_CODE_ATTEMPTS,
   issueFeedbackViewCode,
   verifyFeedbackViewCode,
   type FeedbackGroup,

@@ -102,6 +102,7 @@ export {
 
 export {
   addSubmissionFile,
+  addIntakeFileWithinLimit,
   clearFileLocators,
   countSubmissionFiles,
   deleteSubmissionFile,

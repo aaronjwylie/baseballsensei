@@ -85,13 +85,28 @@ export async function runRetentionSweep(): Promise<SweepReport> {
     // collection deadline and a never-collected one before the delivery
     // backstop. The backstop used to warn no one; that's what deleted paid-for
     // feedback in silence.
+    // `Math.max(0, …)` guards the subtraction: the settings schema's cross-field
+    // refine already forbids a warning longer than either window, but a legacy
+    // or hand-edited row could still make `retain - warn` negative, which would
+    // push the cutoff into the future and warn every just-delivered submission.
+    // Clamped, the worst a bad row does is warn a touch early, never falsely.
     const collectedWarnCutoff = new Date(
       now -
-        days(settings.retainCollectedDays - settings.warnBeforeDeletionDays),
+        days(
+          Math.max(
+            0,
+            settings.retainCollectedDays - settings.warnBeforeDeletionDays,
+          ),
+        ),
     );
     const deliveredWarnCutoff = new Date(
       now -
-        days(settings.retainDeliveredDays - settings.warnBeforeDeletionDays),
+        days(
+          Math.max(
+            0,
+            settings.retainDeliveredDays - settings.warnBeforeDeletionDays,
+          ),
+        ),
     );
     for (const submission of await findWarningDue(
       collectedWarnCutoff,

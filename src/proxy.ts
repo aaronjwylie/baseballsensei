@@ -60,7 +60,7 @@ function armProbe(req: NextRequest, res: NextResponse): NextResponse {
   return res;
 }
 
-function siteGate(req: NextRequest): NextResponse | null {
+async function siteGate(req: NextRequest): Promise<NextResponse | null> {
   const user = env.basicAuthUser;
   const pass = env.basicAuthPassword;
   if (!user || !pass) return null; // gate disabled
@@ -68,12 +68,30 @@ function siteGate(req: NextRequest): NextResponse | null {
   const header = req.headers.get("authorization");
   if (header?.startsWith("Basic ")) {
     const [u, p] = decodeBasic(header);
-    if (u === user && p === pass) return null; // authorized
+    // Constant-time: `===` short-circuits on the first wrong byte, which
+    // `_SecurityLaw.md` §83 forbids for a value that grants access. This runs in
+    // the Edge runtime, which has Web Crypto but not node's `timingSafeEqual`,
+    // so compare fixed-length SHA-256 digests of the whole credential pair.
+    if (await constantTimeEquals(`${u}:${p}`, `${user}:${pass}`)) return null;
   }
   return new NextResponse("Authentication required.", {
     status: 401,
     headers: { "WWW-Authenticate": 'Basic realm="Baseball Sensei"' },
   });
+}
+
+/** Timing-safe string equality via SHA-256 digests (Edge-runtime friendly). */
+async function constantTimeEquals(a: string, b: string): Promise<boolean> {
+  const enc = new TextEncoder();
+  const [da, db] = await Promise.all([
+    crypto.subtle.digest("SHA-256", enc.encode(a)),
+    crypto.subtle.digest("SHA-256", enc.encode(b)),
+  ]);
+  const va = new Uint8Array(da);
+  const vb = new Uint8Array(db);
+  let diff = 0;
+  for (let i = 0; i < va.length; i++) diff |= va[i] ^ vb[i];
+  return diff === 0;
 }
 
 function decodeBasic(header: string): [string, string] {
@@ -87,7 +105,7 @@ function decodeBasic(header: string): [string, string] {
 }
 
 export async function proxy(req: NextRequest) {
-  const gate = siteGate(req);
+  const gate = await siteGate(req);
   if (gate) return gate;
 
   const { pathname } = req.nextUrl;

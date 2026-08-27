@@ -9,12 +9,20 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/domains/account";
 import { ROLES, type Role } from "../model/operatorRoleEnum";
-import { setGrants } from "./operatorRoleApi";
+import {
+  isEligibleAdmin,
+  otherActiveAdminExists,
+  setGrants,
+} from "./operatorRoleApi";
 
 const isRole = (value: string): value is Role =>
   (ROLES as readonly string[]).includes(value);
 
-export async function setRolesAction(formData: FormData): Promise<void> {
+export type SetRolesState = { error: string } | undefined;
+
+export async function setRolesAction(
+  formData: FormData,
+): Promise<SetRolesState> {
   const session = await requireRole("admin");
 
   const operatorId = String(formData.get("operatorId") ?? "");
@@ -35,6 +43,24 @@ export async function setRolesAction(formData: FormData): Promise<void> {
     ...active.map((role) => ({ role, isActive: true })),
     ...paused.map((role) => ({ role, isActive: false })),
   ];
+
+  /*
+    Never strip the last admin. `admin` has no pause toggle, so it's an active
+    admin exactly when it's held (`active` list). If this change removes it from
+    someone who is currently the only eligible admin, refuse — a zero-admin
+    state has no in-app recovery, only a DB re-seed. See [[last-admin-guard]].
+  */
+  const keepsAdmin = active.includes("admin");
+  if (
+    !keepsAdmin &&
+    (await isEligibleAdmin(operatorId)) &&
+    !(await otherActiveAdminExists(operatorId))
+  ) {
+    return {
+      error:
+        "This is the only active admin — grant admin to someone else before removing it, or the portal locks everyone out.",
+    };
+  }
 
   await setGrants(operatorId, grants, session.operatorId);
 

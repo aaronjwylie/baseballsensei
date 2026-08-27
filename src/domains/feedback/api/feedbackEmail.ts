@@ -32,7 +32,7 @@ export function sendFeedbackReady(
     subject: `${site.name} — your coaching feedback is ready`,
     html: emailShell(
       "Your feedback is ready 🎬",
-      `<p>Your coach has finished reviewing${playerName ? ` ${playerName}'s` : " your"} submission. Tap below to download the full breakdown — this link is private to you.</p>${retention}`,
+      `<p>Your coach has finished reviewing${playerName ? ` ${escapeFeedbackHtml(playerName)}'s` : " your"} submission. Tap below to download the full breakdown — this link is private to you.</p>${retention}`,
       { label: "See your feedback", url: feedbackUrl },
     ),
   });
