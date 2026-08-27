@@ -112,17 +112,23 @@ export interface FieldCheck {
  * by. The probe already knows the real list, so the form offers it.
  */
 export const BROWSERS = [
+  /* The two width-of-the-roster answers lead, because they are the common ones:
+     most findings are either everywhere or nowhere in particular, and burying
+     them under nine specific browsers made the honest answer the hardest to
+     pick. The nine follow, grouped by engine rather than alphabetically — the
+     question a fix asks is usually "which engine", and Blink spellings sitting
+     together makes that readable at a glance. */
+  "all browsers",
+  "not browser-specific",
   "Chrome · macOS",
   "Chrome · Windows",
   "Chrome · Android",
-  "Safari · macOS",
-  "Safari · iOS",
-  "Firefox · Windows",
   "Edge · Windows",
   "Brave · Windows",
   "Opera · Windows",
-  "all browsers",
-  "not browser-specific",
+  "Safari · macOS",
+  "Safari · iOS",
+  "Firefox · Windows",
 ] as const;
 
 /** Digits and dots, at least two levels — "1.1", "1.1.15", "3.4.2.1". */
