@@ -19,8 +19,11 @@ import { navLinks } from "@/shared/layout/navLinks";
  * repeat something already three times on the page.
  *
  * The inline section links collapse below `md`; there a `MobileNav` menu button
- * takes their place and drops the same five links. The CTA stays visible at
- * every width, because that's the one thing a phone visitor needs to reach.
+ * takes their place and drops the same five links. The CTA follows the room it
+ * needs: from `sm` up it sits in the bar, but below that the wordmark alone is
+ * ~190px wide and a full "GET COACH FEEDBACK" button beside it and the menu
+ * button would overrun a phone — so under `sm` the CTA moves *into* the menu
+ * panel, and the bar carries just the wordmark and the menu button.
  * (The bar carries `relative` in both variants so that menu's panel — which is
  * absolutely positioned — anchors to the header rather than the page.)
  */
@@ -53,9 +56,12 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
         </div>
 
         <div className="flex items-center gap-2">
-          <ButtonLink href="/start" variant="primary" className="shrink-0">
-            Get coach feedback
-          </ButtonLink>
+          {/* In the bar from sm up; below that it lives in the menu panel. */}
+          <div className="hidden sm:block">
+            <ButtonLink href="/start" variant="primary" className="shrink-0">
+              Get coach feedback
+            </ButtonLink>
+          </div>
           <MobileNav />
         </div>
       </Container>
