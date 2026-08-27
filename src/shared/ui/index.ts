@@ -5,4 +5,5 @@ export { Field, inputClass } from "./Field";
 export { LocalTime } from "./LocalTime";
 export { Pill, pillClass } from "./Pill";
 export { SectionHeading, type SplitHeading } from "./SectionHeading";
+export { buttonClasses } from "./buttonStyles";
 export type { ButtonSize, ButtonVariant } from "./buttonStyles";
