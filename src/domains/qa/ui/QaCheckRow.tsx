@@ -53,6 +53,7 @@ export function QaCheckRow({
 
   const pending = notes.filter((n) => n.status === "pending").length;
   const fixed = notes.filter((n) => n.status === "fixed").length;
+  const blocked = notes.filter((n) => n.status === "blocked").length;
 
   async function submitNote() {
     if (!body.trim() || saving) return;
@@ -141,6 +142,11 @@ export function QaCheckRow({
             : `${notes.length} note${notes.length > 1 ? "s" : ""}`}
           {pending > 0 && <span className="ml-1 text-rose-700">· {pending} pending</span>}
           {fixed > 0 && <span className="ml-1 text-amber-700">· {fixed} awaiting re-test</span>}
+          {/* Collapsed rows have to carry this too. A blocked finding that is
+              only visible once you expand the note is a finding nobody scanning
+              the board will see, which is the whole problem it was raised to
+              avoid. */}
+          {blocked > 0 && <span className="ml-1 text-violet-700">· {blocked} blocked</span>}
         </button>
         {mark?.actor && value && (
           <span className="text-[11px] text-ink-muted">{mark.actor}</span>
@@ -195,11 +201,11 @@ export function QaCheckRow({
                 {n.status === "pending" && (
                   <button
                     type="button"
-                    onClick={() => void onNoteStatus(n.id, "accepted")}
-                    title="A decision, not a defect — takes it out of the fixer's queue"
+                    onClick={() => void onNoteStatus(n.id, "blocked")}
+                    title="Real, but not addressable yet — waiting on someone. Leaves the fixer's queue, stays on the board."
                     className="border border-line px-1.5 py-0.5 font-display text-[10px] uppercase tracking-[0.08em] text-ink-muted hover:border-accent hover:text-accent"
                   >
-                    No fix needed
+                    Needs input
                   </button>
                 )}
                 {n.status !== "pending" && (
@@ -268,14 +274,14 @@ function StatusChip({ status }: { status: NoteStatus }) {
       ? "border-rose-700 text-rose-700"
       : status === "fixed"
         ? "border-amber-600 text-amber-700"
-        : status === "accepted"
-          ? "border-ink-muted text-ink-muted"
+        : status === "blocked"
+          ? "border-violet-700 text-violet-700"
           : "border-success text-success";
   const label =
     status === "fixed"
       ? "fixed · awaiting re-test"
-      : status === "accepted"
-        ? "accepted · no fix needed"
+      : status === "blocked"
+        ? "blocked · waiting on input"
         : status;
   return (
     <span

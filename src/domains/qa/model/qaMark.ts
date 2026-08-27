@@ -58,17 +58,23 @@ export interface Phase {
 /**
  * What became of a finding.
  *
- * `accepted` is the fourth because the other three could not say "this is on
- * purpose". A decision — the eyebrow is blue because Audrey drew it blue —
- * is not pending (nobody will act on it), not fixed (nothing changed) and not
- * resolved (nothing was re-tested). Filed under any of them it either nags a
- * fixer forever or claims work that never happened, and the end-of-pass report
- * cannot tell a ratified decision from a repaired defect.
+ * `blocked` is the fourth because the other three could only describe findings
+ * somebody could act on today. A finding can be real, agreed, and still not
+ * addressable — 1.1.7 needs photography and copy from the client, and no patch
+ * will produce either. Left pending it sits in a fixer's queue being skipped
+ * every time; called fixed it claims work nobody did; called resolved it claims
+ * a re-test nobody ran.
+ *
+ * **It is deliberately not a terminal state.** `resolved` says the matter is
+ * closed; `blocked` says it is open and waiting on someone. The end-of-pass
+ * report needs that difference most of all — the blocked list is the handover,
+ * the one set of findings that outlives the pass.
  *
  * It is also the switch that takes a note out of a fixer's queue: `qa:notes`
- * lists pending work, so an accepted note simply stops appearing.
+ * lists pending work, so a blocked note stops appearing there while remaining
+ * plainly visible on the board.
  */
-export const NOTE_STATUSES = ["pending", "fixed", "resolved", "accepted"] as const;
+export const NOTE_STATUSES = ["pending", "fixed", "resolved", "blocked"] as const;
 export type NoteStatus = (typeof NOTE_STATUSES)[number];
 
 /** One finding written against a check. Append-only — see `qaNoteTable`. */

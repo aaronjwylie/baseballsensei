@@ -4,7 +4,7 @@
  *
  *   npm run qa:notes                    -- everything still pending
  *   npm run qa:notes -- --all           -- every note, whatever its state
- *   npm run qa:notes -- --status accepted
+ *   npm run qa:notes -- --status blocked
  *   npm run qa:notes -- --fixed <id>    -- say a patch has landed
  *   npm run qa:notes -- --local http://localhost:3000
  *
@@ -17,11 +17,11 @@
  * on the board. Collapsing the two would let the record go green on the word of
  * the person who wrote the patch.
  *
- * **`accepted` notes are not work.** A tester marks a finding accepted when it
- * records a decision rather than a defect — the eyebrow is blue because that is
- * how it was drawn. They are excluded from the default listing and the count of
- * what is excluded is printed, because a queue that filters silently is how a
- * finding gets lost between two people who each thought the other had it.
+ * **`blocked` notes are real but not yours.** A tester marks a finding blocked
+ * when it is waiting on someone — client copy, a photograph, a decision. They
+ * are excluded from the default listing, and the count of what is excluded is
+ * printed, because a queue that filters silently is how a finding gets lost
+ * between two people who each thought the other had it.
  */
 import env from "@next/env";
 env.loadEnvConfig(process.cwd(), true, { info: () => {}, error: () => {} });
@@ -70,7 +70,7 @@ if (status === "pending") {
   const other = new URL(`${base}/api/qa/notes`);
   other.searchParams.set("token", token);
   const all = await (await fetch(other)).json();
-  const counts = { fixed: 0, resolved: 0, accepted: 0 };
+  const counts = { fixed: 0, resolved: 0, blocked: 0 };
   for (const n of all.notes) if (n.status in counts) counts[n.status]++;
   const parts = Object.entries(counts).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${k}`);
   if (parts.length) hidden = `  (not shown: ${parts.join(", ")})`;
