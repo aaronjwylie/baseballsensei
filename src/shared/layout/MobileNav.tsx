@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ButtonLink } from "@/shared/ui";
 import { navLinks } from "./navLinks";
 
 /**
@@ -91,6 +92,19 @@ export function MobileNav() {
                 </li>
               ))}
             </ul>
+
+            {/* The CTA the bar drops below sm. Hidden from sm up, where the bar
+                shows it again, so it never appears in two places at once. */}
+            <div className="border-t border-white/10 p-4 sm:hidden">
+              <ButtonLink
+                href="/start"
+                variant="primary"
+                onClick={() => setOpen(false)}
+                className="w-full"
+              >
+                Get coach feedback
+              </ButtonLink>
+            </div>
           </nav>
         </>
       )}
