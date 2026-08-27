@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { ButtonLink } from "@/shared/ui";
+import { AnchorScrollLink } from "./AnchorScrollLink";
 import { navLinks } from "./navLinks";
 
 /**
@@ -82,13 +82,13 @@ export function MobileNav() {
             <ul className="flex flex-col py-2">
               {navLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
+                  <AnchorScrollLink
                     href={link.href}
-                    onClick={() => setOpen(false)}
+                    onNavigate={() => setOpen(false)}
                     className="block px-6 py-3 text-sm font-medium transition-opacity hover:opacity-70"
                   >
                     {link.label}
-                  </Link>
+                  </AnchorScrollLink>
                 </li>
               ))}
             </ul>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ButtonLink, Container } from "@/shared/ui";
 import { Logo } from "@/shared/layout/Logo";
 import { MobileNav } from "@/shared/layout/MobileNav";
+import { AnchorScrollLink } from "@/shared/layout/AnchorScrollLink";
 import { navLinks } from "@/shared/layout/navLinks";
 
 /**
@@ -44,13 +45,13 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
 
           <nav className="hidden items-center gap-8 md:flex lg:gap-9">
             {navLinks.map((link) => (
-              <Link
+              <AnchorScrollLink
                 key={link.href}
                 href={link.href}
                 className="text-[12px] font-medium transition-opacity hover:opacity-70"
               >
                 {link.label}
-              </Link>
+              </AnchorScrollLink>
             ))}
           </nav>
         </div>
