@@ -145,7 +145,12 @@ export async function verifyCode(
       false,
       `wrong code — ${bumped.attempts} of ${MAX_ATTEMPTS} attempts spent`,
     );
-    return { ok: false, reason: "mismatch" };
+    // The last wrong guess *is* the lock-out — it comes back as
+    // `too_many_attempts`, not a mismatch with nothing left, so the customer is
+    // done at five wrong codes rather than being offered a pointless sixth box.
+    const remaining = MAX_ATTEMPTS - bumped.attempts;
+    if (remaining <= 0) return { ok: false, reason: "too_many_attempts" };
+    return { ok: false, reason: "mismatch", remaining };
   }
 
   // Only a draft advances. A submission already paid for must not be walked

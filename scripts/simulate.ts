@@ -633,6 +633,7 @@ function checkLanguageRule() {
       customerEmail: "x@example.com",
       playerName: "P",
       playerAge: "12",
+      customerNotes: "Please review my swing mechanics.",
       ...(languages === undefined ? {} : { languages }),
     }).languages;
   check(parse("English").join() === "English", "posts English");
