@@ -192,10 +192,12 @@ function PaymentFields({
       >
         Back to your files
       </button>
-
-      <p className="text-center text-xs text-ink-muted">
-        Payments are processed by Stripe. We never see your card details.
-      </p>
+      {/*
+        No Stripe reassurance line here: the page prints one under the whole flow
+        ("Payments are handled securely by Stripe…", in the band grey), and on
+        step 4 the two sat one above the other. The page-level one stays, since it
+        also reassures on the steps before this (QA 2.4.1.1).
+      */}
     </form>
   );
 }
