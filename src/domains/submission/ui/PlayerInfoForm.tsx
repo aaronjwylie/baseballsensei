@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Field, inputClass } from "@/shared/ui";
+import { Button, Field, FieldSelect, inputClass } from "@/shared/ui";
 // Client-safe imports from the slice's model, not its barrel — the barrel pulls
 // in Postgres-backed queries that can't ship to the browser.
 import { FOCUS_OPTIONS } from "../model/submission";
@@ -13,6 +13,15 @@ import {
   type SubmissionInput,
   type SubmissionInputDraft,
 } from "../model/submissionInput";
+
+// Radix Select rejects an empty-string item value, but the schema's "not sure"
+// state is exactly "". The general option carries this sentinel inside the
+// widget and is mapped back to "" at the form boundary.
+const FOCUS_GENERAL = "general";
+const FOCUS_ITEMS = [
+  { value: FOCUS_GENERAL, label: "Not sure / general" },
+  ...FOCUS_OPTIONS.map((option) => ({ value: option, label: option })),
+];
 
 /**
  * Step one — everything we collect before anything else happens.
@@ -42,6 +51,7 @@ export function PlayerInfoForm({
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
     // Three generics because the schema transforms: the form holds raw strings
@@ -107,18 +117,23 @@ export function PlayerInfoForm({
         </Field>
 
         <Field label="Focus" optional error={errors.focus?.message}>
-          <select
-            {...register("focus")}
-            defaultValue=""
-            className={`${inputClass} field-select`}
-          >
-            <option value="">Not sure / general</option>
-            {FOCUS_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+          <Controller
+            name="focus"
+            control={control}
+            render={({ field }) => (
+              <FieldSelect
+                ariaLabel="Focus"
+                items={FOCUS_ITEMS}
+                // The schema's "none" state is "", which Radix won't accept as an
+                // item value, so the general option rides a sentinel and is
+                // mapped back to "" at the form boundary.
+                value={field.value ? field.value : FOCUS_GENERAL}
+                onValueChange={(next) =>
+                  field.onChange(next === FOCUS_GENERAL ? "" : next)
+                }
+              />
+            )}
+          />
         </Field>
       </div>
 
