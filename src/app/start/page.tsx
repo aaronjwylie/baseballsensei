@@ -102,8 +102,23 @@ export default async function StartPage({
   }
 
   return (
-    <section className="relative isolate overflow-hidden bg-ink">
-      {ground}
+    <section className="relative bg-ink">
+      {/*
+        The photographic ground is clipped and stacked inside its own wrapper,
+        NOT on the <section>. The section is an ancestor of the Focus <select>,
+        and Chrome on macOS mispositions a native select's popup when an ancestor
+        establishes a containing/stacking context — `overflow-hidden` and
+        `isolate` here floated the dropdown far from its control (QA 2.1.5). Held
+        to the background layer, they leave the select's ancestor chain clean and
+        the popup anchors correctly, while the ground looks identical: the wrapper
+        covers the section exactly.
+      */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 isolate overflow-hidden"
+      >
+        {ground}
+      </div>
 
       <Container className="relative pb-24 pt-[140px] lg:pb-28 lg:pt-[170px]">
         <SectionHeading
