@@ -76,36 +76,24 @@
 
 html {
   scroll-behavior: smooth;
-  /*
-    Keep the vertical scrollbar always present, so the width it occupies is
-    unconditional and content sits clear of it on both sides at every width.
-
-    This replaces `scrollbar-gutter: stable both-edges`, which reserved that space
-    only while the page could actually scroll. When a popup suppressed page
-    scrolling — a <select> list, a modal — the reserved gutter collapsed and every
-    left-aligned block jumped by the scrollbar's width, snapping back on close: the
-    "detached dropdown" that reproduced in Chrome, Safari, Brave and Edge alike
-    (QA 2.1.5). An always-on bar cannot collapse, so nothing shifts. The
-    `::-webkit-scrollbar` rule below makes it a slim space-taking bar rather than
-    an overlay that laps the content, which is what kept the margins even on
-    Safari/macOS (QA 1.1.6).
-  */
-  overflow-y: scroll;
 }
 
 /*
   Force the page off macOS overlay scrollbars (QA 1.1.6).
 
-  `overflow-y: scroll` above keeps a bar present, but macOS Safari (and Chrome on
-  macOS) default to *overlay* scrollbars, which take no layout space and are
-  painted straight over the content — so the near-edge elements (the method
-  images, the menu CTA) end up lapped by the bar on the right while the left keeps
-  its full margin.
+  macOS Safari (and Chrome on macOS) default to *overlay* scrollbars, which take
+  no layout space and are painted straight over the content — so the near-edge
+  elements (the method images, the menu CTA) end up lapped by the bar on the right
+  while the left keeps its full margin. Styling the scrollbar switches WebKit to a
+  classic, space-occupying bar: the page then centres its content between the left
+  edge and the bar, so the visible margin is the same on both sides.
 
-  Styling the scrollbar switches WebKit to a classic, space-occupying bar, which
-  the always-present `overflow-y: scroll` then holds open on both edges — the same
-  margin ends up on both sides. It's a persistent slim bar rather than one that
-  fades, which is the cost of never letting it overlap or shift the content.
+  This is the whole 1.1.6 fix on its own — no `scrollbar-gutter` and no
+  `overflow-y: scroll`. Both of those *reserved* the bar's width unconditionally,
+  and that reservation is exactly what a dropdown's scroll-lock then removed and
+  re-added, sliding the centred form sideways as it opened and closed (QA 2.1.5).
+  A bar that is only present while the page scrolls lets the dropdown's own
+  compensation keep the layout still.
 */
 ::-webkit-scrollbar {
   width: 12px;
