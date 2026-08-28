@@ -15,6 +15,7 @@ import {
   deleteNoteAction,
   setNoteStatusAction,
   addFieldCheckAction,
+  withdrawFieldCheckAction,
   type FieldCheck,
   type Mark,
   type Note,
@@ -212,6 +213,7 @@ export default async function QaPage({
             onDeleteNote={deleteNoteAction}
             onNoteStatus={setNoteStatusAction}
             onAddCheck={addFieldCheckAction}
+            onWithdrawCheck={withdrawFieldCheckAction}
           />
         </div>
       </Container>

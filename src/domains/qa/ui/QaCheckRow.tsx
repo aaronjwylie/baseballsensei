@@ -35,6 +35,7 @@ export function QaCheckRow({
   onEditNote,
   onDeleteNote,
   onNoteStatus,
+  onWithdraw,
   actorName,
 }: {
   check: Check;
@@ -48,6 +49,9 @@ export function QaCheckRow({
   onEditNote: (id: string, body: string) => Promise<{ ok: boolean; error?: string }>;
   onDeleteNote: (id: string) => Promise<{ ok: boolean; error?: string }>;
   onNoteStatus: (id: string, status: NoteStatus) => Promise<void>;
+  /** Only passed for a provisional row — a generated check is retired in the
+      markdown instead, which is where its wording lives. */
+  onWithdraw?: (id: string) => Promise<{ ok: boolean; error?: string }>;
   actorName: () => string | null;
 }) {
   const [open, setOpen] = useState(false);
@@ -86,6 +90,20 @@ export function QaCheckRow({
     const res = await onDeleteNote(id);
     setSaving(false);
     if (!res.ok) setNoteError(res.error ?? "Could not delete it.");
+  }
+
+  async function withdraw() {
+    if (saving || !onWithdraw) return;
+    if (
+      !window.confirm(
+        `Withdraw ${check.id}? It leaves the board, but its id is never reused — anything already marked or noted on it stays attached.`,
+      )
+    )
+      return;
+    setSaving(true);
+    const res = await onWithdraw(check.id);
+    setSaving(false);
+    if (!res.ok) setNoteError(res.error ?? "Could not withdraw it.");
   }
 
   async function submitNote() {
@@ -184,6 +202,16 @@ export function QaCheckRow({
         </button>
         {mark?.actor && value && (
           <span className="text-[11px] text-ink-muted">{mark.actor}</span>
+        )}
+        {provisional && onWithdraw && (
+          <button
+            type="button"
+            onClick={() => void withdraw()}
+            title="Take this check back. Its id stays spent — ids are never reused."
+            className="font-display text-[11px] uppercase tracking-[0.08em] text-ink-muted underline-offset-2 hover:text-rose-700 hover:underline"
+          >
+            Withdraw
+          </button>
         )}
       </div>
 

@@ -1,5 +1,5 @@
 import "server-only";
-import { asc } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { qaCheckTable } from "../model/qaCheckTable";
 import { itinerary } from "../model/itinerary";
@@ -66,3 +66,25 @@ export async function addFieldCheck(input: {
 }
 
 export { compareCheckIds };
+
+/**
+ * Take back a check added from the board.
+ *
+ * **Not a delete.** The row stays and its id stays spent, which is the whole
+ * reason this is a timestamp rather than a `DELETE` — an id handed out twice
+ * would silently re-point every verdict and note recorded under the first one.
+ * Whatever was marked or noted against it stays attached, unreachable but not
+ * rewritten.
+ *
+ * Refused once reconciled: by then the check lives in the markdown, and the way
+ * to remove it there is to retire it — struck through, keeping its verdicts —
+ * which the build enforces.
+ */
+export async function withdrawFieldCheck(id: string) {
+  const done = await db
+    .update(qaCheckTable)
+    .set({ withdrawnAt: new Date() })
+    .where(and(eq(qaCheckTable.id, id), isNull(qaCheckTable.reconciledAt)))
+    .returning({ id: qaCheckTable.id });
+  return done.length > 0;
+}

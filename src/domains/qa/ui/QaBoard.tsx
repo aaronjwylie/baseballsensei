@@ -52,6 +52,7 @@ export function QaBoard({
   onDeleteNote,
   onNoteStatus,
   onAddCheck,
+  onWithdrawCheck,
 }: {
   phases: Phase[];
   initialMarks: Mark[];
@@ -83,6 +84,7 @@ export function QaBoard({
     expect: string,
     actor: string | null,
   ) => Promise<{ ok: boolean; id?: string }>;
+  onWithdrawCheck: (id: string) => Promise<{ ok: boolean; error?: string }>;
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -176,6 +178,12 @@ export function QaBoard({
   async function noteStatus(id: string, status: NoteStatus) {
     await onNoteStatus(id, status, actorName());
     startTransition(() => router.refresh());
+  }
+
+  async function withdrawCheck(id: string) {
+    const res = await onWithdrawCheck(id);
+    startTransition(() => router.refresh());
+    return res;
   }
 
   async function addCheck(id: string, what: string, expect: string) {
@@ -333,6 +341,7 @@ export function QaBoard({
                       key={check.id}
                       check={check}
                       provisional={provisional}
+                      onWithdraw={provisional ? withdrawCheck : undefined}
                       value={valueOf(check.id)}
                       mark={byId.get(check.id)}
                       notes={notesFor(check.id)}
@@ -381,6 +390,7 @@ export function QaBoard({
                 key={f.id}
                 check={asCheck(f)}
                 provisional
+                onWithdraw={withdrawCheck}
                 value={valueOf(f.id)}
                 mark={byId.get(f.id)}
                 notes={notesFor(f.id)}

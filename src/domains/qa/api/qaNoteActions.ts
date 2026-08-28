@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { NOTE_STATUSES, type NoteStatus } from "../model/qaMark";
 import { qaAccess } from "./qaAccess";
 import { addNote, deleteNote, editNote, setNoteStatus } from "./qaNoteApi";
-import { addFieldCheck } from "./qaCheckApi";
+import { addFieldCheck, withdrawFieldCheck } from "./qaCheckApi";
 
 /** The same gate the page uses — see `qaAccess`. */
 async function allowed() {
@@ -91,6 +91,22 @@ export async function deleteNoteAction(id: string): Promise<{ ok: boolean; error
   const done = await deleteNote(id);
   if (!done) {
     return { ok: false, error: "Someone has already picked this up — it can no longer be deleted." };
+  }
+  revalidatePath("/qa");
+  return { ok: true };
+}
+
+export async function withdrawFieldCheckAction(
+  id: string,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!(await allowed())) return { ok: false, error: "Not authorised." };
+
+  const done = await withdrawFieldCheck(id);
+  if (!done) {
+    return {
+      ok: false,
+      error: "Already folded into the itinerary — retire it there instead, so its verdicts survive.",
+    };
   }
   revalidatePath("/qa");
   return { ok: true };
