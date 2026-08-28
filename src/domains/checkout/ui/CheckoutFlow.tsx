@@ -30,6 +30,21 @@ import { stepNumber } from "../model/steps";
 import { StepIndicator } from "./StepIndicator";
 import { StepHeading } from "./StepHeading";
 
+/*
+  How long step 1 holds before it lets the customer forward.
+
+  Resend accepting the code isn't delivery: a mistyped address bounces by webhook
+  about two seconds after the send. Rather than flash the customer onto step 2 and
+  yank them back when that lands, we wait the bounce out here — the submit button
+  still reads "Sending your code…", which is the distractor — and only advance
+  once nothing has bounced. Sized just past the measured ~2s bounce; a bounce
+  slower than this still gets VerifyPanel's second, later look on step 2, which
+  now keeps the typed details rather than scrubbing them (QA 2.1.9).
+*/
+const DELIVERY_HOLD_MS = 3000;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * The four-step path from "I want feedback" to "you've been charged".
  *
@@ -172,6 +187,20 @@ export function CheckoutFlow({
       focus: values.focus ?? "",
       customerNotes: values.customerNotes ?? "",
     });
+
+    /*
+      Hold on step 1 until the code has actually landed. The submit button stays
+      in its pending state through this wait (onSubmit is awaited), so the
+      customer sees "Sending your code…" rather than a step-2 flash. A bounce here
+      keeps everything they typed and holds them on step 1 to fix the address; a
+      clean window advances them (QA 2.1.9).
+    */
+    await wait(DELIVERY_HOLD_MS);
+    const delivery = await checkDeliveryAction();
+    if (!delivery.ok) {
+      if (!handledGone(delivery)) setError(delivery.error);
+      return;
+    }
     setStep("verify");
   }
 
