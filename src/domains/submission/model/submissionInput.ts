@@ -20,14 +20,11 @@ import {
   languagesForChoice,
 } from "./submission";
 
-/**
- * Values ride on Stripe metadata, which caps each entry at 500 characters.
- * Notes are the only field that could realistically approach it.
- */
-const MAX_NOTES_LENGTH = 500;
+const MIN_NOTES_LENGTH = 20;
+const MAX_NOTES_LENGTH = 4000;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_PLAYER_NAME_LENGTH = 120;
-const MIN_PLAYER_AGE = 4;
+const MIN_PLAYER_AGE = 1;
 const MAX_PLAYER_AGE = 99;
 
 /**
@@ -106,7 +103,10 @@ export const submissionInputSchema = z.object({
   customerNotes: z
     .string()
     .trim()
-    .min(1, "Please tell your coach what you'd like them to look at.")
+    .min(
+      MIN_NOTES_LENGTH,
+      `Please add at least ${MIN_NOTES_LENGTH} characters so your coach knows what to look at.`,
+    )
     .max(MAX_NOTES_LENGTH, `Please keep notes under ${MAX_NOTES_LENGTH} characters.`),
 
   /*

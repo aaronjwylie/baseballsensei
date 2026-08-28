@@ -63,7 +63,7 @@ import { confirmPaymentForFlow } from "./confirmPayment";
  */
 export type ActionResult<T = void> =
   | { ok: true; data: T }
-  | { ok: false; error: string; gone?: true };
+  | { ok: false; error: string; gone?: true; keepDetails?: true };
 
 function fail(error: string): { ok: false; error: string } {
   return { ok: false, error };
@@ -104,8 +104,21 @@ const BOUNCE_MESSAGE: Record<BounceKind, string> = {
     "We couldn't deliver your code to that address. Check it for a typo, or try a different email.",
 };
 
-function bouncedBack(kind: BounceKind): { ok: false; error: string; gone: true } {
-  return gone(BOUNCE_MESSAGE[kind]);
+/*
+  Back to step 1, but keep what they typed.
+
+  Like `gone` it leaves the current step for step 1 — a bounced code can't be
+  verified, so the customer can't stay where they are. Unlike `gone`, the
+  submission's details are perfectly good: only the address bounced. So
+  `keepDetails` tells the flow to hold name/age/focus/notes and just prefill the
+  form, so the customer corrects the one field that was wrong rather than
+  retyping everything (Ben, QA 2.1.9). The stale submission is discarded when
+  they resubmit, like any other abandoned attempt.
+*/
+function bouncedBack(
+  kind: BounceKind,
+): { ok: false; error: string; gone: true; keepDetails: true } {
+  return { ...gone(BOUNCE_MESSAGE[kind]), keepDetails: true };
 }
 
 const DONE: ActionResult<void> = { ok: true, data: undefined };
