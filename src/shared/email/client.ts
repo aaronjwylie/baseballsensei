@@ -15,7 +15,14 @@
 import { env } from "@/shared/config/env";
 
 export interface EmailMessage {
-  to: string;
+  /**
+   * One recipient or several. Passed to Resend as-is — its `to` accepts a
+   * string or an array, and an array is the *only* correct shape for more than
+   * one: joining addresses into `"a@x.com, b@y.com"` makes Resend read the whole
+   * string as one malformed address and reject the send (422). Every admin note
+   * goes to more than one address, so this must stay an array end to end.
+   */
+  to: string | string[];
   subject: string;
   html: string;
   /**
