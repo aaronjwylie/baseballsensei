@@ -77,32 +77,35 @@
 html {
   scroll-behavior: smooth;
   /*
-    Reserve the scrollbar's width as a gutter on BOTH sides, so content is laid
-    out clear of the bar and stays centred — equal margin left and right — rather
-    than shoved toward it. `stable` alone reserves only the bar's own side, which
-    on Safari/macOS with the scrollbar shown leaves the near-edge elements at the
-    narrowest widths (the method images, the menu's CTA) with a visibly smaller
-    margin on the right than the left (QA 1.1.6). `both-edges` balances it. A
-    no-op where scrollbars overlay the content, so nothing shifts there.
+    Keep the vertical scrollbar always present, so the width it occupies is
+    unconditional and content sits clear of it on both sides at every width.
+
+    This replaces `scrollbar-gutter: stable both-edges`, which reserved that space
+    only while the page could actually scroll. When a popup suppressed page
+    scrolling — a <select> list, a modal — the reserved gutter collapsed and every
+    left-aligned block jumped by the scrollbar's width, snapping back on close: the
+    "detached dropdown" that reproduced in Chrome, Safari, Brave and Edge alike
+    (QA 2.1.5). An always-on bar cannot collapse, so nothing shifts. The
+    `::-webkit-scrollbar` rule below makes it a slim space-taking bar rather than
+    an overlay that laps the content, which is what kept the margins even on
+    Safari/macOS (QA 1.1.6).
   */
-  scrollbar-gutter: stable both-edges;
+  overflow-y: scroll;
 }
 
 /*
-  Force the page off macOS overlay scrollbars (QA 1.1.6, take three).
+  Force the page off macOS overlay scrollbars (QA 1.1.6).
 
-  `scrollbar-gutter` above only balances a bar that takes layout space. macOS
-  Safari (and Chrome on macOS) default to *overlay* scrollbars, which take no
-  space and are painted straight over the content — so the gutter is a documented
-  no-op and the bar laps the right padding, leaving the near-edge elements (the
-  method images, the menu CTA) tight against it while the left keeps its full
-  margin. There is no way to reserve room for an overlay bar.
+  `overflow-y: scroll` above keeps a bar present, but macOS Safari (and Chrome on
+  macOS) default to *overlay* scrollbars, which take no layout space and are
+  painted straight over the content — so the near-edge elements (the method
+  images, the menu CTA) end up lapped by the bar on the right while the left keeps
+  its full margin.
 
-  Styling the scrollbar switches WebKit to a classic, space-occupying bar for the
-  page, which the gutter then balances — the same margin ends up on both sides.
-  It becomes a persistent slim bar rather than one that fades, which is the cost
-  of never letting it overlap the content. Firefox has no ::-webkit-scrollbar and
-  keeps the gutter behaviour on its own space-taking bars.
+  Styling the scrollbar switches WebKit to a classic, space-occupying bar, which
+  the always-present `overflow-y: scroll` then holds open on both edges — the same
+  margin ends up on both sides. It's a persistent slim bar rather than one that
+  fades, which is the cost of never letting it overlap or shift the content.
 */
 ::-webkit-scrollbar {
   width: 12px;
