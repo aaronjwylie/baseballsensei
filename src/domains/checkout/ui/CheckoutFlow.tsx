@@ -204,13 +204,17 @@ export function CheckoutFlow({
     setStep("verify");
   }
 
-  async function submitCode(code: string): Promise<string | null> {
+  async function submitCode(
+    code: string,
+  ): Promise<{ error: string; locked?: boolean } | null> {
     const result = await verifyCodeAction(code);
     if (!result.ok) {
       // A scrubbed submission can't be fixed by retyping the code, so this one
       // leaves the panel entirely rather than showing an inline hint.
       if (handledGone(result)) return null;
-      return result.error;
+      // `locked` (out of guesses) stays on step 2 but retires the input; a plain
+      // error keeps it live for another try.
+      return { error: result.error, locked: result.locked };
     }
 
     // Files may already exist if they got this far before and came back.

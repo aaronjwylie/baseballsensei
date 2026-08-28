@@ -32,10 +32,10 @@ import { submissionFolder } from "@/shared/storage";
 import { discardUnpaidSubmission, sweepAbandoned } from "@/domains/upload";
 import { getSettings } from "@/domains/settings";
 import {
-  VERIFICATION_MESSAGES,
   codeSchema,
   issueCode,
   sendVerificationCode,
+  verificationFailureMessage,
   verifyCode,
 } from "@/domains/verification";
 import { createPaymentIntent, type CreatedIntent } from "@/domains/payment";
@@ -63,7 +63,7 @@ import { confirmPaymentForFlow } from "./confirmPayment";
  */
 export type ActionResult<T = void> =
   | { ok: true; data: T }
-  | { ok: false; error: string; gone?: true; keepDetails?: true };
+  | { ok: false; error: string; gone?: true; keepDetails?: true; locked?: true };
 
 function fail(error: string): { ok: false; error: string } {
   return { ok: false, error };
@@ -322,8 +322,17 @@ export async function verifyCodeAction(rawCode: string): Promise<ActionResult> {
   if (bounced) return bouncedBack(bounced);
 
   const result = await verifyCode(submissionId, parsed.data);
-  if (result.ok) await touchFlowSession();
-  return result.ok ? DONE : fail(VERIFICATION_MESSAGES[result.reason]);
+  if (result.ok) {
+    await touchFlowSession();
+    return DONE;
+  }
+  const error = verificationFailureMessage(result);
+  // `locked` tells step 2 to retire the code input — the guesses are gone and
+  // only a fresh code (which resets the count) can revive it.
+  if (result.reason === "too_many_attempts") {
+    return { ok: false, error, locked: true };
+  }
+  return fail(error);
 }
 
 /* ---- Step 3 — the file list --------------------------------------------- */

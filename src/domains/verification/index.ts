@@ -19,6 +19,7 @@ export {
   MAX_ATTEMPTS,
   VERIFICATION_MESSAGES,
   codeSchema,
+  verificationFailureMessage,
   type VerificationFailure,
   type VerificationResult,
 } from "./model/verification";

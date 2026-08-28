@@ -32,7 +32,9 @@ export function VerifyPanel({
   onBack,
 }: {
   email: string;
-  onVerify: (code: string) => Promise<string | null>;
+  onVerify: (
+    code: string,
+  ) => Promise<{ error: string; locked?: boolean } | null>;
   onResend: () => Promise<string | null>;
   /** Asked once, a few seconds in, in case the address bounced. */
   onCheckDelivery?: () => Promise<void>;
@@ -43,6 +45,8 @@ export function VerifyPanel({
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
+  // Out of guesses. The input is retired until a fresh code resets the count.
+  const [locked, setLocked] = useState(false);
 
   /*
     A single delayed look for a bounce.
@@ -69,19 +73,20 @@ export function VerifyPanel({
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (!ready || busy) return;
+    if (!ready || busy || locked) return;
 
     setBusy(true);
     setError(null);
     setNotice(null);
 
-    // A failed verify returns the sentence to show; success returns null and the
-    // parent has already moved us on.
-    const message = await onVerify(code);
-    if (message) {
-      setError(message);
+    // A failed verify returns the sentence to show (and whether the guesses are
+    // spent); success returns null and the parent has already moved us on.
+    const result = await onVerify(code);
+    if (result) {
+      setError(result.error);
       setCode("");
-      inputRef.current?.focus();
+      if (result.locked) setLocked(true);
+      else inputRef.current?.focus();
     }
     setBusy(false);
   }
@@ -93,7 +98,12 @@ export function VerifyPanel({
 
     const message = await onResend();
     if (message) setError(message);
-    else setNotice("We've sent a new code.");
+    else {
+      setNotice("We've sent a new code.");
+      // A new code resets the attempt count on the server, so the input comes
+      // back to life.
+      setLocked(false);
+    }
 
     setResending(false);
   }
@@ -133,7 +143,8 @@ export function VerifyPanel({
           autoComplete="one-time-code"
           placeholder="123456"
           aria-invalid={!!error}
-          className={`${inputClass} text-center text-2xl font-semibold tracking-[0.4em]`}
+          disabled={locked}
+          className={`${inputClass} text-center text-2xl font-semibold tracking-[0.4em] disabled:cursor-not-allowed disabled:opacity-50`}
         />
       </div>
 
@@ -154,7 +165,7 @@ export function VerifyPanel({
       <Button
         type="submit"
         size="lg"
-        disabled={!ready || busy}
+        disabled={!ready || busy || locked}
         className="w-full"
       >
         {busy ? "Checking…" : "Verify and continue"}
