@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",
+    "@radix-ui/react-select": "^2.3.7",
     "@stripe/react-stripe-js": "^6.8.0",
     "@stripe/stripe-js": "^9.12.1",
     "@vercel/blob": "^2.6.1",
