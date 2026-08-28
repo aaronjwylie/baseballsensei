@@ -89,6 +89,41 @@ html {
 }
 
 /*
+  Force the page off macOS overlay scrollbars (QA 1.1.6, take three).
+
+  `scrollbar-gutter` above only balances a bar that takes layout space. macOS
+  Safari (and Chrome on macOS) default to *overlay* scrollbars, which take no
+  space and are painted straight over the content — so the gutter is a documented
+  no-op and the bar laps the right padding, leaving the near-edge elements (the
+  method images, the menu CTA) tight against it while the left keeps its full
+  margin. There is no way to reserve room for an overlay bar.
+
+  Styling the scrollbar switches WebKit to a classic, space-occupying bar for the
+  page, which the gutter then balances — the same margin ends up on both sides.
+  It becomes a persistent slim bar rather than one that fades, which is the cost
+  of never letting it overlap the content. Firefox has no ::-webkit-scrollbar and
+  keeps the gutter behaviour on its own space-taking bars.
+*/
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-thumb {
+  /* A paper border and padding-box clip inset the thumb to a slim pill that sits
+     on the page's white ground rather than a full-width slab. */
+  background-color: var(--color-line);
+  background-clip: padding-box;
+  border: 3px solid var(--color-paper);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-ink-muted);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/*
   A <select> that matches the text inputs. Native selects render inconsistently —
   short in Safari, mis-placed in Chrome on macOS (QA 2.1.5) — so `appearance:
   none` drops the OS control and the field takes the same box as its siblings; a
