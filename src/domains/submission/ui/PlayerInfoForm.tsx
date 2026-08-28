@@ -107,7 +107,11 @@ export function PlayerInfoForm({
         </Field>
 
         <Field label="Focus" optional error={errors.focus?.message}>
-          <select {...register("focus")} defaultValue="" className={inputClass}>
+          <select
+            {...register("focus")}
+            defaultValue=""
+            className={`${inputClass} field-select`}
+          >
             <option value="">Not sure / general</option>
             {FOCUS_OPTIONS.map((option) => (
               <option key={option} value={option}>

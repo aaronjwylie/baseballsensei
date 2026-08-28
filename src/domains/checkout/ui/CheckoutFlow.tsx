@@ -129,13 +129,28 @@ export function CheckoutFlow({
     into a submission that was deleted ten minutes ago.
 
     So `gone` is a flag rather than a sentence, and this is the only thing that
-    reads it: wipe the client state and put them back at step 1, holding the
-    explanation. Returns true when it handled the result, so callers read as
-    `if (handledGone(result)) return`.
+    reads it: put them back at step 1 holding the explanation. Returns true when
+    it handled the result, so callers read as `if (handledGone(result)) return`.
+
+    `keepDetails` is the second axis. A bounced code is `gone` too — it can't be
+    verified from here — but the submission's details are fine, so we return to
+    step 1 with everything they typed intact and let them fix just the address. A
+    true scrub has no details worth keeping, so it wipes. `startOver` clears
+    unconditionally on its own path (`resetToStepOne`), so it's unaffected.
   */
-  function handledGone(result: { ok: false; error: string; gone?: true }): boolean {
+  function handledGone(result: {
+    ok: false;
+    error: string;
+    gone?: true;
+    keepDetails?: true;
+  }): boolean {
     if (!result.gone) return false;
-    resetToStepOne(result.error);
+    if (result.keepDetails) {
+      setStep("details");
+      setError(result.error);
+    } else {
+      resetToStepOne(result.error);
+    }
     return true;
   }
 

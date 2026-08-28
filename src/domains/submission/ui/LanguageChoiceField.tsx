@@ -37,11 +37,11 @@ export function LanguageChoiceField({
 }) {
   return (
     <Field label={label} hint={hint} error={error}>
-      <div className="flex flex-wrap gap-4 pt-1">
+      <div className="flex flex-wrap gap-4 pt-1.5 pb-2">
         {LANGUAGE_CHOICES.map((choice) => (
           <label
             key={choice}
-            className="flex items-center gap-1.5 text-sm text-ink-soft"
+            className="flex items-center gap-1.5 text-sm text-[color:var(--field-label,var(--color-ink))]"
           >
             <input
               type="radio"
