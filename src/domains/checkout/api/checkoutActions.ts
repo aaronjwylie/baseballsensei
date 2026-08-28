@@ -16,6 +16,8 @@ import { clientIdentifierFrom, rateLimit } from "@/shared/lib";
 import {
   createSubmission,
   getSubmission,
+  getSubmissionFile,
+  deleteSubmissionFile,
   isPaid,
   listSubmissionFiles,
   noteEmailSent,
@@ -28,7 +30,7 @@ import {
   bounceOf,
   type BounceKind,
 } from "@/domains/submission";
-import { submissionFolder } from "@/shared/storage";
+import { storage, submissionFolder } from "@/shared/storage";
 import { discardUnpaidSubmission, sweepAbandoned } from "@/domains/upload";
 import { getSettings } from "@/domains/settings";
 import {
@@ -348,6 +350,34 @@ export async function listFlowFilesAction(): Promise<
   if (!submissionId) return gone();
   await touchFlowSession();
   return { ok: true, data: await listSubmissionFiles(submissionId) };
+}
+
+/**
+ * Remove one file the customer attached, before they pay for it.
+ *
+ * Scoped hard: only a file this flow's own submission owns, only an `intake`
+ * file (the customer's, never a translation), and never once the submission is
+ * paid — a receipt has already gone out naming what was sent. The bytes go
+ * first (best-effort, the driver swallows a missing object), then the row, so a
+ * failed storage delete can't strand a row pointing at nothing.
+ */
+export async function removeFlowFileAction(fileId: string): Promise<ActionResult> {
+  const submissionId = await readFlowSession();
+  if (!submissionId) return gone();
+
+  const submission = await getSubmission(submissionId);
+  if (!submission) return gone();
+  if (isPaid(submission)) return fail("This submission is already complete.");
+
+  const file = await getSubmissionFile(fileId);
+  if (!file || file.submissionId !== submissionId || file.kind !== "intake") {
+    return fail("That file isn't part of this submission.");
+  }
+
+  await touchFlowSession();
+  if (file.fileUrl) await storage.remove(file.fileUrl);
+  await deleteSubmissionFile(fileId);
+  return { ok: true, data: undefined };
 }
 
 /* ---- Step 4 — payment ---------------------------------------------------- */

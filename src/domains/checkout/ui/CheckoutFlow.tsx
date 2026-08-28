@@ -20,6 +20,7 @@ import {
   confirmPaymentAction,
   createIntentAction,
   listFlowFilesAction,
+  removeFlowFileAction,
   resendCodeAction,
   startAnotherAction,
   startSubmissionAction,
@@ -332,6 +333,7 @@ export function CheckoutFlow({
           maxFileSizeMb={maxFileSizeMb}
           maxFiles={maxFiles}
           initialFiles={files}
+          onRemoveFile={removeFlowFileAction}
           onDone={toPayment}
         />
       )}
