@@ -100,25 +100,21 @@ export function VerifyPanel({
 
   return (
     <form onSubmit={submit} className="space-y-6">
-      <div>
-        <p className="text-ink-soft">
-          We sent a {CODE_LENGTH}-digit code to{" "}
-          <strong className="text-ink">{email}</strong>. Enter it below to carry
-          on.
-        </p>
-        {/*
-          The space before "minutes" is explicit. Written as plain JSX text it
-          gets swallowed: this text node contains an HTML entity, which sends it
-          down a whitespace-collapsing path in the compiler that strips the
-          leading space, and it shipped to production as "expires in 10minutes".
-          Sibling text nodes without an entity keep their space, which is what
-          made it easy to miss.
-        */}
-        <p className="mt-2 text-sm text-ink-muted">
-          It expires in {CODE_TTL_MINUTES}{" "}
-          minutes. Check your spam folder if it hasn&rsquo;t arrived.
-        </p>
-      </div>
+      {/*
+        Just the specifics the heading above doesn't carry — the address it went
+        to and how long it lasts. The heading already says a code was sent and to
+        enter it below; repeating that here was the doubling (QA 2.2.1). White,
+        not the muted ink that vanished against the dark panel.
+
+        The space before "minutes" is explicit. Written as plain JSX text it gets
+        swallowed: this text node contains an HTML entity, which sends it down a
+        whitespace-collapsing path in the compiler that strips the leading space,
+        and it shipped once as "expires in 10minutes".
+      */}
+      <p className="text-sm text-[color:var(--field-label,var(--color-ink))]">
+        Sent to <strong>{email}</strong>. It expires in {CODE_TTL_MINUTES}{" "}
+        minutes &mdash; check your spam folder if it hasn&rsquo;t arrived.
+      </p>
 
       <div>
         <label htmlFor="verification-code" className="sr-only">
@@ -169,7 +165,7 @@ export function VerifyPanel({
           type="button"
           onClick={onBack}
           disabled={busy}
-          className="text-ink-muted underline hover:text-ink disabled:opacity-50"
+          className="text-[color:var(--field-label,var(--color-ink))] underline transition-opacity hover:opacity-70 disabled:opacity-50"
         >
           Wrong email? Go back
         </button>
@@ -177,7 +173,7 @@ export function VerifyPanel({
           type="button"
           onClick={resend}
           disabled={resending || busy}
-          className="text-ink-muted underline hover:text-ink disabled:opacity-50"
+          className="text-[color:var(--field-label,var(--color-ink))] underline transition-opacity hover:opacity-70 disabled:opacity-50"
         >
           {resending ? "Sending…" : "Send a new code"}
         </button>
