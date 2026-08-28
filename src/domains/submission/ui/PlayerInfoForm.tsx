@@ -132,8 +132,7 @@ export function PlayerInfoForm({
 
       <Field
         label="Notes for your coach"
-        optional
-        hint="Optional — a specific issue, a recent change, a goal."
+        hint="Tell your coach what to look at — a specific issue, a recent change, a goal."
         error={errors.customerNotes?.message}
       >
         <textarea

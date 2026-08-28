@@ -106,9 +106,8 @@ export const submissionInputSchema = z.object({
   customerNotes: z
     .string()
     .trim()
-    .max(MAX_NOTES_LENGTH, `Please keep notes under ${MAX_NOTES_LENGTH} characters.`)
-    .optional()
-    .transform((value) => value || undefined),
+    .min(1, "Please tell your coach what you'd like them to look at.")
+    .max(MAX_NOTES_LENGTH, `Please keep notes under ${MAX_NOTES_LENGTH} characters.`),
 
   /*
     What the customer reads — the same three-way choice the coach form asks,
