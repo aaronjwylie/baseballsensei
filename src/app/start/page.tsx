@@ -143,11 +143,6 @@ export default async function StartPage({
             }
           />
         </div>
-
-        <p className="mx-auto mt-10 max-w-[520px] text-center text-xs text-band">
-          Payments are handled securely by Stripe. We never see your card
-          details.
-        </p>
       </Container>
     </section>
   );
