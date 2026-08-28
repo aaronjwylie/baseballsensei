@@ -276,11 +276,21 @@ export async function noteEmailOutcome(
 }
 
 /**
- * Did a given message bounce for this submission?
+ * Did a given message fail to reach this submission's customer?
  *
- * Asked by the flow when a customer acts, because a bounce arrives *after* they
- * have been moved on to "enter your code" and nothing can push it to them. The
- * next thing they do is what surfaces it.
+ * Asked by the flow when a customer acts, because the bad news arrives *after*
+ * they have been moved on to "enter your code" and nothing can push it to them.
+ * The next thing they do is what surfaces it.
+ *
+ * **Both `bounced` and `failed` count.** A `bounced` is the receiving server
+ * rejecting the message; a `failed` is Resend never getting it out the door —
+ * and a send to a domain that doesn't resolve comes back as one or the other
+ * depending on where it broke, not on anything the customer can tell apart. For
+ * the one question here — *will they ever see this code?* — the answer is no
+ * either way, and treating only `bounced` as fatal let a dead-domain `failed`
+ * leave the customer waiting for a code that was never going anywhere. A
+ * `failed` carries no hard/soft note, so it classifies as `unknown`, whose
+ * wording already covers both remedies.
  */
 export type BounceKind = "hard" | "soft" | "unknown";
 
@@ -294,7 +304,7 @@ export async function bounceOf(
     .where(
       and(
         eq(submissionEventTable.submissionId, submissionId),
-        eq(submissionEventTable.outcome, "bounced"),
+        inArray(submissionEventTable.outcome, ["bounced", "failed"]),
       ),
     );
 
