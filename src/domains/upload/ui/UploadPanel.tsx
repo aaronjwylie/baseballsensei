@@ -212,6 +212,13 @@ export function UploadPanel({
         ]);
         return;
       }
+      // Add the card first, then upload into it. `startUpload` only patches an
+      // existing card, so without this the file uploaded invisibly and the panel
+      // never showed progress or let the customer continue.
+      setCards((cur) => [
+        ...cur,
+        { key, state: { status: "uploading", file, progress: 0 } },
+      ]);
       void startUpload(key, file);
     },
     [maxFileSizeMb, startUpload],
