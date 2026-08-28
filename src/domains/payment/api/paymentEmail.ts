@@ -91,7 +91,7 @@ export function sendPaymentReceivedEmail(opts: {
   const focus = opts.focus ? ` · ${escapeHtml(opts.focus)}` : "";
   const files = `${opts.fileCount} file${opts.fileCount === 1 ? "" : "s"}`;
   return sendEmail({
-    to: opts.to.join(", "),
+    to: opts.to,
     subject: `${site.name} — new paid submission: ${opts.playerName}`,
     html: emailShell(
       "A new submission is paid and waiting",

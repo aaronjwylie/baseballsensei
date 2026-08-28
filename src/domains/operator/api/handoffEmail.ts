@@ -131,7 +131,7 @@ export function sendCollectedEmail(opts: {
   const who = esc(opts.collectorName);
   const player = esc(opts.playerName);
   return sendEmail({
-    to: opts.to.join(", "),
+    to: opts.to,
     subject: `${site.name} — ${opts.collectorName} picked up ${opts.playerName}`,
     html: emailShell(
       `The ${opts.role} has the files`,

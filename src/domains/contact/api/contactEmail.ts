@@ -32,7 +32,7 @@ export async function sendContactMessage(input: ContactInput) {
   const email = escapeHtml(input.email);
 
   return sendEmail({
-    to: (await listAdminEmails()).join(", "),
+    to: await listAdminEmails(),
     replyTo: input.email,
     subject: `${site.name} — message from ${name}`,
     html: emailShell(
