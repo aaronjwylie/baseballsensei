@@ -69,7 +69,7 @@ export default async function StartPage({
 
   if (params.paid === "1") {
     return (
-      <section className="relative isolate overflow-hidden bg-ink">
+      <section className="relative isolate grow overflow-hidden bg-ink">
         {ground}
         <Container className="relative max-w-xl pb-24 pt-[140px] text-center lg:pt-[170px]">
           <div
@@ -103,7 +103,7 @@ export default async function StartPage({
   }
 
   return (
-    <section className="relative bg-ink">
+    <section className="relative grow bg-ink">
       {/*
         The photographic ground is clipped and stacked inside its own wrapper,
         NOT on the <section>. The section is an ancestor of the Focus <select>,

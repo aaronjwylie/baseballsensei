@@ -120,7 +120,7 @@ export default function RootLayout({
           overlayHeader={<SiteHeader transparent />}
           footer={<SiteFooter />}
         >
-          <main className="flex-1">{children}</main>
+          <main className="flex flex-1 flex-col">{children}</main>
         </SiteChrome>
         <QaProbe />
         {/* Site-wide structured data — the brand entity and the website node the
