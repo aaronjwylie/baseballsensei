@@ -111,7 +111,7 @@ export async function recordSubmissionEvent(
 export async function noteEmailSent(
   submissionId: string,
   label: string,
-  result: { ok: boolean; id?: string },
+  result: { ok: boolean; id?: string; error?: string },
   note?: string,
 ): Promise<void> {
   try {
@@ -128,7 +128,10 @@ export async function noteEmailSent(
       // nobody. This is the whole reason the send path returns it.
       messageId: result.id ?? null,
       actorId: await currentActorId(),
-      note: note ?? null,
+      // A failure records why on the row itself, so the trail is self-explaining
+      // and doesn't lean on server logs that expire (QA 2.5.5). An explicit note
+      // still wins.
+      note: note ?? result.error ?? null,
     });
   } catch (err) {
     console.error(`[trail] recording "${label}" failed:`, err);

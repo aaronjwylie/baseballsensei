@@ -192,9 +192,14 @@ function PaymentFields({
       >
         Back to your files
       </button>
-
-      <p className="text-center text-xs text-ink-muted">
-        Payments are processed by Stripe. We never see your card details.
+      {/*
+        The card reassurance belongs to the step that asks for a card, and only
+        that one — it used to also print under the whole flow, where it rode along
+        on steps 1–3 that never mention payment (QA 2.4.1.1). In the band grey,
+        matching where it sat before.
+      */}
+      <p className="text-center text-xs text-band">
+        Payments are handled securely by Stripe. We never see your card details.
       </p>
     </form>
   );

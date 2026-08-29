@@ -121,7 +121,7 @@ export const faqs = [
       the fragment starts, using the claims the design makes elsewhere ("no
       robots", "real pro coach"). Needs Audrey's eye.
     */
-    a: "You get personalized feedback from experienced Japanese baseball coaches — not an algorithm, and not a generic tip sheet. Every review is done by a real coach who watches your reps and answers you directly.",
+    a: "You get personalized feedback from experienced Japanese baseball coaches, not an algorithm, and not a generic tip sheet. Every review is done by a real coach who watches your reps and answers you directly.",
   },
   {
     q: "What can I send?",
@@ -141,7 +141,7 @@ export const faqs = [
   },
   {
     q: "What age or skill level is this for?",
-    a: "Baseball Sensei is designed for players ages 10+—from developing youth players to more advanced athletes looking to sharpen their game.",
+    a: "Baseball Sensei is designed for players ages 10+, from developing youth players to more advanced athletes looking to sharpen their game.",
   },
   {
     q: "Can I submit more than one thing?",
@@ -149,7 +149,7 @@ export const faqs = [
   },
   {
     q: "Do I need a subscription?",
-    a: "No. Baseball Sensei is pay-per-submission. Send something when you need feedback—no membership or ongoing commitment.",
+    a: "No. Baseball Sensei is pay-per-submission. Send something when you need feedback, with no membership or ongoing commitment.",
   },
 ] as const;
 

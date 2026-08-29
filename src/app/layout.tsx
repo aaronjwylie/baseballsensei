@@ -6,6 +6,7 @@ import { site } from "@/shared/config/site";
 import { SiteHeader } from "@/shared/layout/SiteHeader";
 import { SiteFooter } from "@/shared/layout/SiteFooter";
 import { SiteChrome } from "@/shared/layout/SiteChrome";
+import { JsonLd, organizationSchema, websiteSchema } from "@/shared/seo";
 import { QaProbe } from "@/domains/qa";
 
 /**
@@ -39,15 +40,51 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
   title: {
-    default: `${site.name} — ${site.tagline}`,
+    default: `${site.name}: ${site.tagline}`,
     template: `%s · ${site.name}`,
   },
   description: site.subhead,
+  applicationName: site.name,
+  authors: [{ name: site.name }],
+  creator: site.name,
+  publisher: site.name,
+  category: "sports",
+  keywords: [
+    "baseball coaching",
+    "pitching analysis",
+    "batting analysis",
+    "hitting mechanics",
+    "pitching mechanics",
+    "Japanese baseball coach",
+    "online baseball feedback",
+    "video swing analysis",
+  ],
+  // Each indexable page sets its own canonical below; the default is the home
+  // page's. `metadataBase` makes the OG/Twitter image and canonical absolute.
+  alternates: { canonical: "/" },
   openGraph: {
-    title: `${site.name} — ${site.tagline}`,
+    title: `${site.name}: ${site.tagline}`,
     description: site.subhead,
     siteName: site.name,
+    url: env.siteUrl,
+    locale: "en_US",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${site.name}: ${site.tagline}`,
+    description: site.subhead,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 
@@ -86,6 +123,10 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
         </SiteChrome>
         <QaProbe />
+        {/* Site-wide structured data — the brand entity and the website node the
+            per-page schemas reference. */}
+        <JsonLd data={organizationSchema()} />
+        <JsonLd data={websiteSchema()} />
       </body>
     </html>
   );

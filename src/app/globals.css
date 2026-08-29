@@ -76,33 +76,24 @@
 
 html {
   scroll-behavior: smooth;
-  /*
-    Reserve the scrollbar's width as a gutter on BOTH sides, so content is laid
-    out clear of the bar and stays centred — equal margin left and right — rather
-    than shoved toward it. `stable` alone reserves only the bar's own side, which
-    on Safari/macOS with the scrollbar shown leaves the near-edge elements at the
-    narrowest widths (the method images, the menu's CTA) with a visibly smaller
-    margin on the right than the left (QA 1.1.6). `both-edges` balances it. A
-    no-op where scrollbars overlay the content, so nothing shifts there.
-  */
-  scrollbar-gutter: stable both-edges;
 }
 
 /*
-  Force the page off macOS overlay scrollbars (QA 1.1.6, take three).
+  Force the page off macOS overlay scrollbars (QA 1.1.6).
 
-  `scrollbar-gutter` above only balances a bar that takes layout space. macOS
-  Safari (and Chrome on macOS) default to *overlay* scrollbars, which take no
-  space and are painted straight over the content — so the gutter is a documented
-  no-op and the bar laps the right padding, leaving the near-edge elements (the
-  method images, the menu CTA) tight against it while the left keeps its full
-  margin. There is no way to reserve room for an overlay bar.
+  macOS Safari (and Chrome on macOS) default to *overlay* scrollbars, which take
+  no layout space and are painted straight over the content — so the near-edge
+  elements (the method images, the menu CTA) end up lapped by the bar on the right
+  while the left keeps its full margin. Styling the scrollbar switches WebKit to a
+  classic, space-occupying bar: the page then centres its content between the left
+  edge and the bar, so the visible margin is the same on both sides.
 
-  Styling the scrollbar switches WebKit to a classic, space-occupying bar for the
-  page, which the gutter then balances — the same margin ends up on both sides.
-  It becomes a persistent slim bar rather than one that fades, which is the cost
-  of never letting it overlap the content. Firefox has no ::-webkit-scrollbar and
-  keeps the gutter behaviour on its own space-taking bars.
+  This is the whole 1.1.6 fix on its own — no `scrollbar-gutter` and no
+  `overflow-y: scroll`. Both of those *reserved* the bar's width unconditionally,
+  and that reservation is exactly what a dropdown's scroll-lock then removed and
+  re-added, sliding the centred form sideways as it opened and closed (QA 2.1.5).
+  A bar that is only present while the page scrolls lets the dropdown's own
+  compensation keep the layout still.
 */
 ::-webkit-scrollbar {
   width: 12px;

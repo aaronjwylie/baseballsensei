@@ -57,7 +57,7 @@ export default async function CoachHomePage() {
 
   return (
     <Container className="max-w-3xl">
-      <h1 className="text-2xl font-bold tracking-tight text-ink">
+      <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">
         {coach ? `${coach.name}'s reviews` : "Your reviews"}
       </h1>
 

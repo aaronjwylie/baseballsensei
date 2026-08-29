@@ -76,12 +76,13 @@ export function sendResponseSubmittedEmail(opts: {
 }) {
   // Nobody to tell — an install with no admin row. Reported as a
   // non-send rather than thrown, so a webhook never fails over it.
-  if (opts.to.length === 0) return Promise.resolve({ ok: false });
+  if (opts.to.length === 0)
+    return Promise.resolve({ ok: false, error: "no recipients configured" });
   const coach = escapeFeedbackHtml(opts.coachName);
   const player = escapeFeedbackHtml(opts.playerName);
   const files = `${opts.fileCount} file${opts.fileCount === 1 ? "" : "s"}`;
   return sendEmail({
-    to: opts.to.join(", "),
+    to: opts.to,
     subject: `${site.name} — review ready to approve: ${opts.playerName}`,
     html: emailShell(
       "A review is waiting for approval",
@@ -107,10 +108,11 @@ export function sendCustomerCollectedEmail(opts: {
 }) {
   // Nobody to tell — an install with no admin row. Reported as a
   // non-send rather than thrown, so a webhook never fails over it.
-  if (opts.to.length === 0) return Promise.resolve({ ok: false });
+  if (opts.to.length === 0)
+    return Promise.resolve({ ok: false, error: "no recipients configured" });
   const player = escapeFeedbackHtml(opts.playerName);
   return sendEmail({
-    to: opts.to.join(", "),
+    to: opts.to,
     subject: `${site.name} — ${opts.playerName}'s feedback was collected`,
     html: emailShell(
       "The customer has their feedback",

@@ -1,4 +1,5 @@
-import { LandingPage } from "@/domains/landing";
+import { LandingPage, faqPageSchema } from "@/domains/landing";
+import { JsonLd, serviceSchema } from "@/shared/seo";
 
 /**
  * Revalidated rather than fully static, because the pricing section reads the
@@ -10,5 +11,13 @@ import { LandingPage } from "@/domains/landing";
 export const revalidate = 300;
 
 export default function Home() {
-  return <LandingPage />;
+  return (
+    <>
+      <LandingPage />
+      {/* The FAQ block feeds Google's FAQ rich result; the service + its price
+          describe what's on offer. */}
+      <JsonLd data={faqPageSchema()} />
+      <JsonLd data={serviceSchema()} />
+    </>
+  );
 }

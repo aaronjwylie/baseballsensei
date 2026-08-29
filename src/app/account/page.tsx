@@ -22,7 +22,7 @@ export default async function AccountPage() {
         <Link href={home} className="text-sm text-ink-muted hover:text-ink">
           ← Back to portal
         </Link>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight text-ink">Account</h1>
+        <h1 className="mt-2 font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">Account</h1>
         <p className="mt-1 text-sm text-ink-muted">
           {operator?.email} · {operator?.roles.join(" · ") || "no roles yet"}
         </p>

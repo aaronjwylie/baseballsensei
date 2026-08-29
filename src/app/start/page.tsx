@@ -6,6 +6,7 @@ import { resolveFlowState } from "@/domains/checkout";
 import { CheckoutFlow } from "@/domains/checkout";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/start" },
   title: "Get coach feedback",
   description:
     "Tell us about the player, verify your email, upload your clips, and check out.",
@@ -143,11 +144,6 @@ export default async function StartPage({
             }
           />
         </div>
-
-        <p className="mx-auto mt-10 max-w-[520px] text-center text-xs text-band">
-          Payments are handled securely by Stripe. We never see your card
-          details.
-        </p>
       </Container>
     </section>
   );

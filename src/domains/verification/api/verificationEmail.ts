@@ -25,9 +25,11 @@ export function sendVerificationCode(to: string, code: string) {
     subject: `${code} is your ${site.name} verification code`,
     html: emailShell(
       "Your verification code",
-      `<p>Enter this code to carry on with your submission:</p>
-       <p style="margin:24px 0;font-size:34px;font-weight:700;letter-spacing:0.18em;color:#161616;">${code}</p>
-       <p>It expires in ${CODE_TTL_MINUTES} minutes. If you didn't start a submission, you can ignore this email — nothing has been charged.</p>`,
+      `<p style="margin:0 0 4px;">Enter this code to carry on with your submission:</p>
+       <div style="margin:20px 0;padding:18px;background:#f2f2f2;border:1px solid #d9d9da;border-radius:14px;text-align:center;">
+         <span style="font-family:'Oswald','Arial Narrow',Arial,sans-serif;font-size:38px;font-weight:700;letter-spacing:0.22em;color:#19191b;">${code}</span>
+       </div>
+       <p style="margin:0;">It expires in ${CODE_TTL_MINUTES} minutes. If you didn't start a submission, you can ignore this email. Nothing has been charged.</p>`,
     ),
   });
 }

@@ -86,12 +86,13 @@ export function sendPaymentReceivedEmail(opts: {
 }) {
   // Nobody to tell — an install with no admin row. Reported as a
   // non-send rather than thrown, so a webhook never fails over it.
-  if (opts.to.length === 0) return Promise.resolve({ ok: false });
+  if (opts.to.length === 0)
+    return Promise.resolve({ ok: false, error: "no recipients configured" });
   const player = escapeHtml(opts.playerName);
   const focus = opts.focus ? ` · ${escapeHtml(opts.focus)}` : "";
   const files = `${opts.fileCount} file${opts.fileCount === 1 ? "" : "s"}`;
   return sendEmail({
-    to: opts.to.join(", "),
+    to: opts.to,
     subject: `${site.name} — new paid submission: ${opts.playerName}`,
     html: emailShell(
       "A new submission is paid and waiting",

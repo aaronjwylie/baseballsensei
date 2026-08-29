@@ -397,8 +397,8 @@
             },
             {
               "id": "2.2.5",
-              "what": "Use a dead domain at step 1 (qa@no-such-domain-xyz.com), reach step 2 and wait 10s without typing",
-              "expect": "You are told the address didn't receive it and sent back to fix it. ⚠️ No button to press — the page asks by itself 5s in. Needs email.bounced reaching the webhook (9.5.1)",
+              "what": "Use bounced@resend.dev at step 1 (Resend's bounce simulator — a real dead domain is accepted and never bounces, so it can't be used here), reach step 2 and wait without typing",
+              "expect": "You are told the address didn't receive it and sent back to fix it. ⚠️ No button to press — the page checks itself a few seconds in, and the verify/resend actions re-check. Needs the bounce reaching the webhook (9.5.1)",
               "history": [
                 {
                   "at": "2026-08-27T22:38:55.141Z",
@@ -1058,7 +1058,7 @@
             {
               "id": "9.5.1",
               "what": "Resend webhook — bounce",
-              "expect": "bounced appears in the trail within a minute of a send to a dead domain. Requires email.bounced to be subscribed on the Resend webhook, not only email.delivered. 2.2.5 depends on this",
+              "expect": "bounced appears in the trail within a minute of a send to bounced@resend.dev (Resend's simulator; a dead domain is accepted and never bounces, which is why earlier dead-domain tests saw nothing). email.bounced is already subscribed on the endpoint — verified via the Resend API. 2.2.5 depends on this",
               "flag": "flag",
               "history": [
                 {

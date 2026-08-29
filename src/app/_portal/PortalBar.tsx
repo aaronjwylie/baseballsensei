@@ -32,23 +32,28 @@ export function PortalBar({
       : pathname.startsWith(href);
 
   return (
-    <div className="sticky top-0 z-10 border-b border-line bg-white/95 backdrop-blur">
+    <div className="sticky top-0 z-10 border-b border-white/10 bg-ink">
       <Container className="flex h-16 items-center justify-between gap-6">
-        <div className="flex items-center gap-6">
-          <Link href={home} className="text-lg font-bold tracking-tight text-ink">
-            Baseball Sensei
+        <div className="flex items-center gap-7">
+          {/* The wordmark as the marketing site draws it: Oswald, uppercase,
+              "Baseball" white and "Sensei" lime. */}
+          <Link
+            href={home}
+            className="font-display text-lg font-semibold uppercase tracking-[0.03em] text-paper"
+          >
+            Baseball <span className="text-highlight">Sensei</span>
           </Link>
           {links.length > 0 && (
-            <nav className="hidden items-center gap-5 text-sm sm:flex">
+            <nav className="hidden items-center gap-6 sm:flex">
               {links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={
+                  className={`font-display text-[13px] font-semibold uppercase tracking-[0.04em] transition-colors ${
                     isActive(link.href)
-                      ? "font-semibold text-ink"
-                      : "text-ink-muted hover:text-ink"
-                  }
+                      ? "text-highlight"
+                      : "text-paper/70 hover:text-paper"
+                  }`}
                 >
                   {link.label}
                 </Link>
@@ -56,12 +61,15 @@ export function PortalBar({
             </nav>
           )}
         </div>
-        <div className="flex items-center gap-4">
-          <Link href="/account" className="text-sm text-ink-muted hover:text-ink">
+        <div className="flex items-center gap-5">
+          <Link
+            href="/account"
+            className="text-sm text-paper/70 transition-colors hover:text-paper"
+          >
             Account
           </Link>
           <form action={logout}>
-            <Button type="submit" variant="outline">
+            <Button type="submit" variant="onDark">
               Sign out
             </Button>
           </form>

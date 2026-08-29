@@ -3,6 +3,7 @@ import { LegalPage, LegalSection } from "@/shared/layout/LegalPage";
 import { site } from "@/shared/config/site";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/privacy" },
   title: "Privacy policy",
   description: `How ${site.name} handles the details and files you send us.`,
   robots: { index: false },
