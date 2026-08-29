@@ -14,6 +14,7 @@ import { numberedRungLabel,
   SUBMISSION_STATUSES,
   addSubmissionFile,
   clearFileLocator,
+  deleteSubmission,
   listFilesByKinds,
   recordSubmissionEvent,
   archiveSubmission,
@@ -215,6 +216,58 @@ export async function purgeFolderAction(
     submission.status,
     `purged ${removed} file${removed === 1 ? "" : "s"} from ${kind}`,
   );
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/**
+ * Phase 5 — the last override: delete a submission outright.
+ *
+ * Below the folder purge and more final than it. A purge takes the *bytes* and
+ * keeps the record, so the portal can still say what was sent; this takes the
+ * record too — the row, its file rows, and its whole trail. It is for the cases
+ * where "still says what was sent" is the wrong answer: scrubbing a test
+ * submission, or honouring a delete-my-data request.
+ *
+ * Gated on typing DELETE, because there is no way back and nothing scheduled
+ * will ever undo it. No status restriction — a delete-my-data request is exactly
+ * a paid, released submission, so refusing those would defeat the point.
+ */
+export async function deleteSubmissionAction(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireRole("admin");
+  const id = String(formData.get("submissionId") ?? "");
+  const confirm = String(formData.get("confirm") ?? "").trim();
+  if (!id) return { error: "No submission — reload and try again." };
+  if (confirm !== "DELETE") {
+    return {
+      error: "Type DELETE to confirm — this removes the submission for good.",
+    };
+  }
+
+  const submission = await getSubmission(id);
+  if (!submission) return { error: "That submission no longer exists." };
+
+  /*
+    Bytes first. `deleteSubmission` cascades the file *rows* and the trail on the
+    foreign key, but the stored objects live outside the database and have to be
+    removed by hand — the same order the discard path uses. A stray object is a
+    rounding error on the storage bill; a half-deleted submission still in the
+    queue is the real problem, so a failed remove logs and presses on.
+  */
+  const files = await listFilesByKinds(id, [...FILE_KINDS]);
+  for (const file of files) {
+    if (!file.fileUrl) continue;
+    try {
+      await storage.remove(file.fileUrl);
+    } catch (err) {
+      console.error(`[admin] deleting file ${file.id} failed:`, err);
+    }
+  }
+
+  await deleteSubmission(id);
   revalidatePath("/admin");
   return { ok: true };
 }
