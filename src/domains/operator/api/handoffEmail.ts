@@ -127,7 +127,8 @@ export function sendCollectedEmail(opts: {
 }) {
   // Nobody to tell — an install with no admin row. Reported as a
   // non-send rather than thrown, so a webhook never fails over it.
-  if (opts.to.length === 0) return Promise.resolve({ ok: false });
+  if (opts.to.length === 0)
+    return Promise.resolve({ ok: false, error: "no recipients configured" });
   const who = esc(opts.collectorName);
   const player = esc(opts.playerName);
   return sendEmail({

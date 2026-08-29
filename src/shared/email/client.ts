@@ -63,6 +63,14 @@ export interface EmailMessage {
 export interface SendResult {
   ok: boolean;
   id?: string;
+  /**
+   * Why it didn't reach Resend, when it didn't. Recorded on the trail beside the
+   * `failed` outcome, so a failure explains itself there rather than only in the
+   * server logs, which expire — four past `② arrival → Admin` failures became
+   * undiagnosable exactly because the reason lived only in Vercel's logs
+   * (QA 2.5.5).
+   */
+  error?: string;
 }
 
 export async function sendEmail({
@@ -80,7 +88,7 @@ export async function sendEmail({
     // verification send — so report success there (the code is a fixed constant
     // the test already knows). Never true in a deployed environment, where an
     // absent key must read as an absent send, not a fake one.
-    return { ok: env.isE2E };
+    return env.isE2E ? { ok: true } : { ok: false, error: "RESEND_API_KEY unset" };
   }
 
   try {
@@ -99,13 +107,20 @@ export async function sendEmail({
       }),
     });
     if (!res.ok) {
-      console.error(`[email] Resend ${res.status}: ${await res.text()}`);
-      return { ok: false };
+      const detail = await res.text();
+      console.error(`[email] Resend ${res.status}: ${detail}`);
+      // Prefer Resend's own message over its JSON envelope; keep it short enough
+      // to sit comfortably in a trail note.
+      let message = detail;
+      try {
+        message = (JSON.parse(detail) as { message?: string })?.message ?? detail;
+      } catch {}
+      return { ok: false, error: `Resend ${res.status}: ${message}`.slice(0, 500) };
     }
     const body = (await res.json().catch(() => null)) as { id?: string } | null;
     return { ok: true, id: body?.id };
   } catch (err) {
     console.error("[email] send failed:", err);
-    return { ok: false };
+    return { ok: false, error: err instanceof Error ? err.message : "send failed" };
   }
 }
