@@ -110,9 +110,14 @@ export async function setGrants(
   operatorId: string,
   grants: RoleGrant[],
   grantedBy: string | null,
-): Promise<void> {
+): Promise<Role[]> {
   const wanted = new Map(grants.map((g) => [g.role, g.isActive]));
   const held = new Map((await grantsFor(operatorId)).map((g) => [g.role, g.isActive]));
+
+  // The kinds this operator no longer is at all (deleted, not merely paused) —
+  // returned so the caller can take them off the work that role owed. A pause
+  // keeps the grant, so it is deliberately not here.
+  const revoked: Role[] = [];
 
   await db.transaction(async (tx) => {
     for (const [role, isActive] of wanted) {
@@ -143,8 +148,11 @@ export async function setGrants(
             eq(operatorRoleGrantTable.role, role),
           ),
         );
+      revoked.push(role);
     }
   });
+
+  return revoked;
 }
 
 /**
