@@ -129,9 +129,8 @@ export function StatusLookup() {
         </div>
         <Button
           type="submit"
-          size="lg"
           disabled={isSubmitting}
-          className="shrink-0 sm:mt-7"
+          className="w-full shrink-0 sm:mt-7 sm:w-[13rem]"
         >
           {isSubmitting ? "Sending…" : "Email me a code"}
         </Button>
@@ -154,21 +153,25 @@ export function StatusLookup() {
               Check your spam folder if it hasn&rsquo;t arrived.
             </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <input
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                inputMode="numeric"
-                maxLength={6}
-                placeholder="123456"
-                aria-label="6-digit code"
-                className={`${inputClass} sm:max-w-[10rem] tracking-[0.3em]`}
-              />
+              {/* Same two columns as the email row above — a flex-1 field and a
+                  fixed-width button — so the input edges and the buttons line up
+                  down the card (Ben, QA 3.1). */}
+              <div className="flex-1">
+                <input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="123456"
+                  aria-label="6-digit code"
+                  className={`${inputClass} tracking-[0.3em]`}
+                />
+              </div>
               <Button
                 type="button"
-                size="lg"
                 disabled={checking || code.length !== 6}
                 onClick={submitCode}
-                className="shrink-0"
+                className="w-full shrink-0 sm:w-[13rem]"
               >
                 {checking ? "Checking…" : "See my submissions"}
               </Button>
