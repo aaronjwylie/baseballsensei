@@ -24,18 +24,15 @@ export const CODE_LENGTH = 6;
  * find the code dead, having been told one number and held to another. Re-export
  * rather than redeclare, so the two can't drift.
  */
-import { FLOW_WINDOW_MINUTES } from "@/shared/lib";
+import { FLOW_WINDOW_MINUTES, MAX_CODE_ATTEMPTS } from "@/shared/lib";
 
 export const CODE_TTL_MINUTES = FLOW_WINDOW_MINUTES;
 
 /**
- * Five wrong guesses burns the code and forces a resend.
- *
- * A 6-digit code is one in a million per guess, so five attempts is nowhere near
- * enough to brute-force; the cap exists to make automated grinding pointless
- * rather than to protect against a lucky guess.
+ * Wrong guesses that burn the code and force a resend — the shared code-entry
+ * cap, so this gate and the `/status` feedback code stay the same five (QA 3.2).
  */
-export const MAX_ATTEMPTS = 5;
+export const MAX_ATTEMPTS = MAX_CODE_ATTEMPTS;
 
 /** Only digits, exactly `CODE_LENGTH` of them. */
 export const codeSchema = z
