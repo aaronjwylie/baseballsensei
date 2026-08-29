@@ -6,6 +6,7 @@ import { resolveFlowState } from "@/domains/checkout";
 import { CheckoutFlow } from "@/domains/checkout";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/start" },
   title: "Get coach feedback",
   description:
     "Tell us about the player, verify your email, upload your clips, and check out.",

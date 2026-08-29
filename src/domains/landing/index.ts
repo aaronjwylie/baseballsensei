@@ -10,3 +10,4 @@
  * (see the client/server note in `structure.md` §3b).
  */
 export { LandingPage } from "./ui/LandingPage";
+export { faqPageSchema } from "./model/schema";

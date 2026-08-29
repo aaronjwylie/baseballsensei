@@ -5,6 +5,7 @@ import { site } from "@/shared/config/site";
 import { ContactForm, sendContactAction } from "@/domains/contact";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/contact" },
   title: "Contact",
   description: `Get in touch with ${site.name} about a submission or a question before you buy.`,
 };
