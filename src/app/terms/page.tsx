@@ -4,6 +4,7 @@ import { site, formatPrice } from "@/shared/config/site";
 import { getSettings } from "@/domains/settings";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/terms" },
   title: "Terms and conditions",
   description: `The terms covering a ${site.name} video review.`,
   robots: { index: false },
