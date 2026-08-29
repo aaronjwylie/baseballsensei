@@ -40,7 +40,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
   title: {
-    default: `${site.name} — ${site.tagline}`,
+    default: `${site.name}: ${site.tagline}`,
     template: `%s · ${site.name}`,
   },
   description: site.subhead,
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   // page's. `metadataBase` makes the OG/Twitter image and canonical absolute.
   alternates: { canonical: "/" },
   openGraph: {
-    title: `${site.name} — ${site.tagline}`,
+    title: `${site.name}: ${site.tagline}`,
     description: site.subhead,
     siteName: site.name,
     url: env.siteUrl,
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${site.name} — ${site.tagline}`,
+    title: `${site.name}: ${site.tagline}`,
     description: site.subhead,
   },
   robots: {

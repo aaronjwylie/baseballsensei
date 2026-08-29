@@ -6,7 +6,7 @@ import { site } from "@/shared/config/site";
  * static file so it stays in step with the brand facts in `site`, and drawn in
  * the marketing palette — ink ground, the two-tone wordmark, lime accent.
  */
-export const alt = `${site.name} — ${site.tagline}`;
+export const alt = `${site.name}: ${site.tagline}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -57,7 +57,7 @@ export default function OpengraphImage() {
           }}
         >
           Pitching and batting analysis from a professional baseball coach in
-          Japan — a real coach, not an algorithm.
+          Japan. A real coach, not an algorithm.
         </div>
         <div
           style={{
