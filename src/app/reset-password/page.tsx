@@ -17,7 +17,7 @@ export default async function ResetPasswordPage({
   return (
     <section className="py-16 sm:py-24">
       <Container className="max-w-sm">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">
+        <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">
           Set a new password
         </h1>
         {token ? (

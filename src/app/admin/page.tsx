@@ -197,7 +197,7 @@ export default async function AdminHomePage({
   return (
     <Container>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-ink">Submissions</h1>
+        <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">Submissions</h1>
         <p className="mt-1 text-sm text-ink-muted">{all.length} total · the coaching queue</p>
       </div>
 

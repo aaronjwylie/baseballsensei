@@ -68,7 +68,7 @@ export default async function OperatorsPage(props: {
 
   return (
     <Container>
-      <h1 className="text-2xl font-bold tracking-tight text-ink">Operators</h1>
+      <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">Operators</h1>
 
       <nav className="mt-4 flex gap-1 border-b border-line">
         {(Object.keys(FILTERS) as Filter[]).map((key) => (

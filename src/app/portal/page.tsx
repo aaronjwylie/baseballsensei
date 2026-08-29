@@ -33,7 +33,7 @@ export default async function PortalChooserPage() {
 
   return (
     <Container className="max-w-xl">
-      <h1 className="text-2xl font-bold tracking-tight text-ink">
+      <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">
         Where are you working?
       </h1>
 
