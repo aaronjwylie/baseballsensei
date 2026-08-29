@@ -121,10 +121,16 @@
     },
     "1.1.8": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
-      "what": "Price shows $80",
-      "expect": "Read from settings — change it in 5.6 and confirm it follows",
+      "what": "Price matches whatever /admin/settings currently shows",
+      "expect": "Deliberately no number here — this check named $80, the operator changed it to $144, and the check became wrong while the page stayed right. Change it in 5.6 and confirm it follows",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-29T23:14:22.444Z",
+          "what": "Price shows $80",
+          "expect": "Read from settings — change it in 5.6 and confirm it follows"
+        }
+      ]
     },
     "1.1.9": {
       "firstSeen": "2026-08-26T22:00:09.081Z",

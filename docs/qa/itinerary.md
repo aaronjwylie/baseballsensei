@@ -91,7 +91,7 @@ yesterday's codebase, caught before it was tested rather than after.
 | 1.1.5 | Contact nav link | Goes to `/contact` |
 | 1.1.6 | Three step cards render with images and badges **1, 2, 3** | ⚠️ Not "1, 1, 1"|
 | 1.1.7 | Coach section: photo, round inset, stats | ⚠️ Eyebrow is **blue** here, not lime|
-| 1.1.8 | Price shows **$80** | Read from settings — change it in 5.6 and confirm it follows |
+| 1.1.8 | Price matches whatever `/admin/settings` currently shows | ⚠️ Deliberately no number here — this check named $80, the operator changed it to $144, and the check became wrong while the page stayed right. Change it in 5.6 and confirm it follows |
 | 1.1.9 | FAQ: first row open, others closed; click to expand | `+` becomes `−`; keyboard (Tab + Enter) works |
 | 1.1.10 | Closing strip shows 4 photographs | ⚠️ |
 | 1.1.11 | Every "Get coach feedback" / "Start now" button | All go to `/start` |

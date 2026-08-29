@@ -133,7 +133,20 @@ export function QaProbe() {
       }
     }
 
-    /** A short, human description of what was clicked. */
+    /**
+     * A short, human description of what was clicked.
+     *
+     * **`textContent`, never `innerText`.** `innerText` is layout-dependent, so
+     * reading it forces a synchronous style-and-layout flush — and this runs in
+     * a capture-phase listener on `document`, which means every click on the
+     * site paid for a reflow *before* the click reached whatever it was aimed
+     * at. Found while chasing a stall on the upload picker; it turned out not to
+     * be the cause, but an instrument that taxes every interaction it observes
+     * is changing the thing it is measuring.
+     *
+     * The whitespace collapse below already handles the one real difference —
+     * `textContent` keeps the source's raw spacing where `innerText` renders it.
+     */
     const describe = (el: Element): string => {
       const node = el.closest(
         "button,a,[role=button],summary,input,select,textarea,label",
@@ -146,7 +159,7 @@ export function QaProbe() {
         the cursor makes that answerable.
       */
       if (!node) {
-        const text = (el as HTMLElement).innerText?.replace(/\s+/g, " ").trim().slice(0, 50);
+        const text = el.textContent?.replace(/\s+/g, " ").trim().slice(0, 50);
         return `${el.tagName.toLowerCase()}${text ? ` (near "${text}")` : " (no target)"}`;
       }
       const tag = node.tagName.toLowerCase();
@@ -158,7 +171,7 @@ export function QaProbe() {
         event.
       */
       const text = (node.getAttribute("aria-label") ||
-        (tag === "select" ? node.getAttribute("name") : (node as HTMLElement).innerText) ||
+        (tag === "select" ? node.getAttribute("name") : node.textContent) ||
         node.getAttribute("title") ||
         node.getAttribute("name") ||
         "")
