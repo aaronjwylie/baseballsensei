@@ -162,7 +162,7 @@ expiry, any CVC.
 | 2.2.2 | Wrong code | Inline error, stays put |
 | 2.2.3 | Wrong code **5 times** | Locked out; must reissue |
 | 2.2.4 | "Resend" | New code arrives; the **old one stops working** |
-| 2.2.5 | Use a **dead domain** at step 1 (`qa@no-such-domain-xyz.com`), reach step 2 and **wait 10s without typing** | You are told the address didn't receive it and sent back to fix it. ⚠️ No button to press — the page asks by itself 5s in. Needs `email.bounced` reaching the webhook (9.5.1) |
+| 2.2.5 | Use `bounced@resend.dev` at step 1 (Resend's bounce simulator — a real dead domain is accepted and never bounces, so it can't be used here), reach step 2 and **wait without typing** | You are told the address didn't receive it and sent back to fix it. ⚠️ No button to press — the page checks itself a few seconds in, and the verify/resend actions re-check. Needs the bounce reaching the webhook (9.5.1) |
 | 2.2.6 | Go **back** to step 1 and change the email | Verification resets; a new code goes to the new address |
 | 2.2.7 | Correct code | Advances to step 3 |
 
@@ -345,7 +345,7 @@ working and bounce silent. A single check would have gone green on the delivery 
 | 9.3 | A swept submission's file | `/api/files/[id]` → **410 Gone** |
 | 9.4 | Deletion-warning email | Sent once, and stamped even if the send failed |
 | 9.5 | Resend webhook — **delivery** | `delivered` appears in the trail within a few seconds of a send |
-| 9.5.1 | Resend webhook — **bounce** | ⚠️ `bounced` appears in the trail within a minute of a send to a dead domain. Requires `email.bounced` to be subscribed on the Resend webhook, not only `email.delivered`. 2.2.5 depends on this |
+| 9.5.1 | Resend webhook — **bounce** | `bounced` appears in the trail within a minute of a send to `bounced@resend.dev` (Resend's simulator; a dead domain is accepted and never bounces, which is why earlier dead-domain tests saw nothing). `email.bounced` is already subscribed on the endpoint — verified via the Resend API. 2.2.5 depends on this |
 | 9.6 | Resend webhook with a bad signature | Rejected |
 | 9.7 | Replay a webhook older than 5 minutes | Rejected |
 
