@@ -14,7 +14,7 @@ export default async function AdminSettingsPage() {
 
   return (
     <Container>
-      <h1 className="text-2xl font-bold tracking-tight text-ink">Settings</h1>
+      <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">Settings</h1>
       <p className="mt-2 max-w-2xl text-sm text-ink-muted">
         Pricing, upload limits, and retention — these take effect immediately, no
         deploy needed.

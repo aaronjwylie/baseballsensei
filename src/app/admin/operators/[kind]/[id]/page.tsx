@@ -45,7 +45,7 @@ export default async function EditOperatorPage(props: {
         >
           ← Operators
         </Link>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight text-ink">
+        <h1 className="mt-2 font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">
           {person.name}
         </h1>
         <p className="text-sm text-ink-muted">{person.email}</p>
