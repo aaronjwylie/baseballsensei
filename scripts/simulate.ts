@@ -42,6 +42,9 @@ import {
   markCoachCollected,
   markTranslatorCollected,
   assignSubmissionTranslator,
+  assignOperator,
+  isAssignedTo,
+  releaseAssignments,
   assigneeFor,
   TRANSLATION_RUNGS,
   SUBMISSION_STATUSES,
@@ -342,9 +345,34 @@ async function walk(label: string, translating: boolean) {
   await resolveSubmission(s.id, settings.retainCollectedDays);
   await rung(s.id, "resolved", "system");
 
+  // Regression: "whichever clock is later." A submission collected promptly
+  // after delivery must live to the *delivery* backstop, not be purged
+  // retainCollectedDays after collection. Here the collection clock has elapsed
+  // but the delivery clock has not — the sweep must leave it untouched.
+  await db.update(submissionTable)
+    .set({
+      collectedAt: new Date(Date.now() - (settings.retainCollectedDays + 8) * day),
+      completedAt: new Date(Date.now() - (settings.retainCollectedDays + 10) * day),
+    })
+    .where(eq(submissionTable.id, s.id));
+  await runRetentionSweep();
+  const keptToBackstop = await at(s.id);
+  check(
+    !keptToBackstop.deletionWarnedAt && !keptToBackstop.filesPurgedAt,
+    "   a prompt collector is kept to the delivery backstop, not purged early",
+  );
+
   // ── rung 15: purge_imminent — the warning ────────────────────────────
   await db.update(submissionTable)
-    .set({ collectedAt: new Date(Date.now() - (settings.retainCollectedDays - 2) * day) })
+    .set({
+      collectedAt: new Date(Date.now() - (settings.retainCollectedDays - 2) * day),
+      // Whichever clock is later governs the deletion, and this scenario
+      // exercises the *collection* one (deletion two days out, so the warning is
+      // due). For it to be the later clock the delivery backstop must already
+      // have passed — otherwise `retainDeliveredDays` from delivery would be the
+      // later deadline and nothing would be due yet.
+      completedAt: new Date(Date.now() - (settings.retainDeliveredDays + 5) * day),
+    })
     .where(eq(submissionTable.id, s.id));
   const warned = await runRetentionSweep();
   check(warned.warningsSent >= 1, `   the warning fires before the purge (${warned.warningsSent})`);
@@ -356,6 +384,9 @@ async function walk(label: string, translating: boolean) {
   await db.update(submissionTable)
     .set({
       collectedAt: new Date(Date.now() - (settings.retainCollectedDays + 1) * day),
+      // Keep the delivery backstop in the past too, so the collection clock stays
+      // the later, governing deadline (as in the warning step above).
+      completedAt: new Date(Date.now() - (settings.retainDeliveredDays + 5) * day),
       // The warning went out in the previous sweep; advance its clock past the
       // notice period too. The purge now waits on the *age of the warning*, not
       // only the retention deadline — a real run always leaves days between warn
@@ -523,6 +554,48 @@ async function multiRole() {
     asCoach?.email === asAdmin?.email && asCoach?.name === asAdmin?.name,
     "   the same person, not a copy per list",
   );
+
+  /*
+    Removal releases work. A revoked role — or a suspended account — takes its
+    holder off what that role owed, so the submission returns to the queue and no
+    lingering assignment keeps `isAssignedTo` true for someone who can no longer
+    act. Tested against `releaseAssignments` directly, the function both the role
+    action and the deactivation path call.
+  */
+  {
+    const os = await createSubmission({
+      customerEmail: `sim-assign-${Date.now()}@example.com`,
+      playerName: "Assigned Player",
+      playerAge: 13,
+      focus: "Pitching",
+      languages: ["English"],
+    });
+    await assignOperator(os.id, person.id, "feedback");
+    await assignOperator(os.id, person.id, "intake_translation");
+    check(
+      await isAssignedTo(os.id, person.id, "feedback"),
+      "   assigned the feedback before removal",
+    );
+
+    // A revoked role releases only that role's work.
+    await releaseAssignments(person.id, ["coach"]);
+    check(
+      !(await isAssignedTo(os.id, person.id, "feedback")),
+      "   revoking coach releases the feedback assignment",
+    );
+    check(
+      await isAssignedTo(os.id, person.id, "intake_translation"),
+      "   but leaves the translation work they still owe",
+    );
+
+    // Suspending the account releases everything that is left.
+    await releaseAssignments(person.id);
+    check(
+      !(await isAssignedTo(os.id, person.id, "intake_translation")),
+      "   suspension releases every remaining assignment",
+    );
+    await deleteSubmission(os.id);
+  }
 
   /*
     Availability is per kind. Pausing a coach must not touch their translator
