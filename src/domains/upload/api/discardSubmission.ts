@@ -22,6 +22,17 @@
  * **It refuses to touch a paid submission.** That is the whole safety property,
  * and it is checked here rather than trusted from the caller, because every
  * caller is a place a customer might have just been charged.
+ *
+ * **`spareStarted` closes the window before that check can see the money.**
+ * `isPaid` only flips once the charge clears (`stripePaymentId` is written then,
+ * not when the intent is created), so between a customer confirming and
+ * `markSubmissionPaid` running, an `awaiting_payment` submission looks
+ * abandonable but has a payment in flight. Deleting it there — a second tab, a
+ * stray "Start over" — strips the files out from under a charge that then
+ * succeeds with nothing to fulfil. The restart paths pass `spareStarted`, which
+ * leaves anything past `draft` for the abandonment sweep instead; the sweep only
+ * runs against rows whose last activity is `retainUnpaidHours` old, long after
+ * any in-flight payment has settled one way or the other.
  */
 import { storage } from "@/shared/storage";
 import {
@@ -33,12 +44,17 @@ import {
 
 export async function discardUnpaidSubmission(
   submissionId: string,
+  opts: { spareStarted?: boolean } = {},
 ): Promise<boolean> {
   const submission = await getSubmission(submissionId);
   if (!submission) return false;
 
   // The one thing that makes this safe to call from anywhere.
   if (isPaid(submission)) return false;
+
+  // A started submission may have a payment in flight the row can't show yet —
+  // leave it for the sweep rather than racing the charge (see above).
+  if (opts.spareStarted && submission.status !== "draft") return false;
 
   const files = await listSubmissionFiles(submissionId);
   for (const file of files) {

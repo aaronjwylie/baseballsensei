@@ -18,28 +18,12 @@ import {
 } from "@/domains/payment";
 import { clearFlowSession, readFlowSession } from "@/domains/submission";
 
-export type ConfirmOutcome =
-  | { ok: true }
-  | { ok: false; error: string; gone?: true };
+export type ConfirmOutcome = { ok: true } | { ok: false; error: string };
 
 export async function confirmPaymentForFlow(
   paymentIntentId: string,
 ): Promise<ConfirmOutcome> {
-  const submissionId = await readFlowSession();
-  if (!submissionId) {
-    /*
-      A lapsed window at the payment step is the worst place for it, so say
-      something true rather than something reassuring: if the card *did* go
-      through, the webhook still fulfils the submission independently (ADR 003),
-      and a receipt will arrive. What we can't do is show it to this browser.
-    */
-    return {
-      ok: false,
-      gone: true,
-      error:
-        "Your session timed out before we could confirm. If your card went through you'll still get a receipt — please check your email before paying again.",
-    };
-  }
+  const cookieSubmissionId = await readFlowSession();
 
   const intent = await getSucceededPaymentIntent(paymentIntentId);
   if (intent === null) return { ok: false, error: "We couldn't find that payment." };
@@ -47,8 +31,28 @@ export async function confirmPaymentForFlow(
     return { ok: false, error: "That payment hasn't completed yet." };
   }
 
-  // The intent must belong to *this* browser's submission.
-  if (intent.metadata?.submissionId !== submissionId) {
+  /*
+    The intent names the submission it paid for — `createPaymentIntent` always
+    writes `metadata.submissionId` — and `markSubmissionPaid` re-reads the intent
+    from Stripe, so the intent's own reference is the trustworthy anchor even
+    when the browser's flow cookie is not.
+
+    When the cookie is present — the inline card path, and a 3-D Secure return
+    whose window survived — we still insist it matches, so a forged intent id
+    can't fulfil a submission this browser was never working on. When it's absent
+    we fall back to the intent's reference rather than reporting a *cleared*
+    charge as failed: the flow cookie is host-only, so a www/non-www hop or a
+    window that lapsed during the bank detour (CLAUDE.md §10) drops it, and the
+    old code then bounced a paid customer to a failure screen and told them to
+    try again. Fulfilling the submission the intent already names is safe —
+    `markSubmissionPaid` is idempotent with the webhook that will (or already
+    did) the same thing (ADR 003).
+  */
+  const paidSubmissionId = intent.metadata?.submissionId;
+  if (!paidSubmissionId) {
+    return { ok: false, error: "That payment is missing its reference." };
+  }
+  if (cookieSubmissionId && paidSubmissionId !== cookieSubmissionId) {
     return { ok: false, error: "That payment doesn't match this submission." };
   }
 
@@ -59,10 +63,10 @@ export async function confirmPaymentForFlow(
   // have sent it.
   await completePayment(result);
 
-  // Let go of the submission. The confirmation the customer sees next is either
-  // client state (inline card) or `/start?paid=1` (redirect); neither reads this
-  // cookie, and leaving it set would mean a later reload landed on a finished
-  // submission.
+  // Let go of the submission if this browser still held it. The confirmation the
+  // customer sees next is either client state (inline card) or `/start?paid=1`
+  // (redirect); neither reads this cookie, and leaving it set would mean a later
+  // reload landed on a finished submission.
   await clearFlowSession();
 
   return { ok: true };

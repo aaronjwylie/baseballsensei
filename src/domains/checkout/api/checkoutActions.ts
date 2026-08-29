@@ -157,7 +157,10 @@ export async function startSubmissionAction(
   if (!parsed.ok) return fail(parsed.error);
 
   const previousId = await readFlowSession();
-  if (previousId) await discardUnpaidSubmission(previousId);
+  // Spare a *started* previous submission: it may have a payment in flight that
+  // hasn't marked the row paid yet, and the opportunistic sweep below (plus the
+  // cron) clears genuinely-abandoned ones once their window elapses.
+  if (previousId) await discardUnpaidSubmission(previousId, { spareStarted: true });
 
   /*
     Tidy up after everyone else while we're here.
@@ -421,9 +424,11 @@ export async function confirmPaymentAction(
 ): Promise<ActionResult> {
   const outcome = await confirmPaymentForFlow(paymentIntentId);
   if (outcome.ok) return DONE;
-  // Carry the flag through — the flow resets on it, and a lapsed window at the
-  // payment step is exactly when a stranded customer costs the most.
-  return outcome.gone ? gone(outcome.error) : fail(outcome.error);
+  // No "start over" here any more: a lapsed window at the payment step used to
+  // reset the flow, but `confirmPaymentForFlow` now confirms a cleared charge
+  // from the intent's own reference rather than the cookie, so a genuine failure
+  // is the only way through — show it, don't restart a paid customer.
+  return fail(outcome.error);
 }
 
 /**
@@ -431,11 +436,14 @@ export async function confirmPaymentAction(
  *
  * Two callers, one verb: "Start over" mid-flow, and "Send another video" from
  * the confirmation. The discard is a no-op on anything already paid for, so the
- * second case clears the cookie without touching the customer's record.
+ * second case clears the cookie without touching the customer's record — and
+ * `spareStarted` keeps the mid-flow case from deleting a submission whose payment
+ * is still in flight, leaving it for the sweep.
  */
 export async function startAnotherAction(): Promise<ActionResult> {
   const submissionId = await readFlowSession();
-  if (submissionId) await discardUnpaidSubmission(submissionId);
+  if (submissionId)
+    await discardUnpaidSubmission(submissionId, { spareStarted: true });
   await clearFlowSession();
   return DONE;
 }
