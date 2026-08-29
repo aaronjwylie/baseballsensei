@@ -22,7 +22,7 @@ export default async function TranslatorPage() {
   await requireRole("translator");
 
   return (
-    <Container className="py-12">
+    <Container>
       <h1 className="text-2xl font-semibold text-ink">Translator</h1>
       <p className="mt-4 max-w-prose text-ink-muted">
         You&rsquo;re signed in. For now, translation work is handed off outside
