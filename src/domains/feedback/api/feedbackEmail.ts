@@ -76,7 +76,8 @@ export function sendResponseSubmittedEmail(opts: {
 }) {
   // Nobody to tell — an install with no admin row. Reported as a
   // non-send rather than thrown, so a webhook never fails over it.
-  if (opts.to.length === 0) return Promise.resolve({ ok: false });
+  if (opts.to.length === 0)
+    return Promise.resolve({ ok: false, error: "no recipients configured" });
   const coach = escapeFeedbackHtml(opts.coachName);
   const player = escapeFeedbackHtml(opts.playerName);
   const files = `${opts.fileCount} file${opts.fileCount === 1 ? "" : "s"}`;
@@ -107,7 +108,8 @@ export function sendCustomerCollectedEmail(opts: {
 }) {
   // Nobody to tell — an install with no admin row. Reported as a
   // non-send rather than thrown, so a webhook never fails over it.
-  if (opts.to.length === 0) return Promise.resolve({ ok: false });
+  if (opts.to.length === 0)
+    return Promise.resolve({ ok: false, error: "no recipients configured" });
   const player = escapeFeedbackHtml(opts.playerName);
   return sendEmail({
     to: opts.to,
