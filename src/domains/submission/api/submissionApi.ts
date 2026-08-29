@@ -556,25 +556,28 @@ export async function findResolvedDue(
         /*
           Two clocks, and the later one wins.
 
-          A submission that was collected is due `retainCollectedDays` after
-          *that* — never before, so nothing is deleted out from under a customer
-          who hasn't fetched it. One that was never collected has no such anchor
-          and would otherwise live forever, so it falls back to
-          `retainDeliveredDays` from delivery.
+          Nothing is due until the delivery backstop has elapsed —
+          `retainDeliveredDays` from delivery — and, for a submission the customer
+          collected, until their own collection clock (`retainCollectedDays` from
+          the fetch) has elapsed too. Requiring *both* is what "whichever is
+          later" means: a customer who collects the day after delivery is still
+          kept the full delivery window rather than deleted `retainCollectedDays`
+          after they fetched it; one who collects on day 80 is kept past the
+          backstop to their own clock; one who never collected rests on the
+          backstop alone (`collectedAt` null passes the inner `or`).
 
-          Expressed as "collected and old enough, OR never collected and
-          delivered long enough ago" — which is the same thing as whichever-is-
-          later, without needing a computed column to sort on.
+          The earlier form checked *only* the collection clock once collected —
+          "collected and old enough, OR never collected and delivered long enough
+          ago" — which is not whichever-is-later at all: it deleted a prompt
+          collector's paid feedback `retainDeliveredDays − retainCollectedDays`
+          days early (≈60 on the defaults).
         */
-        or(
-          and(
-            isNotNull(submissionTable.collectedAt),
-            lt(submissionTable.collectedAt, collectedBefore),
-          ),
-          and(
+        and(
+          isNotNull(submissionTable.completedAt),
+          lt(submissionTable.completedAt, deliveredBefore),
+          or(
             isNull(submissionTable.collectedAt),
-            isNotNull(submissionTable.completedAt),
-            lt(submissionTable.completedAt, deliveredBefore),
+            lt(submissionTable.collectedAt, collectedBefore),
           ),
         ),
       ),
@@ -611,15 +614,16 @@ export async function findWarningDue(
         isNull(submissionTable.filesPurgedAt),
         isNull(submissionTable.deletionWarnedAt),
         inArray(submissionTable.status, RELEASED_STATUSES),
-        or(
-          and(
-            isNotNull(submissionTable.collectedAt),
-            lt(submissionTable.collectedAt, collectedBefore),
-          ),
-          and(
+        // Whichever clock is later — the same condition `findResolvedDue` purges
+        // on, so a submission is warned before the deadline that will actually
+        // delete it: the delivery backstop must have elapsed, and the collection
+        // clock too if the customer ever collected.
+        and(
+          isNotNull(submissionTable.completedAt),
+          lt(submissionTable.completedAt, deliveredBefore),
+          or(
             isNull(submissionTable.collectedAt),
-            isNotNull(submissionTable.completedAt),
-            lt(submissionTable.completedAt, deliveredBefore),
+            lt(submissionTable.collectedAt, collectedBefore),
           ),
         ),
       ),
