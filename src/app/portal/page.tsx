@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Container } from "@/shared/ui";
 import { requireSession, portalsFor, HOME_FOR_ROLE } from "@/domains/account";
 
 export const metadata: Metadata = {
@@ -32,46 +31,52 @@ export default async function PortalChooserPage() {
   if (mine.length === 1) redirect(HOME_FOR_ROLE[mine[0]]);
 
   return (
-    <Container className="max-w-xl">
-      <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">
-        Where are you working?
-      </h1>
+    <div className="flex grow items-center justify-center px-4 py-16">
+      <div className="w-full max-w-3xl text-center">
+        <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">
+          Where are you working?
+        </h1>
 
-      {mine.length === 0 ? (
-        /*
-          Onboarded, no kinds granted. A real state — someone can be created
-          before anyone decides what they do — and it must read as "waiting on
-          an admin" rather than as a broken login, because the person seeing it
-          cannot fix it themselves.
-        */
-        <p className="mt-3 text-ink-muted">
-          Your account is set up, but nobody has assigned you a role yet. An
-          admin needs to add you as a coach, a translator, or an admin before
-          there is anywhere to go.
-        </p>
-      ) : (
-        <>
-          <p className="mt-1 text-sm text-ink-muted">
-            You hold more than one role. Pick the one you are here for — you can
-            switch any time.
+        {mine.length === 0 ? (
+          /*
+            Onboarded, no kinds granted. A real state — someone can be created
+            before anyone decides what they do — and it must read as "waiting on
+            an admin" rather than as a broken login, because the person seeing it
+            cannot fix it themselves.
+          */
+          <p className="mx-auto mt-4 max-w-md text-sm text-ink-muted">
+            Your account is set up, but nobody has assigned you a role yet. An
+            admin needs to add you as a coach, a translator, or an admin before
+            there is anywhere to go.
           </p>
-          <ul className="mt-6 space-y-3">
-            {mine.map((role) => (
-              <li key={role}>
+        ) : (
+          <>
+            <p className="mx-auto mt-2 max-w-md text-sm text-ink-muted">
+              You hold more than one role. Pick the one you are here for &mdash;
+              you can switch any time.
+            </p>
+            {/* One row of equal cards: flex-1 makes every card the same width and
+                the row's default stretch makes them the same height, so a longer
+                blurb doesn't grow its card past the others (Ben, QA 4.4). */}
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+              {mine.map((role) => (
                 <Link
+                  key={role}
                   href={HOME_FOR_ROLE[role]}
-                  className="block rounded-2xl border border-line bg-white p-5 hover:border-ink"
+                  className="flex flex-1 flex-col rounded-2xl border border-line bg-white p-6 text-left shadow-sm transition-colors hover:border-ink"
                 >
-                  <span className="font-semibold capitalize text-ink">{role}</span>
-                  <span className="mt-1 block text-sm text-ink-muted">
+                  <span className="font-display text-lg font-medium uppercase tracking-[-0.01em] text-ink">
+                    {role}
+                  </span>
+                  <span className="mt-2 text-sm text-ink-muted">
                     {BLURB[role]}
                   </span>
                 </Link>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-    </Container>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
