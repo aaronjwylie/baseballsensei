@@ -64,7 +64,8 @@ export async function POST(request: Request) {
         child's name. After the cap the customer must request a fresh code.
       */
       const attempts = (pending?.attempts ?? 0) + 1;
-      if (!pending || attempts >= MAX_FEEDBACK_CODE_ATTEMPTS) {
+      const spent = !pending || attempts >= MAX_FEEDBACK_CODE_ATTEMPTS;
+      if (spent) {
         await clearSignedCookie(FEEDBACK_CODE_COOKIE);
       } else {
         await setSignedCookie(
@@ -73,8 +74,20 @@ export async function POST(request: Request) {
           FEEDBACK_CODE_TTL_S,
         );
       }
+      /*
+        Count down like the flow's email step (Ben, QA 3.2): a wrong code says how
+        many tries are left, and only the last — five wrong, or a code that is no
+        longer live — sends them back to request a fresh one. The message carries
+        the count so the page can stay on the code card and show it inline.
+      */
+      const left = MAX_FEEDBACK_CODE_ATTEMPTS - attempts;
+      const error = spent
+        ? pending
+          ? "Too many wrong codes. Request a fresh one above."
+          : "That code has expired. Request a fresh one above."
+        : `That code doesn't match — ${left} ${left === 1 ? "attempt" : "attempts"} left.`;
       return NextResponse.json(
-        { error: "That code didn't match. Check it and try again." },
+        { error },
         { status: 400 },
       );
     }
