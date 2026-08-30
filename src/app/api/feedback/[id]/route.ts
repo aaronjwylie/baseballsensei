@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   getSubmission,
   getSubmissionFile,
+  isAssignedToSubmission,
   isFeedback,
   isReleased,
 } from "@/domains/submission";
@@ -18,9 +19,11 @@ export const maxDuration = 60;
  *
  * **Public once the submission is complete** — the customer isn't logged in and
  * reaches this from their status lookup (the id is an unguessable uuid, the same
- * URL-as-capability trade-off the status page makes). **Operators can download
- * at any status**, so the admin can review the coach's material while it's still
- * `awaiting_approval`, before the customer is ever emailed.
+ * URL-as-capability trade-off the status page makes). **The admin and the
+ * assigned coach/translator can download at any status**, so the admin can review
+ * the coach's material while it's still `awaiting_approval` and the coach can pull
+ * their own work — but an operator with no claim on this submission is held to the
+ * same release gate as the public, mirroring `/api/files/[id]`.
  *
  * The id must name a `feedback` file — a customer upload downloaded through here
  * would sidestep the operator-only `/api/files/[id]` gate.
@@ -44,23 +47,37 @@ export async function GET(
     `isReleased` gate below and the retention clock. `getSession` verifies the
     payload is actually an operator session, so a flow token no longer passes.
   */
-  const isOperator = !!(await getSession());
-
   /*
-    Step 14, observed rather than declared — the mirror of step 9.
+    Three kinds of caller, three rules.
 
-    Only a customer's download counts: the admin opening the file to check it is not
-    the customer collecting it, and letting that start the retention clock would
-    delete their feedback thirty days after *he* looked at it.
-
-    Not awaited, for the same reason as step 9 — the notification must never be
-    why a download fails.
+    A *privileged* operator — the admin, or the coach/translator actually assigned
+    to this submission — may download at any status: the admin to review the
+    coach's material before release, the coach to pull their own work. That's the
+    operator bypass this route has always granted, now scoped. A logged-in
+    operator with no claim on *this* submission is not privileged; the intake
+    route draws the same line, without which any operator who learned a file's
+    uuid could pull another coach's in-progress feedback.
   */
-  if (!isOperator) {
-    void noteCustomerCollected(file.submissionId);
-  }
+  const session = await getSession();
+  const isPrivileged =
+    session !== null &&
+    (session.roles.includes("admin") ||
+      (await isAssignedToSubmission(file.submissionId, session.operatorId)));
 
-  if (!isOperator) {
+  if (!isPrivileged) {
+    /*
+      Step 14, observed rather than declared — the mirror of step 9.
+
+      Only a customer's download counts, and only a caller with no session at all
+      is the customer: an operator opening the file to check it — assigned or not
+      — is not collecting it, and letting that start the retention clock would
+      delete the feedback thirty days after *staff* looked at it.
+
+      Not awaited, for the same reason as step 9 — the notification must never be
+      why a download fails.
+    */
+    if (session === null) void noteCustomerCollected(file.submissionId);
+
     const submission = await getSubmission(file.submissionId);
     if (!submission || !isReleased(submission)) {
       return new Response("Not found", { status: 404 });

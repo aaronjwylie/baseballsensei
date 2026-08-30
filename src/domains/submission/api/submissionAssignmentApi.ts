@@ -35,6 +35,19 @@ import { noteAssignment } from "./submissionEventApi";
 import { submissionAssignmentTable } from "../model/submissionAssignmentTable";
 import { submissionTable } from "../model/submissionTable";
 import type { FileKind } from "../model/submissionFile";
+import type { Role } from "@/domains/operator/model/operatorRoleEnum";
+
+/**
+ * What each kind of operator is on the hook to produce — `ASSIGNEE_ROLE` read by
+ * role rather than by file. Exhaustive over `Role` so adding a kind of operator
+ * is a compile error here until someone says what, if anything, it owes. `admin`
+ * owes no files.
+ */
+const PRODUCES_BY_ROLE: Record<Role, FileKind[]> = {
+  admin: [],
+  coach: ["feedback"],
+  translator: ["intake_translation", "feedback_translation"],
+};
 
 export interface Assignment {
   operatorId: string;
@@ -113,6 +126,60 @@ export async function unassignOperator(
       .update(submissionTable)
       .set({ updatedAt: new Date() })
       .where(eq(submissionTable.id, submissionId));
+  });
+}
+
+/**
+ * Take an operator off work they can no longer do — a role revoked, or the
+ * account suspended.
+ *
+ * Their assignment rows are deleted (only the kinds owed by `forRoles`, or every
+ * kind when it's omitted), each with an `unassigned` trail row, and the work
+ * returns to the admin's queue to be reassigned like any other. The operator is
+ * not deleted and their remaining roles are untouched; they simply owe nothing
+ * *here* any more. "Who takes over" is the admin's call at reassignment, exactly
+ * as on a first assignment — not a decision this has to make.
+ *
+ * Reassignment is where the guarantee behind the 7-day session lives on the data
+ * side: once the row is gone, `isAssignedToSubmission` is false, so a removed
+ * operator who kept another active role can't pull the files either.
+ */
+export async function releaseAssignments(
+  operatorId: string,
+  forRoles?: Role[],
+): Promise<void> {
+  const kinds = forRoles
+    ? new Set(forRoles.flatMap((r) => PRODUCES_BY_ROLE[r]))
+    : null; // null → every kind
+  if (kinds && kinds.size === 0) return;
+
+  await db.transaction(async (tx) => {
+    const rows = await tx
+      .select({
+        submissionId: submissionAssignmentTable.submissionId,
+        produces: submissionAssignmentTable.produces,
+      })
+      .from(submissionAssignmentTable)
+      .where(eq(submissionAssignmentTable.operatorId, operatorId));
+
+    for (const row of rows) {
+      if (kinds && !kinds.has(row.produces)) continue;
+
+      await tx
+        .delete(submissionAssignmentTable)
+        .where(
+          and(
+            eq(submissionAssignmentTable.submissionId, row.submissionId),
+            eq(submissionAssignmentTable.produces, row.produces),
+            eq(submissionAssignmentTable.operatorId, operatorId),
+          ),
+        );
+      await noteAssignment(row.submissionId, operatorId, row.produces, false, tx);
+      await tx
+        .update(submissionTable)
+        .set({ updatedAt: new Date() })
+        .where(eq(submissionTable.id, row.submissionId));
+    }
   });
 }
 

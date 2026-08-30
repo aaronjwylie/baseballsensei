@@ -155,6 +155,7 @@ export { SubmissionFileList } from "./ui/SubmissionFileList";
 export {
   assignOperator,
   unassignOperator,
+  releaseAssignments,
   listAssignments,
   assigneeFor,
   isAssignedTo,

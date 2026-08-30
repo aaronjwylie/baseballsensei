@@ -7,6 +7,7 @@
  * privileges.
  */
 import { requireRole } from "@/domains/account";
+import { releaseAssignments } from "@/domains/submission";
 import { revalidateOperatorPages } from "./operatorPages";
 import { ROLES, type Role } from "../model/operatorRoleEnum";
 import {
@@ -85,7 +86,13 @@ export async function setRolesAction(
     };
   }
 
-  await setGrants(operatorId, grants, session.operatorId);
+  const revoked = await setGrants(operatorId, grants, session.operatorId);
+
+  // A revoked role takes its holder off the work it owed — the submissions
+  // return to the queue for the admin to reassign. Without this the assignment
+  // outlives the role, and an operator who kept another role could still pull
+  // the files (`isAssignedToSubmission` doesn't re-check the role).
+  if (revoked.length) await releaseAssignments(operatorId, revoked);
 
   revalidateOperatorPages();
 
