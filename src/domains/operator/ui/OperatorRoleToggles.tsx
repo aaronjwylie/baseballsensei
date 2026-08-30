@@ -134,6 +134,22 @@ export function OperatorRoleToggles({
         const result = await setRolesAction(formData);
         setPending(false);
 
+        /*
+          TEMPORARY (2026-08-30, QA 4.7) — remove once this is closed.
+
+          Everything else has been eliminated: one submit, no remount, no prop
+          resync, no error. The only remaining path that can move this state is
+          what the action hands back, and that is the one value nobody can see.
+          The QA probe wraps console.error, so this is the cheapest way to get
+          it into the log beside the tick samples.
+        */
+        console.error(
+          "[qa 4.7] sent:",
+          JSON.stringify([...formData.entries()].filter(([k]) => k !== "operatorId")),
+          "got:",
+          JSON.stringify(result ?? null),
+        );
+
         if (result?.error) {
           // Refused (e.g. the last-admin guard). Snap back to what the server
           // last confirmed, and say why.
