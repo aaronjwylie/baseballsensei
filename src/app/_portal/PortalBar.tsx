@@ -21,9 +21,18 @@ import { logout } from "@/domains/account/api/auth";
 export function PortalBar({
   home,
   links = [],
+  canSwitch = false,
 }: {
   home: string;
   links?: { href: string; label: string }[];
+  /**
+   * Whether this operator holds more than one role. When they do, the bar keeps
+   * a way back to the chooser — otherwise choosing a portal at `/portal` was a
+   * one-way door: a coach-and-translator could see one side's work and had no
+   * route to the other without signing out (Ben, QA 4.7). Off by default, so a
+   * single-role operator never sees a switch that would only loop them back.
+   */
+  canSwitch?: boolean;
 }) {
   const pathname = usePathname();
   const isActive = (href: string) =>
@@ -62,6 +71,14 @@ export function PortalBar({
           )}
         </div>
         <div className="flex items-center gap-5">
+          {canSwitch && (
+            <Link
+              href="/portal"
+              className="text-sm text-paper/70 transition-colors hover:text-paper"
+            >
+              Switch role
+            </Link>
+          )}
           <Link
             href="/account"
             className="text-sm text-paper/70 transition-colors hover:text-paper"
