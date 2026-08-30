@@ -1,4 +1,6 @@
 import { PortalBar } from "../_portal/PortalBar";
+import { getSession } from "@/domains/account";
+import { getOperatorProfile } from "@/domains/operator";
 
 /**
  * The portal chooser's shell.
@@ -12,14 +14,18 @@ import { PortalBar } from "../_portal/PortalBar";
  * `home` points back here rather than at a portal, because which portal is
  * exactly the question this page is asking.
  */
-export default function PortalChooserLayout({
+export default async function PortalChooserLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getSession();
+  const email = session
+    ? (await getOperatorProfile(session.operatorId))?.email
+    : undefined;
   return (
     <>
-      <PortalBar home="/portal" />
+      <PortalBar home="/portal" email={email} />
       <div className="py-8">{children}</div>
     </>
   );
