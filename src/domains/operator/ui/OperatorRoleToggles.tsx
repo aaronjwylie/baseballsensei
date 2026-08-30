@@ -94,17 +94,6 @@ export function OperatorRoleToggles({
         const result = await setRolesAction(formData);
         setPending(false);
 
-        /* TEMPORARY (QA 4.7) — remove once Ben has confirmed this. The state
-           and DOM probes went with the state they measured; this one still
-           earns its place, because "what was sent and what came back" is the
-           only claim left that nobody can see. */
-        console.error(
-          "[qa 4.7] sent:",
-          JSON.stringify([...formData.entries()].filter(([k]) => k !== "operatorId")),
-          "got:",
-          JSON.stringify(result ?? null),
-        );
-
         if (result?.error) {
           setError(result.error);
           // Nothing to revert by hand: `stored` is untouched by a refusal, and
