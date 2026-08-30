@@ -26,7 +26,6 @@ import { operatorTable } from "@/domains/operator/model/operatorTable";
 import { passwordFingerprint, setOperatorPassword } from "./credentialApi";
 import { sendPasswordResetEmail } from "./passwordResetEmail";
 
-const RESET_MAX_AGE_S = 60 * 60; // one hour
 const PURPOSE = "pwreset";
 
 interface ResetPayload {
@@ -65,8 +64,10 @@ export async function requestPasswordReset(email: string): Promise<void> {
   if (!fingerprint) return;
 
   const token = await signSession(
+    // One hour by default; `PASSWORD_RESET_TTL_S` can shorten it in a test env
+    // to walk the expired-link path by hand (QA 4.12).
     { sub: operator.id, ph: fingerprint, purpose: PURPOSE },
-    RESET_MAX_AGE_S,
+    env.passwordResetTtlS,
   );
   const link = `${env.siteUrl}/reset-password?token=${encodeURIComponent(token)}`;
   await sendPasswordResetEmail(clean, link);
@@ -77,18 +78,44 @@ export type ResetOutcome = { ok: true } | { ok: false; error: string };
 const STALE =
   "This reset link is invalid, already used, or expired. Request a new one.";
 
-export async function resetPasswordWithToken(
-  token: string,
-  newPassword: string,
-): Promise<ResetOutcome> {
+/**
+ * Verify a reset token to its payload, or null if it is spent, expired, or
+ * forged — the single source of "is this link still good". The same three
+ * checks the reset performs (our signature, the reset purpose, and the embedded
+ * hash still matching the operator's current one), minus the write.
+ *
+ * Extracted so the *page* can decide on load whether to show the form or the
+ * "no longer usable" message, and so the page and the action can never disagree
+ * about what "spent" means (QA 4.11.1): one saying a link is fine while the
+ * other refuses it would be worse than telling the customer late.
+ */
+async function verifiedResetPayload(token: string): Promise<ResetPayload | null> {
   const payload = await verifySessionToken<ResetPayload>(token);
-  if (!payload || payload.purpose !== PURPOSE) return { ok: false, error: STALE };
+  if (!payload || payload.purpose !== PURPOSE) return null;
 
   // A mismatch means the password already changed since the link was issued —
   // the link is single-use and this one is spent. A missing operator lands in
   // the same branch, which is the safe direction for a null to fall.
   const fingerprint = await passwordFingerprint(payload.sub);
-  if (fingerprint !== payload.ph) return { ok: false, error: STALE };
+  return fingerprint === payload.ph ? payload : null;
+}
+
+/**
+ * Is this reset link still usable? The read-only face of the check above, for
+ * the reset page to call on load so a spent link says so before a password is
+ * typed. No side effects, so it is safe on every visit — a link crawler or an
+ * email scanner prefetching the URL does one read and nothing more.
+ */
+export async function isResetTokenValid(token: string): Promise<boolean> {
+  return (await verifiedResetPayload(token)) !== null;
+}
+
+export async function resetPasswordWithToken(
+  token: string,
+  newPassword: string,
+): Promise<ResetOutcome> {
+  const payload = await verifiedResetPayload(token);
+  if (!payload) return { ok: false, error: STALE };
 
   await setOperatorPassword(payload.sub, newPassword);
   return { ok: true };

@@ -1,24 +1,22 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Container, LocalTime, pillClass } from "@/shared/ui";
 import { FLOW_WINDOW_MINUTES } from "@/shared/lib";
 import {
-  listFeedbackFiles,
+  listFeedbackFilesForSubmissions,
   listFilesForSubmissions,
   listSubmissions,
   SubmissionFileList,
   type Submission,
   type SubmissionFile,
   type SubmissionStatus,
-  hasResponse,
   isReleased,
   availableSets,
-  listFilesByFolder,
+  listFoldersForSubmissions,
   type FileKind,
   isPaid,
   listProgressFacts,
   describeStage,
-  listSubmissionEvents,
+  listEventsForSubmissions,
   type SubmissionEvent,
   whoseCourt,
   needsTranslation,
@@ -31,6 +29,7 @@ import { SendWithFileSet } from "./SendWithFileSet";
 import { FileFolders } from "./FileFolders";
 import { OperatorOverride } from "./OperatorOverride";
 import { QueueRow } from "./QueueRow";
+import { QueueTabs } from "./QueueTabs";
 import {
   archiveSubmissionAction,
   completeSubmissionAction,
@@ -153,47 +152,62 @@ export default async function AdminHomePage({
     listTranslators(),
   ]);
 
-  const activeKey = TABS.some((t) => t.key === status) ? status! : "all";
-  const rows = all.filter(TABS.find((t) => t.key === activeKey)!.match);
-
-  // One query for the whole page rather than one per row.
-  const filesBySubmission = await listFilesForSubmissions(rows.map((s) => s.id));
+  const initialKey = TABS.some((t) => t.key === status) ? status! : "all";
 
   /*
-    The four folders, per row.
+    Every per-row read the queue needs, each batched into ONE query for the page,
+    over EVERY row — the filter is client-side now (QA 5.2), so the server hands
+    the whole queue over once and the browser narrows it.
 
-    One query per submission rather than one for the page: the folder view only
-    renders for rows the admin has expanded in practice, and a page-wide join would
-    read every translation of every submission to show a handful. Bounded by the
-    page size, which the queue already limits.
+    This is the page the admin lives on, and it was fanning out ~three queries
+    per submission — the folders, the trail, and the feedback files, a round trip
+    each per row — so the queue grew linearly with the business (QA 5.1). Two of
+    these reads were already batched; the other three now have batched siblings
+    (`inArray` + group in memory) that leave the per-row versions for the detail
+    page. The five run in parallel — they answer different questions and none
+    depends on another.
   */
-  const foldersBySubmission = new Map(
-    await Promise.all(
-      rows.map(async (s) => [s.id, await listFilesByFolder(s.id)] as const),
-    ),
-  );
+  const ids = all.map((s) => s.id);
+  const [
+    filesBySubmission,
+    foldersBySubmission,
+    progressBySubmission,
+    eventsBySubmission,
+    feedbackBySubmission,
+  ] = await Promise.all([
+    listFilesForSubmissions(ids),
+    listFoldersForSubmissions(ids),
+    listProgressFacts(ids),
+    listEventsForSubmissions(ids),
+    listFeedbackFilesForSubmissions(ids),
+  ]);
 
-  // What each row has passed through, and which messages landed. One read for
-  // the page — the progress view needs it on every row.
-  const progressBySubmission = await listProgressFacts(rows.map((s) => s.id));
-
-  // The full trail, for the expanded panel. Per row rather than page-wide: only
-  // an opened row shows it, and most rows are never opened.
-  const eventsBySubmission = new Map(
-    await Promise.all(
-      rows.map(async (s) => [s.id, await listSubmissionEvents(s.id)] as const),
+  /*
+    Every row, tagged with the tabs it belongs to, so the browser filters with a
+    membership test rather than a second copy of the match rules (QA 5.2). The
+    counts come off the same predicates, so a tab and its rows can't disagree.
+  */
+  const tabs = TABS.map((t) => ({
+    key: t.key,
+    label: t.label,
+    count: all.filter(t.match).length,
+  }));
+  const rows = all.map((s) => ({
+    id: s.id,
+    tabKeys: TABS.filter((t) => t.match(s)).map((t) => t.key),
+    node: (
+      <SubmissionRow
+        submission={s}
+        translators={translators}
+        files={filesBySubmission.get(s.id) ?? []}
+        feedbackFiles={feedbackBySubmission.get(s.id) ?? []}
+        folders={foldersBySubmission.get(s.id)}
+        progress={progressBySubmission.get(s.id)}
+        events={eventsBySubmission.get(s.id) ?? []}
+        coaches={coaches}
+      />
     ),
-  );
-
-  // The coach's feedback files, for the rows where the admin acts on them — reviewing
-  // before approval, and after it's delivered.
-  const feedbackBySubmission = new Map(
-    await Promise.all(
-      rows
-        .filter(hasResponse)
-        .map(async (s) => [s.id, await listFeedbackFiles(s.id)] as const),
-    ),
-  );
+  }));
 
   return (
     <Container>
@@ -202,72 +216,7 @@ export default async function AdminHomePage({
         <p className="mt-1 text-sm text-ink-muted">{all.length} total · the coaching queue</p>
       </div>
 
-        <div className="mt-6 flex flex-wrap gap-2">
-          {TABS.map((t) => {
-            const count = all.filter(t.match).length;
-            const href = t.key === "all" ? "/admin" : `/admin?status=${t.key}`;
-            const isActive = t.key === activeKey;
-            return (
-              <Link
-                key={t.key}
-                href={href}
-                /*
-                  **No prefetch.** Each tab is its own entry in the client Router
-                  Cache, keyed by search params. `revalidatePath("/admin")`
-                  clears the *server* cache and `router.refresh()` re-fetches the
-                  tab you are standing on — neither reaches a sibling tab whose
-                  payload was prefetched on hover before the change.
-
-                  So bumping a submission back off `complete` left it listed
-                  under Completed until a hard reload. These are ten cheap links
-                  on one screen; fetching them on click costs a few milliseconds
-                  and removes a whole class of "the queue is lying to me".
-                */
-                prefetch={false}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "border-ink bg-ink text-surface"
-                    : "border-line bg-white text-ink-muted hover:text-ink"
-                }`}
-              >
-                {t.label}
-                <span className={isActive ? "opacity-80" : "text-ink-muted"}>{count}</span>
-              </Link>
-            );
-          })}
-        </div>
-
-        <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-white">
-          {rows.length === 0 ? (
-            <p className="p-8 text-center text-sm text-ink-muted">
-              {all.length === 0
-                ? "No submissions yet. They'll appear here once a customer uploads and pays."
-                : "No submissions in this view."}
-            </p>
-          ) : (
-            <>
-              <div className="grid grid-cols-[minmax(0,200px)_1fr_minmax(0,150px)_30px] gap-4 border-b border-line bg-paper-alt px-4 py-2 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-muted max-[860px]:hidden">
-                <div>Player</div>
-                <div>Progress</div>
-                <div />
-                <div />
-              </div>
-              {rows.map((s) => (
-                <SubmissionRow
-                  key={s.id}
-                  submission={s}
-                  translators={translators}
-                  files={filesBySubmission.get(s.id) ?? []}
-                  feedbackFiles={feedbackBySubmission.get(s.id) ?? []}
-                  folders={foldersBySubmission.get(s.id)}
-                  progress={progressBySubmission.get(s.id)}
-                  events={eventsBySubmission.get(s.id) ?? []}
-                  coaches={coaches}
-                />
-              ))}
-            </>
-          )}
-        </div>
+      <QueueTabs tabs={tabs} initialKey={initialKey} rows={rows} />
     </Container>
   );
 }

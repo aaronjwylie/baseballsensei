@@ -144,6 +144,20 @@ export const env = {
     return optional("CRON_SECRET");
   },
 
+  /**
+   * How long a password-reset link stays valid, in seconds. Defaults to one
+   * hour; overridable **only** so a spent/expired link can be walked through by
+   * hand without waiting the hour (QA 4.12) — set it to e.g. `15` in a test env,
+   * then remove it. A malformed or non-positive value falls back to the default,
+   * so a fat-fingered override can't accidentally make every real operator's
+   * link expire in zero seconds.
+   */
+  get passwordResetTtlS(): number {
+    const raw = optional("PASSWORD_RESET_TTL_S");
+    const parsed = raw ? Number(raw) : NaN;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 60 * 60;
+  },
+
   // Email (Resend). Optional — email failures should never break the flow.
   get resendApiKey() {
     return optional("RESEND_API_KEY");
