@@ -44,6 +44,7 @@ export {
 export {
   createProfiledOperatorAction,
   updateProfiledOperatorAction,
+  updateOperatorIdentityAction,
   type OperatorProfileFormState,
 } from "./api/operatorProfileActions";
 export {

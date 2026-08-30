@@ -281,9 +281,19 @@ export async function updateProfiledOperator(
   // An admin reset — no current-password check; the admin's authority is the guard.
   if (password) await setOperatorPassword(id, password);
 
-  // Read back through the role that was edited when there is one, so the caller
-  // gets that role's settings rather than a guess at which role it meant.
-  const updated = role ? await getByRole(id, role) : await getOperatorProfile(id);
+  /*
+    Read back through the role that was edited, falling back to identity when
+    they do not hold it.
+
+    The fallback is not defensive padding — it is the bug this had. A caller
+    passing a role the operator does not hold got `null` here and a
+    "vanished mid-update" throw, AFTER the write had already landed: the change
+    was saved and the operator was told it had failed (QA 5.13.10). A read-back
+    is a courtesy to the caller; it must never be able to turn a completed write
+    into a reported failure.
+  */
+  const updated =
+    (role ? await getByRole(id, role) : null) ?? (await getOperatorProfile(id));
   if (!updated) throw new Error(`operator ${id} vanished mid-update`);
   return updated;
 }

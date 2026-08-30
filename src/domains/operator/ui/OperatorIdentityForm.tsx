@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { Button, Field, inputClass } from "@/shared/ui";
-import { updateProfiledOperatorAction } from "../api/operatorProfileActions";
+import { updateOperatorIdentityAction } from "../api/operatorProfileActions";
 import type { OperatorProfileFormState } from "../api/operatorProfileActions";
 import type { OperatorProfile } from "../model/operatorProfile";
 
@@ -30,7 +30,7 @@ export function OperatorIdentityForm({
   const [state, action, pending] = useActionState<
     OperatorProfileFormState,
     FormData
-  >(updateProfiledOperatorAction.bind(null, "admin"), undefined);
+  >(updateOperatorIdentityAction, undefined);
 
   return (
     <form action={action} className="space-y-4">

@@ -15,7 +15,10 @@
  * Admin-only. The guard is re-checked here rather than trusted from the UI,
  * because a Server Action is a public endpoint with a nice-looking call site.
  */
-import { requireRole } from "@/domains/account";
+import { requireRole, setOperatorPassword } from "@/domains/account";
+import { eq } from "drizzle-orm";
+import { db } from "@/shared/db";
+import { operatorTable } from "../model/operatorTable";
 import { revalidateOperatorPages } from "./operatorPages";
 import { storage, coachImageKey } from "@/shared/storage";
 import { FOCUS_OPTIONS, type Focus } from "@/domains/submission";
@@ -167,6 +170,55 @@ export async function updateProfiledOperatorAction(
     });
   } catch {
     return { error: `Could not update the ${role} — is that email already in use?` };
+  }
+
+  revalidateOperatorPages();
+  return { ok: true };
+}
+
+/**
+ * Change who someone is — name, email, password. **No role involved.**
+ *
+ * Split from `updateProfiledOperatorAction` on 2026-08-30, after that one broke
+ * this exact case. It takes a `Role` because it once edited role settings too,
+ * and the identity form had nothing meaningful to pass, so it passed "admin".
+ * Harmless until the same rebuild made the function read its result back
+ * through that role — at which point saving a COACH's password wrote the
+ * password, then failed reading a coach back as an admin, and told the operator
+ * "Could not update the admin". The change had landed; the page said it had not.
+ *
+ * A dummy argument is a lie the type system cannot see. Identity does not have
+ * a role, so this does not take one.
+ */
+export async function updateOperatorIdentityAction(
+  _prev: OperatorProfileFormState,
+  formData: FormData,
+): Promise<OperatorProfileFormState> {
+  await requireRole("admin");
+
+  const id = String(formData.get("operatorId") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
+
+  if (!id || !name) return { error: "A name is required." };
+  if (!email.includes("@")) return { error: "Enter a valid email address." };
+  if (password && password.length < 8) {
+    return { error: "A new password must be at least 8 characters (or leave it blank)." };
+  }
+
+  try {
+    await db
+      .update(operatorTable)
+      .set({ name, email })
+      .where(eq(operatorTable.id, id));
+    // An admin reset — no current-password check; the admin's authority is the
+    // guard. Last, so a duplicate-email failure above cannot leave a changed
+    // password behind an unchanged name.
+    if (password) await setOperatorPassword(id, password);
+  } catch {
+    // The realistic failure is the unique constraint on email.
+    return { error: "Could not save — is that email already in use?" };
   }
 
   revalidateOperatorPages();
