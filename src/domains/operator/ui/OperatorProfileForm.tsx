@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button, Field, PasswordInput, SavedBadge, inputClass } from "@/shared/ui";
+import { Button, Field, PasswordInput, SavedBadge, inputClass, selectClass } from "@/shared/ui";
 import {
   FOCUS_OPTIONS,
   LANGUAGE_CHOICES,
@@ -153,7 +153,7 @@ export function OperatorProfileForm({
                 ? choiceForLanguages(existing.languages, DEFAULT_LANGUAGE_CHOICE)
                 : DEFAULT_LANGUAGE_CHOICE
             }
-            className={inputClass}
+            className={selectClass}
           >
             {LANGUAGE_CHOICES.map((choice) => (
               <option key={choice} value={choice}>
@@ -174,7 +174,7 @@ export function OperatorProfileForm({
                 ? existing.languages[0]
                 : TRANSLATOR_DIRECTIONS[0]
             }
-            className={inputClass}
+            className={selectClass}
           >
             {TRANSLATOR_DIRECTIONS.map((direction) => (
               <option key={direction} value={direction}>

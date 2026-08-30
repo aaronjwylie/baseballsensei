@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Field, SavedBadge, inputClass } from "@/shared/ui";
+import { Button, Field, SavedBadge, inputClass, selectClass } from "@/shared/ui";
 import {
   FOCUS_OPTIONS,
   LANGUAGE_CHOICES,
@@ -210,7 +210,7 @@ export function OperatorRoleCard({
                         stored?.languages ?? [],
                         DEFAULT_LANGUAGE_CHOICE,
                       )}
-                      className={inputClass}
+                      className={selectClass}
                     >
                       {LANGUAGE_CHOICES.map((choice) => (
                         <option key={choice} value={choice}>
@@ -228,7 +228,7 @@ export function OperatorRoleCard({
                           ? stored!.languages[0]
                           : TRANSLATOR_DIRECTIONS[0]
                       }
-                      className={inputClass}
+                      className={selectClass}
                     >
                       {TRANSLATOR_DIRECTIONS.map((direction) => (
                         <option key={direction} value={direction}>
