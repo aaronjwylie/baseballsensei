@@ -34,6 +34,7 @@ import { QueueRow } from "./QueueRow";
 import {
   archiveSubmissionAction,
   completeSubmissionAction,
+  deleteSubmissionAction,
   purgeFolderAction,
   resetStatusAction,
   resolveSubmissionAction,
@@ -629,6 +630,7 @@ function SubmissionRow({
             status={submission.status}
             purgeAction={purgeFolderAction}
             resetAction={resetStatusAction}
+            deleteAction={deleteSubmissionAction}
           />
         ) : null
       }

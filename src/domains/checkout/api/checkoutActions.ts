@@ -40,7 +40,12 @@ import {
   verificationFailureMessage,
   verifyCode,
 } from "@/domains/verification";
-import { createPaymentIntent, type CreatedIntent } from "@/domains/payment";
+import {
+  createPaymentIntent,
+  getFailedPaymentIntent,
+  handleFailedPayment,
+  type CreatedIntent,
+} from "@/domains/payment";
 import { confirmPaymentForFlow } from "./confirmPayment";
 
 /**
@@ -157,7 +162,10 @@ export async function startSubmissionAction(
   if (!parsed.ok) return fail(parsed.error);
 
   const previousId = await readFlowSession();
-  if (previousId) await discardUnpaidSubmission(previousId);
+  // Spare a *started* previous submission: it may have a payment in flight that
+  // hasn't marked the row paid yet, and the opportunistic sweep below (plus the
+  // cron) clears genuinely-abandoned ones once their window elapses.
+  if (previousId) await discardUnpaidSubmission(previousId, { spareStarted: true });
 
   /*
     Tidy up after everyone else while we're here.
@@ -421,9 +429,42 @@ export async function confirmPaymentAction(
 ): Promise<ActionResult> {
   const outcome = await confirmPaymentForFlow(paymentIntentId);
   if (outcome.ok) return DONE;
-  // Carry the flag through — the flow resets on it, and a lapsed window at the
-  // payment step is exactly when a stranded customer costs the most.
-  return outcome.gone ? gone(outcome.error) : fail(outcome.error);
+  // No "start over" here any more: a lapsed window at the payment step used to
+  // reset the flow, but `confirmPaymentForFlow` now confirms a cleared charge
+  // from the intent's own reference rather than the cookie, so a genuine failure
+  // is the only way through — show it, don't restart a paid customer.
+  return fail(outcome.error);
+}
+
+/**
+ * The browser reporting its own decline — the failure path's second caller.
+ *
+ * Success has had two callers since ADR 003 (the webhook and the browser
+ * confirming inline), so a payment records even when the webhook is down.
+ * Failure had only the webhook, so one disabled or misdirected endpoint silently
+ * removed the entire card-declined recovery email — undetectably, because the
+ * healthy success path hid it (QA 2.4.3). This gives failure the same second
+ * caller: the browser already knows the card was declined, so it says so.
+ *
+ * Best-effort and quiet — the customer is already looking at Stripe's decline
+ * message, so there is nothing here for the UI to act on. It re-derives the
+ * submission from the flow cookie and re-reads the intent from Stripe (never the
+ * browser's claim), so it can't be used to fire decline notices at other people,
+ * and `handleFailedPayment` is idempotent with the webhook.
+ */
+export async function reportDeclineAction(
+  paymentIntentId: string,
+): Promise<void> {
+  const submissionId = await readFlowSession();
+  if (!submissionId) return;
+
+  const intent = await getFailedPaymentIntent(paymentIntentId);
+  if (!intent) return;
+  // The intent must belong to this browser's submission — the same guard the
+  // success path makes.
+  if (intent.metadata?.submissionId !== submissionId) return;
+
+  await handleFailedPayment(intent);
 }
 
 /**
@@ -431,11 +472,14 @@ export async function confirmPaymentAction(
  *
  * Two callers, one verb: "Start over" mid-flow, and "Send another video" from
  * the confirmation. The discard is a no-op on anything already paid for, so the
- * second case clears the cookie without touching the customer's record.
+ * second case clears the cookie without touching the customer's record — and
+ * `spareStarted` keeps the mid-flow case from deleting a submission whose payment
+ * is still in flight, leaving it for the sweep.
  */
 export async function startAnotherAction(): Promise<ActionResult> {
   const submissionId = await readFlowSession();
-  if (submissionId) await discardUnpaidSubmission(submissionId);
+  if (submissionId)
+    await discardUnpaidSubmission(submissionId, { spareStarted: true });
   await clearFlowSession();
   return DONE;
 }

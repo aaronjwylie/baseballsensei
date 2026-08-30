@@ -31,14 +31,19 @@ export function OperatorOverride({
   status,
   purgeAction,
   resetAction,
+  deleteAction,
 }: {
   submissionId: string;
   status: SubmissionStatus;
   purgeAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   resetAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
+  deleteAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  // Type-to-confirm for the outright delete — the button stays dead until it
+  // reads exactly DELETE, so it can't be the thing a stray click lands on.
+  const [confirm, setConfirm] = useState("");
   /*
     Starts on the current rung so the dropdown reads as "where it is", and the
     button below is disabled until that changes. Previously it started here too
@@ -68,6 +73,16 @@ export function OperatorOverride({
   useEffect(() => {
     if (succeeded(purge)) router.refresh();
   }, [purge, router]);
+
+  const [del, delSubmit, deleting] = useActionState<ActionResult, FormData>(
+    deleteAction,
+    undefined,
+  );
+
+  useEffect(() => {
+    // The row is gone now — refresh drops it from the queue.
+    if (succeeded(del)) router.refresh();
+  }, [del, router]);
 
   const unchanged = target === status;
 
@@ -212,6 +227,41 @@ export function OperatorOverride({
           The bytes go. The file record stays, so the portal can still say what
           was sent.
         </span>
+      </form>
+
+      {/*
+        More final than the purge above, so it sits below it and behind a
+        type-to-confirm: this takes the record too — the row, its files and its
+        whole trail — leaving nothing for the portal to remember. For scrubbing a
+        test entry or honouring a delete-my-data request (Ben, QA 3.5).
+      */}
+      <form
+        className="space-y-2 rounded-lg border-2 border-rose-500 bg-rose-100/60 p-3"
+        action={delSubmit}
+      >
+        <input type="hidden" name="submissionId" value={submissionId} />
+        <p className="text-[11px] font-semibold text-rose-800">
+          Delete the whole submission — record, files and trail. No way back.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            name="confirm"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            placeholder="Type DELETE"
+            aria-label="Type DELETE to confirm"
+            autoComplete="off"
+            className="w-32 rounded border border-rose-300 bg-white px-2 py-0.5 text-[11px] tracking-[0.15em] text-rose-900 placeholder:tracking-normal"
+          />
+          <button
+            type="submit"
+            disabled={deleting || confirm !== "DELETE"}
+            className="rounded-md border border-rose-500 bg-rose-600 px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {deleting ? "Deleting…" : "Delete submission"}
+          </button>
+        </div>
+        {failed(del) && <p className="text-[11px] text-rose-700">{del.error}</p>}
       </form>
     </div>
   );

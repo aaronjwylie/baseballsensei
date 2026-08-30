@@ -1,6 +1,7 @@
 "use server";
 
 import { requireRole } from "@/domains/account";
+import { releaseAssignments } from "@/domains/submission";
 import { storage, coachImageKey } from "@/shared/storage";
 import { FOCUS_OPTIONS, type Focus } from "@/domains/submission";
 import { type Role } from "../model/operatorRoleEnum";
@@ -75,6 +76,17 @@ export async function saveRoleAction(
 
   if (!held) {
     await revokeRole(operatorId, role);
+    /*
+      A revoked role takes its holder off the work it owed — the submissions go
+      back to the queue for an admin to reassign. Without this the assignment
+      outlives the role, and someone who kept another role could still pull the
+      files, because `isAssignedToSubmission` does not re-check the role.
+
+      Carried over from `setRolesAction` (Aaron, #49), which this replaced. A
+      pause deliberately does NOT do this: the grant survives, so the work they
+      already hold is still theirs to finish.
+    */
+    await releaseAssignments(operatorId, [role]);
     revalidateOperatorPages();
     return { grant: null };
   }

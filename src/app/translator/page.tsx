@@ -1,5 +1,5 @@
 import { requireRole } from "@/domains/account";
-import { Container } from "@/shared/ui";
+import { PortalEmptyState } from "../_portal/PortalEmptyState";
 
 export const metadata = { title: "Translator" };
 
@@ -22,18 +22,17 @@ export default async function TranslatorPage() {
   await requireRole("translator");
 
   return (
-    <Container>
-      <h1 className="text-2xl font-semibold text-ink">Translator</h1>
-      <p className="mt-4 max-w-prose text-ink-muted">
+    <PortalEmptyState title="Translator">
+      <p>
         You&rsquo;re signed in. For now, translation work is handed off outside
         the app &mdash; the admin will send you the files to translate and you
         return the finished translation to them directly.
       </p>
-      <p className="mt-3 max-w-prose text-ink-muted">
-        Downloading and uploading your translations here, from your own queue,
-        is coming in a later update. Until then there&rsquo;s nothing you need to
-        do on this page.
+      <p>
+        Downloading and uploading your translations here, from your own queue, is
+        coming in a later update. Until then there&rsquo;s nothing you need to do
+        on this page.
       </p>
-    </Container>
+    </PortalEmptyState>
   );
 }

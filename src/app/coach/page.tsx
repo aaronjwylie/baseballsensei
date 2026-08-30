@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Container } from "@/shared/ui";
+import { PortalEmptyState } from "../_portal/PortalEmptyState";
 import { storage } from "@/shared/storage";
 import { requireRole } from "@/domains/account";
 import { getCoachByOperatorId } from "@/domains/operator";
@@ -54,6 +55,19 @@ export default async function CoachHomePage() {
   const done = submissions.filter(
     hasResponse,
   );
+
+  // A linked coach with nothing on their desk gets the calm centered panel, not a
+  // page of empty "(0)" headings bunched under the bar (Ben, QA 4.6). The
+  // not-yet-linked case still falls through to the queue, where its amber notice
+  // explains the one thing they need an admin to do.
+  if (coach && open.length === 0 && done.length === 0) {
+    return (
+      <PortalEmptyState title={`${coach.name}'s reviews`}>
+        <p>Nothing is assigned to you right now.</p>
+        <p>When the admin assigns you a submission, it will appear here to review.</p>
+      </PortalEmptyState>
+    );
+  }
 
   return (
     <Container className="max-w-3xl">

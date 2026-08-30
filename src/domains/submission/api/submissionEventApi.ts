@@ -20,7 +20,7 @@
  * disagree with `submissionTable.status`. If the insert fails, the transition fails
  * with it — a status change nobody can account for is worse than no change.
  */
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, like } from "drizzle-orm";
 import { db, type Db } from "@/shared/db";
 import { assignmentsBySubmission } from "./submissionAssignmentApi";
 import { ASSIGNEE_ROLE, type FileKind } from "../model/submissionFile";
@@ -136,6 +136,43 @@ export async function noteEmailSent(
   } catch (err) {
     console.error(`[trail] recording "${label}" failed:`, err);
   }
+}
+
+/**
+ * The one label the decline email is filed under — shared so the send path and
+ * the idempotency guard below can't drift onto two spellings.
+ */
+export const DECLINE_EMAIL_LABEL = "card declined → customer";
+
+/**
+ * Has a "card declined" email already *gone out* for this exact intent?
+ *
+ * The decline path has two callers now — the webhook and the browser reporting
+ * its own decline (ADR 003) — and Stripe can redeliver, so each intent's decline
+ * has to earn exactly one email. The intent id rides in the event's `note`, and
+ * this reads it. Only a `sent` outcome counts: a failed send leaves the door open
+ * for the other caller (or a redelivery) to try again. Keyed on the intent, not
+ * the submission, so a customer declined again on a *fresh* intent still gets a
+ * nudge.
+ */
+export async function declineEmailedFor(
+  submissionId: string,
+  paymentIntentId: string,
+): Promise<boolean> {
+  const rows = await db
+    .select({ id: submissionEventTable.id })
+    .from(submissionEventTable)
+    .where(
+      and(
+        eq(submissionEventTable.submissionId, submissionId),
+        eq(submissionEventTable.kind, "email"),
+        eq(submissionEventTable.label, DECLINE_EMAIL_LABEL),
+        eq(submissionEventTable.outcome, "sent"),
+        eq(submissionEventTable.note, paymentIntentId),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
 }
 
 /**
@@ -301,17 +338,51 @@ export async function bounceOf(
   submissionId: string,
   labelPrefix: string,
 ): Promise<BounceKind | null> {
-  const rows = await db
-    .select({ label: submissionEventTable.label, note: submissionEventTable.note })
+  /*
+    Scope to the code the customer is *holding*, not the submission's whole
+    history.
+
+    Outcomes only ever append (§8), so a bounce from a superseded code — a first
+    code that soft-bounced or transiently `failed` before the customer asked for
+    a fresh one, which then delivered — stays on the trail forever. Matching any
+    historical `①` bounce let that stale row strand a customer who is holding a
+    code that arrived perfectly well: verify, resend, and the background delivery
+    check would all read the old bounce and send them back to step 1.
+
+    So find the message id of the *latest* `①` send — the code they actually have
+    — and ask only whether that one bounced. A message id is the delivery
+    webhook's handle on a send (§8), so the bounce it wrote carries the same id.
+  */
+  const [current] = await db
+    .select({ messageId: submissionEventTable.messageId })
     .from(submissionEventTable)
     .where(
       and(
         eq(submissionEventTable.submissionId, submissionId),
+        eq(submissionEventTable.kind, "email"),
+        eq(submissionEventTable.outcome, "sent"),
+        like(submissionEventTable.label, `${labelPrefix}%`),
+      ),
+    )
+    .orderBy(desc(submissionEventTable.at))
+    .limit(1);
+
+  // No id to correlate on (no send recorded, or one that never got a Resend id)
+  // — nothing to prove undeliverable, so let the customer proceed.
+  if (!current?.messageId) return null;
+
+  const [hit] = await db
+    .select({ note: submissionEventTable.note })
+    .from(submissionEventTable)
+    .where(
+      and(
+        eq(submissionEventTable.submissionId, submissionId),
+        eq(submissionEventTable.messageId, current.messageId),
         inArray(submissionEventTable.outcome, ["bounced", "failed"]),
       ),
-    );
+    )
+    .limit(1);
 
-  const hit = rows.find((row) => row.label?.startsWith(labelPrefix));
   if (!hit) return null;
   /*
     Unknown is a real answer, not a fallback to `hard`.

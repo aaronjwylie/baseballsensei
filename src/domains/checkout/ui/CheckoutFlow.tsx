@@ -21,6 +21,7 @@ import {
   createIntentAction,
   listFlowFilesAction,
   removeFlowFileAction,
+  reportDeclineAction,
   resendCodeAction,
   startAnotherAction,
   startSubmissionAction,
@@ -362,6 +363,7 @@ export function CheckoutFlow({
           playerName={playerName}
           fileCount={files.length}
           onPaid={onPaid}
+          onDeclined={(id) => void reportDeclineAction(id)}
           onBack={() => setStep("upload")}
         />
       )}
@@ -405,7 +407,7 @@ function Confirmation({
       <div className="mt-8 flex flex-wrap justify-center gap-4">
         <Button
           type="button"
-          variant="outline"
+          variant="primary"
           disabled={busy}
           onClick={async () => {
             setBusy(true);
@@ -415,7 +417,7 @@ function Confirmation({
         >
           {busy ? "Starting…" : "Send another video"}
         </Button>
-        <ButtonLink href="/status" variant="outline">
+        <ButtonLink href="/status" variant="primary">
           Check your status
         </ButtonLink>
       </div>

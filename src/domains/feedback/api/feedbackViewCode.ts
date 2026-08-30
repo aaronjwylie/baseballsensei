@@ -24,6 +24,7 @@
 import { createHmac, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 import type { JWTPayload } from "jose";
 import { env } from "@/shared/config/env";
+import { MAX_CODE_ATTEMPTS } from "@/shared/lib";
 import {
   findByCustomerEmail,
   isReleased,
@@ -42,12 +43,13 @@ export const FEEDBACK_CODE_TTL_S = 10 * 60;
  * How many wrong guesses one issued code tolerates before it's burned.
  *
  * The HMAC fingerprint makes the code offline-brute-force-proof, but *online*
- * this stateless path leaned entirely on the per-instance rate limiter. Five
- * tries per code — matching the flow-verification gate — bounds online grinding
- * against a code guarding a customer's list and a child's name, without an
- * attempt column: the count rides in the signed cookie.
+ * this stateless path leaned entirely on the per-instance rate limiter. The
+ * shared code-entry cap bounds online grinding against a code guarding a
+ * customer's list and a child's name, without an attempt column: the count rides
+ * in the signed cookie. It is the *same* figure as the flow-verification gate —
+ * one source of truth, so the two can't drift (Ben, QA 3.2).
  */
-export const MAX_FEEDBACK_CODE_ATTEMPTS = 5;
+export const MAX_FEEDBACK_CODE_ATTEMPTS = MAX_CODE_ATTEMPTS;
 
 /** What the signed pending-code cookie carries. The code is never stored raw. */
 export interface PendingFeedbackCode extends JWTPayload {

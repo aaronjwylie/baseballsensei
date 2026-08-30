@@ -129,6 +129,8 @@ export {
   bounceOf,
   noteEmailOutcome,
   type BounceKind,
+  DECLINE_EMAIL_LABEL,
+  declineEmailedFor,
 } from "./api/submissionEventApi";
 
 export {
@@ -153,6 +155,7 @@ export { SubmissionFileList } from "./ui/SubmissionFileList";
 export {
   assignOperator,
   unassignOperator,
+  releaseAssignments,
   listAssignments,
   assigneeFor,
   isAssignedTo,

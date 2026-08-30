@@ -12,7 +12,7 @@
  * coach.
  */
 import { createCredential, verifyPassword } from "./credentialApi";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { operatorTable } from "@/domains/operator/model/operatorTable";
 import { operatorRoleGrantTable } from "@/domains/operator/model/operatorRoleGrantTable";
@@ -72,14 +72,24 @@ export async function verifyCredentials(
   /*
     The grants, read at the declaration plane like the operator row above.
 
-    Someone with a login and no grants can authenticate and enter nothing —
-    which is the right answer for an operator who has been onboarded but not yet
-    given a kind, rather than an error the person cannot act on.
+    Only *active* grants become session roles: a paused grant authorises nothing,
+    so baking it into the token would let the optimistic proxy wave through a
+    route the DAL then refuses. (The DAL re-derives active roles each request too,
+    so a pause mid-session takes hold on the next one either way.)
+
+    Someone with a login and no active grants can still authenticate and enter
+    nothing — the right answer for an operator onboarded but not yet given a kind,
+    rather than an error the person cannot act on.
   */
   const grants = await db
     .select({ role: operatorRoleGrantTable.role })
     .from(operatorRoleGrantTable)
-    .where(eq(operatorRoleGrantTable.operatorId, operator.id));
+    .where(
+      and(
+        eq(operatorRoleGrantTable.operatorId, operator.id),
+        eq(operatorRoleGrantTable.isActive, true),
+      ),
+    );
 
   return { id: operator.id, email: operator.email, roles: grants.map((g) => g.role) };
 }

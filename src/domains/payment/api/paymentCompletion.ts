@@ -13,6 +13,8 @@
 import type Stripe from "stripe";
 import { env } from "@/shared/config/env";
 import {
+  DECLINE_EMAIL_LABEL,
+  declineEmailedFor,
   getSubmission,
   isPaid,
   listSubmissionFiles,
@@ -145,6 +147,11 @@ export async function handleFailedPayment(
   // A later attempt already succeeded; leave it alone.
   if (isPaid(submission)) return;
 
+  // One decline email per intent, across both callers — the webhook and the
+  // browser reporting its own decline (ADR 003) — and any Stripe redelivery.
+  // Without this the two paths, together, would send two emails for one decline.
+  if (await declineEmailedFor(submission.id, intent.id)) return;
+
   const reason = intent.last_payment_error?.message ?? "unknown reason";
   const stamp = new Date().toISOString();
   const note = `[system ${stamp}] payment failed — ${reason}`;
@@ -160,5 +167,6 @@ export async function handleFailedPayment(
     playerName: submission.playerName,
     startUrl: `${env.siteUrl}/start`,
   });
-  void noteEmailSent(submission.id, "card declined → customer", result);
+  // The intent id rides in the `note` so `declineEmailedFor` can dedupe on it.
+  void noteEmailSent(submission.id, DECLINE_EMAIL_LABEL, result, intent.id);
 }
