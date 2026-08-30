@@ -166,4 +166,10 @@ export {
   assignmentsFor,
   type Assignment,
 } from "./api/submissionAssignmentApi";
-export { languagesForChoice, readLanguageChoice, type LanguageChoice } from "./model/submission";
+export {
+  languagesForChoice,
+  readLanguageChoice,
+  choiceForLanguages,
+  LANGUAGE_CHOICES,
+  type LanguageChoice,
+} from "./model/submission";
