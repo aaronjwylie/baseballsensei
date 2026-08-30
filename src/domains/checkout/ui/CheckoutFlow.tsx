@@ -21,6 +21,7 @@ import {
   createIntentAction,
   listFlowFilesAction,
   removeFlowFileAction,
+  reportDeclineAction,
   resendCodeAction,
   startAnotherAction,
   startSubmissionAction,
@@ -362,6 +363,7 @@ export function CheckoutFlow({
           playerName={playerName}
           fileCount={files.length}
           onPaid={onPaid}
+          onDeclined={(id) => void reportDeclineAction(id)}
           onBack={() => setStep("upload")}
         />
       )}

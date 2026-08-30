@@ -10,6 +10,7 @@
 export {
   createPaymentIntent,
   getSucceededPaymentIntent,
+  getFailedPaymentIntent,
   type CreatedIntent,
 } from "./api/paymentApi";
 export {

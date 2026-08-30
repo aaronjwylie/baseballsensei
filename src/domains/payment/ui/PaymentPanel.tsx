@@ -28,12 +28,14 @@ export function PaymentPanel({
   playerName,
   fileCount,
   onPaid,
+  onDeclined,
   onBack,
 }: {
   intent: CreatedIntent;
   playerName: string;
   fileCount: number;
   onPaid: (paymentIntentId: string) => Promise<void>;
+  onDeclined?: (paymentIntentId: string) => void;
   onBack: () => void;
 }) {
   // A missing publishable key is a deployment mistake, not a customer error.
@@ -76,6 +78,7 @@ export function PaymentPanel({
         playerName={playerName}
         fileCount={fileCount}
         onPaid={onPaid}
+        onDeclined={onDeclined}
         onBack={onBack}
       />
     </Elements>
@@ -88,12 +91,14 @@ function PaymentFields({
   playerName,
   fileCount,
   onPaid,
+  onDeclined,
   onBack,
 }: {
   intent: CreatedIntent;
   playerName: string;
   fileCount: number;
   onPaid: (paymentIntentId: string) => Promise<void>;
+  onDeclined?: (paymentIntentId: string) => void;
   onBack: () => void;
 }) {
   const stripe = useStripe();
@@ -127,6 +132,12 @@ function PaymentFields({
       // Stripe's messages are already written for them.
       setError(stripeError.message ?? "That payment didn't go through.");
       setBusy(false);
+      // Tell the server too, so the "way back in" email fires even if the webhook
+      // is down (ADR 003, QA 2.4.3). Fire-and-forget: the message above is what
+      // the customer needs; the report is a background nudge, verified and
+      // deduped server-side. Only a genuine card error — a validation slip like a
+      // blank field carries no payment_intent to decline, so it's skipped there.
+      if (stripeError.type === "card_error") onDeclined?.(intent.paymentIntentId);
       return;
     }
 
