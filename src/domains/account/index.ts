@@ -32,6 +32,7 @@ export { ChangePasswordForm } from "./ui/ChangePasswordForm";
 export {
   requestPasswordReset,
   resetPasswordWithToken,
+  isResetTokenValid,
   type ResetOutcome,
 } from "./api/passwordResetApi";
 export { requestResetAction, resetPasswordAction } from "./api/passwordResetActions";
