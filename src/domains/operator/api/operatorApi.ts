@@ -11,7 +11,7 @@
  * Callers get an `Operator` — id, email, and every role they hold — never a
  * raw row.
  */
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { site } from "@/shared/config/site";
 import { operatorTable } from "../model/operatorTable";
@@ -44,7 +44,15 @@ export async function listAdminEmails(): Promise<string[]> {
       operatorRoleGrantTable,
       eq(operatorRoleGrantTable.operatorId, operatorTable.id),
     )
-    .where(eq(operatorRoleGrantTable.role, "admin"));
+    .where(
+      and(
+        eq(operatorRoleGrantTable.role, "admin"),
+        // An admin who has muted their notifications drops out here (Ben, QA
+        // 5.13.6.2). `site.email` is added unconditionally below, so muting every
+        // admin still leaves the shared inbox on every notice.
+        eq(operatorRoleGrantTable.notify, true),
+      ),
+    );
   const all = [...rows.map((row) => row.email), site.email];
   return [...new Set(all.map((email) => email.trim().toLowerCase()))];
 }

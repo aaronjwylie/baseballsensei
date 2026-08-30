@@ -183,6 +183,13 @@
       "when": 1788056882092,
       "tag": "0026_roles_own_their_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1788132185138,
+      "tag": "0027_deep_network",
+      "breakpoints": true
     }
   ]
 }

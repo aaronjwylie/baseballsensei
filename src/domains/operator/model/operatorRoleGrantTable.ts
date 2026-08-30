@@ -66,6 +66,20 @@ export const operatorRoleGrantTable = pgTable(
      */
     isActive: boolean().notNull().default(true),
     /**
+     * Whether this role's holder wants the emails it generates — **admin only,
+     * in practice** (Ben, QA 5.13.6.2).
+     *
+     * An admin cannot be paused: their authority is `isActive` on this grant,
+     * which login reads to decide they *are* an admin, so muting notifications
+     * could never ride on it without also removing the role. This is the
+     * separate switch — the person stays a full admin and simply stops getting
+     * their own copies of the submission and system mail. The shared `contact@`
+     * inbox is always a recipient regardless, so nothing goes unseen when an
+     * admin opts out. Defaults on; a coach or translator carries it but nothing
+     * reads it for them yet.
+     */
+    notify: boolean().notNull().default(true),
+    /**
      * What they read, **for this role**.
      *
      * Moved off `operator_profile` on 2026-08-30. One person had one list, so a
