@@ -1300,6 +1300,13 @@
           "expect": "bounced appears in the trail within a minute of a send to a dead domain. Requires email.bounced to be subscribed on the Resend webhook, not only email.delivered. 2.2.5 depends on this"
         }
       ]
+    },
+    "4.7.1": {
+      "firstSeen": "2026-08-30T01:22:55.054Z",
+      "what": "The last-admin guard. Remove admin from every admin but one, then try to remove it from the last",
+      "expect": "Refused, with the reason shown, and the checkbox snaps back ticked. Never yet run — testing the safety net requires walking the tightrope it exists for, and a zero-admin state has no in-app recovery, only a DB re-seed. Run it with someone holding database access standing by, and restore the other admins afterwards",
+      "retired": false,
+      "history": []
     }
   }
 }

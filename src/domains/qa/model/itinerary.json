@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 18,
-    "generatedAt": "2026-08-29T23:16:43.532Z",
-    "checks": 181,
-    "live": 181,
+    "build": 19,
+    "generatedAt": "2026-08-30T01:22:55.054Z",
+    "checks": 182,
+    "live": 182,
     "retired": 0,
     "edited": 4
   },
@@ -680,6 +680,12 @@
               "id": "4.7",
               "what": "Someone holding two roles",
               "expect": "Reaches both portals"
+            },
+            {
+              "id": "4.7.1",
+              "what": "The last-admin guard. Remove admin from every admin but one, then try to remove it from the last",
+              "expect": "Refused, with the reason shown, and the checkbox snaps back ticked. Never yet run — testing the safety net requires walking the tightrope it exists for, and a zero-admin state has no in-app recovery, only a DB re-seed. Run it with someone holding database access standing by, and restore the other admins afterwards",
+              "flag": "flag"
             },
             {
               "id": "4.8",

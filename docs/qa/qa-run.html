@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 18</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 19</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1147,6 +1147,12 @@ const PHASES = [
             "4.7",
             "Someone holding two roles",
             "Reaches both portals"
+          ],
+          [
+            "4.7.1",
+            "The last-admin guard. Remove admin from every admin but one, then try to remove it from the last",
+            "Refused, with the reason shown, and the checkbox snaps back ticked. Never yet run — testing the safety net requires walking the tightrope it exists for, and a zero-admin state has no in-app recovery, only a DB re-seed. Run it with someone holding database access standing by, and restore the other admins afterwards",
+            "flag"
           ],
           [
             "4.8",

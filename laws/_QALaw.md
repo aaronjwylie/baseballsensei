@@ -114,6 +114,63 @@ disables everything, answer *not found* rather than *not authorised* — an endp
 token" has confirmed it exists — and make removal a single deliberate act. **Write the teardown when
 you write the instrument**, while the reasoning is still to hand.
 
+**Q19 · Every session reports the build it is running.**
+"Am I testing your fix or the one before it?" is unanswerable by reloading — a
+deploy takes minutes, a reload proves nothing, and a browser can hold one
+bundle while another is current. So the instrument stamps the commit into every
+session's first line. Without it, **every observation is ambiguous**, and the
+ambiguity is invisible: a tester and a watcher can spend an hour arguing about
+behaviour that was fixed twenty minutes earlier, or one that never shipped.
+*Evidence: exactly that, twice in one pass, before the stamp existed.*
+
+**Q20 · Sample the state, do not only record the events.**
+An event fires when a **person** acts. It does not fire when the system acts on
+itself — and "the page changed something without me" is a whole class of bug.
+Where the disputed thing is a *state* rather than an *action*, read it on a
+timer and report when the picture changes.
+
+Some state cannot be observed any other way: a checkbox's `checked` is a DOM
+property, not an attribute, so it is invisible to a mutation observer as well as
+to an event listener. *Evidence: a form where ticks moved on their own survived
+three rounds of event-based instrumentation; the first sampled read found it in
+one.*
+
+**Q21 · Every line carries the whole picture, not the delta.**
+A diff says what moved. It does not say what the thing now **is**, which is
+what is in dispute — and it forces the reader to reconstruct the present from a
+chain of past changes, where one missing line makes everything after it wrong.
+Carry the full state on every line and pin one at the moments that matter:
+before the action, and again after the system has had time to react. Waiting
+for a diff to notice a change means the evidence depends on catching it
+mid-flight.
+
+**Q22 · Key an observation by identity, never by position.**
+An instrument that labels things by where they sit will report movement that
+never happened, the moment anything is inserted or removed above them. That is
+worse than silence: it is **confident, wrong lines**, and a diagnosis built on
+them wastes the run. *Evidence: a sampler keyed by page index reported one
+control changing when the tester clicked another, purely because a conditional
+element above them had appeared — and two hours of reasoning rested on it.*
+
+**Q23 · When two layers can disagree, measure both in the same instant.**
+The hardest bugs live in a **disagreement** — between what a framework believes
+and what the document holds, between what was written and what is displayed.
+Any instrument sampling one side alone sees a consistent, innocent picture.
+Read both, together, and report the mismatch as its own fact.
+
+That single measurement usually ends the investigation, because *which side is
+wrong* determines the fix and the two fixes are opposites. **It is worth
+building even when it feels like overkill**, because until you have it every
+explanation fits.
+
+**Q24 · A refusal must be announced in a form an instrument can capture.**
+An error drawn as ordinary text is invisible to a screen reader and to a probe
+alike, so a rejected action looks exactly like a successful one. Whatever
+convention the platform has for "this is an alert", use it — the accessibility
+win is the same mechanism as the observability win. *Evidence: an hour spent
+unable to tell whether a guard was firing, because its message was a plain
+paragraph.*
+
 ### The itinerary and the run
 
 **Q7 · Every check has an id, and the ids are stable.**
@@ -286,6 +343,40 @@ theirs.
 And **print what the filter excluded** — `(not shown: 1 blocked, 2 resolved)`.
 A queue that filters silently is how a finding gets lost between two people who
 each assumed the other had it, and the cost of the line is nine words.
+
+
+**Q25 · A fix built on inference is a guess with a deploy attached.**
+There is a moment in every hard bug where the mechanism is *nearly* clear, and
+shipping the obvious repair is far cheaper than building the instrument that
+would prove it. That trade is almost always wrong, and it compounds: each
+unproven fix costs a deploy, disturbs whoever is testing, changes the thing
+under observation, and — if it lands wrong — adds a second cause to the one you
+were already failing to isolate.
+
+**Say which it is.** A fix that follows from a measurement and a fix that
+follows from a story look identical in a commit. Only one of them is evidence.
+
+> *Evidence: four fixes shipped on inference during one chase. The first two
+> were unrelated to the symptom, the third was a real defect that was not this
+> one, and the fourth actively made it worse — it resynchronised from a source
+> precisely when that source was stale. The fifth attempt began by measuring
+> and ended the investigation in a single reading.*
+
+**Q26 · The third patch on one symptom means the shape is wrong, not the value.**
+Two patches can be bad luck. By the third, the thing being defended is a seam —
+a place where two representations of one fact are kept in step by hand — and
+every patch is guarding one more crossing of it. Seams have more crossings than
+anyone can enumerate, so patching them is unbounded work with no end state.
+
+**Stop and ask what would have to be true for this class of bug to be
+impossible**, then build that instead. The answer is usually that one of the two
+representations should not exist.
+
+> *Evidence: a control that kept its own copy of server state produced, in
+> sequence, a stale overwrite, a lost update, a display that disagreed with what
+> was stored, and finally a rendering layer that declined to correct the document
+> because its own copy had not changed. Each was patched individually. Deleting
+> the copy removed all four and took the file from 250 lines of logic to 115.*
 
 ---
 
@@ -503,6 +594,16 @@ Each of these looks like QA and produces nothing.
   set that disappears with it. Q16.
 - **A fix written against a note that changed underneath it.** Nobody can say afterwards which wording
   was acted on, and the re-test is against a third version. Q17.
+- **A tester and a watcher looking at different builds.** Every observation is ambiguous and the
+  ambiguity is invisible; the argument is about behaviour that shipped, or never did. Q19.
+- **An instrument that records actions but not state.** Everything the system does to itself is
+  invisible, which is precisely the class of bug hardest to reproduce. Q20.
+- **An instrument keyed by position.** It manufactures movement whenever anything is inserted above
+  what it watches, and a diagnosis built on invented evidence costs more than no evidence. Q22.
+- **Measuring one side of a disagreement.** Each layer looks innocent alone, so the investigation
+  runs until someone thinks to read both at once. Q23.
+- **Fixes shipped on a story rather than a measurement.** Each one disturbs the run, changes the thing
+  under observation, and can add a second cause to the one still unisolated. Q25.
 - **A record nobody instrumented.** The product's every click is captured and the document holding the
   verdicts records nothing, so how a judgement was reached is lost while how a button was pressed is
   kept. Q15.

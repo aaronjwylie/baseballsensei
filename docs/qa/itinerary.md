@@ -242,6 +242,7 @@ password for two weeks.
 | 4.5 | Valid coach login | Lands on `/coach`, and `/admin` redirects away |
 | 4.6 | Valid translator login | Lands on `/translator` |
 | 4.7 | Someone holding two roles | Reaches both portals |
+| 4.7.1 | **The last-admin guard.** Remove admin from every admin but one, then try to remove it from the last | ⚠️ **Refused**, with the reason shown, and the checkbox snaps back ticked. **Never yet run** — testing the safety net requires walking the tightrope it exists for, and a zero-admin state has no in-app recovery, only a DB re-seed. Run it with someone holding database access standing by, and restore the other admins afterwards |
 | 4.8 | `/forgot-password` with a real address | Reset email arrives |
 | 4.9 | `/forgot-password` with an unknown address | Same visible response, no email |
 | 4.10 | Use the reset link | ⚠️ Password changes; **you can log in with the new one**|

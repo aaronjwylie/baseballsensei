@@ -322,6 +322,71 @@ because it looks current.
 
 ---
 
+### The chase that built the instrument — QA 4.7, 2026-08-29/30
+
+The operator role checkboxes "bounced around": ticks appearing and vanishing
+after a save, one click moving two boxes, roles silently disappearing. It took
+roughly three hours and five attempts. **Everything the probe can now do, it can
+do because of this.**
+
+**What was actually wrong.** The form kept its own copy of the roles in React
+state. The server had them; the component copied them at mount; from then on two
+things described one fact and were kept in step by hand. Every symptom was that
+seam showing — and the last one was the framework declining to write `checked`
+to the DOM because *its* copy had not changed, leaving a checkbox displaying
+something neither the server nor React believed.
+
+**The four wrong diagnoses, in order**, because they are the useful part:
+
+1. **Component state drift.** Plausible, unmeasured, wrong.
+2. **A caching fault.** `revalidatePath` was passing concrete URLs to dynamic
+   routes and silently matching nothing — a **real** bug, fixed, and still not
+   this one. `operatorProfileActions` had it too.
+3. **A resync I added**, adopting the server prop whenever it differed from local
+   state — which is precisely when the prop was stale. It made things worse.
+4. **Nested `<label>` elements**, which is invalid HTML and made one click
+   activate two controls. Also **real**, also fixed, also not the whole story.
+
+Three of the five were genuine defects. None of the first four was *the* defect,
+and each cost a deploy that bounced eleven open tabs.
+
+**What ended it** was one line, after everything observable had been eliminated:
+
+```
+[qa 4.7 render m1]  props: admin,translator,coach
+                    react: admin,coach,translator
+                    dom:   admin,translator        MISMATCH:coach
+```
+
+React was right, the document was wrong, and nothing in the data flow was at
+fault. That reading took ten minutes to build and should have been the first
+thing done.
+
+### What the probe gained, and why (Q19–Q24)
+
+| Capability | The hour it cost us |
+|---|---|
+| **Build stamp** in every session's first line | "Am I on your fix or the previous one?" was unanswerable twice; a deploy takes minutes and a reload proves nothing |
+| **Sampling checkbox state** twice a second | `change` fires only when a *person* acts; the bug was the page acting, and `checked` is a DOM property invisible to a mutation observer too |
+| **Full state on every line**, not a diff | reconstructing the present from a chain of deltas broke the moment one line was wrong |
+| **Snapshots at load, at submit, and 2s after** | the disputed moment was *after* the save; waiting for a diff meant catching it mid-flight or not at all |
+| **Keyed by label, not page position** | conditional rows shifted every index below them, so the log reported movement that never happened — and two hours of reasoning rested on it |
+| **`role="alert"` on refusals** | a rejected save was indistinguishable from a successful one, to a screen reader and to the probe alike |
+| **`textContent`, never `innerText`** | the describe path forced a synchronous reflow on *every click on the site*, in a capture-phase listener |
+| **Reads `label[for]` as well as a wrapping label** | fixing the nested labels would otherwise have blinded the probe at the exact moment the markup got better |
+
+**Two of those are about the instrument corrupting its own evidence** — the
+position keying and the forced reflow. An instrument that manufactures movement
+or taxes what it measures is worse than none, because it is believed.
+
+⚠️ **The temporary probes were removed with the state they measured.** The
+`[qa 4.7]` round-trip line stays until Ben confirms the fix; the mount counter,
+the render comparison and the toggle log went with the component rewrite. Any
+future chase of this kind rebuilds them — they are cheap, and they are the only
+thing that ended this one.
+
+---
+
 ## 5 · Where we came from
 
 Past tense, append-only. Each of these is cited as evidence in a rail of the law, which is why it is
