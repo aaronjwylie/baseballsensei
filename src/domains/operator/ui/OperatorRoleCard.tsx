@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Field, inputClass } from "@/shared/ui";
+import { Button, Field, SavedBadge, inputClass } from "@/shared/ui";
 import { FOCUS_OPTIONS } from "@/domains/submission/model/submission";
 import { saveRoleAction } from "../api/roleCardActions";
 import { type Role } from "../model/operatorRoleEnum";
@@ -269,7 +269,7 @@ export function OperatorRoleCard({
           <Button type="submit" disabled={pending}>
             {pending ? "Saving…" : `Save ${copy.title.toLowerCase()}`}
           </Button>
-          {saved && <span className="text-sm text-emerald-700">Saved.</span>}
+          {saved && <SavedBadge />}
         </div>
 
         {error && (

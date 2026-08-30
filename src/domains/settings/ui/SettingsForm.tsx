@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button, Field, inputClass } from "@/shared/ui";
+import { Button, Field, SavedBadge, inputClass } from "@/shared/ui";
 import type { PlatformSettings } from "../model/settings";
 import {
   updateSettingsAction,
@@ -26,11 +26,6 @@ export function SettingsForm({ settings }: { settings: PlatformSettings }) {
       {state && "error" in state && (
         <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {state.error}
-        </p>
-      )}
-      {state && "ok" in state && (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          Settings saved.
         </p>
       )}
 
@@ -158,9 +153,12 @@ export function SettingsForm({ settings }: { settings: PlatformSettings }) {
         </Field>
       </fieldset>
 
-      <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Save settings"}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={pending}>
+          {pending ? "Saving…" : "Save settings"}
+        </Button>
+        {state && "ok" in state && <SavedBadge>Saved</SavedBadge>}
+      </div>
     </form>
   );
 }
