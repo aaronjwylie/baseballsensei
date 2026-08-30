@@ -43,30 +43,36 @@ const ROLE_COPY: Record<Role, { title: string; blurb: string }> = {
 /** Which controls a role actually has. The three genuinely differ. */
 const CONTROLS: Record<
   Role,
-  { availability: boolean; languages: boolean; specialties: boolean; public: boolean }
+  {
+    availability: boolean;
+    languages: boolean;
+    specialties: boolean;
+    public: boolean;
+    notify: boolean;
+  }
 > = {
   /*
-    Admin has none of them, and that is not an omission.
-
-    There is no pause: holding admin *is* being one, and an admin who cannot act
-    is a contradiction rather than a state. There are no languages or
-    specialties: nothing about running the platform depends on what you read or
-    which focus you know.
+    Admin has no pause, no languages, no specialties — holding admin *is* being
+    one, and nothing about running the platform depends on what you read. What it
+    does have is a mail switch (Ben, QA 5.13.6.2): an admin is copied on every
+    submission and system notice, and this is how one steps out of that firehose
+    without giving up the role. It is not a pause — they stay a full admin — which
+    is why it is `notify` and not `availability`.
   */
-  admin: { availability: false, languages: false, specialties: false, public: false },
+  admin: { availability: false, languages: false, specialties: false, public: false, notify: true },
   /*
     A coach's languages decide whether a submission needs translating at all;
     their specialties decide what they are assigned. They are the only role the
     public site shows, so bio and photo live here and nowhere else.
   */
-  coach: { availability: true, languages: true, specialties: true, public: true },
+  coach: { availability: true, languages: true, specialties: true, public: true, notify: false },
   /*
     A translator's languages are what they work BETWEEN — a different question
     from a coach's, and the reason these moved off the person in 2026-08-30.
     Specialties matter because the focus of a submission decides the vocabulary
     a leg needs, even though they are not the one reviewing it.
   */
-  translator: { availability: true, languages: true, specialties: true, public: false },
+  translator: { availability: true, languages: true, specialties: true, public: false, notify: false },
 };
 
 /**
@@ -118,11 +124,12 @@ export function OperatorRoleCard({
   const held = stored !== null;
 
   const signature = stored
-    ? `${stored.isActive}|${stored.languages.join(",")}|${stored.specialties.join(",")}|${stored.bio ?? ""}`
+    ? `${stored.isActive}|${stored.notify}|${stored.languages.join(",")}|${stored.specialties.join(",")}|${stored.bio ?? ""}`
     : "none";
 
   const heldId = `${operatorId}-${role}-held`;
   const availableId = `${operatorId}-${role}-available`;
+  const notifyId = `${operatorId}-${role}-notify`;
 
   return (
     <section
@@ -185,6 +192,23 @@ export function OperatorRoleCard({
                   <label htmlFor={availableId} className="text-[13px] text-ink-muted">
                     Taking {role === "coach" ? "submissions" : "translations"} —
                     untick to pause without removing the role
+                  </label>
+                </div>
+              )}
+
+              {has.notify && (
+                <div className="flex items-start gap-2">
+                  <input
+                    id={notifyId}
+                    name="notify"
+                    type="checkbox"
+                    defaultChecked={stored?.notify ?? true}
+                    className="mt-0.5"
+                  />
+                  <label htmlFor={notifyId} className="text-[13px] text-ink-muted">
+                    Email me submission and system notifications — untick to stop
+                    your own copies; you stay a full admin, and the shared inbox
+                    still receives everything.
                   </label>
                 </div>
               )}
@@ -298,11 +322,9 @@ export function OperatorRoleCard({
                 </>
               )}
 
-              {!has.availability && !has.languages && !has.specialties && (
+              {!has.availability && !has.languages && !has.specialties && !has.notify && (
                 <p className="text-[13px] text-ink-muted">
-                  Admin has no further settings — there is nothing about running
-                  the platform that depends on languages, focuses or
-                  availability.
+                  No further settings for this role.
                 </p>
               )}
             </div>

@@ -145,12 +145,21 @@ export async function saveRoleAction(
   */
   const isActive = role === "admin" ? true : formData.get("available") !== null;
 
+  /*
+    The admin's mail switch (Ben, QA 5.13.6.2) — distinct from `isActive`, which
+    for an admin is always true because their authority can't be paused. Only the
+    admin card renders this field, so a card without it leaves the stored value
+    untouched rather than reading an absent checkbox as "off".
+  */
+  const notify = role === "admin" ? formData.get("notify") !== null : undefined;
+
   const bioRaw = formData.get("bio");
   const imageUrl = await savePhoto(operatorId, formData);
 
   await setRoleSettings(operatorId, role, {
     languages,
     specialties,
+    ...(notify !== undefined ? { notify } : {}),
     ...(bioRaw !== null ? { bio: String(bioRaw).trim() || null } : {}),
     // Absent means "keep the current one", which is what an empty file input
     // means to the person who left it alone.
