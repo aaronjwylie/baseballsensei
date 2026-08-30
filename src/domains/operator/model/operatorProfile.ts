@@ -67,3 +67,22 @@ export interface NewOperatorProfile {
  * in `domains/submission`, beside the rule that consumes it.
  */
 export const DEFAULT_LANGUAGE_CHOICE: LanguageChoice = "Japanese";
+
+/**
+ * What a translator works **between** — a direction, not a set of languages
+ * (Ben, QA 5.13.4). A coach's languages answer "does this need translating";
+ * a translator's answer "which leg can they take", which is a direction.
+ *
+ * Stored verbatim in the grant's `languages` (as a single value) and only ever
+ * displayed, never intersected — translator assignment is manual, so this
+ * records the direction rather than routing on it. If direction should one day
+ * drive which leg a translator is offered, that is a real field and a filter on
+ * the assignment select, not a reinterpretation of this string.
+ */
+export const TRANSLATOR_DIRECTIONS = [
+  "English to Japanese",
+  "Japanese to English",
+  "both directions",
+] as const;
+
+export type TranslatorDirection = (typeof TRANSLATOR_DIRECTIONS)[number];

@@ -2,9 +2,18 @@
 
 import { useState } from "react";
 import { Button, Field, SavedBadge, inputClass } from "@/shared/ui";
-import { FOCUS_OPTIONS } from "@/domains/submission/model/submission";
+import {
+  FOCUS_OPTIONS,
+  LANGUAGE_CHOICES,
+  choiceForLanguages,
+} from "@/domains/submission/model/submission";
 import { saveRoleAction } from "../api/roleCardActions";
 import { type Role } from "../model/operatorRoleEnum";
+import {
+  DEFAULT_LANGUAGE_CHOICE,
+  TRANSLATOR_DIRECTIONS,
+  type TranslatorDirection,
+} from "../model/operatorProfile";
 import type { RoleGrant } from "../api/operatorRoleApi";
 
 /**
@@ -186,15 +195,50 @@ export function OperatorRoleCard({
                   hint={
                     role === "coach"
                       ? "What this coach reads. A submission is translated when it shares none with the customer."
-                      : "What they translate between."
+                      : "Which direction they translate."
                   }
                 >
-                  <input
-                    name="languages"
-                    defaultValue={(stored?.languages ?? []).join(", ")}
-                    placeholder="English, Japanese"
-                    className={inputClass}
-                  />
+                  {/*
+                    A fixed dropdown, not free text (Ben, QA 5.13.4 / 5.13.6). A
+                    coach picks a language set; a translator picks a direction —
+                    different questions, so different options, chosen by role.
+                  */}
+                  {role === "coach" ? (
+                    <select
+                      name="languages"
+                      defaultValue={choiceForLanguages(
+                        stored?.languages ?? [],
+                        DEFAULT_LANGUAGE_CHOICE,
+                      )}
+                      className={inputClass}
+                    >
+                      {LANGUAGE_CHOICES.map((choice) => (
+                        <option key={choice} value={choice}>
+                          {choice === "both" ? "Both" : choice}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <select
+                      name="languages"
+                      defaultValue={
+                        TRANSLATOR_DIRECTIONS.includes(
+                          stored?.languages[0] as TranslatorDirection,
+                        )
+                          ? stored!.languages[0]
+                          : TRANSLATOR_DIRECTIONS[0]
+                      }
+                      className={inputClass}
+                    >
+                      {TRANSLATOR_DIRECTIONS.map((direction) => (
+                        <option key={direction} value={direction}>
+                          {direction === "both directions"
+                            ? "Both directions"
+                            : direction}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </Field>
               )}
 

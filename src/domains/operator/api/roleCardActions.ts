@@ -3,8 +3,19 @@
 import { requireRole } from "@/domains/account";
 import { releaseAssignments } from "@/domains/submission";
 import { storage, coachImageKey } from "@/shared/storage";
-import { FOCUS_OPTIONS, type Focus } from "@/domains/submission";
+import {
+  FOCUS_OPTIONS,
+  LANGUAGE_CHOICES,
+  languagesForChoice,
+  type Focus,
+  type LanguageChoice,
+} from "@/domains/submission";
 import { type Role } from "../model/operatorRoleEnum";
+import {
+  DEFAULT_LANGUAGE_CHOICE,
+  TRANSLATOR_DIRECTIONS,
+  type TranslatorDirection,
+} from "../model/operatorProfile";
 import {
   grantRole,
   grantsFor,
@@ -43,6 +54,11 @@ export type RoleCardState =
   | { error: string; grant?: undefined }
   | { error?: undefined; grant: RoleGrant | null }
   | undefined;
+
+const isLanguageChoice = (value: string): value is LanguageChoice =>
+  (LANGUAGE_CHOICES as readonly string[]).includes(value);
+const isTranslatorDirection = (value: string): value is TranslatorDirection =>
+  (TRANSLATOR_DIRECTIONS as readonly string[]).includes(value);
 
 const isFocus = (value: string): value is Focus =>
   (FOCUS_OPTIONS as readonly string[]).includes(value);
@@ -95,22 +111,24 @@ export async function saveRoleAction(
   await grantRole(operatorId, role, session.operatorId);
 
   /*
-    One free-text field, split on commas, rather than a fixed set of tickboxes.
+    A fixed choice from the dropdown, not free text (Ben, QA 5.13.4 / 5.13.6).
 
-    The languages a coach reads are not a closed list the way the coaching
-    focuses are — the roster already spans English and Japanese and will not
-    stop there, and a dropdown of two would have to be edited in code every time
-    someone is hired. Trimmed and de-duplicated so "English, english " is one
-    language rather than two.
+    The two roles answer different questions with the same field, so it's parsed
+    by role: a coach picks a language set (English / Japanese / both), mapped
+    through `languagesForChoice`; a translator picks a *direction*, stored
+    verbatim as the grant's single language value — only ever displayed, never
+    intersected. A value that isn't one of the offered options (a hand-made
+    request) falls back to the safe default rather than being trusted in.
   */
-  const languages = [
-    ...new Set(
-      String(formData.get("languages") ?? "")
-        .split(",")
-        .map((l) => l.trim())
-        .filter(Boolean),
-    ),
-  ];
+  const langValue = String(formData.get("languages") ?? "").trim();
+  const languages =
+    role === "coach"
+      ? languagesForChoice(
+          isLanguageChoice(langValue) ? langValue : DEFAULT_LANGUAGE_CHOICE,
+        )
+      : isTranslatorDirection(langValue)
+        ? [langValue]
+        : [];
   const specialties = formData.getAll("specialties").map(String).filter(isFocus);
   /*
     `admin` is available by definition — holding it is being it — so its card
