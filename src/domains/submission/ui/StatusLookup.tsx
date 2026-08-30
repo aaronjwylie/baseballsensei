@@ -158,10 +158,21 @@ export function StatusLookup() {
           <div className="rounded-2xl border border-line bg-white p-6">
             <p className="text-ink">
               If <span className="font-medium">{result.email}</span> has
-              submissions with us, a 6-digit code is on its way.
+              submissions with us, a 6-digit code is on its way &mdash; enter it
+              below.
             </p>
+            {/*
+              Deliberately ambiguous — no submissions, a typo, and slow mail all
+              read the same here (Ben, QA 3.5). Telling a no-submission address
+              "nothing for you" would turn this form into a way to check whether
+              any email is a customer, which is the enumeration the "send a code
+              either way" design exists to prevent. So it explains why a code
+              might not come without confirming which reason it is.
+            */}
             <p className="mt-1.5 text-sm text-ink-muted">
-              Check your spam folder if it hasn&rsquo;t arrived.
+              Nothing after a few minutes? This email may have no submissions, or
+              it may be mistyped &mdash; check your spam folder, then try a
+              different address above.
             </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
               {/* Same two columns as the email row above — a flex-1 field and a
