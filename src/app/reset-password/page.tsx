@@ -24,7 +24,7 @@ export default async function ResetPasswordPage({
 
   return (
     <section className="py-16 sm:py-24">
-      <Container className="max-w-sm">
+      <Container className="max-w-sm text-center">
         <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">
           Set a new password
         </h1>
@@ -33,7 +33,10 @@ export default async function ResetPasswordPage({
             <p className="mt-2 text-sm text-ink-muted">
               Choose a new password for your operator account.
             </p>
-            <div className="mt-8 rounded-2xl border border-line bg-white p-6 sm:p-8">
+            {/* The card holds a form — its fields and labels stay left-aligned;
+                only the heading, the intro line and the button centre (Ben, QA
+                4.12). */}
+            <div className="mt-8 rounded-2xl border border-line bg-white p-6 text-left sm:p-8">
               <ResetPasswordForm token={token} />
             </div>
           </>
