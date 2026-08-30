@@ -35,6 +35,10 @@ type Result =
 export function StatusLookup() {
   const [result, setResult] = useState<Result>({ state: "idle" });
   const [code, setCode] = useState("");
+  // A wrong code stays on the code card and shows here, with the tries left —
+  // switching to the error state used to hide the card, so a single miss ended
+  // the attempt instead of counting down like the flow's email step (Ben, QA 3.2).
+  const [codeError, setCodeError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
 
   const {
@@ -74,6 +78,7 @@ export function StatusLookup() {
       // A fresh code means a fresh field — clear anything typed against the last
       // one, so requesting a new code never shows a stale entry (Ben, QA 3.1).
       setCode("");
+      setCodeError(null);
       setResult({ state: "codeSent", email: customerEmail });
     } catch {
       setResult({ state: "error", message: "Network error. Please try again." });
@@ -83,6 +88,7 @@ export function StatusLookup() {
   async function submitCode() {
     if (result.state !== "codeSent") return;
     setChecking(true);
+    setCodeError(null);
     try {
       const res = await fetch("/api/status/feedback/verify", {
         method: "POST",
@@ -94,10 +100,11 @@ export function StatusLookup() {
         error?: string;
       };
       if (!res.ok) {
-        setResult({
-          state: "error",
-          message: json.error ?? "That code didn't match.",
-        });
+        // Stay on the code card and show the miss inline — the route allows five
+        // tries and its message carries the count left. Clear the field for the
+        // next attempt (Ben, QA 3.2).
+        setCodeError(json.error ?? "That code didn't match.");
+        setCode("");
         return;
       }
       setResult({
@@ -106,7 +113,8 @@ export function StatusLookup() {
         submissions: json.submissions ?? [],
       });
     } catch {
-      setResult({ state: "error", message: "Network error. Please try again." });
+      // A network blip is a retry too — keep them on the card.
+      setCodeError("Network error. Please try again.");
     } finally {
       setChecking(false);
     }
@@ -179,6 +187,9 @@ export function StatusLookup() {
                 {checking ? "Checking…" : "See my submissions"}
               </Button>
             </div>
+            {codeError && (
+              <p className="mt-3 text-sm text-rose-700">{codeError}</p>
+            )}
           </div>
         )}
 
