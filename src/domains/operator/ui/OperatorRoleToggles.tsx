@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/shared/ui";
 import { setRolesAction } from "../api/operatorRoleActions";
 import { ROLES, type Role } from "../model/operatorRoleEnum";
 import type { RoleGrant } from "../api/operatorRoleApi";
+
+/** TEMPORARY (QA 4.7): counts mounts so a remount is visible in the log. */
+let mountCount = 0;
 
 const BLURB: Record<Role, string> = {
   admin: "Runs the platform — the queue, onboarding, settings.",
@@ -98,17 +101,62 @@ export function OperatorRoleToggles({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /* ── TEMPORARY INSTRUMENTATION (2026-08-30, QA 4.7) ───────────────────────
+     Remove with the [qa 4.7] console line below once this is closed.
+
+     Five unknowns, measured rather than guessed:
+       instance  — a new id means the component REMOUNTED, which re-seeds state
+                   from the prop. I have assumed both that it does and that it
+                   does not, without ever checking.
+       props     — what the server is handing this component on each render.
+       react     — what React believes is ticked.
+       dom       — what the checkboxes actually are, read at the same instant.
+       mismatch  — where those two disagree, which is the whole question: a
+                   wrong React state and a wrong DOM need opposite fixes.
+  */
+  /* Numbered in a mount-only effect rather than during render — the purity
+     rule is right, and a counter is all this needs. A new number in the log
+     means the component REMOUNTED, which re-seeds its state from the prop; I
+     have assumed both that it does and that it does not without checking. */
+  const instance = useRef("m?");
+  useEffect(() => {
+    mountCount += 1;
+    instance.current = `m${mountCount}`;
+    console.error(`[qa 4.7 MOUNT ${instance.current}]`);
+  }, []);
+  useEffect(() => {
+    const dom: Record<string, boolean | null> = {};
+    for (const role of ROLES) {
+      const el = document.getElementById(`${operatorId}-${role}-held`);
+      dom[role] = el instanceof HTMLInputElement ? el.checked : null;
+    }
+    const react = Object.fromEntries(ROLES.map((r) => [r, roles[r].held]));
+    const mismatch = ROLES.filter((r) => dom[r] !== null && dom[r] !== react[r]);
+    console.error(
+      `[qa 4.7 render ${instance.current}]`,
+      "props:", grants.map((g) => g.role).join(",") || "none",
+      "react:", ROLES.filter((r) => roles[r].held).join(",") || "none",
+      "dom:", ROLES.filter((r) => dom[r]).join(",") || "none",
+      mismatch.length ? `MISMATCH:${mismatch.join(",")}` : "",
+    );
+  });
+
   const dirty = signature(roles) !== signature(baseline);
   const heldRoles = ROLES.filter((role) => roles[role].held);
 
   /** Adopt what the server says it stored — the only authority after mount. */
   function adopt(stored: RoleGrant[]) {
+    console.error(
+      `[qa 4.7 adopt ${instance.current}]`,
+      stored.map((g) => g.role).join(",") || "none",
+    );
     const map = toMap(stored);
     setRoles(map);
     setBaseline(map);
   }
 
   function toggleHold(role: Role, on: boolean) {
+    console.error(`[qa 4.7 toggle ${instance.current}]`, "hold", role, "->", on);
     setSaved(false);
     setError(null);
     // Dropping the role clears its availability in the same move, so the two
@@ -117,6 +165,7 @@ export function OperatorRoleToggles({
   }
 
   function toggleActive(role: Role, on: boolean) {
+    console.error(`[qa 4.7 toggle ${instance.current}]`, "active", role, "->", on);
     setSaved(false);
     setError(null);
     setRoles((cur) =>

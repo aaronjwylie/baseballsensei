@@ -82,7 +82,12 @@ function render(events) {
     const utc = e.at.slice(11, 19);
     /* A tick's meaning is its state, so show it inline rather than making the
        reader open the detail. */
-    let what = (e.target || e.field || "").slice(0, 66);
+    /* QA 4.7 lines carry the whole measurement and are the point of the run —
+       never clip them. Everything else stays short so the log reads. */
+    const isProbeLine = e.kind === "console" && /\[qa 4\.7/.test(e.target ?? "");
+    let what = isProbeLine
+      ? (e.target ?? "")
+      : (e.target || e.field || "").slice(0, 66);
     if (e.kind === "field" && e.detail) {
       try {
         const d = JSON.parse(e.detail);
