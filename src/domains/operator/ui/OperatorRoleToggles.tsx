@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/shared/ui";
 import { setRolesAction } from "../api/operatorRoleActions";
 import { ROLES, type Role } from "../model/operatorRoleEnum";
@@ -98,7 +97,6 @@ export function OperatorRoleToggles({
   const [saved, setSaved] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   const dirty = signature(roles) !== signature(baseline);
   const heldRoles = ROLES.filter((role) => roles[role].held);
@@ -159,10 +157,28 @@ export function OperatorRoleToggles({
         }
         if (result?.grants) adopt(result.grants);
         setSaved(true);
-        // The header and the operator list read these roles too and are not fed
-        // by this component, so they still need the refresh. Nothing here reads
-        // its result.
-        router.refresh();
+        /*
+          NO router.refresh() HERE — and that omission is the fix.
+
+          Refreshing pulled a server render that lags the write it was meant to
+          reflect, and that render then overwrote correct state with stale
+          state. Measured: the write landed and the form was correct two seconds
+          after submit; four seconds after submit the refresh arrived and put a
+          deleted role back on screen, with the specialty boxes reappearing in
+          the same frame — a whole-page re-render, not a state change.
+
+          The tester then acted on that false picture, and the NEXT save
+          submitted it. `setGrants` deletes any role absent from the submitted
+          set, so the roles that had merely been drawn wrongly were then really
+          destroyed. Every reported symptom of QA 4.7 follows from this one
+          thing.
+
+          Nothing on this form needs the refresh: the action hands back what it
+          stored, which is the freshest answer that exists. The header and the
+          operators list do read these roles, and they are refreshed by
+          `revalidateOperatorPages()` — correctly, now that it names the route
+          patterns rather than filled-in paths.
+        */
       }}
       className="space-y-3"
     >
