@@ -1,5 +1,6 @@
 import { PortalBar } from "../_portal/PortalBar";
 import { getSession, portalsFor } from "@/domains/account";
+import { getOperatorProfile } from "@/domains/operator";
 
 /**
  * The coach portal shell — the same top bar as admin, minus the section links
@@ -14,9 +15,12 @@ export default async function CoachLayout({
 }) {
   const session = await getSession();
   const canSwitch = session ? portalsFor(session.roles).length > 1 : false;
+  const email = session
+    ? (await getOperatorProfile(session.operatorId))?.email
+    : undefined;
   return (
     <>
-      <PortalBar home="/coach" canSwitch={canSwitch} />
+      <PortalBar home="/coach" canSwitch={canSwitch} email={email} />
       <div className="flex grow flex-col py-8">{children}</div>
     </>
   );

@@ -1,5 +1,6 @@
 import { PortalBar } from "../_portal/PortalBar";
 import { getSession, portalsFor } from "@/domains/account";
+import { getOperatorProfile } from "@/domains/operator";
 
 /**
  * The translator portal shell — the same top bar as coach, minus the section
@@ -18,9 +19,12 @@ export default async function TranslatorLayout({
 }) {
   const session = await getSession();
   const canSwitch = session ? portalsFor(session.roles).length > 1 : false;
+  const email = session
+    ? (await getOperatorProfile(session.operatorId))?.email
+    : undefined;
   return (
     <>
-      <PortalBar home="/translator" canSwitch={canSwitch} />
+      <PortalBar home="/translator" canSwitch={canSwitch} email={email} />
       <div className="flex grow flex-col py-8">{children}</div>
     </>
   );

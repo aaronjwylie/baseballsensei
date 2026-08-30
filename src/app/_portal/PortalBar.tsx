@@ -22,6 +22,7 @@ export function PortalBar({
   home,
   links = [],
   canSwitch = false,
+  email,
 }: {
   home: string;
   links?: { href: string; label: string }[];
@@ -33,6 +34,8 @@ export function PortalBar({
    * single-role operator never sees a switch that would only loop them back.
    */
   canSwitch?: boolean;
+  /** The signed-in operator's login address, shown under Account (Ben, QA 4.16). */
+  email?: string;
 }) {
   const pathname = usePathname();
   const isActive = (href: string) =>
@@ -79,11 +82,19 @@ export function PortalBar({
               Switch role
             </Link>
           )}
+          {/* Account, with the login email stacked beneath it and right-aligned
+              so both share their right edge with Sign out (Ben, QA 4.16). The
+              email truncates rather than widening the bar on a long address. */}
           <Link
             href="/account"
-            className="text-sm text-paper/70 transition-colors hover:text-paper"
+            className="flex flex-col items-end leading-tight text-paper/70 transition-colors hover:text-paper"
           >
-            Account
+            <span className="text-sm">Account</span>
+            {email && (
+              <span className="max-w-[13rem] truncate text-xs text-paper/50">
+                {email}
+              </span>
+            )}
           </Link>
           <form action={logout}>
             <Button type="submit" variant="onDark">
