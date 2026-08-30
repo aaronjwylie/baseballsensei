@@ -6,16 +6,18 @@ import { usePathname } from "next/navigation";
 /**
  * Decides whether a page wears the public marketing chrome.
  *
- * The operator portal (`/admin`, `/coach`, `/account`, `/login`) is an internal
- * tool — the "Pricing / FAQ / Submit a video" header belongs to the customer
- * site, not to the admin managing coaches. Those routes render bare; everything else
- * gets the header and footer.
+ * The operator portal (`/admin`, `/coach`, `/translator`, `/account`, `/login`)
+ * is an internal tool — the "Pricing / FAQ / Submit a video" header belongs to
+ * the customer site, not to the admin managing coaches. Those routes render bare
+ * (their own `PortalBar` is the only chrome); everything else gets the marketing
+ * header and footer. `/translator` was missing here, so it wore the marketing
+ * header *above* its portal bar — the asymmetry with coach in QA 4.6.
  *
  * A client gate rather than route groups so the marketing/customer pages stay
  * put — moving them would collide with the flow work in progress. Stays
  * domain-less: it knows route prefixes, nothing about a Submission.
  */
-const PORTAL = /^\/(admin|coach|account|login|forgot-password|reset-password)(\/|$)/;
+const PORTAL = /^\/(admin|coach|translator|portal|account|login|forgot-password|reset-password)(\/|$)/;
 
 /**
  * Three pages open on a full-bleed photograph and the design floats the header

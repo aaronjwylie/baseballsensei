@@ -12,7 +12,7 @@ export default function CoachLayout({
   return (
     <>
       <PortalBar home="/coach" />
-      <div className="py-8">{children}</div>
+      <div className="flex grow flex-col py-8">{children}</div>
     </>
   );
 }

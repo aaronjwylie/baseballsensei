@@ -18,7 +18,7 @@ export default function TranslatorLayout({
   return (
     <>
       <PortalBar home="/translator" />
-      <div className="py-8">{children}</div>
+      <div className="flex grow flex-col py-8">{children}</div>
     </>
   );
 }
