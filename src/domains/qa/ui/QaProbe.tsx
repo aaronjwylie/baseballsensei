@@ -134,6 +134,27 @@ export function QaProbe() {
     }
 
     /**
+     * The words a person reads beside a control.
+     *
+     * Two shapes are both valid HTML and both common: a label wrapping its
+     * control, and a label pointing at it with `for`. Reading only the first
+     * meant a form written the second way logged as nameless inputs — and the
+     * second way is exactly what a form becomes when someone fixes nested
+     * labels, so the instrument would have gone blind at the moment the code
+     * got better.
+     */
+    const labelOf = (el: Element): string => {
+      const aria = el.getAttribute("aria-label");
+      if (aria) return aria;
+      const id = el.getAttribute("id");
+      if (id) {
+        const forLabel = document.querySelector(`label[for="${CSS.escape(id)}"]`);
+        if (forLabel?.textContent) return forLabel.textContent;
+      }
+      return el.closest("label")?.textContent ?? "";
+    };
+
+    /**
      * A short, human description of what was clicked.
      *
      * **`textContent`, never `innerText`.** `innerText` is layout-dependent, so
@@ -178,7 +199,7 @@ export function QaProbe() {
       */
       const labelled =
         tag === "input" || tag === "select" || tag === "textarea"
-          ? node.closest("label")?.textContent ?? ""
+          ? labelOf(node)
           : "";
       const text = (node.getAttribute("aria-label") ||
         (tag === "select" ? node.getAttribute("name") : node.textContent) ||
@@ -250,10 +271,7 @@ export function QaProbe() {
         */
         const isTick = el.type === "checkbox" || el.type === "radio";
         const label =
-          el.getAttribute("aria-label") ||
-          el.closest("label")?.textContent?.replace(/\s+/g, " ").trim().slice(0, 60) ||
-          el.name ||
-          "";
+          labelOf(el).replace(/\s+/g, " ").trim().slice(0, 60) || el.name || "";
         if (!isTick && !el.name) return;
         if (el.name && isSensitiveField(el.name)) return;
 
@@ -453,10 +471,7 @@ export function QaProbe() {
         'input[type="checkbox"],input[type="radio"]',
       )) {
         const name =
-          el.getAttribute("aria-label") ||
-          el.closest("label")?.textContent?.replace(/\s+/g, " ").trim().slice(0, 34) ||
-          el.name ||
-          `#${i}`;
+          labelOf(el).replace(/\s+/g, " ").trim().slice(0, 34) || el.name || `#${i}`;
         /*
           Keyed by LABEL, with an occurrence counter only among boxes sharing
           one — never by position on the page.

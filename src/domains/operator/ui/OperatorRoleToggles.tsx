@@ -26,8 +26,8 @@ interface RoleState {
 /**
  * Every role, always present.
  *
- * **This shape is the fix.** The previous version stored an array of held
- * grants, which allowed two states that should never exist: the same role
+ * The previous version stored an array of held grants, which allowed two
+ * states that should never exist: the same role
  * twice (the toggle appended without checking, and the hidden inputs were keyed
  * by role, so React saw duplicate keys), and a role whose availability toggle
  * was showing while the role itself read as unheld. A total record over the
@@ -193,45 +193,73 @@ export function OperatorRoleToggles({
       ))}
 
       <ul className="space-y-2">
-        {ROLES.map((role) => (
-          <li key={role}>
-            <label className="flex items-start gap-2.5 text-sm">
+        {ROLES.map((role) => {
+          /*
+            Ids rather than wrapping.
+
+            Every control here used to sit INSIDE its label, and the
+            availability toggle sat inside the role's label as well — a label
+            nested in a label, which the HTML spec does not allow and browsers
+            resolve by guessing. A click on the inner control was also treated
+            as a click on the outer label, so it activated the outer checkbox
+            too: one click, two boxes, and the DOM moved underneath React
+            without a render, leaving `checked` and the actual input disagreeing
+            until something forced a re-render.
+
+            That is the whole of QA 4.7. Not caching, not state, not the action
+            — malformed markup. `htmlFor` associates each label with exactly one
+            control and nests nothing.
+          */
+          const holdId = `${operatorId}-${role}-held`;
+          const activeId = `${operatorId}-${role}-active`;
+          return (
+            <li key={role} className="flex items-start gap-2.5 text-sm">
               <input
+                id={holdId}
                 type="checkbox"
                 checked={roles[role].held}
                 onChange={(e) => toggleHold(role, e.target.checked)}
                 className="mt-0.5"
               />
-              <span>
-                <span className="font-medium capitalize text-ink">{role}</span>
-                <span className="block text-ink-muted">{BLURB[role]}</span>
+              <div>
+                <label
+                  htmlFor={holdId}
+                  className="font-medium capitalize text-ink"
+                >
+                  {role}
+                </label>
+                <p className="text-ink-muted">{BLURB[role]}</p>
 
                 {/*
                   Availability is a second, nested decision — and only askable
                   once they hold the kind. Pausing a coach is not the same act
                   as removing them: the grant survives, its history survives,
                   and they simply stop appearing as assignable.
+
+                  Nested in meaning, a sibling in markup.
                 */}
                 {roles[role].held && role !== "admin" && (
-                  <label className="mt-1.5 flex items-center gap-2 text-[13px]">
+                  <div className="mt-1.5 flex items-center gap-2 text-[13px]">
                     <input
+                      id={activeId}
                       type="checkbox"
                       checked={roles[role].active}
                       onChange={(e) => toggleActive(role, e.target.checked)}
                     />
-                    <span
+                    <label
+                      htmlFor={activeId}
                       className={roles[role].active ? "text-ink" : "text-ink-muted"}
                     >
                       {roles[role].active
                         ? `Taking ${role === "coach" ? "submissions" : "translations"}`
                         : "Paused — holds the role, cannot be assigned"}
-                    </span>
-                  </label>
+                    </label>
+                  </div>
                 )}
-              </span>
-            </label>
-          </li>
-        ))}
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       {heldRoles.length === 0 && (
