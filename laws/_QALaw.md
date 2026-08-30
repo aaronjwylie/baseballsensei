@@ -286,11 +286,21 @@ The states that earn their place, and why each is distinct:
 |---|---|---|
 | **pending** | nobody has picked it up | whoever found it |
 | **claimed** | someone is working on it now | the fixer, **before** they start |
-| **fixed** | a patch has landed | the fixer |
+| **fixed** | the patch is **live where the tester is testing** | the fixer |
 | **resolved** | re-tested, and it is genuinely gone | **the tester, never the fixer** |
 | **blocked** | real, agreed, and waiting on someone else | either |
 
 Two of those distinctions are load-bearing and are usually collapsed:
+
+- **`fixed` means deployed, not written.** A pushed commit is not a landed patch:
+  the tester is looking at whatever is actually serving them, and for the minutes
+  in between, a note marked fixed is *claiming something untrue*. Worse, it
+  invites the tester to re-run and hit the old behaviour — which reads as "the
+  fix did not work" and costs a round of confusion, or a second wrong diagnosis.
+  Wait for the deploy, then mark it. *Evidence: a fixer marked a note fixed on
+  push; the tester re-ran two minutes later, got the old error and an
+  `UnrecognizedActionError` from the version skew, and reasonably asked whether
+  the fix had been made at all.*
 
 - **`fixed` is not `resolved`.** The strongest thing the author of a patch may
   claim is that they wrote one. Letting them close the finding lets the board go

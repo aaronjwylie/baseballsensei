@@ -96,7 +96,7 @@ if (delId) {
 
 const transitions = [
   ["--claim", "claimed", "claimed — it is locked against edits while you work on it."],
-  ["--fixed", "fixed", "fixed — awaiting a tester's re-test."],
+  ["--fixed", "fixed", "fixed — awaiting a tester's re-test. CONFIRM THE DEPLOY IS LIVE FIRST: a pushed commit is not a landed patch, and a tester re-running against the old bundle will report the fix as failed."],
   ["--unclaim", "pending", "put back — a tester may edit or delete it again."],
 ];
 for (const [flag, status, said] of transitions) {
