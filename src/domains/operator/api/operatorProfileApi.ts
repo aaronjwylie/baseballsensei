@@ -60,6 +60,28 @@ export function toProfile(
 }
 
 /**
+ * An operator with no role to speak for — just who they are.
+ *
+ * The shape `toProfile` builds when there is no grant to source role facts
+ * from: identity, sign-in status, and empty settings. Two callers need it — the
+ * edit page, which asks about each role separately, and the unfiltered roster,
+ * where an operator whose every role was revoked still appears (Ben, QA 5.13.1)
+ * until they are deleted.
+ */
+function identityProfile(
+  operator: typeof operatorTable.$inferSelect,
+): OperatorProfile {
+  return {
+    id: operator.id,
+    email: operator.email,
+    name: operator.name,
+    isActive: operator.isActive,
+    specialties: [],
+    languages: [],
+  };
+}
+
+/**
  * The join, kept private to this file — operator plus one grant.
  *
  * **There used to be three of these**, differing only in how they reached a
@@ -141,14 +163,7 @@ export async function getOperatorProfile(id: string): Promise<OperatorProfile | 
     .where(eq(operatorTable.id, id))
     .limit(1);
   if (!operator) return null;
-  return {
-    id: operator.id,
-    email: operator.email,
-    name: operator.name,
-    isActive: operator.isActive,
-    specialties: [],
-    languages: [],
-  };
+  return identityProfile(operator);
 }
 
 /**
@@ -329,33 +344,50 @@ export interface OperatorListing extends OperatorProfile {
  * Two queries rather than one per row: the people, then their grants.
  */
 export async function listOperators(role?: Role): Promise<OperatorListing[]> {
+  /*
+    A filtered tab inner-joins — it is asking "who is a coach", and someone with
+    no coach grant is not one. The unfiltered list left-joins, because it is
+    asking "who can sign in", and an operator whose every role was revoked can
+    still sign in: they stay on the All list, with no role pills, until they are
+    actually deleted (Ben, QA 5.13.1 / 5.13.9). Only there can the representative
+    grant be absent, which is why it is nullable below.
+  */
   const rows = role
     ? await grantedQuery()
         .where(eq(operatorRoleGrantTable.role, role))
         .orderBy(asc(operatorTable.name))
-    : await grantedQuery().orderBy(asc(operatorTable.name));
+    : await db
+        .select()
+        .from(operatorTable)
+        .leftJoin(
+          operatorRoleGrantTable,
+          eq(operatorRoleGrantTable.operatorId, operatorTable.id),
+        )
+        .orderBy(asc(operatorTable.name));
 
   /* One row per operator, keeping the grant for the role being listed — or the
      first, when the list is "everyone". The settings shown are then that
-     role's, which is what the column headings claim they are. */
+     role's, which is what the column headings claim they are. A role-less
+     operator on the All list keeps a null grant and shows identity only. */
   const seen = new Map<
     string,
     {
       operator: typeof operatorTable.$inferSelect;
-      grant: typeof operatorRoleGrantTable.$inferSelect;
+      grant: typeof operatorRoleGrantTable.$inferSelect | null;
     }
   >();
   for (const r of rows) {
+    const grant = r.operator_role_grant;
     const kept = seen.get(r.operator.id);
-    if (!kept || (role && r.operator_role_grant.role === role))
-      seen.set(r.operator.id, { operator: r.operator, grant: r.operator_role_grant });
+    if (!kept || (role && grant?.role === role))
+      seen.set(r.operator.id, { operator: r.operator, grant });
   }
 
   const byId = await grantsForMany([...seen.keys()]);
 
   return [...seen.values()].map(({ operator, grant }) => {
     const grants = byId.get(operator.id) ?? [];
-    const base = toProfile(operator, grant);
+    const base = grant ? toProfile(operator, grant) : identityProfile(operator);
     return { ...base, grants, missing: whatIsMissing(base, grants) };
   });
 }
