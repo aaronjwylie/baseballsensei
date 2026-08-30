@@ -96,6 +96,19 @@ function render(events) {
       `${local} (${utc}Z) ${labelFor(e.session).padEnd(3)} ${e.kind.padEnd(7)} ` +
         `${(e.path || "").padEnd(16)} ${what}${KIND_MARK[e.kind] ?? ""}`,
     );
+    /* A state line carries the whole picture; print it under the diff so the
+       reader never has to reconstruct it from a sequence of deltas. */
+    if (e.kind === "state" && e.detail) {
+      try {
+        const all = JSON.parse(e.detail);
+        const cells = Object.entries(all).map(
+          ([k, v]) => `${v ? "[x]" : "[ ]"} ${k}`,
+        );
+        for (const cell of cells) console.log(`${" ".repeat(22)}${cell}`);
+      } catch {
+        /* not JSON — nothing to add */
+      }
+    }
   }
 }
 

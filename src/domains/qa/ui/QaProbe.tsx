@@ -202,12 +202,27 @@ export function QaProbe() {
       }
     };
 
+    /** Pin the picture at a moment, whether or not anything moved. */
+    const snapshot = (why: string) => {
+      const now = readTicks();
+      if (now.size === 0) return;
+      lastTicks = now;
+      push("state", {
+        target: `snapshot (${why})`,
+        detail: JSON.stringify(Object.fromEntries(now)).slice(0, 900),
+      });
+    };
+
     const onSubmit = (e: Event) => {
       try {
         const form = e.target as HTMLFormElement;
         const names = Array.from(form.elements)
           .map((el) => (el as HTMLInputElement).name)
           .filter((n) => n && !isSensitiveField(n));
+        snapshot("at submit");
+        // And again once the page has had a chance to react — the disputed
+        // moment is what the form looks like a beat AFTER saving.
+        setTimeout(() => snapshot("2s after submit"), 2000);
         push("submit", {
           target: form.getAttribute("aria-label") || form.id || "form",
           detail: JSON.stringify({ fields: names }),
@@ -408,7 +423,10 @@ export function QaProbe() {
     alertObserver.observe(document.body, { childList: true, subtree: true });
     scanForAlerts(document);
 
-    push("nav", { target: lastPath, detail: `run started · ${browserLabel()}` });
+    push("nav", {
+      target: lastPath,
+      detail: `run started · ${browserLabel()} · build ${process.env.BUILD_SHA ?? "?"}`,
+    });
 
     document.addEventListener("click", onClick, true);
     document.addEventListener("submit", onSubmit, true);
@@ -467,11 +485,21 @@ export function QaProbe() {
           else if (lastTicks.get(k) !== v) moved.push(`${k}→${v ? "ON" : "off"}`);
         }
         for (const k of lastTicks.keys()) if (!now.has(k)) moved.push(`-${k}`);
-        if (moved.length) push("state", { target: moved.join("  ").slice(0, 200) });
+        if (moved.length)
+          push("state", {
+            target: moved.join("  ").slice(0, 200),
+            /* The full picture on every line, not just the delta. A diff tells
+               you what moved; only a snapshot tells you what the form now SAYS,
+               which is the thing being disputed. */
+            detail: JSON.stringify(Object.fromEntries(now)).slice(0, 900),
+          });
       }
       lastTicks = now;
     };
     const tickTimer = setInterval(watchTicks, 500);
+    // One at load, so every session starts from a stated position rather than
+    // an inferred one.
+    setTimeout(() => snapshot("on load"), 600);
 
     const pathTimer = setInterval(watchPath, 400);
     const flushTimer = setInterval(() => void flush(), 2000);
