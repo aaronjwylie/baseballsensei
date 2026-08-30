@@ -176,6 +176,13 @@
       "when": 1787863251224,
       "tag": "0025_qa_note_revisions",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1788056882092,
+      "tag": "0026_roles_own_their_settings",
+      "breakpoints": true
     }
   ]
 }

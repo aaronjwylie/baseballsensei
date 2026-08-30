@@ -233,6 +233,7 @@ button {
   degraded state is a visible extra control, never a wrong one, because the
   server intersects availability with what is actually held.
 */
+.role-row:not(:has(> input[type="checkbox"]:checked)) .role-settings,
 .role-row:not(:has(> input[type="checkbox"]:checked)) .role-availability {
   display: none;
 }

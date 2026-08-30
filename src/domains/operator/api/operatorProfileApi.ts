@@ -21,7 +21,6 @@
 import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { operatorTable } from "../model/operatorTable";
-import { operatorProfileTable } from "../model/operatorProfileTable";
 import { operatorRoleGrantTable } from "../model/operatorRoleGrantTable";
 import { grantsForMany, type RoleGrant } from "./operatorRoleApi";
 import type { OperatorProfile, NewOperatorProfile } from "../model/operatorProfile";
@@ -31,83 +30,50 @@ import { setOperatorPassword } from "@/domains/account";
 import { createOperator } from "@/domains/account";
 import { grantRole } from "./operatorRoleApi";
 
-/** The one place two rows become one `OperatorProfile`. */
+/**
+ * One operator **in one role**.
+ *
+ * Every field except identity comes off the grant, because every field except
+ * identity is a fact about the role: a coach's languages and a translator's are
+ * different answers to different questions, and until 2026-08-30 they were the
+ * same column and could not be.
+ *
+ * `isActive` here is availability **for this role** — not `operator.isActive`,
+ * which is whether they may sign in at all. A coach who is taking submissions
+ * and a translator who is not are the same person.
+ */
 export function toProfile(
   operator: typeof operatorTable.$inferSelect,
-  /**
-   * Null for an operator with no profile row — an **admin**, who does no work
-   * and so carries none. Every field a profile would hold reads as empty.
-   */
-  profile: typeof operatorProfileTable.$inferSelect | null,
-  /**
-   * Availability **for the kind that was asked about**, off the grant — not
-   * `operator.isActive`, which is whether they may sign in at all. A coach who
-   * is taking submissions and a translator who is not are the same person.
-   */
-  isActive: boolean,
+  grant: typeof operatorRoleGrantTable.$inferSelect,
 ): OperatorProfile {
   return {
     id: operator.id,
     email: operator.email,
     name: operator.name,
-    isActive,
-    specialties: profile?.specialties ?? [],
-    languages: profile?.languages ?? [],
-    imageUrl: profile?.imageUrl ?? undefined,
-    bio: profile?.bio ?? undefined,
+    isActive: grant.isActive,
+    specialties: grant.specialties,
+    languages: grant.languages,
+    imageUrl: grant.imageUrl ?? undefined,
+    bio: grant.bio ?? undefined,
   };
 }
 
 /**
- * The join, kept private to this file.
+ * The join, kept private to this file — operator plus one grant.
  *
- * It reads two tables at once, which is why coaches and translators cannot be
- * separate domains however tempting the folder split looks: a join needs both
- * tables in one query, and a domain reading another's tables is the rule
- * `domains/coach` was dissolved for breaking.
+ * **There used to be three of these**, differing only in how they reached a
+ * second table: an inner join for assignment, a left join for the roster
+ * because an admin held a grant and no profile row, and a profile-only variant.
+ * The left/inner distinction was load-bearing and easy to get wrong — an inner
+ * join silently dropped the first profile-less admin from their own roster.
+ *
+ * With every role fact on the grant there is no second table and no optionality
+ * left to model. One query, one shape, nothing to choose wrong.
  */
-function profileQuery() {
-  return db
-    .select()
-    .from(operatorTable)
-    .innerJoin(
-      operatorProfileTable,
-      eq(operatorProfileTable.operatorId, operatorTable.id),
-    );
-}
-
-/** The same, joined to the grants — the caller supplies the condition. */
 function grantedQuery() {
   return db
     .select()
     .from(operatorTable)
-    .innerJoin(
-      operatorProfileTable,
-      eq(operatorProfileTable.operatorId, operatorTable.id),
-    )
-    .innerJoin(
-      operatorRoleGrantTable,
-      eq(operatorRoleGrantTable.operatorId, operatorTable.id),
-    );
-}
-
-/**
- * The roster variant: grants filtered, profile **optional**.
- *
- * `grantedQuery` inner-joins the profile because assignment needs someone who
- * does the work. The admin roster does not: an admin holds a grant and no
- * profile, and a `leftJoin` is the difference between listing them and dropping
- * them silently — which is exactly what an inner join did to the first
- * profile-less admin.
- */
-function grantedRosterQuery() {
-  return db
-    .select()
-    .from(operatorTable)
-    .leftJoin(
-      operatorProfileTable,
-      eq(operatorProfileTable.operatorId, operatorTable.id),
-    )
     .innerJoin(
       operatorRoleGrantTable,
       eq(operatorRoleGrantTable.operatorId, operatorTable.id),
@@ -131,7 +97,7 @@ export async function listAssignable(role: Role): Promise<OperatorProfile[]> {
       ),
     )
     .orderBy(asc(operatorTable.name));
-  return rows.map((r) => toProfile(r.operator, r.operator_profile, true));
+  return rows.map((r) => toProfile(r.operator, r.operator_role_grant));
 }
 
 /** Everyone holding one role, paused included — the admin's roster. */
@@ -140,7 +106,7 @@ export async function listByRole(role: Role): Promise<OperatorProfile[]> {
     .where(eq(operatorRoleGrantTable.role, role))
     .orderBy(asc(operatorTable.name));
   return rows.map((r) =>
-    toProfile(r.operator, r.operator_profile, r.operator_role_grant.isActive),
+    toProfile(r.operator, r.operator_role_grant),
   );
 }
 
@@ -149,9 +115,7 @@ export async function getByRole(id: string, role: Role): Promise<OperatorProfile
   const [row] = await grantedQuery()
     .where(and(eq(operatorTable.id, id), eq(operatorRoleGrantTable.role, role)))
     .limit(1);
-  return row
-    ? toProfile(row.operator, row.operator_profile, row.operator_role_grant.isActive)
-    : null;
+  return row ? toProfile(row.operator, row.operator_role_grant) : null;
 }
 
 /**
@@ -162,19 +126,28 @@ export async function getByRole(id: string, role: Role): Promise<OperatorProfile
  * several: arriving from the admins tab must not hide that they are a coach.
  */
 export async function getOperatorProfile(id: string): Promise<OperatorProfile | null> {
-  // Left join, not `profileQuery`'s inner one: this loads the edit page, and an
-  // admin has no profile row — inner-joining it turned "edit this admin" into a
-  // 404. A null profile reads as empty fields through `toProfile`.
-  const [row] = await db
+  /*
+    Identity only — no grant, and therefore no role facts.
+
+    This loads the edit page, which now asks about each role separately through
+    `grantsFor`. Returning one role's settings here would mean picking a role on
+    the caller's behalf, and picking wrong is how "edit this admin" once became
+    a 404: the query inner-joined a profile row an admin did not have.
+  */
+  const [operator] = await db
     .select()
     .from(operatorTable)
-    .leftJoin(
-      operatorProfileTable,
-      eq(operatorProfileTable.operatorId, operatorTable.id),
-    )
     .where(eq(operatorTable.id, id))
     .limit(1);
-  return row ? toProfile(row.operator, row.operator_profile, true) : null;
+  if (!operator) return null;
+  return {
+    id: operator.id,
+    email: operator.email,
+    name: operator.name,
+    isActive: operator.isActive,
+    specialties: [],
+    languages: [],
+  };
 }
 
 /**
@@ -184,9 +157,10 @@ export async function getOperatorProfile(id: string): Promise<OperatorProfile | 
  * owes a file without caring which kind of worker they are.
  */
 export async function getAssignee(id: string): Promise<OperatorProfile | null> {
-  const [row] = await profileQuery().where(eq(operatorTable.id, id)).limit(1);
-  // No role in the question, so no per-kind availability to report.
-  return row ? toProfile(row.operator, row.operator_profile, true) : null;
+  /* No role in the question, so the first grant answers it — the caller wants
+     a name and an email for someone who owes a file, not their settings. */
+  const [row] = await grantedQuery().where(eq(operatorTable.id, id)).limit(1);
+  return row ? toProfile(row.operator, row.operator_role_grant) : null;
 }
 
 /**
@@ -200,9 +174,9 @@ export async function getAssignee(id: string): Promise<OperatorProfile | null> {
  *
  * **Not a transaction, deliberately.** `createOperator` may fail on a duplicate
  * email, which is the common case and must surface to the form as a caught
- * error; if it succeeds, the profile insert has nothing left to violate. A
- * transaction here would buy atomicity against a failure mode that does not
- * exist and cost the error message that does.
+ * error; if it succeeds, the grant has nothing left to violate. A transaction
+ * here would buy atomicity against a failure mode that does not exist and cost
+ * the error message that does.
  */
 export async function createProfiledOperator(
   role: Role,
@@ -211,22 +185,31 @@ export async function createProfiledOperator(
 ): Promise<OperatorProfile> {
   const operator = await createOperator(input.email, input.password, input.name);
   // The login exists; now say what kind of person it belongs to.
+  // The login exists; the grant says what kind of person it belongs to AND
+  // carries that kind's settings, because they are the same fact.
   await grantRole(operator.id, role, grantedBy ?? null);
-  const [profile] = await db
-    .insert(operatorProfileTable)
-    .values({
-      operatorId: operator.id,
+  const [grant] = await db
+    .update(operatorRoleGrantTable)
+    .set({
       specialties: input.specialties,
       languages: input.languages,
       bio: input.bio,
     })
+    .where(
+      and(
+        eq(operatorRoleGrantTable.operatorId, operator.id),
+        eq(operatorRoleGrantTable.role, role),
+      ),
+    )
     .returning();
+  /* `createOperator` hands back only what authentication needs, so read the
+     row it wrote rather than casting one into existence. */
   const [row] = await db
     .select()
     .from(operatorTable)
     .where(eq(operatorTable.id, operator.id))
     .limit(1);
-  return toProfile(row, profile, true);
+  return toProfile(row, grant);
 }
 
 /** What may be changed about someone, across both of their rows. */
@@ -271,20 +254,27 @@ export async function updateProfiledOperator(
   if (Object.keys(operatorPatch).length) {
     await db.update(operatorTable).set(operatorPatch).where(eq(operatorTable.id, id));
   }
-  if (Object.keys(profile).length) {
+  /* Role settings go on the grant for the role being edited. Editing "the
+     person's languages" is no longer a thing that can be asked — which is the
+     whole point of the move. */
+  if (Object.keys(profile).length && role) {
     await db
-      .update(operatorProfileTable)
+      .update(operatorRoleGrantTable)
       .set(profile)
-      .where(eq(operatorProfileTable.operatorId, id));
+      .where(
+        and(
+          eq(operatorRoleGrantTable.operatorId, id),
+          eq(operatorRoleGrantTable.role, role),
+        ),
+      );
   }
 
   // An admin reset — no current-password check; the admin's authority is the guard.
   if (password) await setOperatorPassword(id, password);
 
-  // By id, not by role: `getByRole` inner-joins the profile, so editing a
-  // profile-less admin threw "vanished mid-update" the moment the update itself
-  // succeeded. The row we just wrote is what we want back, whatever their kind.
-  const updated = await getOperatorProfile(id);
+  // Read back through the role that was edited when there is one, so the caller
+  // gets that role's settings rather than a guess at which role it meant.
+  const updated = role ? await getByRole(id, role) : await getOperatorProfile(id);
   if (!updated) throw new Error(`operator ${id} vanished mid-update`);
   return updated;
 }
@@ -321,21 +311,32 @@ export interface OperatorListing extends OperatorProfile {
  */
 export async function listOperators(role?: Role): Promise<OperatorListing[]> {
   const rows = role
-    ? await grantedRosterQuery()
+    ? await grantedQuery()
         .where(eq(operatorRoleGrantTable.role, role))
         .orderBy(asc(operatorTable.name))
-    : await profileQuery().orderBy(asc(operatorTable.name));
+    : await grantedQuery().orderBy(asc(operatorTable.name));
 
-  const seen = new Map<string, { operator: typeof operatorTable.$inferSelect; profile: typeof operatorProfileTable.$inferSelect | null }>();
-  for (const r of rows) seen.set(r.operator.id, { operator: r.operator, profile: r.operator_profile });
+  /* One row per operator, keeping the grant for the role being listed — or the
+     first, when the list is "everyone". The settings shown are then that
+     role's, which is what the column headings claim they are. */
+  const seen = new Map<
+    string,
+    {
+      operator: typeof operatorTable.$inferSelect;
+      grant: typeof operatorRoleGrantTable.$inferSelect;
+    }
+  >();
+  for (const r of rows) {
+    const kept = seen.get(r.operator.id);
+    if (!kept || (role && r.operator_role_grant.role === role))
+      seen.set(r.operator.id, { operator: r.operator, grant: r.operator_role_grant });
+  }
 
   const byId = await grantsForMany([...seen.keys()]);
 
-  return [...seen.values()].map(({ operator, profile }) => {
+  return [...seen.values()].map(({ operator, grant }) => {
     const grants = byId.get(operator.id) ?? [];
-    // Availability for the kind being asked about; true when asking about none.
-    const forRole = role ? grants.find((g) => g.role === role)?.isActive : true;
-    const base = toProfile(operator, profile, forRole ?? true);
+    const base = toProfile(operator, grant);
     return { ...base, grants, missing: whatIsMissing(base, grants) };
   });
 }

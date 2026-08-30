@@ -22,7 +22,6 @@
 import "./loadEnv";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/shared/db";
-import { operatorProfileTable } from "@/domains/operator/model/operatorProfileTable";
 import {
   submissionTable,
   operatorTable,
@@ -398,6 +397,23 @@ async function walk(label: string, translating: boolean) {
  * that says what they cover — and the id the rest of the walk assigns is the
  * operator's.
  */
+/** Settings belong to the grant, so a fixture writes them there. */
+async function setRoleSettings(
+  operatorId: string,
+  role: "coach" | "translator",
+  values: { languages?: string[]; specialties?: ("Hitting" | "Pitching" | "Fielding" | "Catching" | "Other")[] },
+) {
+  await db
+    .update(operatorRoleGrantTable)
+    .set(values)
+    .where(
+      and(
+        eq(operatorRoleGrantTable.operatorId, operatorId),
+        eq(operatorRoleGrantTable.role, role),
+      ),
+    );
+}
+
 async function ensureCoach(name: string, languages: string[]) {
   const email = `${name.toLowerCase().replace(/[^a-z]+/g, "-")}@sim.local`;
   const [existing] = await db
@@ -406,10 +422,7 @@ async function ensureCoach(name: string, languages: string[]) {
     .where(eq(operatorTable.email, email));
 
   if (existing) {
-    await db
-      .update(operatorProfileTable)
-      .set({ languages })
-      .where(eq(operatorProfileTable.operatorId, existing.id));
+    await setRoleSettings(existing.id, "coach", { languages });
     return { id: existing.id, name: existing.name, languages };
   }
 
@@ -417,17 +430,16 @@ async function ensureCoach(name: string, languages: string[]) {
     .insert(operatorTable)
     .values({ email, passwordHash: "x", name })
     .returning();
-  await db
-    .insert(operatorProfileTable)
-    .values({ operatorId: operator.id, languages, specialties: ["Hitting"] });
-  // A kind is a grant now, not a column. A fixture without one is unlike any
-  // real operator — it would not appear in `listCoaches()`.
+  // A kind is a grant, and the grant carries the kind's settings — one row, not
+  // two. A fixture without a grant is unlike any real operator: it would not
+  // appear in `listCoaches()` at all.
   await grantRole(operator.id, "coach", null);
+  await setRoleSettings(operator.id, "coach", { languages, specialties: ["Hitting"] });
   return { id: operator.id, name: operator.name, languages };
 }
 
 /**
- * A translator, which is the same two rows with a different role.
+ * A translator, which is the same row with a different role.
  *
  * Separate from `ensureCoach` only because the role differs — and that
  * difference is exactly what `listCoaches()` failed to filter on before ADR 018
@@ -445,10 +457,10 @@ async function ensureTranslator(name: string) {
     .insert(operatorTable)
     .values({ email, passwordHash: "x", name })
     .returning();
-  await db
-    .insert(operatorProfileTable)
-    .values({ operatorId: operator.id, languages: ["English", "Japanese"], specialties: [] });
   await grantRole(operator.id, "translator", null);
+  await setRoleSettings(operator.id, "translator", {
+    languages: ["English", "Japanese"],
+  });
   return { id: operator.id, name: operator.name };
 }
 

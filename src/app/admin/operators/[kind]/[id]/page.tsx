@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/shared/ui";
+import { ROLES } from "@/domains/operator/model/operatorRoleEnum";
 import { requireRole } from "@/domains/account";
 import {
   getOperatorProfile,
   grantsFor,
-  updateProfiledOperatorAction,
-  OperatorProfileForm,
-  OperatorRoleToggles,
+  OperatorRoleCard,
+  OperatorIdentityForm,
 } from "@/domains/operator";
 
 export const metadata: Metadata = {
@@ -51,33 +51,48 @@ export default async function EditOperatorPage(props: {
         <p className="text-sm text-ink-muted">{person.email}</p>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-line bg-white p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
-          Roles
+      {/*
+        A card per role, each owning everything that role decides.
+
+        This was a "Roles" card of three checkboxes over a settings form full of
+        conditionals — `holds("coach") || holds("translator")` for specialties,
+        `isPublic` for the bio, a three-way ternary for the languages hint. Every
+        way the roles differ was a branch inside one shared form, and the roles
+        differ more each time anyone looks.
+
+        Three cards answer "which role is this for?" once, structurally, and
+        divergence becomes an ordinary difference between two components rather
+        than another conditional in one. They save independently, so a stale
+        submission can no longer remove the two roles it forgot to mention.
+      */}
+      <div className="mt-8 space-y-4">
+        {ROLES.map((role) => (
+          <OperatorRoleCard
+            key={role}
+            operatorId={id}
+            role={role}
+            grant={grants.find((g) => g.role === role)}
+          />
+        ))}
+      </div>
+
+      {/*
+        Identity is not a role. Name, email and password are true of the person
+        whichever hats they wear, so they sit apart from the three — putting them
+        inside any one card would make that card lie about its scope.
+      */}
+      <div className="mt-8 rounded-2xl border border-line bg-white p-6">
+        <h2 className="font-display text-lg font-medium uppercase tracking-[-0.01em] text-ink">
+          Sign-in
         </h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          One person can be more than one kind. <strong>Holding</strong> a role
-          puts them on that list; <strong>taking work</strong> is whether they
-          can be assigned it right now — pause a coach without removing them.
+        <p className="mt-0.5 text-sm text-ink-muted">
+          Who they are, whichever roles they hold.
         </p>
         <div className="mt-4">
-          <OperatorRoleToggles operatorId={id} grants={grants} />
+          <OperatorIdentityForm operatorId={id} existing={person} />
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-line bg-white p-6">
-        {/*
-          The form asks for what the *person* needs, derived from every kind
-          they hold — not from the tab you arrived through. Add `coach` to an
-          admin and the specialties field appears here on the next render, which
-          is why adding a kind needs no separate prompt.
-        */}
-        <OperatorProfileForm
-          roles={grants.map((g) => g.role)}
-          action={updateProfiledOperatorAction.bind(null, "admin")}
-          existing={person}
-        />
-      </div>
     </Container>
   );
 }

@@ -20,6 +20,7 @@
 import { and, eq, inArray, ne } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { operatorRoleGrantTable } from "../model/operatorRoleGrantTable";
+import type { Focus } from "@/domains/submission";
 import { operatorTable } from "../model/operatorTable";
 import type { Role } from "../model/operatorRoleEnum";
 
@@ -76,9 +77,23 @@ export async function otherActiveAdminExists(
 }
 
 /** One membership: the kind, and whether they are taking that work. */
+/**
+ * One role a person holds, **and everything that role carries**.
+ *
+ * Settings moved onto the grant on 2026-08-30. Before that a coach and a
+ * translator shared one set of languages and specialties per person, so the two
+ * could not disagree — and they are answers to different questions: a coach's
+ * languages decide whether a submission needs translating at all, a
+ * translator's decide which legs they can take.
+ */
 export interface RoleGrant {
   role: Role;
   isActive: boolean;
+  languages: string[];
+  specialties: Focus[];
+  /** Coach only, in practice — the public site shows no one else. */
+  bio?: string;
+  imageUrl?: string;
 }
 
 /** Every kind this operator is. Empty means onboarded but given nothing yet. */
@@ -89,13 +104,17 @@ export async function rolesFor(operatorId: string): Promise<Role[]> {
 /** The same, with availability — what the toggles render from. */
 export async function grantsFor(operatorId: string): Promise<RoleGrant[]> {
   const rows = await db
-    .select({
-      role: operatorRoleGrantTable.role,
-      isActive: operatorRoleGrantTable.isActive,
-    })
+    .select()
     .from(operatorRoleGrantTable)
     .where(eq(operatorRoleGrantTable.operatorId, operatorId));
-  return rows;
+  return rows.map((r) => ({
+    role: r.role,
+    isActive: r.isActive,
+    languages: r.languages,
+    specialties: r.specialties,
+    bio: r.bio ?? undefined,
+    imageUrl: r.imageUrl ?? undefined,
+  }));
 }
 
 /**
@@ -108,7 +127,13 @@ export async function grantsFor(operatorId: string): Promise<RoleGrant[]> {
  */
 export async function setGrants(
   operatorId: string,
-  grants: RoleGrant[],
+  /**
+   * Membership and availability only. Settings are edited per role by
+   * `setRoleSettings` and are deliberately **not** touched here: this function
+   * exists to say which roles someone holds, and a save of that question must
+   * not blank the answers to a different one.
+   */
+  grants: { role: Role; isActive: boolean }[],
   grantedBy: string | null,
 ): Promise<void> {
   const wanted = new Map(grants.map((g) => [g.role, g.isActive]));
@@ -172,7 +197,14 @@ export async function grantsForMany(
     .from(operatorRoleGrantTable)
     .where(inArray(operatorRoleGrantTable.operatorId, operatorIds));
   for (const row of rows) {
-    byId.get(row.operatorId)?.push({ role: row.role, isActive: row.isActive });
+    byId.get(row.operatorId)?.push({
+      role: row.role,
+      isActive: row.isActive,
+      languages: row.languages,
+      specialties: row.specialties,
+      bio: row.bio ?? undefined,
+      imageUrl: row.imageUrl ?? undefined,
+    });
   }
   return byId;
 }
@@ -265,4 +297,51 @@ export async function operatorIdsWithRole(role: Role): Promise<string[]> {
     )
     .where(eq(operatorRoleGrantTable.role, role));
   return rows.map((r) => r.operatorId);
+}
+
+/**
+ * Edit one role's settings.
+ *
+ * Deliberately separate from `setGrants`, which says which roles someone holds.
+ * Two questions, two saves: changing a coach's languages must not be able to
+ * remove their translator role by omission, and a form that could do both would
+ * make that possible.
+ */
+export async function setRoleSettings(
+  operatorId: string,
+  role: Role,
+  values: {
+    languages?: string[];
+    specialties?: Focus[];
+    bio?: string | null;
+    imageUrl?: string | null;
+  },
+): Promise<void> {
+  if (Object.keys(values).length === 0) return;
+  await db
+    .update(operatorRoleGrantTable)
+    .set(values)
+    .where(
+      and(
+        eq(operatorRoleGrantTable.operatorId, operatorId),
+        eq(operatorRoleGrantTable.role, role),
+      ),
+    );
+}
+
+/** Availability for one role, on its own — the pause switch. */
+export async function setGrantActive(
+  operatorId: string,
+  role: Role,
+  isActive: boolean,
+): Promise<void> {
+  await db
+    .update(operatorRoleGrantTable)
+    .set({ isActive })
+    .where(
+      and(
+        eq(operatorRoleGrantTable.operatorId, operatorId),
+        eq(operatorRoleGrantTable.role, role),
+      ),
+    );
 }

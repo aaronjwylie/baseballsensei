@@ -9,11 +9,13 @@
  *
  * ## Why a table rather than an array column
  *
- * `languages` and `specialties` are arrays on the profile, so an array here
- * would have been consistent and half the work. A grant is different: **it is a
- * privilege change**, and the two questions you eventually ask about one are
- * *who did this* and *when*. An array answers neither, and cannot be made to
- * without becoming a table.
+ * A grant is **a privilege change**, and the two questions you eventually ask
+ * about one are *who did this* and *when*. An array of roles on the operator
+ * answers neither, and cannot be made to without becoming a table.
+ *
+ * That shape then earned itself twice over: `languages` and `specialties` moved
+ * here from the profile in 2026-08-30, because they are per-role facts that had
+ * been sharing one value per person.
  *
  * That is the whole reason for `grantedBy`. Nothing reads it yet.
  *
@@ -30,10 +32,18 @@
  * `grantedAt` uses `clock_timestamp()`, not `now()` — see
  * `submissionEventTable` for the day that distinction cost us.
  */
-import { pgTable, uuid, timestamp, boolean, primaryKey } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  timestamp,
+  boolean,
+  text,
+  primaryKey,
+} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { operatorTable } from "./operatorTable";
 import { operatorRole } from "./operatorRoleEnum";
+import { focus } from "@/domains/submission/model/focusEnum";
 
 export const operatorRoleGrantTable = pgTable(
   "operator_role_grant",
@@ -55,6 +65,44 @@ export const operatorRoleGrantTable = pgTable(
      * decisions, made for different reasons, by possibly different people.
      */
     isActive: boolean().notNull().default(true),
+    /**
+     * What they read, **for this role**.
+     *
+     * Moved off `operator_profile` on 2026-08-30. One person had one list, so a
+     * coach who reads English and Japanese was necessarily a translator who
+     * works between English and Japanese — the same fact standing in for two
+     * different ones. They are not the same: a coach's languages decide whether
+     * a submission needs translating at all, and a translator's decide which
+     * legs they can take. Someone can coach in one language and translate
+     * between two others.
+     *
+     * Empty is meaningful and common: an admin has no languages because the
+     * question does not apply to running the platform.
+     */
+    languages: text().array().notNull().default([]),
+    /**
+     * Which focuses this role covers — Hitting, Pitching and the rest.
+     *
+     * Per-role for the same reason: a coach's specialties are what they will be
+     * assigned to review; a translator's are the vocabularies they are fluent
+     * in. A person can be both without those two lists agreeing.
+     */
+    specialties: focus().array().notNull().default([]),
+    /**
+     * The public blurb and photograph — **coach only**, in practice.
+     *
+     * They live here rather than on the person because they exist *because of*
+     * the role: a coach is shown on the public site, an admin and a translator
+     * are not. Putting them on the operator made "is this person public?" a
+     * question you answered by checking a different table.
+     *
+     * Consequence, stated plainly: removing a coach role discards that role's
+     * bio and photo. That is the intended reading — the public presence exists
+     * because the role does — and it is why pausing exists as the reversible
+     * act. Removing a role is meant to be deliberate.
+     */
+    bio: text(),
+    imageUrl: text(),
     grantedAt: timestamp({ withTimezone: true })
       .default(sql`clock_timestamp()`)
       .notNull(),
