@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 21,
-    "generatedAt": "2026-08-30T03:12:34.321Z",
-    "checks": 199,
-    "live": 199,
+    "build": 22,
+    "generatedAt": "2026-08-30T20:02:14.911Z",
+    "checks": 200,
+    "live": 200,
     "retired": 0,
-    "edited": 8
+    "edited": 9
   },
   "phases": [
     {
@@ -705,8 +705,21 @@
             },
             {
               "id": "4.11",
-              "what": "Use the same link twice",
-              "expect": "Refused — single use"
+              "what": "Use the same link twice — and submit a new password, do not just open it",
+              "expect": "Refused on submit, not on load: \"This reset link is invalid, already used, or expired.\" The page renders the form either way, because it only checks a token is present. Succeeding here would mean the single-use binding is broken",
+              "flag": "flag",
+              "history": [
+                {
+                  "at": "2026-08-30T20:02:14.911Z",
+                  "what": "Use the same link twice",
+                  "expect": "Refused — single use"
+                }
+              ]
+            },
+            {
+              "id": "4.11.1",
+              "what": "Judgement call, not a defect: should a spent link say so on load?",
+              "expect": "Today you type a password twice before being told. Safe, since a spent token cannot change anything — but a wasted trip. Decide whether the page should verify on load and offer \"request a new link\""
             },
             {
               "id": "4.12",

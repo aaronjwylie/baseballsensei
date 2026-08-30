@@ -246,7 +246,8 @@ password for two weeks.
 | 4.8 | `/forgot-password` with a real address | Reset email arrives |
 | 4.9 | `/forgot-password` with an unknown address | Same visible response, no email |
 | 4.10 | Use the reset link | ⚠️ Password changes; **you can log in with the new one**|
-| 4.11 | Use the same link **twice** | Refused — single use |
+| 4.11 | Use the same link **twice** — and **submit a new password**, do not just open it | ⚠️ Refused on **submit**, not on load: "This reset link is invalid, already used, or expired." The page renders the form either way, because it only checks a token is present. Succeeding here would mean the single-use binding is broken |
+| 4.11.1 | Judgement call, not a defect: should a spent link say so **on load**? | Today you type a password twice before being told. Safe, since a spent token cannot change anything — but a wasted trip. Decide whether the page should verify on load and offer "request a new link" |
 | 4.12 | An expired link | Refused with a clear message |
 | 4.13 | `/account` → change password | Requires the current one; wrong current is refused |
 | 4.14 | Log out | Session gone; `/admin` bounces to `/login` |

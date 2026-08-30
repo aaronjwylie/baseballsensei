@@ -684,10 +684,16 @@
     },
     "4.11": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
-      "what": "Use the same link twice",
-      "expect": "Refused — single use",
+      "what": "Use the same link twice — and submit a new password, do not just open it",
+      "expect": "Refused on submit, not on load: \"This reset link is invalid, already used, or expired.\" The page renders the form either way, because it only checks a token is present. Succeeding here would mean the single-use binding is broken",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-30T20:02:14.911Z",
+          "what": "Use the same link twice",
+          "expect": "Refused — single use"
+        }
+      ]
     },
     "4.12": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -1448,6 +1454,13 @@
       "firstSeen": "2026-08-30T03:12:34.321Z",
       "what": "⚠️ Now look for that bio and photo on the public site",
       "expect": "They are not there. The landing page's coach section is hardcoded copy in landing/model/copy.ts, and nothing links to /api/coach-image/[id]. The card collects data with no consumer — decide whether the public section becomes data-driven or the fields come out",
+      "retired": false,
+      "history": []
+    },
+    "4.11.1": {
+      "firstSeen": "2026-08-30T20:02:14.911Z",
+      "what": "Judgement call, not a defect: should a spent link say so on load?",
+      "expect": "Today you type a password twice before being told. Safe, since a spent token cannot change anything — but a wasted trip. Decide whether the page should verify on load and offer \"request a new link\"",
       "retired": false,
       "history": []
     }

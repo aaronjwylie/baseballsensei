@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 21</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 22</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1172,8 +1172,14 @@ const PHASES = [
           ],
           [
             "4.11",
-            "Use the same link twice",
-            "Refused — single use"
+            "Use the same link twice — and submit a new password, do not just open it",
+            "Refused on submit, not on load: \"This reset link is invalid, already used, or expired.\" The page renders the form either way, because it only checks a token is present. Succeeding here would mean the single-use binding is broken",
+            "flag"
+          ],
+          [
+            "4.11.1",
+            "Judgement call, not a defect: should a spent link say so on load?",
+            "Today you type a password twice before being told. Safe, since a spent token cannot change anything — but a wasted trip. Decide whether the page should verify on load and offer \"request a new link\""
           ],
           [
             "4.12",
