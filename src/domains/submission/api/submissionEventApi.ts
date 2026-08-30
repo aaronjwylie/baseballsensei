@@ -139,6 +139,43 @@ export async function noteEmailSent(
 }
 
 /**
+ * The one label the decline email is filed under — shared so the send path and
+ * the idempotency guard below can't drift onto two spellings.
+ */
+export const DECLINE_EMAIL_LABEL = "card declined → customer";
+
+/**
+ * Has a "card declined" email already *gone out* for this exact intent?
+ *
+ * The decline path has two callers now — the webhook and the browser reporting
+ * its own decline (ADR 003) — and Stripe can redeliver, so each intent's decline
+ * has to earn exactly one email. The intent id rides in the event's `note`, and
+ * this reads it. Only a `sent` outcome counts: a failed send leaves the door open
+ * for the other caller (or a redelivery) to try again. Keyed on the intent, not
+ * the submission, so a customer declined again on a *fresh* intent still gets a
+ * nudge.
+ */
+export async function declineEmailedFor(
+  submissionId: string,
+  paymentIntentId: string,
+): Promise<boolean> {
+  const rows = await db
+    .select({ id: submissionEventTable.id })
+    .from(submissionEventTable)
+    .where(
+      and(
+        eq(submissionEventTable.submissionId, submissionId),
+        eq(submissionEventTable.kind, "email"),
+        eq(submissionEventTable.label, DECLINE_EMAIL_LABEL),
+        eq(submissionEventTable.outcome, "sent"),
+        eq(submissionEventTable.note, paymentIntentId),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
+}
+
+/**
  * The customer entered a code — and whether it worked.
  *
  * The one thing they *do* between a send and a status move. Success was already
