@@ -29,6 +29,7 @@ import type { Focus } from "@/domains/submission";
 import { releaseAssignments } from "@/domains/submission";
 import { setOperatorPassword } from "@/domains/account";
 import { createOperator } from "@/domains/account";
+import { sendOperatorWelcomeEmail } from "./operatorWelcomeEmail";
 import { grantRole } from "./operatorRoleApi";
 
 /**
@@ -225,6 +226,14 @@ export async function createProfiledOperator(
     .from(operatorTable)
     .where(eq(operatorTable.id, operator.id))
     .limit(1);
+
+  /* Tell them they're in and where to sign in (Ben, QA 5.13.2 / 5.13.4 /
+     5.13.5). Best-effort by contract — a bounced welcome must not undo an
+     operator the admin already created, so this never throws. Only the first
+     grant, made here at creation; adding a role later is the edit page's job and
+     a different message if it ever wants one. */
+  await sendOperatorWelcomeEmail(input.email, input.name, role);
+
   return toProfile(row, grant);
 }
 
