@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button, Field, inputClass } from "@/shared/ui";
+import { Button, Field, PasswordInput, SavedBadge, inputClass } from "@/shared/ui";
 import { FOCUS_OPTIONS, choiceForLanguages } from "@/domains/submission/model/submission";
 import { LanguageChoiceField } from "@/domains/submission/ui/LanguageChoiceField";
 import { DEFAULT_LANGUAGE_CHOICE } from "../model/operatorProfile";
@@ -67,11 +67,6 @@ export function OperatorProfileForm({
           {state.error}
         </p>
       )}
-      {state && "ok" in state && (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          {editing ? "Saved." : `${noun} added.`}
-        </p>
-      )}
 
       {editing && <input type="hidden" name="operatorId" value={existing.id} />}
 
@@ -103,13 +98,11 @@ export function OperatorProfileForm({
             : "At least 8 characters. They can change it later."
         }
       >
-        <input
+        <PasswordInput
           name="password"
-          type="password"
           required={!editing}
           minLength={8}
           autoComplete="new-password"
-          className={inputClass}
         />
       </Field>
 
@@ -172,15 +165,20 @@ export function OperatorProfileForm({
         </>
       )}
 
+            <div className="flex items-center gap-3">
             <Button type="submit" disabled={pending}>
-        {pending
-          ? editing
-            ? "Saving…"
-            : "Adding…"
-          : editing
-            ? "Save changes"
-            : `Add ${primary}`}
-      </Button>
+          {pending
+            ? editing
+              ? "Saving…"
+              : "Adding…"
+            : editing
+              ? "Save changes"
+              : `Add ${primary}`}
+        </Button>
+              {state && "ok" in state && (
+                <SavedBadge>{editing ? "Saved" : `${noun} added`}</SavedBadge>
+              )}
+            </div>
     </form>
   );
 }

@@ -7,7 +7,7 @@
 import { useActionState } from "react";
 import { login } from "../api/auth";
 import type { LoginState } from "../model/session";
-import { Button, Field, inputClass } from "@/shared/ui";
+import { Button, Field, PasswordInput, inputClass } from "@/shared/ui";
 
 export function LoginForm() {
   const [state, action, pending] = useActionState<LoginState, FormData>(
@@ -34,12 +34,10 @@ export function LoginForm() {
       </Field>
 
       <Field label="Password">
-        <input
+        <PasswordInput
           name="password"
-          type="password"
           required
           autoComplete="current-password"
-          className={inputClass}
         />
       </Field>
 

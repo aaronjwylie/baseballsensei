@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button, Field, inputClass } from "@/shared/ui";
+import { Button, Field, PasswordInput, SavedBadge } from "@/shared/ui";
 import { changePasswordAction } from "../api/auth";
 import type { ChangePasswordState } from "../model/session";
 
@@ -18,44 +18,36 @@ export function ChangePasswordForm() {
           {state.error}
         </p>
       )}
-      {state && "ok" in state && (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          Password changed.
-        </p>
-      )}
 
       <Field label="Current password">
-        <input
+        <PasswordInput
           name="current"
-          type="password"
           required
           autoComplete="current-password"
-          className={inputClass}
         />
       </Field>
       <Field label="New password" hint="At least 8 characters">
-        <input
+        <PasswordInput
           name="next"
-          type="password"
           required
           minLength={8}
           autoComplete="new-password"
-          className={inputClass}
         />
       </Field>
       <Field label="Confirm new password">
-        <input
+        <PasswordInput
           name="confirm"
-          type="password"
           required
           autoComplete="new-password"
-          className={inputClass}
         />
       </Field>
 
-      <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Change password"}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={pending}>
+          {pending ? "Saving…" : "Change password"}
+        </Button>
+        {state && "ok" in state && <SavedBadge>Password changed</SavedBadge>}
+      </div>
     </form>
   );
 }

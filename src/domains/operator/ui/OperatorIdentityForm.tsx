@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button, Field, inputClass } from "@/shared/ui";
+import { Button, Field, PasswordInput, SavedBadge, inputClass } from "@/shared/ui";
 import { updateOperatorIdentityAction } from "../api/operatorProfileActions";
 import type { OperatorProfileFormState } from "../api/operatorProfileActions";
 import type { OperatorProfile } from "../model/operatorProfile";
@@ -42,11 +42,6 @@ export function OperatorIdentityForm({
           {state.error}
         </p>
       )}
-      {state && "ok" in state && (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          Saved.
-        </p>
-      )}
 
       <input type="hidden" name="operatorId" value={operatorId} />
 
@@ -73,12 +68,15 @@ export function OperatorIdentityForm({
         label="New password"
         hint="Leave blank to keep the current one. An admin setting this needs no current password — the admin's authority is the guard."
       >
-        <input name="password" type="password" className={inputClass} />
+        <PasswordInput name="password" autoComplete="new-password" />
       </Field>
 
-      <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Save sign-in"}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={pending}>
+          {pending ? "Saving…" : "Save sign-in"}
+        </Button>
+        {state && "ok" in state && <SavedBadge>Saved</SavedBadge>}
+      </div>
     </form>
   );
 }

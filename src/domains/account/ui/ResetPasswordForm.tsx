@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button, ButtonLink, Field, inputClass } from "@/shared/ui";
+import { Button, ButtonLink, Field, PasswordInput } from "@/shared/ui";
 import {
   resetPasswordAction,
   type ResetPasswordFormState,
@@ -35,23 +35,19 @@ export function ResetPasswordForm({ token }: { token: string }) {
       )}
       <input type="hidden" name="token" value={token} />
       <Field label="New password" hint="At least 8 characters.">
-        <input
+        <PasswordInput
           name="password"
-          type="password"
           required
           minLength={8}
           autoComplete="new-password"
-          className={inputClass}
         />
       </Field>
       <Field label="Confirm new password">
-        <input
+        <PasswordInput
           name="confirm"
-          type="password"
           required
           minLength={8}
           autoComplete="new-password"
-          className={inputClass}
         />
       </Field>
       <Button type="submit" disabled={pending} className="w-full">
