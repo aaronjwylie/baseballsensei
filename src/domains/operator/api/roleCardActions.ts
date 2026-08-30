@@ -1,8 +1,12 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { requireRole } from "@/domains/account";
 import { releaseAssignments } from "@/domains/submission";
+import { db } from "@/shared/db";
 import { storage, coachImageKey } from "@/shared/storage";
+import { operatorTable } from "../model/operatorTable";
+import { sendOperatorWelcomeEmail } from "./operatorWelcomeEmail";
 import {
   FOCUS_OPTIONS,
   LANGUAGE_CHOICES,
@@ -107,6 +111,11 @@ export async function saveRoleAction(
     return { grant: null };
   }
 
+  // Whether they already held this role decides more than idempotency: a role
+  // newly granted here sends its assignment email, a re-save of one they already
+  // hold does not (Ben, QA 5.13.2). Read before the grant lands.
+  const wasHeld = (await grantsFor(operatorId)).some((g) => g.role === role);
+
   // Idempotent: granting a role someone already holds keeps its `grantedAt`.
   await grantRole(operatorId, role, session.operatorId);
 
@@ -148,6 +157,24 @@ export async function saveRoleAction(
     ...(imageUrl ? { imageUrl } : {}),
   });
   await setGrantActive(operatorId, role, isActive);
+
+  /*
+    Tell them a role has been assigned — the same per-role message creation
+    sends, one email per role, only when the role is newly granted (Ben, QA
+    5.13.2). Each card saves its own role, so assigning coach and translator is
+    two saves and two emails; a pause, an unpause or a settings edit re-saves a
+    role already held and sends nothing; a revoke returned above; a re-grant
+    after a revoke reads as not-held here and mails again. Best-effort — a bounced
+    notice must never fail the save that already landed.
+  */
+  if (!wasHeld) {
+    const [op] = await db
+      .select({ email: operatorTable.email, name: operatorTable.name })
+      .from(operatorTable)
+      .where(eq(operatorTable.id, operatorId))
+      .limit(1);
+    if (op) await sendOperatorWelcomeEmail(op.email, op.name, role);
+  }
 
   revalidateOperatorPages();
   const grants = await grantsFor(operatorId);
