@@ -34,6 +34,22 @@ export function OperatorRoleToggles({
   grants: RoleGrant[];
 }) {
   const [held, setHeld] = useState<RoleGrant[]>(grants);
+  /*
+    What the server last told us it holds — the thing "unsaved" is measured
+    against, and the thing the toggles snap back to.
+
+    It is NOT the `grants` prop directly. The prop is re-read after
+    `router.refresh()`, and that read sits behind a cache: a correct save would
+    land, the prop would come back with the pre-save roles, and the boxes would
+    silently re-tick roles the database no longer had (QA 4.7). Worse, the next
+    save then submitted those stale ticks — and `setGrants` deletes by omission,
+    so the second save destroyed what the first had correctly written.
+
+    The baseline now moves only on two events that cannot be stale: a fresh
+    prop that genuinely differs, and the grants the action reads back after
+    writing them.
+  */
+  const [baseline, setBaseline] = useState<RoleGrant[]>(grants);
   const [saved, setSaved] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,16 +59,32 @@ export function OperatorRoleToggles({
     [...gs].sort((a, b) => a.role.localeCompare(b.role))
       .map((g) => `${g.role}:${g.isActive}`)
       .join("|");
-  const dirty = key(held) !== key(grants);
+
+  /*
+    Adjust state when the prop changes — React's documented pattern, set during
+    render rather than in an effect so it never paints the old value first.
+    Guarded on a real difference, so a re-render with the same roles leaves an
+    in-progress edit alone.
+  */
+  if (!pending && key(grants) !== key(baseline)) {
+    setBaseline(grants);
+    setHeld(grants);
+  }
+
+  const dirty = key(held) !== key(baseline);
 
   const holds = (role: Role) => held.some((g) => g.role === role);
   const activeIn = (role: Role) => held.find((g) => g.role === role)?.isActive ?? false;
 
   function toggleHold(role: Role, on: boolean) {
     setSaved(false);
-    setHeld((cur) =>
-      on ? [...cur, { role, isActive: true }] : cur.filter((g) => g.role !== role),
-    );
+    setHeld((cur) => {
+      // Drop any existing entry first. Appending blind could hold one role
+      // twice, and the hidden inputs below are keyed by role — duplicate React
+      // keys, which is its own kind of unpredictable.
+      const without = cur.filter((g) => g.role !== role);
+      return on ? [...without, { role, isActive: true }] : without;
+    });
   }
   function toggleActive(role: Role, on: boolean) {
     setSaved(false);
@@ -70,10 +102,21 @@ export function OperatorRoleToggles({
           // Refused (e.g. the last-admin guard). Revert the toggles to what the
           // server still holds, and say why.
           setError(result.error);
-          setHeld(grants);
+          setHeld(baseline);
           return;
         }
+        /*
+          Trust what came back with the write, not what a later read returns.
+          This is the whole fix for 4.7: the action reports the grants it stored,
+          so the boxes cannot be re-ticked from a cached copy of the old ones.
+        */
+        if (result?.grants) {
+          setBaseline(result.grants);
+          setHeld(result.grants);
+        }
         setSaved(true);
+        // Still refresh — the rest of the page (the header, the operator list)
+        // reads these roles too, and they are not fed by this component.
         router.refresh();
       }}
       className="space-y-3"
@@ -144,7 +187,14 @@ export function OperatorRoleToggles({
         )}
       </div>
 
-      {error && <p className="text-[13px] text-red-700">{error}</p>}
+      {/* role="alert" so a refusal is announced rather than merely drawn — it
+          was a plain paragraph, which meant a rejected save looked identical to
+          a successful one to a screen reader, and to the QA probe. */}
+      {error && (
+        <p role="alert" className="text-[13px] text-red-700">
+          {error}
+        </p>
+      )}
     </form>
   );
 }

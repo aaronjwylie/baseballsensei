@@ -10,15 +10,30 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/domains/account";
 import { ROLES, type Role } from "../model/operatorRoleEnum";
 import {
+  grantsFor,
   isEligibleAdmin,
   otherActiveAdminExists,
   setGrants,
+  type RoleGrant,
 } from "./operatorRoleApi";
 
 const isRole = (value: string): value is Role =>
   (ROLES as readonly string[]).includes(value);
 
-export type SetRolesState = { error: string } | undefined;
+/**
+ * What the form gets back.
+ *
+ * On success it carries the grants **as they now stand, read back from the
+ * database after the write** — not a promise that the write happened. The form
+ * used to learn the new state by re-reading its server prop after
+ * `router.refresh()`, which put a cache between the write and the thing
+ * displaying it; the write was correct and the screen still showed the old
+ * roles (QA 4.7). An answer that comes back with the write cannot be stale.
+ */
+export type SetRolesState =
+  | { error: string; grants?: undefined }
+  | { error?: undefined; grants: RoleGrant[] }
+  | undefined;
 
 export async function setRolesAction(
   formData: FormData,
@@ -26,7 +41,7 @@ export async function setRolesAction(
   const session = await requireRole("admin");
 
   const operatorId = String(formData.get("operatorId") ?? "");
-  if (!operatorId) return;
+  if (!operatorId) return { error: "No operator was named — reload and try again." };
 
   /*
     Two fields, so holding and being available arrive together and are applied
@@ -68,4 +83,8 @@ export async function setRolesAction(
     revalidatePath(`/admin/operators/${kind}`);
     revalidatePath(`/admin/operators/${kind}/${operatorId}`);
   }
+
+  // Read back rather than echo the input: this is what is actually stored, so
+  // the form shows the database rather than its own hopes.
+  return { grants: await grantsFor(operatorId) };
 }
