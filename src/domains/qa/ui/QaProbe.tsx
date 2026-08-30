@@ -103,6 +103,32 @@ export function QaProbe() {
       /* private mode — the id still works for this page's lifetime */
     }
 
+    /**
+     * Where something happened, **with the secrets taken out**.
+     *
+     * The query string is dropped whole. It carried a live password-reset token
+     * into this table on 2026-08-30 — `/reset-password?token=eyJhbGci…`, a
+     * valid credential for an admin account, written to a production table and
+     * readable by anyone holding QA_TOKEN. The law this probe serves already
+     * said "path only, since query strings carry tokens"; the probe was not
+     * doing it.
+     *
+     * Token-bearing path segments are redacted too. `/status/<token>` and
+     * `/feedback/<token>` put the secret in the path itself, where dropping the
+     * query string does not help — so any long opaque-looking segment under
+     * those routes becomes `<redacted>`. The route is what a reader needs; the
+     * token never was.
+     */
+    const safePath = (): string => {
+      const path = location.pathname.replace(
+        /\/(status|feedback|reset-password)\/[^/]{12,}/g,
+        "/$1/<redacted>",
+      );
+      // A bare marker rather than the keys, so the log still says "this had a
+      // query string" without saying what was in it.
+      return location.search ? `${path}?<redacted>` : path;
+    };
+
     const push = (
       kind: QaEventKind,
       fields: { target?: string; field?: string; detail?: string } = {},
@@ -112,7 +138,7 @@ export function QaProbe() {
         session: session.current,
         seq: seq.current++,
         kind,
-        path: location.pathname + location.search,
+        path: safePath(),
         ...fields,
       });
       if (queue.current.length >= MAX_BATCH) void flush();
@@ -308,16 +334,24 @@ export function QaProbe() {
       the page had scrolled or not. That is precisely the thing worth checking
       on a page built out of anchors.
 
-      `path` on each event stays pathname+search so one page reads as one page;
-      the hash rides on the nav event's target, where the movement is the point.
+      `path` on each event stays the redacted pathname so one page reads as one
+      page; the hash rides on the nav event's target, where the movement is the
+      point.
+    */
+    /*
+      Two values, deliberately: the raw one to DETECT a change, the redacted one
+      to REPORT it. Comparing redacted strings would make two different reset
+      links look like the same page and swallow the navigation; reporting the
+      raw one is how a live credential reached this table in the first place.
     */
     const here = () => location.pathname + location.search + location.hash;
+    const shown = () => safePath() + location.hash;
     let lastPath = here();
     const watchPath = () => {
       const now = here();
       if (now !== lastPath) {
         lastPath = now;
-        push("nav", { target: now });
+        push("nav", { target: shown() });
       }
     };
     // Fires immediately on an anchor click, rather than waiting for the poll.

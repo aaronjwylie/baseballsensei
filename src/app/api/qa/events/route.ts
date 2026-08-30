@@ -56,7 +56,27 @@ export async function POST(req: NextRequest) {
     ? ((body as { events: QaEventInput[] }).events)
     : [];
 
-  const safe = events.filter(
+  /*
+    Redact here as well as in the probe.
+
+    A browser running an older bundle keeps posting whatever it was built to
+    post, and on 2026-08-30 that included `/reset-password?token=…` — a live
+    admin credential, written to a production table. The probe is the thing
+    under test during a QA run (Q2); a rule that only exists in the thing being
+    tested is not a rule.
+  */
+  const redactPath = (path: string) =>
+    path
+      .replace(/\/(status|feedback|reset-password)\/[^/?#]{12,}/g, "/$1/<redacted>")
+      .replace(/\?.*$/, "?<redacted>");
+
+  const scrubbed = events.map((e) => ({
+    ...e,
+    path: redactPath(e.path ?? ""),
+    target: e.target ? redactPath(e.target) : e.target,
+  }));
+
+  const safe = scrubbed.filter(
     (e) => !(e.field && isSensitiveField(e.field)),
   );
 
