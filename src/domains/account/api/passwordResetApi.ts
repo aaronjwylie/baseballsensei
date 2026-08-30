@@ -26,7 +26,6 @@ import { operatorTable } from "@/domains/operator/model/operatorTable";
 import { passwordFingerprint, setOperatorPassword } from "./credentialApi";
 import { sendPasswordResetEmail } from "./passwordResetEmail";
 
-const RESET_MAX_AGE_S = 60 * 60; // one hour
 const PURPOSE = "pwreset";
 
 interface ResetPayload {
@@ -65,8 +64,10 @@ export async function requestPasswordReset(email: string): Promise<void> {
   if (!fingerprint) return;
 
   const token = await signSession(
+    // One hour by default; `PASSWORD_RESET_TTL_S` can shorten it in a test env
+    // to walk the expired-link path by hand (QA 4.12).
     { sub: operator.id, ph: fingerprint, purpose: PURPOSE },
-    RESET_MAX_AGE_S,
+    env.passwordResetTtlS,
   );
   const link = `${env.siteUrl}/reset-password?token=${encodeURIComponent(token)}`;
   await sendPasswordResetEmail(clean, link);
