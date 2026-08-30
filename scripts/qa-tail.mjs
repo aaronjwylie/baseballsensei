@@ -53,6 +53,7 @@ const KIND_MARK = {
   fetch: "  <-- REQUEST FAILED",
   console: "  <-- CONSOLE",
   submit: "  <-- SUBMIT",
+  state: "  <-- TICK MOVED",
 };
 
 async function fetchEvents(since) {
@@ -79,7 +80,18 @@ function render(events) {
     const d = new Date(e.at);
     const local = clock.format(d);
     const utc = e.at.slice(11, 19);
-    const what = (e.target || e.field || "").slice(0, 66);
+    /* A tick's meaning is its state, so show it inline rather than making the
+       reader open the detail. */
+    let what = (e.target || e.field || "").slice(0, 66);
+    if (e.kind === "field" && e.detail) {
+      try {
+        const d = JSON.parse(e.detail);
+        if (typeof d.checked === "boolean")
+          what = `${d.label || e.field} → ${d.checked ? "CHECKED" : "unchecked"}`;
+      } catch {
+        /* leave `what` as it was */
+      }
+    }
     console.log(
       `${local} (${utc}Z) ${labelFor(e.session).padEnd(3)} ${e.kind.padEnd(7)} ` +
         `${(e.path || "").padEnd(16)} ${what}${KIND_MARK[e.kind] ?? ""}`,

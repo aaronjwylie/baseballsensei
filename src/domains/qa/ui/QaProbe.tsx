@@ -170,8 +170,19 @@ export function QaProbe() {
         identifies it; which option was chosen arrives separately as a `field`
         event.
       */
+      /*
+        An <input> has no text of its own, and `closest` reaches the input
+        before the <label> wrapping it — so every checkbox on the site logged as
+        a bare `input`, with no way to tell which one. Borrow the label's words,
+        the same ones a person reads to decide what they are ticking.
+      */
+      const labelled =
+        tag === "input" || tag === "select" || tag === "textarea"
+          ? node.closest("label")?.textContent ?? ""
+          : "";
       const text = (node.getAttribute("aria-label") ||
         (tag === "select" ? node.getAttribute("name") : node.textContent) ||
+        labelled ||
         node.getAttribute("title") ||
         node.getAttribute("name") ||
         "")
@@ -210,15 +221,38 @@ export function QaProbe() {
     const onChange = (e: Event) => {
       try {
         const el = e.target as HTMLInputElement;
-        if (!el?.name || el.type === "password") return;
-        if (isSensitiveField(el.name)) return;
+        if (!el || el.type === "password") return;
+
+        /*
+          A checkbox's value is not what a person changed — its CHECKED state
+          is, and that is the whole content of the interaction. Recording only
+          named fields also missed these entirely: a controlled checkbox that
+          feeds React state rather than the form has no `name` at all, so the
+          one thing worth seeing was the one thing dropped.
+
+          Still no values: for a checkbox the state is a boolean, and for
+          everything else only the length is kept, exactly as before (Q5).
+        */
+        const isTick = el.type === "checkbox" || el.type === "radio";
+        const label =
+          el.getAttribute("aria-label") ||
+          el.closest("label")?.textContent?.replace(/\s+/g, " ").trim().slice(0, 60) ||
+          el.name ||
+          "";
+        if (!isTick && !el.name) return;
+        if (el.name && isSensitiveField(el.name)) return;
+
         push("field", {
-          field: el.name,
-          detail: JSON.stringify({
-            type: el.type,
-            length: (el.value ?? "").length,
-            filled: (el.value ?? "").length > 0,
-          }),
+          field: el.name || label || el.type,
+          detail: JSON.stringify(
+            isTick
+              ? { type: el.type, checked: el.checked, label }
+              : {
+                  type: el.type,
+                  length: (el.value ?? "").length,
+                  filled: (el.value ?? "").length > 0,
+                },
+          ),
         });
       } catch {
         /* ignore */
@@ -381,6 +415,53 @@ export function QaProbe() {
     document.addEventListener("change", onChange, true);
     window.addEventListener("error", onError);
     window.addEventListener("unhandledrejection", onRejection);
+    /*
+      Checkbox state, sampled — not evented.
+
+      A `change` event fires only when a PERSON toggles a box. A box that moves
+      because the component re-rendered fires nothing at all, and `checked` is a
+      DOM property rather than an attribute, so a MutationObserver cannot see it
+      either. The one bug this was built for is ticks appearing and vanishing on
+      their own after a save; every event-based approach is blind to exactly
+      that.
+
+      So: read them all, twice a second, and report only when the picture
+      changes. Silence costs one cheap query per tick and says nothing.
+    */
+    const readTicks = (): Map<string, boolean> => {
+      const out = new Map<string, boolean>();
+      let i = 0;
+      for (const el of document.querySelectorAll<HTMLInputElement>(
+        'input[type="checkbox"],input[type="radio"]',
+      )) {
+        const name =
+          el.getAttribute("aria-label") ||
+          el.closest("label")?.textContent?.replace(/\s+/g, " ").trim().slice(0, 34) ||
+          el.name ||
+          `#${i}`;
+        // Index-suffixed so two identically labelled boxes stay distinct.
+        out.set(`${name}~${i++}`, el.checked);
+      }
+      return out;
+    };
+
+    let lastTicks: Map<string, boolean> | null = null;
+    const watchTicks = () => {
+      const now = readTicks();
+      if (lastTicks) {
+        const moved: string[] = [];
+        for (const [k, v] of now) {
+          if (!lastTicks.has(k)) moved.push(`+${k.split("~")[0]}=${v ? "on" : "off"}`);
+          else if (lastTicks.get(k) !== v)
+            moved.push(`${k.split("~")[0]}→${v ? "ON" : "off"}`);
+        }
+        for (const k of lastTicks.keys()) if (!now.has(k)) moved.push(`-${k.split("~")[0]}`);
+        if (moved.length) push("state", { target: moved.join("  ").slice(0, 200) });
+      }
+      lastTicks = now;
+    };
+    const tickTimer = setInterval(watchTicks, 500);
+
     const pathTimer = setInterval(watchPath, 400);
     const flushTimer = setInterval(() => void flush(), 2000);
     const onHide = () => void flush();
@@ -396,6 +477,7 @@ export function QaProbe() {
       document.removeEventListener("visibilitychange", onHide);
       alertObserver.disconnect();
       clearInterval(pathTimer);
+      clearInterval(tickTimer);
       clearInterval(flushTimer);
       console.error = originalError;
       window.fetch = originalFetch;

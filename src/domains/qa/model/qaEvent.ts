@@ -9,7 +9,8 @@ export type QaEventKind =
   | "field"
   | "error"
   | "console"
-  | "fetch";
+  | "fetch"
+  | "state";
 
 export interface QaEventInput {
   session: string;
