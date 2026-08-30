@@ -439,8 +439,20 @@ export function QaProbe() {
           el.closest("label")?.textContent?.replace(/\s+/g, " ").trim().slice(0, 34) ||
           el.name ||
           `#${i}`;
-        // Index-suffixed so two identically labelled boxes stay distinct.
-        out.set(`${name}~${i++}`, el.checked);
+        /*
+          Keyed by LABEL, with an occurrence counter only among boxes sharing
+          one — never by position on the page.
+
+          The first version suffixed the page index. Nested toggles appear and
+          disappear as roles are ticked, so every index after them shifted and
+          the diff reported boxes as having moved when they had not: a log full
+          of confident, wrong lines, which is worse than no log. A label is a
+          stable identity across a re-render; a position is not.
+        */
+        let key = name;
+        for (let n = 2; out.has(key); n++) key = `${name}#${n}`;
+        out.set(key, el.checked);
+        i++;
       }
       return out;
     };
@@ -451,11 +463,10 @@ export function QaProbe() {
       if (lastTicks) {
         const moved: string[] = [];
         for (const [k, v] of now) {
-          if (!lastTicks.has(k)) moved.push(`+${k.split("~")[0]}=${v ? "on" : "off"}`);
-          else if (lastTicks.get(k) !== v)
-            moved.push(`${k.split("~")[0]}→${v ? "ON" : "off"}`);
+          if (!lastTicks.has(k)) moved.push(`+${k}=${v ? "on" : "off"}`);
+          else if (lastTicks.get(k) !== v) moved.push(`${k}→${v ? "ON" : "off"}`);
         }
-        for (const k of lastTicks.keys()) if (!now.has(k)) moved.push(`-${k.split("~")[0]}`);
+        for (const k of lastTicks.keys()) if (!now.has(k)) moved.push(`-${k}`);
         if (moved.length) push("state", { target: moved.join("  ").slice(0, 200) });
       }
       lastTicks = now;
