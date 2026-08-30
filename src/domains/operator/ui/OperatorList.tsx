@@ -112,12 +112,21 @@ export function OperatorList({
                 contributes none. Gaps aren't shown as blanks here — the "Needs …"
                 prompt below owns that.
               */}
-              {ROLES.filter((role) =>
-                person.grants.some(
-                  (g) =>
-                    g.role === role &&
-                    (g.languages.length > 0 || g.specialties.length > 0),
-                ),
+              {ROLES.filter(
+                (role) =>
+                  // Admin has no languages or specialties — the question doesn't
+                  // apply to running the platform, and its card asks neither. An
+                  // admin grant can still carry a stale value from before that
+                  // was settled (a default "Japanese" every early admin got), so
+                  // it's excluded by role here, not just by whether it's empty —
+                  // otherwise a leftover reads as "Admin — Japanese" (Ben, QA
+                  // 5.13.4).
+                  role !== "admin" &&
+                  person.grants.some(
+                    (g) =>
+                      g.role === role &&
+                      (g.languages.length > 0 || g.specialties.length > 0),
+                  ),
               ).map((role) => {
                 const grant = person.grants.find((g) => g.role === role)!;
                 const detail = [
