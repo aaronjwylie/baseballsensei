@@ -397,27 +397,35 @@ export async function listOperators(role?: Role): Promise<OperatorListing[]> {
   return [...seen.values()].map(({ operator, grant }) => {
     const grants = byId.get(operator.id) ?? [];
     const base = grant ? toProfile(operator, grant) : identityProfile(operator);
-    return { ...base, grants, missing: whatIsMissing(base, grants) };
+    return { ...base, grants, missing: whatIsMissing(grants) };
   });
 }
 
 /**
- * What a kind needs that this person has not got.
+ * What each work role this person holds is still missing — checked **per grant**,
+ * not against one representative one.
  *
- * Deliberately not a boolean: the admin needs to know *which* field to go and
- * fill, and "incomplete" without saying what is a prompt to go hunting.
+ * It read `person.languages` before, which is a single grant's settings, so an
+ * admin-and-coach was measured by their empty admin grant and told "needs
+ * languages" while their coach languages sat filled in right beside it (Ben, QA
+ * 5.13.1). Each coach or translator grant now answers for itself, and the gap
+ * names the role so the prompt points somewhere. Admin reviews nothing and
+ * carries neither field, so it is complete with both empty and never appears.
+ *
+ * Deliberately phrases rather than a boolean: the admin needs to know which
+ * field on which role to go and fill.
  */
-function whatIsMissing(person: OperatorProfile, grants: RoleGrant[]): string[] {
-  const holds = (role: Role) => grants.some((g) => g.role === role);
-  // Only someone who does the work needs either field. An admin reviews nothing
-  // and carries no profile, so an empty profile is complete for them, not
-  // incomplete — flagging "languages" on an admin would be a gap they can't and
-  // shouldn't fill.
-  const doesWork = holds("coach") || holds("translator");
+function whatIsMissing(grants: RoleGrant[]): string[] {
   const gaps: string[] = [];
-  if (doesWork && !person.languages.length) gaps.push("languages");
-  // Specialties are the coaching focuses. A translator needs them to know what
-  // vocabulary a submission calls for; an admin does not review anything.
-  if (doesWork && !person.specialties.length) gaps.push("specialties");
+  for (const grant of grants) {
+    if (grant.role !== "coach" && grant.role !== "translator") continue;
+    const need: string[] = [];
+    if (!grant.languages.length) need.push("languages");
+    if (!grant.specialties.length) need.push("specialties");
+    if (need.length) {
+      const label = grant.role.charAt(0).toUpperCase() + grant.role.slice(1);
+      gaps.push(`${label} needs ${need.join(" and ")}`);
+    }
+  }
   return gaps;
 }

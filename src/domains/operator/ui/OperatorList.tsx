@@ -146,12 +146,13 @@ export function OperatorList({
 
               {/*
                 The gap that opens when a kind is added to someone onboarded as
-                something else — an admin made a coach has no specialties,
-                because nobody asked for them.
+                something else — a coach made from an admin has no specialties,
+                because nobody asked for them. Each phrase already names its role
+                (whatIsMissing), so they read as their own sentences here.
               */}
               {person.missing.length > 0 && (
                 <p className="mt-2 text-[13px] font-medium text-amber-700">
-                  Needs {person.missing.join(" and ")} — add on their page.
+                  {person.missing.join("; ")} — add on their page.
                 </p>
               )}
             </li>
