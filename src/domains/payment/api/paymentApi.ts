@@ -116,3 +116,28 @@ export async function getSucceededPaymentIntent(
   }
   return intent.status === "succeeded" ? intent : "unpaid";
 }
+
+/**
+ * Retrieve an intent and confirm it actually *failed* — the mirror of
+ * `getSucceededPaymentIntent`, for the browser reporting its own decline so the
+ * recovery email survives a dead webhook (ADR 003, QA 2.4.3).
+ *
+ * Returns `null` unless the intent genuinely declined: a succeeded or still-
+ * processing intent, or one with no recorded error, is not something to email a
+ * "your card was declined" notice about. A real decline sits at
+ * `requires_payment_method` carrying a `last_payment_error`. Verified against
+ * Stripe, never the caller's word, since the id arrives from the browser.
+ */
+export async function getFailedPaymentIntent(
+  paymentIntentId: string,
+): Promise<Stripe.PaymentIntent | null> {
+  let intent: Stripe.PaymentIntent;
+  try {
+    intent = await stripe().paymentIntents.retrieve(paymentIntentId);
+  } catch {
+    return null;
+  }
+  if (intent.status === "succeeded" || intent.status === "processing") return null;
+  if (!intent.last_payment_error) return null;
+  return intent;
+}

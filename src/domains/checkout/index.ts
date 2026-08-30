@@ -17,6 +17,7 @@
 export { resolveFlowState, type FlowResumeState } from "./api/resumeFlow";
 export {
   confirmPaymentAction,
+  reportDeclineAction,
   createIntentAction,
   listFlowFilesAction,
   resendCodeAction,

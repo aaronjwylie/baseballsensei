@@ -40,7 +40,12 @@ import {
   verificationFailureMessage,
   verifyCode,
 } from "@/domains/verification";
-import { createPaymentIntent, type CreatedIntent } from "@/domains/payment";
+import {
+  createPaymentIntent,
+  getFailedPaymentIntent,
+  handleFailedPayment,
+  type CreatedIntent,
+} from "@/domains/payment";
 import { confirmPaymentForFlow } from "./confirmPayment";
 
 /**
@@ -424,6 +429,37 @@ export async function confirmPaymentAction(
   // Carry the flag through — the flow resets on it, and a lapsed window at the
   // payment step is exactly when a stranded customer costs the most.
   return outcome.gone ? gone(outcome.error) : fail(outcome.error);
+}
+
+/**
+ * The browser reporting its own decline — the failure path's second caller.
+ *
+ * Success has had two callers since ADR 003 (the webhook and the browser
+ * confirming inline), so a payment records even when the webhook is down.
+ * Failure had only the webhook, so one disabled or misdirected endpoint silently
+ * removed the entire card-declined recovery email — undetectably, because the
+ * healthy success path hid it (QA 2.4.3). This gives failure the same second
+ * caller: the browser already knows the card was declined, so it says so.
+ *
+ * Best-effort and quiet — the customer is already looking at Stripe's decline
+ * message, so there is nothing here for the UI to act on. It re-derives the
+ * submission from the flow cookie and re-reads the intent from Stripe (never the
+ * browser's claim), so it can't be used to fire decline notices at other people,
+ * and `handleFailedPayment` is idempotent with the webhook.
+ */
+export async function reportDeclineAction(
+  paymentIntentId: string,
+): Promise<void> {
+  const submissionId = await readFlowSession();
+  if (!submissionId) return;
+
+  const intent = await getFailedPaymentIntent(paymentIntentId);
+  if (!intent) return;
+  // The intent must belong to this browser's submission — the same guard the
+  // success path makes.
+  if (intent.metadata?.submissionId !== submissionId) return;
+
+  await handleFailedPayment(intent);
 }
 
 /**
