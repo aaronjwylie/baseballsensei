@@ -71,6 +71,9 @@ export function StatusLookup() {
         customer. The cost is that a mistyped address looks like a slow email,
         which is why the panel says so.
       */
+      // A fresh code means a fresh field — clear anything typed against the last
+      // one, so requesting a new code never shows a stale entry (Ben, QA 3.1).
+      setCode("");
       setResult({ state: "codeSent", email: customerEmail });
     } catch {
       setResult({ state: "error", message: "Network error. Please try again." });
