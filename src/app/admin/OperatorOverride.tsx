@@ -98,6 +98,19 @@ export function OperatorOverride({
     );
   }
 
+  /*
+    One size for every control in the override — selects, inputs and buttons
+    alike — so the panel reads as one system rather than three stacked at
+    different scales (Ben, QA 5.7). An explicit height, because a native
+    `<select>` sizes itself differently from an input off the same padding;
+    pinning it is the only way they line up. Colour still carries severity
+    (neutral reset, rose purge, filled-red delete) — only the height and the text
+    size are shared. Buttons add `inline-flex` to centre their label in that
+    fixed height.
+  */
+  const control = "h-8 rounded-md border px-2 text-xs";
+  const controlButton = `${control} inline-flex items-center justify-center font-semibold`;
+
   return (
     <div className="space-y-3">
       <div className="flex items-baseline justify-between">
@@ -126,7 +139,7 @@ export function OperatorOverride({
                 name="status"
                 value={target}
                 onChange={(e) => setTarget(e.target.value as SubmissionStatus)}
-                className="ml-1.5 rounded-md border border-line bg-white px-2 py-1.5 text-sm"
+                className={`${control} ml-1.5 border-line bg-white`}
               >
                 {SUBMISSION_STATUSES.map((option) => (
                   <option key={option} value={option}>
@@ -152,7 +165,7 @@ export function OperatorOverride({
               <select
                 name="substep"
                 key={target}
-                className="ml-1.5 rounded-md border border-line bg-white px-2 py-1.5 text-sm"
+                className={`${control} ml-1.5 border-line bg-white`}
               >
                 <option value="">the start of the step</option>
                 {STAGE_CHAIN[target].map((line) => (
@@ -171,25 +184,25 @@ export function OperatorOverride({
             <input
               name="reason"
               placeholder="why (optional)"
-              className="w-44 rounded-md border border-line bg-white px-2 py-1.5 text-sm"
+              className={`${control} w-44 border-line bg-white`}
             />
             <button
               type="submit"
               disabled={resetting || unchanged}
               title={unchanged ? "Pick a different rung first" : undefined}
-              className="rounded-md border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:border-ink disabled:opacity-50"
+              className={`${controlButton} border-line bg-white text-ink hover:border-ink disabled:opacity-50`}
             >
               {resetting ? "Resetting…" : "Reset status"}
             </button>
           </div>
 
           {failed(reset) && (
-            <p className="text-[13px] text-rose-700">{reset.error}</p>
+            <p className="text-xs text-rose-700">{reset.error}</p>
           )}
           {succeeded(reset) && (
-            <p className="text-[13px] text-emerald-700">Moved back.</p>
+            <p className="text-xs text-emerald-700">Moved back.</p>
           )}
-          <p className="text-[11px] text-ink-muted">
+          <p className="text-xs text-ink-muted">
             {unchanged
               ? "Pick a rung it should go back to — it is on that one now."
               : "Recorded against the submission with your name on it."}
@@ -202,12 +215,12 @@ export function OperatorOverride({
         action={purgeSubmit}
       >
         <input type="hidden" name="submissionId" value={submissionId} />
-        <label className="text-[11px] text-rose-800">
+        <label className="text-xs text-rose-800">
           Delete now:
           <select
             name="kind"
             defaultValue="intake"
-            className="ml-1.5 rounded border border-rose-200 bg-white px-1.5 py-0.5 text-[11px]"
+            className={`${control} ml-1.5 border-rose-200 bg-white`}
           >
             <option value="intake">Client</option>
             <option value="intake_translation">Client — translated</option>
@@ -218,12 +231,12 @@ export function OperatorOverride({
         <button
           type="submit"
           disabled={purging}
-          className="rounded-md border border-rose-400 px-2 py-0.5 text-[11px] font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+          className={`${controlButton} border-rose-400 text-rose-700 hover:bg-rose-100 disabled:opacity-50`}
         >
           Purge folder
         </button>
         {/* Said out loud, because this is the one control with no way back. */}
-        <span className="text-[11px] text-rose-700">
+        <span className="text-xs text-rose-700">
           The bytes go. The file record stays, so the portal can still say what
           was sent.
         </span>
@@ -240,7 +253,7 @@ export function OperatorOverride({
         action={delSubmit}
       >
         <input type="hidden" name="submissionId" value={submissionId} />
-        <p className="text-[11px] font-semibold text-rose-800">
+        <p className="text-xs font-semibold text-rose-800">
           Delete the whole submission — record, files and trail. No way back.
         </p>
         <div className="flex flex-wrap items-center gap-2">
@@ -251,17 +264,17 @@ export function OperatorOverride({
             placeholder="Type DELETE"
             aria-label="Type DELETE to confirm"
             autoComplete="off"
-            className="w-32 rounded border border-rose-300 bg-white px-2 py-0.5 text-[11px] tracking-[0.15em] text-rose-900 placeholder:tracking-normal"
+            className={`${control} w-32 border-rose-300 bg-white tracking-[0.15em] text-rose-900 placeholder:tracking-normal`}
           />
           <button
             type="submit"
             disabled={deleting || confirm !== "DELETE"}
-            className="rounded-md border border-rose-500 bg-rose-600 px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className={`${controlButton} border-rose-500 bg-rose-600 text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50`}
           >
             {deleting ? "Deleting…" : "Delete submission"}
           </button>
         </div>
-        {failed(del) && <p className="text-[11px] text-rose-700">{del.error}</p>}
+        {failed(del) && <p className="text-xs text-rose-700">{del.error}</p>}
       </form>
     </div>
   );
