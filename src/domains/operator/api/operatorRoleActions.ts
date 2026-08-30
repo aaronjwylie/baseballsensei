@@ -44,20 +44,28 @@ export async function setRolesAction(
   if (!operatorId) return { error: "No operator was named — reload and try again." };
 
   /*
-    Two fields, so holding and being available arrive together and are applied
-    together — a half-saved change between "is a coach" and "is taking work" is
-    not a state worth being able to reach.
+    Two fields, read the way HTML checkboxes actually behave.
+
+    `held` names every role whose box is ticked; `available` names the subset
+    still taking work. An unticked checkbox submits nothing at all, so absence
+    is the signal — there is no third state to represent and none to get wrong.
+
+    Availability is intersected with what is held rather than trusted on its
+    own: the availability box for a role nobody holds is meaningless, and
+    dropping it here means the server cannot be talked into "paused but not
+    held" by a hand-made request.
 
     Unknown values are dropped rather than rejected. The form only ever submits
     the three, so anything else arrived by hand, and ignoring it is safer than
     trusting it into a `Role` cast.
   */
-  const active = formData.getAll("active").map(String).filter(isRole);
-  const paused = formData.getAll("paused").map(String).filter(isRole);
-  const grants = [
-    ...active.map((role) => ({ role, isActive: true })),
-    ...paused.map((role) => ({ role, isActive: false })),
-  ];
+  const held = formData.getAll("held").map(String).filter(isRole);
+  const available = new Set(formData.getAll("available").map(String).filter(isRole));
+  const grants = held.map((role) => ({
+    role,
+    // `admin` has no availability box — holding it is being it.
+    isActive: role === "admin" ? true : available.has(role),
+  }));
 
   /*
     Never strip the last admin. `admin` has no pause toggle, so it's an active
@@ -65,7 +73,7 @@ export async function setRolesAction(
     someone who is currently the only eligible admin, refuse — a zero-admin
     state has no in-app recovery, only a DB re-seed. See [[last-admin-guard]].
   */
-  const keepsAdmin = active.includes("admin");
+  const keepsAdmin = held.includes("admin");
   if (
     !keepsAdmin &&
     (await isEligibleAdmin(operatorId)) &&

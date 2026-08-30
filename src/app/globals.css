@@ -218,3 +218,21 @@ button {
     transform: none;
   }
 }
+
+/*
+  The operator role form's availability line.
+
+  Shown only when its row's own "held" checkbox is ticked — decided by the
+  stylesheet reading the checkbox, not by JavaScript deciding whether to render
+  it. Conditional rendering is what allowed "Taking submissions" to remain
+  visible under an unticked Coach during QA 4.7: two representations of one
+  fact, free to disagree. A rule cannot disagree with the input it is reading.
+
+  `:has()` is supported by every browser this project targets (Safari 15.4+,
+  Chrome 105+). Where it were not, the line would simply always show — the
+  degraded state is a visible extra control, never a wrong one, because the
+  server intersects availability with what is actually held.
+*/
+.role-row:not(:has(> input[type="checkbox"]:checked)) .role-availability {
+  display: none;
+}
