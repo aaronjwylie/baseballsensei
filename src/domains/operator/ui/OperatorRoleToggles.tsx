@@ -14,6 +14,46 @@ const BLURB: Record<Role, string> = {
 };
 
 /**
+ * One role's two facts. `active` is only meaningful while `held`, and the
+ * transitions below never leave it true when `held` is false — so "paused but
+ * not held" cannot be reached, and the nested toggle cannot outlive the box
+ * that reveals it.
+ */
+interface RoleState {
+  held: boolean;
+  active: boolean;
+}
+
+/**
+ * Every role, always present.
+ *
+ * **This shape is the fix.** The previous version stored an array of held
+ * grants, which allowed two states that should never exist: the same role
+ * twice (the toggle appended without checking, and the hidden inputs were keyed
+ * by role, so React saw duplicate keys), and a role whose availability toggle
+ * was showing while the role itself read as unheld. A total record over the
+ * three roles makes both unrepresentable rather than merely unlikely.
+ */
+type RoleMap = Record<Role, RoleState>;
+
+const toMap = (grants: RoleGrant[]): RoleMap => {
+  const map = Object.fromEntries(
+    ROLES.map((role) => [role, { held: false, active: false }]),
+  ) as RoleMap;
+  for (const grant of grants) {
+    // Ignore anything not in ROLES — a role removed from the enum should not
+    // crash the page that still has grants pointing at it.
+    if (map[grant.role]) map[grant.role] = { held: true, active: grant.isActive };
+  }
+  return map;
+};
+
+/** Stable across key order, so it can be compared as a string. */
+const signature = (map: RoleMap) =>
+  ROLES.map((role) => `${role}:${map[role].held ? 1 : 0}${map[role].active ? 1 : 0}`)
+    .join("|");
+
+/**
  * Which kinds this person is — the control that makes one operator several.
  *
  * **All three submit together**, as a set, rather than one toggle firing per
@@ -25,6 +65,25 @@ const BLURB: Record<Role, string> = {
  * Removing the last role is allowed. It leaves someone who can sign in and
  * enter nothing, which is a real state the portal chooser explains — an
  * operator can exist before anyone decides what they do, and after.
+ *
+ * ── Where the truth lives (QA 4.7) ──────────────────────────────────────────
+ * The `grants` prop seeds this control **once** and is never read again.
+ *
+ * That is deliberate and was learned the hard way. The prop is re-read after
+ * `router.refresh()`, and that read can lag the write it is meant to reflect —
+ * so a correct save was followed, two seconds later, by the boxes silently
+ * re-ticking roles the database no longer held. The damage came on the *next*
+ * save: `setGrants` deletes any role absent from the submitted set, so
+ * submitting those reverted ticks destroyed what the previous save had
+ * correctly stored.
+ *
+ * The first attempt at a fix made it worse by resyncing from the prop whenever
+ * it differed from the local baseline — which is precisely when the prop is
+ * stale, so the stale value won every time.
+ *
+ * So: after mount, the only thing that may move this control is the grant list
+ * the action reads back from the database *after writing it*. An answer that
+ * travels with the write cannot lag it.
  */
 export function OperatorRoleToggles({
   operatorId,
@@ -33,62 +92,38 @@ export function OperatorRoleToggles({
   operatorId: string;
   grants: RoleGrant[];
 }) {
-  const [held, setHeld] = useState<RoleGrant[]>(grants);
-  /*
-    What the server last told us it holds — the thing "unsaved" is measured
-    against, and the thing the toggles snap back to.
-
-    It is NOT the `grants` prop directly. The prop is re-read after
-    `router.refresh()`, and that read sits behind a cache: a correct save would
-    land, the prop would come back with the pre-save roles, and the boxes would
-    silently re-tick roles the database no longer had (QA 4.7). Worse, the next
-    save then submitted those stale ticks — and `setGrants` deletes by omission,
-    so the second save destroyed what the first had correctly written.
-
-    The baseline now moves only on two events that cannot be stale: a fresh
-    prop that genuinely differs, and the grants the action reads back after
-    writing them.
-  */
-  const [baseline, setBaseline] = useState<RoleGrant[]>(grants);
+  // Lazy initialisers: `grants` is the seed, not an ongoing input.
+  const [roles, setRoles] = useState<RoleMap>(() => toMap(grants));
+  const [baseline, setBaseline] = useState<RoleMap>(() => toMap(grants));
   const [saved, setSaved] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const key = (gs: RoleGrant[]) =>
-    [...gs].sort((a, b) => a.role.localeCompare(b.role))
-      .map((g) => `${g.role}:${g.isActive}`)
-      .join("|");
+  const dirty = signature(roles) !== signature(baseline);
+  const heldRoles = ROLES.filter((role) => roles[role].held);
 
-  /*
-    Adjust state when the prop changes — React's documented pattern, set during
-    render rather than in an effect so it never paints the old value first.
-    Guarded on a real difference, so a re-render with the same roles leaves an
-    in-progress edit alone.
-  */
-  if (!pending && key(grants) !== key(baseline)) {
-    setBaseline(grants);
-    setHeld(grants);
+  /** Adopt what the server says it stored — the only authority after mount. */
+  function adopt(stored: RoleGrant[]) {
+    const map = toMap(stored);
+    setRoles(map);
+    setBaseline(map);
   }
-
-  const dirty = key(held) !== key(baseline);
-
-  const holds = (role: Role) => held.some((g) => g.role === role);
-  const activeIn = (role: Role) => held.find((g) => g.role === role)?.isActive ?? false;
 
   function toggleHold(role: Role, on: boolean) {
     setSaved(false);
-    setHeld((cur) => {
-      // Drop any existing entry first. Appending blind could hold one role
-      // twice, and the hidden inputs below are keyed by role — duplicate React
-      // keys, which is its own kind of unpredictable.
-      const without = cur.filter((g) => g.role !== role);
-      return on ? [...without, { role, isActive: true }] : without;
-    });
+    setError(null);
+    // Dropping the role clears its availability in the same move, so the two
+    // can never disagree.
+    setRoles((cur) => ({ ...cur, [role]: { held: on, active: on } }));
   }
+
   function toggleActive(role: Role, on: boolean) {
     setSaved(false);
-    setHeld((cur) => cur.map((g) => (g.role === role ? { ...g, isActive: on } : g)));
+    setError(null);
+    setRoles((cur) =>
+      cur[role].held ? { ...cur, [role]: { held: true, active: on } } : cur,
+    );
   }
 
   return (
@@ -98,36 +133,30 @@ export function OperatorRoleToggles({
         setError(null);
         const result = await setRolesAction(formData);
         setPending(false);
+
         if (result?.error) {
-          // Refused (e.g. the last-admin guard). Revert the toggles to what the
-          // server still holds, and say why.
+          // Refused (e.g. the last-admin guard). Snap back to what the server
+          // last confirmed, and say why.
           setError(result.error);
-          setHeld(baseline);
+          setRoles(baseline);
           return;
         }
-        /*
-          Trust what came back with the write, not what a later read returns.
-          This is the whole fix for 4.7: the action reports the grants it stored,
-          so the boxes cannot be re-ticked from a cached copy of the old ones.
-        */
-        if (result?.grants) {
-          setBaseline(result.grants);
-          setHeld(result.grants);
-        }
+        if (result?.grants) adopt(result.grants);
         setSaved(true);
-        // Still refresh — the rest of the page (the header, the operator list)
-        // reads these roles too, and they are not fed by this component.
+        // The header and the operator list read these roles too and are not fed
+        // by this component, so they still need the refresh. Nothing here reads
+        // its result.
         router.refresh();
       }}
       className="space-y-3"
     >
       <input type="hidden" name="operatorId" value={operatorId} />
-      {held.map((g) => (
+      {heldRoles.map((role) => (
         <input
-          key={g.role}
+          key={role}
           type="hidden"
-          name={g.isActive ? "active" : "paused"}
-          value={g.role}
+          name={roles[role].active ? "active" : "paused"}
+          value={role}
         />
       ))}
 
@@ -137,7 +166,7 @@ export function OperatorRoleToggles({
             <label className="flex items-start gap-2.5 text-sm">
               <input
                 type="checkbox"
-                checked={holds(role)}
+                checked={roles[role].held}
                 onChange={(e) => toggleHold(role, e.target.checked)}
                 className="mt-0.5"
               />
@@ -151,15 +180,17 @@ export function OperatorRoleToggles({
                   as removing them: the grant survives, its history survives,
                   and they simply stop appearing as assignable.
                 */}
-                {holds(role) && role !== "admin" && (
+                {roles[role].held && role !== "admin" && (
                   <label className="mt-1.5 flex items-center gap-2 text-[13px]">
                     <input
                       type="checkbox"
-                      checked={activeIn(role)}
+                      checked={roles[role].active}
                       onChange={(e) => toggleActive(role, e.target.checked)}
                     />
-                    <span className={activeIn(role) ? "text-ink" : "text-ink-muted"}>
-                      {activeIn(role)
+                    <span
+                      className={roles[role].active ? "text-ink" : "text-ink-muted"}
+                    >
+                      {roles[role].active
                         ? `Taking ${role === "coach" ? "submissions" : "translations"}`
                         : "Paused — holds the role, cannot be assigned"}
                     </span>
@@ -171,7 +202,7 @@ export function OperatorRoleToggles({
         ))}
       </ul>
 
-      {held.length === 0 && (
+      {heldRoles.length === 0 && (
         <p className="text-[13px] text-amber-700">
           With no roles they can still sign in, but there is nowhere for them to
           go until one is added back.

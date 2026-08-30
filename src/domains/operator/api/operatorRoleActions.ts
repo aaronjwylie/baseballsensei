@@ -6,8 +6,8 @@
  * Action is a public endpoint with a nice-looking call site, and this one grants
  * privileges.
  */
-import { revalidatePath } from "next/cache";
 import { requireRole } from "@/domains/account";
+import { revalidateOperatorPages } from "./operatorPages";
 import { ROLES, type Role } from "../model/operatorRoleEnum";
 import {
   grantsFor,
@@ -79,10 +79,7 @@ export async function setRolesAction(
 
   await setGrants(operatorId, grants, session.operatorId);
 
-  for (const kind of ["all", "admins", "coaches", "translators"]) {
-    revalidatePath(`/admin/operators/${kind}`);
-    revalidatePath(`/admin/operators/${kind}/${operatorId}`);
-  }
+  revalidateOperatorPages();
 
   // Read back rather than echo the input: this is what is actually stored, so
   // the form shows the database rather than its own hopes.

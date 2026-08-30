@@ -15,8 +15,8 @@
  * Admin-only. The guard is re-checked here rather than trusted from the UI,
  * because a Server Action is a public endpoint with a nice-looking call site.
  */
-import { revalidatePath } from "next/cache";
 import { requireRole } from "@/domains/account";
+import { revalidateOperatorPages } from "./operatorPages";
 import { storage, coachImageKey } from "@/shared/storage";
 import { FOCUS_OPTIONS, type Focus } from "@/domains/submission";
 import {
@@ -54,11 +54,6 @@ async function savePhoto(id: string, formData: FormData): Promise<string | null>
 }
 
 /** Which pages show this role, so a save is reflected without a hard reload. */
-function pathsFor(role: Role, id?: string): string[] {
-  const kind = role === "coach" ? "coaches" : `${role}s`;
-  const roots = ["all", kind].map((k) => `/admin/operators/${k}`);
-  return id ? [...roots, ...roots.map((r) => `${r}/${id}`)] : roots;
-}
 
 export async function createProfiledOperatorAction(
   role: Role,
@@ -99,7 +94,7 @@ export async function createProfiledOperatorAction(
     console.error(`[${role} create] photo failed:`, err);
   }
 
-  for (const path of pathsFor(role)) revalidatePath(path);
+  revalidateOperatorPages();
   return { ok: true };
 }
 
@@ -174,6 +169,6 @@ export async function updateProfiledOperatorAction(
     return { error: `Could not update the ${role} — is that email already in use?` };
   }
 
-  for (const path of pathsFor(role, id)) revalidatePath(path);
+  revalidateOperatorPages();
   return { ok: true };
 }
