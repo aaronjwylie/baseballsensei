@@ -164,6 +164,37 @@ export async function listFilesForSubmissions(
 }
 
 /**
+ * Response files for several submissions at once — the batched sibling of
+ * `listFeedbackFiles`, for the admin queue. One query for the page rather than
+ * one per row (QA 5.1); the caller reads `?? []` for a row with none.
+ */
+export async function listFeedbackFilesForSubmissions(
+  submissionIds: string[],
+): Promise<Map<string, SubmissionFile[]>> {
+  const grouped = new Map<string, SubmissionFile[]>();
+  if (submissionIds.length === 0) return grouped;
+
+  const rows = await db
+    .select()
+    .from(submissionFileTable)
+    .where(
+      and(
+        inArray(submissionFileTable.submissionId, submissionIds),
+        inArray(submissionFileTable.kind, FEEDBACK_KINDS),
+      ),
+    )
+    .orderBy(asc(submissionFileTable.uploadedAt));
+
+  for (const row of rows) {
+    const file = fromFileRow(row);
+    const existing = grouped.get(file.submissionId);
+    if (existing) existing.push(file);
+    else grouped.set(file.submissionId, [file]);
+  }
+  return grouped;
+}
+
+/**
  * The files that make up one language set — the read behind both hand-offs.
  *
  * Takes kinds rather than a set + side so the *decision* stays in
@@ -216,6 +247,40 @@ export async function listFilesByFolder(
     folders[file.kind].push(file);
   }
   return folders;
+}
+
+/**
+ * The four folders for several submissions at once — the batched sibling of
+ * `listFilesByFolder`, for the admin queue. One query for the page rather than
+ * one per row (QA 5.1). **Every id is present with all four folder keys**, so a
+ * row with no files renders empty folders rather than `undefined` — the same
+ * total shape `listFilesByFolder` returns per row, so the callers don't change.
+ */
+export async function listFoldersForSubmissions(
+  submissionIds: string[],
+): Promise<Map<string, Record<FileKind, SubmissionFile[]>>> {
+  const grouped = new Map<string, Record<FileKind, SubmissionFile[]>>();
+  for (const id of submissionIds) {
+    grouped.set(id, {
+      intake: [],
+      intake_translation: [],
+      feedback: [],
+      feedback_translation: [],
+    });
+  }
+  if (submissionIds.length === 0) return grouped;
+
+  const rows = await db
+    .select()
+    .from(submissionFileTable)
+    .where(inArray(submissionFileTable.submissionId, submissionIds))
+    .orderBy(asc(submissionFileTable.uploadedAt));
+
+  for (const row of rows) {
+    const file = fromFileRow(row);
+    grouped.get(file.submissionId)?.[file.kind].push(file);
+  }
+  return grouped;
 }
 
 /** Every file on a submission, whatever folder — the purge's read. */
