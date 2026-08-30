@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button, Container } from "@/shared/ui";
+import { Button, ButtonLink, Container } from "@/shared/ui";
 // Import the server action from its "use server" module directly, NOT the
 // domain barrel — the barrel also re-exports the DAL and Postgres client, which
 // a client component would drag into the browser bundle (CLAUDE.md §12).
@@ -74,14 +74,6 @@ export function PortalBar({
           )}
         </div>
         <div className="flex items-center gap-5">
-          {canSwitch && (
-            <Link
-              href="/portal"
-              className="text-sm text-paper/70 transition-colors hover:text-paper"
-            >
-              Switch role
-            </Link>
-          )}
           {/* Account, with the login email stacked beneath it and right-aligned
               so both share their right edge with Sign out (Ben, QA 4.16). The
               email truncates rather than widening the bar on a long address. */}
@@ -96,6 +88,14 @@ export function PortalBar({
               </span>
             )}
           </Link>
+          {/* A button between Account and Sign out, styled like it, rather than a
+              stray text link (Ben, QA 4.16). Only for the multi-role operators it
+              serves. */}
+          {canSwitch && (
+            <ButtonLink href="/portal" variant="onDark">
+              Switch role
+            </ButtonLink>
+          )}
           <form action={logout}>
             <Button type="submit" variant="onDark">
               Sign out
