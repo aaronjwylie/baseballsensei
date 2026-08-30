@@ -124,7 +124,7 @@ export function OperatorRoleCard({
   const held = stored !== null;
 
   const signature = stored
-    ? `${stored.isActive}|${stored.notify}|${stored.languages.join(",")}|${stored.specialties.join(",")}|${stored.bio ?? ""}`
+    ? `${stored.isActive}|${stored.notify}|${stored.languages.join(",")}|${stored.specialties.join(",")}|${stored.bio ?? ""}|${stored.imageUrl ?? ""}`
     : "none";
 
   const heldId = `${operatorId}-${role}-held`;
@@ -310,13 +310,35 @@ export function OperatorRoleCard({
                   </Field>
                   <Field
                     label="Photo"
-                    hint="JPG or PNG. Leave blank to keep the current one."
+                    hint="JPG or PNG. Leave the file empty to keep the current one."
                   >
+                    {stored?.imageUrl && (
+                      <div className="mb-3 flex items-center gap-3">
+                        {/* The photo lives in a private blob; our own route
+                            streams it by operator id. The stored key rides along
+                            as a cache-buster so a fresh upload isn't masked by the
+                            route's short cache (Ben, QA 5.13.6.9). */}
+                        {/* eslint-disable-next-line @next/next/no-img-element -- a 64px admin thumbnail from our own route; next/image would only add an optimizer hop. */}
+                        <img
+                          src={`/api/coach-image/${operatorId}?v=${encodeURIComponent(stored.imageUrl)}`}
+                          alt={`${copy.title} photo`}
+                          className="h-16 w-16 rounded-lg border border-line object-cover"
+                        />
+                        <label className="flex items-center gap-1.5 text-[13px] text-ink-muted">
+                          <input type="checkbox" name="removeImage" />
+                          Remove photo
+                        </label>
+                      </div>
+                    )}
+                    {/* Style the native control's own button so "Choose file"
+                        reads as a button with a hover, without hiding the input
+                        and losing the chosen-file name beside it (Ben, QA
+                        5.13.6.9). */}
                     <input
                       name="image"
                       type="file"
                       accept="image/*"
-                      className={inputClass}
+                      className="block w-full text-sm text-ink-muted file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-line file:bg-paper-alt file:px-4 file:py-2 file:font-semibold file:text-ink file:transition-colors hover:file:border-ink hover:file:bg-white"
                     />
                   </Field>
                 </>

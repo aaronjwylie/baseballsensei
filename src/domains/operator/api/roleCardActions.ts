@@ -111,10 +111,11 @@ export async function saveRoleAction(
     return { grant: null };
   }
 
-  // Whether they already held this role decides more than idempotency: a role
-  // newly granted here sends its assignment email, a re-save of one they already
-  // hold does not (Ben, QA 5.13.2). Read before the grant lands.
-  const wasHeld = (await grantsFor(operatorId)).some((g) => g.role === role);
+  // The grants as they stand before this save — reused for two decisions: a
+  // role newly granted here sends its assignment email (Ben, QA 5.13.2), and the
+  // photo this role currently has is the one a replace or a remove must clean up.
+  const priorGrants = await grantsFor(operatorId);
+  const wasHeld = priorGrants.some((g) => g.role === role);
 
   // Idempotent: granting a role someone already holds keeps its `grantedAt`.
   await grantRole(operatorId, role, session.operatorId);
@@ -154,16 +155,31 @@ export async function saveRoleAction(
   const notify = role === "admin" ? formData.get("notify") !== null : undefined;
 
   const bioRaw = formData.get("bio");
-  const imageUrl = await savePhoto(operatorId, formData);
+
+  /*
+    The photo has three outcomes (Ben, QA 5.13.6.9): a new upload replaces the
+    old, ticking "remove" clears it back to none, and leaving both alone keeps
+    what's there. Either change drops the previous object so storage doesn't
+    orphan it.
+  */
+  const removeImage = formData.get("removeImage") !== null;
+  const newImageUrl = await savePhoto(operatorId, formData);
+  const priorImageUrl = priorGrants.find((g) => g.role === role)?.imageUrl;
+  if ((newImageUrl || removeImage) && priorImageUrl) {
+    void storage.remove(priorImageUrl).catch(() => {});
+  }
+  const imageUpdate: { imageUrl?: string | null } = newImageUrl
+    ? { imageUrl: newImageUrl }
+    : removeImage
+      ? { imageUrl: null }
+      : {};
 
   await setRoleSettings(operatorId, role, {
     languages,
     specialties,
     ...(notify !== undefined ? { notify } : {}),
     ...(bioRaw !== null ? { bio: String(bioRaw).trim() || null } : {}),
-    // Absent means "keep the current one", which is what an empty file input
-    // means to the person who left it alone.
-    ...(imageUrl ? { imageUrl } : {}),
+    ...imageUpdate,
   });
   await setGrantActive(operatorId, role, isActive);
 
