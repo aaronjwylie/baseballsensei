@@ -43,6 +43,12 @@ const FILTERS = {
     blurb:
       "They carry a submission between languages — out to the coach, and back to the customer. Needed only when a coach and a customer share none.",
   },
+  none: {
+    role: undefined,
+    label: "No role",
+    blurb:
+      "They can sign in but hold no role yet — newly added, or revoked down to nothing. They stay here, reachable and grantable, until an admin deletes them outright.",
+  },
 } as const;
 
 type Filter = keyof typeof FILTERS;
@@ -65,6 +71,18 @@ export default async function OperatorsPage(props: {
   const { kind } = await props.params;
   if (!isFilter(kind)) notFound();
   const { role, blurb } = FILTERS[kind];
+
+  /*
+    "No role" is not a role, so it can't be a `where` on the grant — it's the
+    absence of any grant. It reads the same unfiltered list the All tab does
+    (which now keeps role-less operators, QA 5.13.1) and keeps only those. And it
+    offers no "add" form: you don't create a role-less operator, you revoke down
+    to one, so the tab is a view, not a place to add from.
+  */
+  const noRole = kind === "none";
+  const people = noRole
+    ? (await listOperators()).filter((p) => p.grants.length === 0)
+    : await listOperators(role);
 
   return (
     <Container>
@@ -91,8 +109,10 @@ export default async function OperatorsPage(props: {
 
       <OperatorList
         filter={role}
-        people={await listOperators(role)}
-        addAction={createProfiledOperatorAction.bind(null, role ?? "admin")}
+        people={people}
+        addAction={
+          noRole ? undefined : createProfiledOperatorAction.bind(null, role ?? "admin")
+        }
       />
     </Container>
   );

@@ -25,7 +25,12 @@ export function OperatorList({
   /** The kind being shown, or undefined for everyone. */
   filter?: Role;
   people: OperatorListing[];
-  addAction: (
+  /**
+   * Omitted on a pure filter view like "No role", where adding makes no sense —
+   * you don't create a role-less operator, you revoke down to one. Absent means
+   * no add column and a full-width list.
+   */
+  addAction?: (
     state: OperatorProfileFormState,
     formData: FormData,
   ) => Promise<OperatorProfileFormState>;
@@ -34,7 +39,7 @@ export function OperatorList({
   const plural = filter === "coach" ? "coaches" : `${noun}s`;
 
   return (
-    <div className="mt-6 grid gap-8 lg:grid-cols-2">
+    <div className={`mt-6 grid gap-8 ${addAction ? "lg:grid-cols-2" : ""}`}>
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
           {people.length} {people.length === 1 ? noun : plural}
@@ -43,7 +48,7 @@ export function OperatorList({
         <ul className="mt-3 space-y-3">
           {people.length === 0 && (
             <li className="rounded-2xl border border-line bg-white p-5 text-sm text-ink-muted">
-              No {plural} yet — add one on the right.
+              No {plural} yet{addAction ? " — add one on the right." : "."}
               {filter === "translator" && (
                 <> A submission only needs one when the coach and the customer
                 share no language.</>
@@ -97,12 +102,38 @@ export function OperatorList({
                 )}
               </div>
 
-              <div className="mt-1.5 text-sm text-ink-muted">
-                {person.languages.length
-                  ? person.languages.join(", ")
-                  : "no languages recorded"}
-                {person.specialties.length ? ` · ${person.specialties.join(", ")}` : ""}
-              </div>
+              {/*
+                Per role, not one merged line (Ben, QA 5.13.1). A coach's
+                languages and a translator's direction are different facts, and
+                so are their specialties, so a single "English, Japanese ·
+                Hitting" under a two-pill operator was attributing one role's
+                settings to both. Each role that has something to show gets its
+                own line, in the same order as the pills; admin has neither and
+                contributes none. Gaps aren't shown as blanks here — the "Needs …"
+                prompt below owns that.
+              */}
+              {ROLES.filter((role) =>
+                person.grants.some(
+                  (g) =>
+                    g.role === role &&
+                    (g.languages.length > 0 || g.specialties.length > 0),
+                ),
+              ).map((role) => {
+                const grant = person.grants.find((g) => g.role === role)!;
+                const detail = [
+                  grant.languages.join(", "),
+                  grant.specialties.join(", "),
+                ]
+                  .filter(Boolean)
+                  .join(" · ");
+                return (
+                  <div key={role} className="mt-1 text-sm text-ink-muted">
+                    <span className="font-medium capitalize text-ink">{role}</span>
+                    {" — "}
+                    {detail}
+                  </div>
+                );
+              })}
 
               {/*
                 The gap that opens when a kind is added to someone onboarded as
@@ -119,14 +150,16 @@ export function OperatorList({
         </ul>
       </div>
 
-      <div className="rounded-2xl border border-line bg-white p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
-          Add {filter ? `a ${filter}` : "an operator"}
-        </h2>
-        <div className="mt-4">
-          <OperatorProfileForm roles={filter ? [filter] : ["admin"]} action={addAction} />
+      {addAction && (
+        <div className="rounded-2xl border border-line bg-white p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
+            Add {filter ? `a ${filter}` : "an operator"}
+          </h2>
+          <div className="mt-4">
+            <OperatorProfileForm roles={filter ? [filter] : ["admin"]} action={addAction} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
