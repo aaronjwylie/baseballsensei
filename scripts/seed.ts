@@ -9,13 +9,12 @@
  */
 import "./loadEnv";
 import bcrypt from "bcryptjs";
-import { count, eq } from "drizzle-orm";
+import { count, eq, and } from "drizzle-orm";
 import { db } from "@/shared/db";
 import {
   operatorTable,
-  operatorProfileTable,
-  credentialTable,
   operatorRoleGrantTable,
+  credentialTable,
   submissionTable,
 } from "@/db/schema";
 import { createSubmission } from "@/domains/submission";
@@ -120,11 +119,17 @@ async function main() {
   for (const c of sampleCoaches) {
     const user = await ensureUser(c.email, "changeme123", "coach", c.name);
     if (user.created) {
-      await db.insert(operatorProfileTable).values({
-        operatorId: user.id,
-        specialties: [...c.specialties],
-        languages: [...c.languages],
-      });
+      // Settings live on the grant, so seeding them means updating the grant
+      // `ensureUser` just created rather than inserting a second row.
+      await db
+        .update(operatorRoleGrantTable)
+        .set({ specialties: [...c.specialties], languages: [...c.languages] })
+        .where(
+          and(
+            eq(operatorRoleGrantTable.operatorId, user.id),
+            eq(operatorRoleGrantTable.role, "coach"),
+          ),
+        );
     }
     console.log(
       `[seed] coach ${c.email} (${c.languages.join("+")}) ${user.created ? "created" : "exists"}`,

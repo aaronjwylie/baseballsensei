@@ -61,7 +61,8 @@ export {
   notifyCoachAction,
 } from "./api/coachActions";
 export { OperatorProfileForm } from "./ui/OperatorProfileForm";
-export { OperatorRoleToggles } from "./ui/OperatorRoleToggles";
+export { OperatorRoleCard } from "./ui/OperatorRoleCard";
+export { OperatorIdentityForm } from "./ui/OperatorIdentityForm";
 export {
   rolesFor,
   rolesForMany,
@@ -73,7 +74,7 @@ export {
   type RoleGrant,
   holdsRole,
 } from "./api/operatorRoleApi";
-export { setRolesAction } from "./api/operatorRoleActions";
+export { saveRoleAction, type RoleCardState } from "./api/roleCardActions";
 export { OperatorList } from "./ui/OperatorList";
 export { AssignCoachSelect } from "./ui/AssignCoachSelect";
 export { AssignTranslatorSelect } from "./ui/AssignTranslatorSelect";

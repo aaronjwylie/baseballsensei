@@ -130,7 +130,7 @@ export async function updateProfiledOperatorAction(
 
   // Deactivating an account blocks its login (loginApi enforces `isActive`), so
   // deactivating the only eligible admin is a lockout by another door. Refuse it
-  // for the same reason `setRolesAction` refuses stripping the admin grant.
+  // for the same reason `saveRoleAction` refuses stripping the admin grant.
   if (
     activeField !== null &&
     activeField !== "on" &&

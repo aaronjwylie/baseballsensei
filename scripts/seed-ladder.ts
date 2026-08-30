@@ -18,7 +18,7 @@
  * Usage: `npx tsx --tsconfig tsconfig.json scripts/seed-ladder.ts`
  */
 import "./loadEnv";
-import { eq, like } from "drizzle-orm";
+import { and, eq, like } from "drizzle-orm";
 import { db } from "@/shared/db";
 import {
   submissionTable,
@@ -26,7 +26,7 @@ import {
   submissionEventTable,
   submissionAssignmentTable,
   operatorTable,
-  operatorProfileTable,
+  operatorRoleGrantTable,
 } from "@/db/schema";
 import { SUBMISSION_STATUSES, type SubmissionStatus } from "@/domains/submission";
 import type { FileKind } from "@/domains/submission";
@@ -99,12 +99,17 @@ async function main() {
       .select({
         id: operatorTable.id,
         name: operatorTable.name,
-        languages: operatorProfileTable.languages,
+        languages: operatorRoleGrantTable.languages,
       })
       .from(operatorTable)
       .innerJoin(
-        operatorProfileTable,
-        eq(operatorProfileTable.operatorId, operatorTable.id),
+        operatorRoleGrantTable,
+        and(
+          eq(operatorRoleGrantTable.operatorId, operatorTable.id),
+          // A coach's languages specifically — the same person's translator
+          // languages are now a different answer to a different question.
+          eq(operatorRoleGrantTable.role, "coach"),
+        ),
       )
   );
   if (coachRows.length === 0) {
@@ -113,8 +118,8 @@ async function main() {
   }
   // A coach who reads English and one who doesn't, so the derived translation
   // prompt has something to derive from.
-  const enCoach = coachRows.find((c) => c.languages.some((l) => /english/i.test(l))) ?? coachRows[0];
-  const jaCoach = coachRows.find((c) => !c.languages.some((l) => /english/i.test(l))) ?? coachRows[0];
+  const enCoach = coachRows.find((c) => c.languages.some((l: string) => /english/i.test(l))) ?? coachRows[0];
+  const jaCoach = coachRows.find((c) => !c.languages.some((l: string) => /english/i.test(l))) ?? coachRows[0];
 
   let made = 0;
   for (const [i, status] of SUBMISSION_STATUSES.entries()) {
