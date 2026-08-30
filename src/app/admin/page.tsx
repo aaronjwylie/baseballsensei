@@ -3,22 +3,21 @@ import Link from "next/link";
 import { Container, LocalTime, pillClass } from "@/shared/ui";
 import { FLOW_WINDOW_MINUTES } from "@/shared/lib";
 import {
-  listFeedbackFiles,
+  listFeedbackFilesForSubmissions,
   listFilesForSubmissions,
   listSubmissions,
   SubmissionFileList,
   type Submission,
   type SubmissionFile,
   type SubmissionStatus,
-  hasResponse,
   isReleased,
   availableSets,
-  listFilesByFolder,
+  listFoldersForSubmissions,
   type FileKind,
   isPaid,
   listProgressFacts,
   describeStage,
-  listSubmissionEvents,
+  listEventsForSubmissions,
   type SubmissionEvent,
   whoseCourt,
   needsTranslation,
@@ -156,44 +155,31 @@ export default async function AdminHomePage({
   const activeKey = TABS.some((t) => t.key === status) ? status! : "all";
   const rows = all.filter(TABS.find((t) => t.key === activeKey)!.match);
 
-  // One query for the whole page rather than one per row.
-  const filesBySubmission = await listFilesForSubmissions(rows.map((s) => s.id));
-
   /*
-    The four folders, per row.
+    Every per-row read the queue needs, each batched into ONE query for the page.
 
-    One query per submission rather than one for the page: the folder view only
-    renders for rows the admin has expanded in practice, and a page-wide join would
-    read every translation of every submission to show a handful. Bounded by the
-    page size, which the queue already limits.
+    This is the page the admin lives on, and it was fanning out ~three queries
+    per submission — the folders, the trail, and the feedback files, a round trip
+    each per row — so a 34-row queue cost ~100 round trips and grew linearly with
+    the business (QA 5.1). Two of these reads were already batched; the other
+    three now have batched siblings (`inArray` + group in memory) that leave the
+    per-row versions for the detail page. The five run in parallel — they answer
+    different questions and none depends on another.
   */
-  const foldersBySubmission = new Map(
-    await Promise.all(
-      rows.map(async (s) => [s.id, await listFilesByFolder(s.id)] as const),
-    ),
-  );
-
-  // What each row has passed through, and which messages landed. One read for
-  // the page — the progress view needs it on every row.
-  const progressBySubmission = await listProgressFacts(rows.map((s) => s.id));
-
-  // The full trail, for the expanded panel. Per row rather than page-wide: only
-  // an opened row shows it, and most rows are never opened.
-  const eventsBySubmission = new Map(
-    await Promise.all(
-      rows.map(async (s) => [s.id, await listSubmissionEvents(s.id)] as const),
-    ),
-  );
-
-  // The coach's feedback files, for the rows where the admin acts on them — reviewing
-  // before approval, and after it's delivered.
-  const feedbackBySubmission = new Map(
-    await Promise.all(
-      rows
-        .filter(hasResponse)
-        .map(async (s) => [s.id, await listFeedbackFiles(s.id)] as const),
-    ),
-  );
+  const ids = rows.map((s) => s.id);
+  const [
+    filesBySubmission,
+    foldersBySubmission,
+    progressBySubmission,
+    eventsBySubmission,
+    feedbackBySubmission,
+  ] = await Promise.all([
+    listFilesForSubmissions(ids),
+    listFoldersForSubmissions(ids),
+    listProgressFacts(ids),
+    listEventsForSubmissions(ids),
+    listFeedbackFilesForSubmissions(ids),
+  ]);
 
   return (
     <Container>

@@ -457,17 +457,11 @@ export async function listProgressFacts(
   return facts;
 }
 
-/** One submission's history, oldest first. */
-export async function listSubmissionEvents(
-  submissionId: string,
-): Promise<SubmissionEvent[]> {
-  const rows = await db
-    .select()
-    .from(submissionEventTable)
-    .where(eq(submissionEventTable.submissionId, submissionId))
-    .orderBy(asc(submissionEventTable.at));
-
-  return rows.map((row) => ({
+/** One trail row, from the table to the domain shape. */
+function fromEventRow(
+  row: typeof submissionEventTable.$inferSelect,
+): SubmissionEvent {
+  return {
     id: row.id,
     submissionId: row.submissionId,
     kind: row.kind,
@@ -479,5 +473,45 @@ export async function listSubmissionEvents(
     at: row.at.toISOString(),
     actorId: row.actorId ?? undefined,
     note: row.note ?? undefined,
-  }));
+  };
+}
+
+/** One submission's history, oldest first. */
+export async function listSubmissionEvents(
+  submissionId: string,
+): Promise<SubmissionEvent[]> {
+  const rows = await db
+    .select()
+    .from(submissionEventTable)
+    .where(eq(submissionEventTable.submissionId, submissionId))
+    .orderBy(asc(submissionEventTable.at));
+
+  return rows.map(fromEventRow);
+}
+
+/**
+ * The history of several submissions at once — the batched sibling of
+ * `listSubmissionEvents`, for the admin queue. One query for the page rather
+ * than one per row (QA 5.1). Each submission's events stay oldest-first, and the
+ * caller reads `?? []` for a row with none.
+ */
+export async function listEventsForSubmissions(
+  submissionIds: string[],
+): Promise<Map<string, SubmissionEvent[]>> {
+  const grouped = new Map<string, SubmissionEvent[]>();
+  if (submissionIds.length === 0) return grouped;
+
+  const rows = await db
+    .select()
+    .from(submissionEventTable)
+    .where(inArray(submissionEventTable.submissionId, submissionIds))
+    .orderBy(asc(submissionEventTable.at));
+
+  for (const row of rows) {
+    const event = fromEventRow(row);
+    const existing = grouped.get(event.submissionId);
+    if (existing) existing.push(event);
+    else grouped.set(event.submissionId, [event]);
+  }
+  return grouped;
 }
