@@ -1,5 +1,6 @@
 import { PortalBar } from "../_portal/PortalBar";
 import { getSession, portalsFor } from "@/domains/account";
+import { getOperatorProfile } from "@/domains/operator";
 
 const ADMIN_LINKS = [
   { href: "/admin", label: "Submissions" },
@@ -20,9 +21,12 @@ export default async function AdminLayout({
 }) {
   const session = await getSession();
   const canSwitch = session ? portalsFor(session.roles).length > 1 : false;
+  const email = session
+    ? (await getOperatorProfile(session.operatorId))?.email
+    : undefined;
   return (
     <>
-      <PortalBar home="/admin" links={ADMIN_LINKS} canSwitch={canSwitch} />
+      <PortalBar home="/admin" links={ADMIN_LINKS} canSwitch={canSwitch} email={email} />
       <div className="py-8">{children}</div>
     </>
   );
