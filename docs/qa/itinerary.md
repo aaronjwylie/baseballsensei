@@ -269,9 +269,9 @@ than assuming the fix held.
 | 5.6 | Archive a submission | Leaves the active queue |
 | 5.7 | **Reset a status** to an earlier rung | Recorded in the trail **with your name and a reason** |
 | 5.8 | **Purge a folder** | ⚠️ Files gone; the *rows* survive; `/api/files/[id]` answers **410**, not 404|
-| 5.9 | Assign a **translator** (Japanese-only coach) | Translation rungs appear |
+| 5.9 | Assign a **translator** (Japanese-only coach) | Translation rungs appear. ⚠️ Derived from the **coach grant's** languages now, not the person's |
 | 5.10 | A coach who shares the customer's language | Translation steps are **skipped** entirely |
-| 5.11 | A coach with **no languages recorded** | Says so plainly rather than prompting |
+| 5.11 | A coach with **no languages recorded** | Says so plainly rather than prompting. ⚠️ Note an admin grant is empty by design — check the coach card, not the person |
 
 ### 5.12 Settings (`/admin/settings`)
 | 5.12.1 | Change the price | **Landing page and step 4 both follow** (allow 5 min for the landing cache) |
@@ -285,9 +285,26 @@ than assuming the fix held.
 | 5.13.3 | **That coach can log in** | ⚠️ The exact thing that was broken — verify explicitly |
 | 5.13.4 | **Create a translator** | Same, and can log in |
 | 5.13.5 | **Create a second admin** | Same, and reaches `/admin` |
-| 5.13.6 | Edit someone's languages/specialties | Persists |
+| 5.13.6 | Edit the **coach card's** languages and specialties | Persists — and see 5.13.6.5, because "someone's languages" stopped being a thing on 2026-08-30 |
+| 5.13.6.1 | The operator page shows **three role cards** — Admin, Coach, Translator — plus a separate **Sign-in** card | Each role's controls are inside its own card; identity is not in any of them |
+| 5.13.6.2 | **Admin card** | ⚠️ No availability, no languages, no specialties, and it says why. Holding admin *is* being one — a paused admin is not a state |
+| 5.13.6.3 | **Coach card** | Availability, languages, specialties, bio, photo — the only role the public site shows |
+| 5.13.6.4 | **Translator card** | Availability, languages, specialties. ⚠️ **No bio and no photo** — a translator is never shown publicly |
+| 5.13.6.5 | **The one that matters.** Give one person coach languages `English` and translator languages `Japanese`. Save each card | ⚠️ Both persist, separately. Re-open the page and confirm. Before this rebuild they were one column and could not disagree |
+| 5.13.6.6 | Save the coach card only | ⚠️ Admin and translator are **untouched** — each card writes one role, so a stale card cannot delete the others (this was QA 4.7's actual damage) |
+| 5.13.6.7 | Untick a role, without saving | Its settings panel disappears — no half-state where a paused toggle outlives its role |
+| 5.13.6.8 | Re-tick it, still without saving | The panel returns with its values intact |
+| 5.13.6.9 | Upload a **coach photo**, and write a bio | Saves against the coach grant. Leaving the photo blank on a later save keeps the existing one |
+| 5.13.6.9.1 | ⚠️ Now look for that bio and photo **on the public site** | **They are not there.** The landing page's coach section is hardcoded copy in `landing/model/copy.ts`, and nothing links to `/api/coach-image/[id]`. The card collects data with no consumer — decide whether the public section becomes data-driven or the fields come out |
+| 5.13.6.10 | ⚠️ **Migration check.** Someone who had languages recorded before 2026-08-30 | Their **coach** grant still carries them — the move backfilled coach and translator grants, and left admin grants empty on purpose |
+| 5.13.6.11 | The **Sign-in card**: change name, email, password | Saves independently of every role card; they can then log in with the new password |
 | 5.13.7 | **Pause** a role | Still holds the role; **not offered for assignment** |
+| 5.13.7.1 | After pausing, re-open the card | ⚠️ That role's languages, specialties and bio are **still there** — pausing is not removing |
+| 5.13.7.2 | Pause a coach who is **mid-review** on a submission | ⚠️ The assignment **survives** — work already in hand stays theirs to finish. Only a revoke releases it |
 | 5.13.8 | **Revoke** a role | Drops off that list; other roles survive |
+| 5.13.8.1 | Revoke a coach who is **assigned** to a submission | ⚠️ The submission **returns to the queue** for reassignment. Without this the assignment outlives the role and they could still pull the files |
+| 5.13.8.2 | Revoke the coach role from someone who is also a translator | ⚠️ Their **translator** languages and specialties are untouched |
+| 5.13.8.3 | Revoke a role, then grant it back | ⚠️ Its settings are **gone** — removing a role discards them, by design. The public bio exists because the coach role does. Confirm this is the behaviour you want before launch |
 | 5.13.9 | Revoke every role | ⚠️ Person remains, reaches nothing — **there is no hard delete**; confirm that's acceptable|
 | 5.13.10 | Reset another operator's password as admin | ⚠️ Also previously broken — confirm they can then log in |
 | 5.13.11 | Deactivate an operator | Cannot log in |

@@ -776,9 +776,15 @@
     "5.9": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "Assign a translator (Japanese-only coach)",
-      "expect": "Translation rungs appear",
+      "expect": "Translation rungs appear. ⚠️ Derived from the coach grant's languages now, not the person's",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-30T03:11:31.062Z",
+          "what": "Assign a translator (Japanese-only coach)",
+          "expect": "Translation rungs appear"
+        }
+      ]
     },
     "5.10": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -790,9 +796,15 @@
     "5.11": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "A coach with no languages recorded",
-      "expect": "Says so plainly rather than prompting",
+      "expect": "Says so plainly rather than prompting. ⚠️ Note an admin grant is empty by design — check the coach card, not the person",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-30T03:11:31.062Z",
+          "what": "A coach with no languages recorded",
+          "expect": "Says so plainly rather than prompting"
+        }
+      ]
     },
     "5.12.1": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -859,10 +871,16 @@
     },
     "5.13.6": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
-      "what": "Edit someone's languages/specialties",
-      "expect": "Persists",
+      "what": "Edit the coach card's languages and specialties",
+      "expect": "Persists — and see 5.13.6.5, because \"someone's languages\" stopped being a thing on 2026-08-30",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-30T03:11:31.062Z",
+          "what": "Edit someone's languages/specialties",
+          "expect": "Persists"
+        }
+      ]
     },
     "5.13.7": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -1305,6 +1323,131 @@
       "firstSeen": "2026-08-30T01:22:55.054Z",
       "what": "The last-admin guard. Remove admin from every admin but one, then try to remove it from the last",
       "expect": "Refused, with the reason shown, and the checkbox snaps back ticked. Never yet run — testing the safety net requires walking the tightrope it exists for, and a zero-admin state has no in-app recovery, only a DB re-seed. Run it with someone holding database access standing by, and restore the other admins afterwards",
+      "retired": false,
+      "history": []
+    },
+    "5.13.6.1": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "The operator page shows three role cards — Admin, Coach, Translator — plus a separate Sign-in card",
+      "expect": "Each role's controls are inside its own card; identity is not in any of them",
+      "retired": false,
+      "history": []
+    },
+    "5.13.6.2": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "Admin card",
+      "expect": "No availability, no languages, no specialties, and it says why. Holding admin is being one — a paused admin is not a state",
+      "retired": false,
+      "history": []
+    },
+    "5.13.6.3": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "Coach card",
+      "expect": "Availability, languages, specialties, bio, photo — the only role the public site shows",
+      "retired": false,
+      "history": []
+    },
+    "5.13.6.4": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "Translator card",
+      "expect": "Availability, languages, specialties. ⚠️ No bio and no photo — a translator is never shown publicly",
+      "retired": false,
+      "history": []
+    },
+    "5.13.6.5": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "The one that matters. Give one person coach languages English and translator languages Japanese. Save each card",
+      "expect": "Both persist, separately. Re-open the page and confirm. Before this rebuild they were one column and could not disagree",
+      "retired": false,
+      "history": []
+    },
+    "5.13.6.6": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "Save the coach card only",
+      "expect": "Admin and translator are untouched — each card writes one role, so a stale card cannot delete the others (this was QA 4.7's actual damage)",
+      "retired": false,
+      "history": []
+    },
+    "5.13.6.7": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "Untick a role, without saving",
+      "expect": "Its settings panel disappears — no half-state where a paused toggle outlives its role",
+      "retired": false,
+      "history": []
+    },
+    "5.13.6.8": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "Re-tick it, still without saving",
+      "expect": "The panel returns with its values intact",
+      "retired": false,
+      "history": []
+    },
+    "5.13.6.9": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "Upload a coach photo, and write a bio",
+      "expect": "Saves against the coach grant. Leaving the photo blank on a later save keeps the existing one",
+      "retired": false,
+      "history": [
+        {
+          "at": "2026-08-30T03:12:34.321Z",
+          "what": "Upload a coach photo",
+          "expect": "Saves; appears on the public site. Leaving it blank on a later save keeps the existing one"
+        }
+      ]
+    },
+    "5.13.6.10": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "⚠️ Migration check. Someone who had languages recorded before 2026-08-30",
+      "expect": "Their coach grant still carries them — the move backfilled coach and translator grants, and left admin grants empty on purpose",
+      "retired": false,
+      "history": []
+    },
+    "5.13.6.11": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "The Sign-in card: change name, email, password",
+      "expect": "Saves independently of every role card; they can then log in with the new password",
+      "retired": false,
+      "history": []
+    },
+    "5.13.7.1": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "After pausing, re-open the card",
+      "expect": "That role's languages, specialties and bio are still there — pausing is not removing",
+      "retired": false,
+      "history": []
+    },
+    "5.13.7.2": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "Pause a coach who is mid-review on a submission",
+      "expect": "The assignment survives — work already in hand stays theirs to finish. Only a revoke releases it",
+      "retired": false,
+      "history": []
+    },
+    "5.13.8.1": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "Revoke a coach who is assigned to a submission",
+      "expect": "The submission returns to the queue for reassignment. Without this the assignment outlives the role and they could still pull the files",
+      "retired": false,
+      "history": []
+    },
+    "5.13.8.2": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "Revoke the coach role from someone who is also a translator",
+      "expect": "Their translator languages and specialties are untouched",
+      "retired": false,
+      "history": []
+    },
+    "5.13.8.3": {
+      "firstSeen": "2026-08-30T03:11:31.062Z",
+      "what": "Revoke a role, then grant it back",
+      "expect": "Its settings are gone — removing a role discards them, by design. The public bio exists because the coach role does. Confirm this is the behaviour you want before launch",
+      "retired": false,
+      "history": []
+    },
+    "5.13.6.9.1": {
+      "firstSeen": "2026-08-30T03:12:34.321Z",
+      "what": "⚠️ Now look for that bio and photo on the public site",
+      "expect": "They are not there. The landing page's coach section is hardcoded copy in landing/model/copy.ts, and nothing links to /api/coach-image/[id]. The card collects data with no consumer — decide whether the public section becomes data-driven or the fields come out",
       "retired": false,
       "history": []
     }
