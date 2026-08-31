@@ -354,7 +354,9 @@ than assuming the fix held.
 | 7.2.2 | ⚠️ **Someone else's leg.** As a translator assigned to a *different* submission, open a file you can reach | No rung moves. Being *a* translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not |
 | 7.2.3 | Download the same file twice | The second changes nothing. The rung has already moved, so there is no rung to move |
 | 7.3 | Upload the translation | Lands in the `intake_translation` folder. ⚠️ The status does **not** move on upload — uploading and handing back are two acts, as they are for the coach |
-| 7.3.1 | ⚠️ **The "Choose file" button responds to the mouse.** Hover it | Colour change and a pointer cursor. It is a shadow-DOM control reached only through the `file:` variant, so it inherits nothing — unstyled it reads as broken rather than plain. Same button on the coach's page and the operator photo |
+| 7.3.1 | ⚠️ **The "Choose files" button responds to the mouse.** Hover it | Colour change and a pointer cursor, and **no "No file selected"** beside it — the panel lists uploads directly above, so that readout contradicted the page. Same control on the coach's page |
+| 7.3.1a | Reach it by **keyboard** — tab to it and press Enter or Space | The picker opens and the button shows a focus ring. The real input is visually hidden, not `display:none`, so it stays in the tab order |
+| 7.3.1b | Neither button wraps to two lines | Narrow the window. ⚠️ "Hand back" broke across two lines and doubled the button's height when the file input was greedy for width |
 | 7.3.2 | **Remove an uploaded translation.** Upload two, remove one | It goes from the list and from storage. No confirm step — the file is still on their machine, so a mistaken click costs one re-upload |
 | 7.3.3 | Remove the last file, then try to hand back | Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on |
 | 7.3.4 | ⚠️ **Remove after handing back** (stale tab, or as another translator) | Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder |

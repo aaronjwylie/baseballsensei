@@ -2,7 +2,7 @@
 
 import { useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Button, fileInputClass } from "@/shared/ui";
+import { Button, FileButton } from "@/shared/ui";
 import {
   uploadFile,
   type UploadEndpoints,
@@ -128,17 +128,17 @@ export function FeedbackUpload({
       )}
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <input
-          type="file"
+        <FileButton
+          label="Choose files"
           multiple
           disabled={busy}
-          onChange={onSelect}
-          className={fileInputClass}
+          onSelect={onSelect}
         />
         <Button
           type="button"
           disabled={busy || files.length === 0}
           onClick={send}
+          className="shrink-0 whitespace-nowrap"
         >
           {busy ? "Working…" : "Send for approval"}
         </Button>

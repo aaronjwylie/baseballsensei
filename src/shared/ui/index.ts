@@ -1,7 +1,8 @@
 export { Button } from "./Button";
 export { ButtonLink } from "./ButtonLink";
 export { Container } from "./Container";
-export { Field, fileInputClass, inputClass, selectClass } from "./Field";
+export { Field, inputClass, selectClass } from "./Field";
+export { FileButton } from "./FileButton";
 export { FieldSelect } from "./FieldSelect";
 export { LocalTime } from "./LocalTime";
 export { PasswordInput } from "./PasswordInput";

@@ -2,7 +2,7 @@
 
 import { useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Button, fileInputClass } from "@/shared/ui";
+import { Button, FileButton } from "@/shared/ui";
 import { failed, succeeded } from "@/shared/lib/actionResult";
 import {
   uploadFile,
@@ -177,14 +177,21 @@ export function TranslationUpload({
       )}
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <input
-          type="file"
+        <FileButton
+          label="Choose files"
           multiple
           disabled={busy}
-          onChange={onSelect}
-          className={fileInputClass}
+          onSelect={onSelect}
         />
-        <Button type="button" disabled={busy || files.length === 0} onClick={handBack}>
+        {/* `whitespace-nowrap` so the label can never break across two lines
+            when the row gets tight — "Hand back" wrapping to "Hand" over
+            "back" doubled the button's height (Ben, 2026-08-31). */}
+        <Button
+          type="button"
+          disabled={busy || files.length === 0}
+          onClick={handBack}
+          className="shrink-0 whitespace-nowrap"
+        >
           {busy ? "Working…" : handBackLabel}
         </Button>
       </div>

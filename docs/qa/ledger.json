@@ -1716,10 +1716,16 @@
     },
     "7.3.1": {
       "firstSeen": "2026-08-31T23:23:21.099Z",
-      "what": "⚠️ The \"Choose file\" button responds to the mouse. Hover it",
-      "expect": "Colour change and a pointer cursor. It is a shadow-DOM control reached only through the file: variant, so it inherits nothing — unstyled it reads as broken rather than plain. Same button on the coach's page and the operator photo",
+      "what": "⚠️ The \"Choose files\" button responds to the mouse. Hover it",
+      "expect": "Colour change and a pointer cursor, and no \"No file selected\" beside it — the panel lists uploads directly above, so that readout contradicted the page. Same control on the coach's page",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-31T23:29:46.549Z",
+          "what": "⚠️ The \"Choose file\" button responds to the mouse. Hover it",
+          "expect": "Colour change and a pointer cursor. It is a shadow-DOM control reached only through the file: variant, so it inherits nothing — unstyled it reads as broken rather than plain. Same button on the coach's page and the operator photo"
+        }
+      ]
     },
     "7.3.2": {
       "firstSeen": "2026-08-31T23:23:21.099Z",
