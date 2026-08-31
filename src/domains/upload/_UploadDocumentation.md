@@ -14,7 +14,7 @@ No transcoding, no streaming — the coach downloads and scrubs locally
 
 ```mermaid
 flowchart LR
-    PANEL["ui/UploadPanel"] --> T["ui/uploadTransport"]
+    PANEL["ui/UploadPanel"] --> T["shared/upload/uploadTransport"]
     T -->|"prod: token"| BLOBR["/api/upload/blob"]
     T -->|"prod: bytes"| BLOB[("Vercel Blob")]
     T -->|"prod: register"| DONE["/api/upload/complete"]
@@ -50,15 +50,43 @@ flowchart LR
 
 - **the GATE** — `api/uploadPolicy.ts` (`authorizeUpload`, `checkFile`).
 - **the VERB** — `api/uploadApi.ts` (`storeUploadedFile` for the proxied path,
-  `registerUpload` for the direct one) · `api/retentionSweep.ts`.
-- **the WIRE** — `ui/uploadTransport.ts` (two paths, one call) · `ui/UploadPanel.tsx` (the
-  cards).
+  `registerUpload` for the direct one) · `api/retentionSweep.ts`
+  (`runRetentionSweep`, `sweepAbandoned`) · `api/discardSubmission.ts`
+  (`discardUnpaidSubmission` — files and record together, refuses anything paid).
+- **the WIRE** — `ui/UploadPanel.tsx` (one dropzone, per-file remove). The
+  two-path transport `uploadFile` **moved to `shared/upload/` on 2026-08-06**:
+  three domains (`checkout`, `feedback`, `upload`) reached across for it, which is
+  exactly the `shared/` test (`_StructureLaw` §5).
 - No `model/` record: **there is no Upload entity.** A finished upload is a
   `SubmissionFile`, which belongs to the submission slice.
 
 ---
 
-## 2 · Where we are now — 2026-08-01
+## 2 · Where we are now — 2026-08-28
+
+**The upload step was reworked** (QA 2.3.2–2.3.9.1). It was a chain of cards — an
+empty card that turned into an upload, then a separate "+" that spawned the next
+empty card, so a second file took two clicks on two elements.
+
+- ✅ **One dropzone, always present, does every add.** A single `Dropzone` (click
+  the picker or drag files onto it) starts each upload and stays put for the next,
+  up to the limit; it disappears only once `activeCount` reaches `maxFiles`. A
+  drag can carry several files — only what still fits under the limit is taken.
+- ✅ **A file is type- and size-checked in the browser before a byte is sent**
+  (QA 2.3.6, 2.3.8), the same checks the server re-makes on every upload — the
+  client copy is a courtesy, never the boundary.
+- ✅ **Per-file remove.** Every row carries a remove control: a done file is
+  deleted server-side through `onRemoveFile` (checkout's `removeFlowFileAction`,
+  scoped to an unpaid `intake` file) before its row leaves; an in-flight upload is
+  aborted through its `AbortController`; a refused card just clears.
+- ✅ **Uniform row height** (`min-h-[100px]`, QA 2.3.9.1) across uploading, done,
+  refused, and the dropzone, so a file completing or being refused doesn't resize
+  its row and shove the page.
+- ✅ **The uploading card shows the moment a file is chosen** (QA 2.3.3
+  regression) — the card is added first, then uploaded into, so progress is
+  visible rather than the file uploading invisibly.
+
+### 2026-08-01 — the retention sweep rewrite
 
 **The retention sweep was rewritten** (rollout Phase 6). Three changes, and the
 first is the one everything else rests on.
@@ -87,10 +115,10 @@ Fine here, and it has already broken a deploy once — an hourly schedule needs 
 
 ### Before 2026-08-01
 
-- ✅ **Multi-file, one card at a time.** A card starts empty, becomes a live upload with a
-  real percentage the moment a file is chosen, and only then does "Upload another file"
-  appear. Verified in a browser: two files up, `.exe` refused with the right sentence, the
-  Continue button counting correctly.
+- ✅ **Multi-file upload.** *(The card-chain UI described here was replaced by a
+  single dropzone on 2026-08-28 — see above.)* Verified in a browser: two files
+  up, `.exe` refused with the right sentence, the Continue button counting
+  correctly.
 - ✅ **The Vercel body-limit bug is fixed** ([ADR 011](../../../docs/decisions/011-client-direct-uploads.md)).
   This slice's previous doc flagged it as "may need a direct-to-Blob client upload" — it was
   not a *may*: at ~4.5 MB per serverless request body, video upload could never have worked

@@ -57,7 +57,8 @@ flowchart LR
 
 ### The pieces
 
-- **the VERB** — `api/paymentApi.ts` (create a PaymentIntent, verify a succeeded one) ·
+- **the VERB** — `api/paymentApi.ts` (create a PaymentIntent, verify a succeeded one —
+  and, since QA 2.4.3, verify a *declined* one for the browser's decline report) ·
   `api/paymentWebhook.ts` (verify Stripe's events, act on them) ·
   `model/fulfillment.ts` (intent → paid submission, idempotently) ·
   `api/paymentCompletion.ts` (what happens once it clears — written once for both callers) ·
@@ -71,7 +72,25 @@ flowchart LR
 
 ---
 
-## 2 · Where we are now — 2026-08-01
+## 2 · Where we are now — 2026-08-29
+
+- ✅ **The decline path now has two callers, like the success path** (QA 2.4.3).
+  `markSubmissionPaid` has had two callers since ADR 003 (the webhook and the
+  browser confirming inline), so a payment records even when the webhook is down.
+  Failure had only the webhook, so one disabled or misdirected endpoint silently
+  removed the entire card-declined recovery email. `getFailedPaymentIntent`
+  mirrors `getSucceededPaymentIntent` — it returns an intent only if it genuinely
+  declined (`last_payment_error` present, not succeeded/processing), verified
+  against Stripe — and `checkout`'s `reportDeclineAction` calls
+  `handleFailedPayment` from the browser. `PaymentPanel` fires that report only on
+  a `card_error` (a blank-field validation slip carries no intent to decline).
+- ✅ **One decline email per intent, across both callers and any Stripe retry.**
+  `handleFailedPayment` now guards on `declineEmailedFor(submissionId, intent.id)`
+  before sending, and the intent id rides in the trail note so the dedupe has
+  something to match on. Without it the webhook and the browser report would send
+  two "your card was declined" emails for one decline.
+
+### 2026-08-01
 
 - ✅ **A declined card is handled, not just logged.** `handleFailedPayment` emails
   the customer a way back in and **touches the row** — which is what extends the

@@ -78,17 +78,36 @@ flowchart LR
 > `/status` page keeps its email entry: when a lookup shows a completed review, the customer
 > can request a **6-digit access code** (`issueFeedbackViewCode` → `sendFeedbackViewCode`),
 > read it back, and see their download links inline (`verifyFeedbackViewCode`). It's stateless
-> — the code's bcrypt hash rides in a short-lived signed httpOnly cookie (`bs_fbcode`), no
-> schema change — and it is **not an account** (CLAUDE.md §2): no password, nothing to sign
+> — a keyed fingerprint of the code rides in a short-lived signed httpOnly cookie (`bs_fbcode`),
+> no schema change — and it is **not an account** (CLAUDE.md §2): no password, nothing to sign
 > into, expires in ten minutes. Both routes (`/api/status/feedback/{code,verify}`) are
 > rate-limited, and the code request always answers `ok` so it never confirms which addresses
 > exist. This is the sibling of the flow's upload-gating verification, for a different purpose:
 > proving inbox control to *release* feedback rather than to *accept* an upload.
+>
+> **Updated 2026-08-29 · the view code is HMAC'd, capped, and gates the whole view.** Three
+> hardenings landed on the status-page path after the security/correctness hunt (2026-08-26,
+> #9/#10) and QA 3.2 (2026-08-29):
+>
+> - **The cookie carries an HMAC fingerprint, not a bcrypt hash** (`fingerprint` keyed to
+>   `AUTH_SECRET`). The cookie payload is readable by whoever received the `Set-Cookie`, and a
+>   bcrypt hash of a 6-digit code sitting there is an offline brute-force that falls in minutes;
+>   an HMAC can't be run against candidates without the server-held key. The match is a
+>   constant-time `timingSafeEqual` over the hex.
+> - **A code tolerates `MAX_FEEDBACK_CODE_ATTEMPTS` wrong guesses, then burns** — the count
+>   rides in the signed cookie (no attempt column). It's the *same* figure as the flow
+>   verification gate (`MAX_CODE_ATTEMPTS`), one source of truth so the two can't drift.
+> - **The code now gates the whole customer view, not just released downloads.** Any submission
+>   for the email earns a code (a mid-review customer must still be able to see their own
+>   submission), and one code grants both the status list and the downloads
+>   (`StatusAccess` = `{ submissions, groups }`) — one act of proof, one grant. The empty-inbox
+>   case returns a decoy fingerprint and sends no mail, so the response is identical whether or
+>   not the address exists.
 
 ## 2b · Fixed 2026-08-02
 
 - 🔴 **Approval refused translated responses.** The mirror of the hand-off bug:
-  a translated response sits at `response_translated`, and `approveAndComplete`
+  a translated response sits at `feedback_translated`, and `approveAndComplete`
   only accepted `awaiting_approval` — so a review could be translated and then
   never sent.
 - ✅ **The bounce message names the kind of failure.** `hard` says the address

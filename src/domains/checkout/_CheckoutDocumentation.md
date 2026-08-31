@@ -45,7 +45,30 @@ the way `app/` is for a page.
 
 ---
 
-## 2 · Where we are now — 2026-08-01
+## 2 · Where we are now — 2026-08-29
+
+- ✅ **A cleared charge is confirmed even when the flow cookie is gone.**
+  `confirmPaymentForFlow` now reads the paid submission from the **intent's own
+  `metadata.submissionId`**, not the cookie. When the cookie is present it still
+  must match (a forged intent id can't fulfil someone else's submission); when
+  it's absent — a www/non-www hop or a window that lapsed during the 3-D Secure
+  detour drops the host-only cookie — it falls back to the intent's reference and
+  fulfils the submission the charge already names, idempotent with the webhook
+  (ADR 003). This supersedes the old "we can't show it to *this* browser" note
+  below: a paid customer is now shown success rather than a failure screen.
+  `confirmPaymentAction` no longer resets the flow on failure — a genuine failure
+  is the only way through, so it shows the error rather than restarting a paid
+  customer.
+- ✅ **The decline path has a second caller from the browser** (QA 2.4.3).
+  `reportDeclineAction` lets the browser report its own decline: success already
+  had two callers (webhook + inline confirm, ADR 003), but failure had only the
+  webhook, so one disabled endpoint silently removed the card-declined recovery
+  email. The action re-derives the submission from the flow cookie and re-reads
+  the intent from Stripe (never the browser's claim), and `handleFailedPayment`
+  is idempotent with the webhook. Best-effort and quiet — the customer is already
+  looking at Stripe's decline message.
+
+### 2026-08-01
 
 - ✅ **"Gone" is a flag, not a sentence.** Every action answers
   `{ ok, error, gone? }`, and the flow reads the flag: a scrubbed submission
@@ -54,10 +77,15 @@ the way `app/` is for a page.
   uploading into something the server swept ten minutes ago.
   Every action can return it, because every action re-derives the submission from
   the flow cookie and any of them can find it missing.
-- ✅ **A lapsed window at the payment step says something true.** If the card did
-  go through, the webhook still fulfils the submission independently (ADR 003) and
-  a receipt arrives; what we can't do is show it to *this* browser, and the copy
-  says exactly that rather than something reassuring.
+  The flag has grown two companions the flow also reads: `keepDetails` (a bounced
+  code — reset to step 1 but keep the typed details to fix just the address) and
+  `locked` (out of verification guesses — retire the code input).
+- 🔶 **~~A lapsed window at the payment step says something true.~~** *(superseded
+  2026-08-29 — see above.)* Then: if the card did go through, the webhook fulfilled
+  the submission independently (ADR 003) and a receipt arrived, but we couldn't
+  show it to *this* browser, and the copy said exactly that. Now the return trip
+  confirms a cleared charge from the intent's own reference, so this browser is
+  shown success too.
 - ✅ **The flow window is 30 minutes, sliding, and it's the only clock** — the
   verification code expires on the same one.
 

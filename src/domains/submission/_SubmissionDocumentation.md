@@ -241,6 +241,13 @@ What each column holds:
 | **Retention** | whether the submission survives being abandoned at this point | |
 | **`status`** | `from → to`, or *(unchanged)* | the destination on its own — the move is the information |
 
+> **⚠️ This table is sixteen rungs; the ladder is now twenty (§2d).** ADR 018
+> added a picking rung and a hand-off rung to *each* translation leg, and renamed
+> the `response_*` rungs `feedback_*`. The arc and the reasoning below still hold
+> — the translator legs simply expanded from one rung to three, the mirror of the
+> coach's `sent_to_coach → in_review`. Read `SUBMISSION_STATUSES` for the current
+> list; this table is being kept until it is rewritten against the twenty.
+
 | # | Rung | Court | What it means | Enters on | ① | ② | ③ | ④ | ⑤ | ⑥ | Done when | Email | Retention |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | `draft` | customer | Details captured, nothing proven. A scratch pad | **“Continue to email verification”** → `startSubmissionAction` | Discard any earlier unpaid attempt — files and row | Tidy up stale abandoned submissions elsewhere *(best-effort; never blocks this customer)* | Create the submission and give it its permanent id | Open a **30-minute sliding window** — the only clock in the flow | Mint a 6-digit code; store only its hash | **Confirm the code was accepted for delivery** before advancing them, and record what became of it | **Done** when the customer enters the code | ① code → customer | scratch pad — discardable at any moment |
@@ -937,31 +944,139 @@ is what the domain says; the API is one of the things that says it.
 far along". Reordering `SUBMISSION_STATUSES` therefore reorders a Postgres type —
 that array is a migration surface now, not a free list.
 
+## 2d · Assignment became a join, the ladder grew to twenty, and a freed leg requeues
+
+*The sixteen-rung tables in §2 and §3 predate this section. `SUBMISSION_STATUSES`
+in `model/submission.ts` is now the canonical list of rungs — read it, not the
+sixteen-rung tables, which are kept below as the history they've become.*
+
+### The ladder is twenty rungs now — ADR 018, 2026-08-06
+
+ADR 018 gave the translator the same three rungs a coach has — **chosen, sent,
+collected** — on *each* leg. A hand-off is the one place a submission stalls on a
+person, and the two roles were being measured differently for no reason anyone
+could name: a coach picked-but-not-sent was visible in the queue, a translator's
+was not. Four rungs were added —
+`intake_translator_assigned` · `sent_to_intake_translator` on the intake leg and
+`feedback_translator_assigned` · `sent_to_feedback_translator` on the feedback
+leg — taking the ladder from sixteen to **twenty**. `TRANSLATION_RUNGS` is now
+eight, not four.
+
+`intake_translating` / `feedback_translating` are **earned by the translator's
+first download** (2026-08-06, ADR 018 Q3), the mirror of how `in_review` is
+earned by the coach's — not written on upload. `markTranslatorCollected` derives
+which leg from where the submission already sits, because the two legs are never
+both outstanding.
+
+### `response` became `feedback` — the last two enums
+
+The file kind and the statuses that still said `response_*` were renamed
+`feedback_*`, closing the split the 2026-08-01 note above flagged: the shipped
+column had always been `feedback`, so the statuses were moved to match it rather
+than the other way round. The four folders are now
+`intake` · `intake_translation` · `feedback` · `feedback_translation`
+(`FILE_KINDS`), and the response-side rungs are `feedback_translator_assigned` ·
+`sent_to_feedback_translator` · `feedback_translating` · `feedback_translated`.
+Anything still spelled `response_*` below — the §2 table's rungs 10–11, the
+breadcrumb library, the substep inventory — is the older vocabulary and reads
+onto these.
+
+### Assignment is a join table, not a column — ADR 018, migration 0008
+
+`assignedCoachId` — and the `assignedOperatorId` cache that briefly stood in for
+it during the expand step — is **gone from `submissionTable`**. Who owes what now
+lives in `submission_assignment` (`submissionAssignmentTable.ts` /
+`submissionAssignmentApi.ts`): one row per **promise to produce a file**. A coach
+owes the `feedback`; a translator owes an `intake_translation` or a
+`feedback_translation`; nobody owes the `intake`, because the customer supplies
+it. A scalar column could only ever name one operator, and a submission in
+translation owes three files to as many as three people.
+
+The reads followed the fact. `findByCoach` is an inner join on
+`produces = 'feedback'`; `isAssignedToSubmission` asks the join; `assigneeFor`
+answers "who owes this one file"; `assignmentsBySubmission` fetches a whole
+queue page's owners in one query rather than one per row. `PRODUCES_BY_ROLE` is
+an exhaustive `Record<Role, FileKind[]>` — `admin` owes nothing, `coach` owes
+`feedback`, `translator` owes both translations — so a new kind of operator is a
+compile error until someone states what it produces. (The operator identity
+itself split around the same time: `operator` is who logs in, `operatorProfile`
+is who works, and `translator` joined `admin` / `coach` as a role.)
+
+**The trail now records assignments too.** A fourth `submission_event_kind`,
+`assignment`, joined `status` · `email` · `verification`, so "who has had this"
+survives a reassignment — which deletes the join row and would otherwise erase
+its own predecessor. `noteAssignment` writes one row per assign/unassign,
+`{role} assigned — {operatorId}` / `{role} unassigned — {operatorId}`, with a
+null rung because a hand-off between people isn't a place on the ladder (the same
+reason a send and a verification carry none). It is deliberately **not** the
+`assigned` rung: writing one as the other put the rung in the trail twice, which
+`npm run simulate` caught and nothing else would have.
+
+### A freed leg returns to the queue — QA 5.13.8.1, 2026-08-30
+
+`releaseAssignments(operatorId, forRoles?)` clears an operator's assignment rows
+when a role is revoked or their account is paused (called from the operator
+role-card actions and the profile pause). On its own it left a revoked coach's
+submission sitting in `in_review` with nobody in review. **`releaseAndRequeue`**
+is the whole gesture the callers actually want: the files leave the operator's
+hands **and** the submission drops back to the rung where the freed leg is
+(re)assigned.
+
+Where each freed leg lands, and the only rungs on which it moves at all:
+
+| Freed leg (`produces`) | Returns to | Only while at |
+| --- | --- | --- |
+| `feedback` — the coach | `new` | `assigned` · `sent_to_coach` · `in_review` |
+| `intake_translation` | `assigned` | `intake_translator_assigned` · `sent_to_intake_translator` · `intake_translating` |
+| `feedback_translation` | `awaiting_approval` | `feedback_translator_assigned` · `sent_to_feedback_translator` · `feedback_translating` |
+
+**A departure never undoes finished work.** The `whileAt` guard is the whole
+point: a leg already **delivered** — or a submission that has moved on into
+another role's phase — is left exactly where it is. A coach removed after the
+response is in stays past `in_review`; only one still mid-review is sent back to
+`new`. `intake` is produced by nobody, so it requeues to nothing.
+
+Two mechanical notes worth keeping:
+
+- `releaseAssignments` now **returns `{ submissionId, produces }[]`** so the
+  caller can requeue *after* its transaction closes. `updateSubmission` opens its
+  own transaction, so the requeue can't run inside the release's.
+- The requeue is **recorded on the trail** — `updateSubmission`'s note reads
+  `"The coach was unassigned — returned for reassignment"` (or "The intake
+  translator", "The feedback translator").
+
 ## 3 · Where we are now — 2026-08-02
 
-### Sixteen rungs, one word each
+### Twenty rungs, one word each
+
+*(Was sixteen; the four translator rungs arrived with ADR 018 — see §2d. Labels
+are `RUNG_LABEL` in `model/submission.ts`, exhaustive over the enum.)*
 
 | # | Status | Label | | # | Status | Label |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | `draft` | Draft | | 9 | `awaiting_approval` | Submitted |
-| 2 | `awaiting_payment` | Upload | | 10 | `response_translating` | Translating |
-| 3 | `new` | New | | 11 | `response_translated` | Translated |
-| 4 | `assigned` | Assigned | | 12 | `complete` | Delivered |
-| 5 | `intake_translating` | Translating | | 13 | `collected` | Collected |
-| 6 | `intake_translated` | Translated | | 14 | `resolved` | Resolved |
-| 7 | `sent_to_coach` | Sent | | 15 | `purge_imminent` | Deleting |
-| 8 | `in_review` | Reviewing | | 16 | `purged` | Purged |
+| 1 | `draft` | Draft | | 11 | `awaiting_approval` | Submitted |
+| 2 | `awaiting_payment` | Upload | | 12 | `feedback_translator_assigned` | Sent |
+| 3 | `new` | New | | 13 | `sent_to_feedback_translator` | Sent |
+| 4 | `assigned` | Assigned | | 14 | `feedback_translating` | Translating |
+| 5 | `intake_translator_assigned` | Sent | | 15 | `feedback_translated` | Translated |
+| 6 | `sent_to_intake_translator` | Sent | | 16 | `complete` | Delivered |
+| 7 | `intake_translating` | Translating | | 17 | `collected` | Collected |
+| 8 | `intake_translated` | Translated | | 18 | `resolved` | Resolved |
+| 9 | `sent_to_coach` | Sent | | 19 | `purge_imminent` | Deleting |
+| 10 | `in_review` | Reviewing | | 20 | `purged` | Purged |
 
-Sixteen of these sit on one rail, so each has to be readable at a glance and
-none can afford a clause. The rung says *where*; the line beneath says what's
-owed. That division is what let the labels shrink — "Upload" needs no
-qualification once "Attach a file" is sitting under it, which is why the derived
-pill label ("Uploaded 3 — awaiting payment") is gone.
+Twenty of these sit on one rail, so each has to be readable at a glance and none
+can afford a clause. The rung says *where*; the line beneath says what's owed.
+That division is what let the labels shrink — "Upload" needs no qualification
+once "Attach a file" is sitting under it, which is why the derived pill label
+("Uploaded 3 — awaiting payment") is gone.
 
-**Four rungs share two names.** A submission translates twice, once each way,
-and "Translating" is the honest word both times. On the rail position carries
-the difference; in a flat list it can't, so the override's dropdown numbers them
-(`5 · Translating`).
+**Several rungs share a name.** Five read "Sent" (the two hand-offs plus the
+picking rung on each leg), and translation shows up twice each way — "Translating"
+and "Translated" both appear on the intake and feedback legs. On the rail
+position carries the difference; in a flat list it can't, so
+`numberedRungLabel` prefixes the position (`7 · Translating`) wherever a rung is
+shown out of the rail — the override's dropdown, the rail's own hover labels.
 
 ### The four folders
 
@@ -1583,7 +1698,11 @@ nothing to notice. `isReleased` is the fix, and the general rule it carries:
   the window. It stops a script in a loop, which is the realistic threat here; it does not
   stop a distributed one. Shared state (Upstash Redis) is the honest fix and is a scope
   decision for Ben, since it's a new third-party service. See `shared/lib/rateLimit.ts`.
-- ✅ **`assignedCoachId` is a real FK** to `coach` — set from the admin portal.
+- ✅ **Assignment is a join, not a column** — `submission_assignment`, one row per
+  promise to produce a file (`feedback` for a coach, the two translations for a
+  translator). `submissionTable.assignedCoachId` is gone (migration `0008`, ADR
+  018). `findByCoach` inner-joins on `produces = 'feedback'`; `releaseAndRequeue`
+  clears the rows and returns the freed leg to its queue. See §2d.
 - ✅ **`submissionFileTable`** — one row per uploaded file, replacing the single `videoUrl`.
   `listFilesForSubmissions` fetches a whole portal page in one query rather than one per row.
 - ✅ **The flow cookie** (`api/flowSession.ts`) — a signed, httpOnly capability naming the
