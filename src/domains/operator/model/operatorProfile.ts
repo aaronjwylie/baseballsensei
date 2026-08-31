@@ -21,7 +21,7 @@
  * filled in yet*, and it keeps the admin out of every assignment list by the
  * shape of the query rather than by a check someone has to remember.
  */
-import type { Focus, LanguageChoice } from "@/domains/submission";
+import type { Direction, Focus, LanguageChoice } from "@/domains/submission";
 
 export interface OperatorProfile {
   /** The operator's id. They *are* an operator, so there is only the one. */
@@ -86,3 +86,27 @@ export const TRANSLATOR_DIRECTIONS = [
 ] as const;
 
 export type TranslatorDirection = (typeof TRANSLATOR_DIRECTIONS)[number];
+
+/**
+ * The direction pairs a translator grant covers — the one place the stored
+ * display string is turned into a capability (Ben, QA 5.9).
+ *
+ * The grant keeps one of the three `TRANSLATOR_DIRECTIONS` phrases in its
+ * `languages`; "both directions" is the two one-way pairs, not a third kind of
+ * thing. **This is the only reader of that string** — every caller asks the
+ * capability here rather than parsing the phrase, so the day it becomes a stored
+ * `{ from, to }[]` field only this function changes.
+ */
+export function directionsOf(
+  translatorLanguages: readonly string[],
+): Direction[] {
+  const pairs: Direction[] = [];
+  for (const value of translatorLanguages) {
+    if (value === "English to Japanese") pairs.push({ from: "English", to: "Japanese" });
+    else if (value === "Japanese to English") pairs.push({ from: "Japanese", to: "English" });
+    else if (value === "both directions") {
+      pairs.push({ from: "English", to: "Japanese" }, { from: "Japanese", to: "English" });
+    }
+  }
+  return pairs;
+}

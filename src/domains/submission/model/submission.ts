@@ -85,6 +85,60 @@ function normalise(languages: readonly string[] | undefined): Set<string> {
   );
 }
 
+/** Map a possibly-messy language string to its canonical `Language`, or null. */
+function canonicalLanguage(value: string): Language | null {
+  const n = value.trim().toLowerCase();
+  return LANGUAGES.find((l) => l.toLowerCase() === n) ?? null;
+}
+
+/** One leg's translation, as the pair a translator is staffed against. */
+export interface Direction {
+  from: Language;
+  to: Language;
+}
+
+/**
+ * The direction a leg must run to become readable — the pair
+ * `needsTranslation` reduces to a boolean (Ben, QA 5.9).
+ *
+ * **From** a language the source declares that the target does not (the file may
+ * be in it, and the target can't read it); **to** a language the target reads
+ * (where it must land). Null when no translation is needed, or either side is
+ * undeclared. Derived from the same `normalise` and the same rule, so a leg has a
+ * required direction *exactly* when `needsTranslation(source, target)` is true —
+ * the gate and the picker cannot disagree about which way the work runs.
+ *
+ * With two languages exactly one such pair exists whenever the gate fires,
+ * including the bilingual cases: there the ambiguity is over *whether* to
+ * translate, never over *which way*.
+ */
+export function requiredDirection(
+  source: readonly string[] | undefined,
+  target: readonly string[] | undefined,
+): Direction | null {
+  const from = normalise(source);
+  const to = normalise(target);
+  if (from.size === 0 || to.size === 0) return null;
+  const needed = [...from].find((l) => !to.has(l));
+  if (needed === undefined) return null;
+  const fromL = canonicalLanguage(needed);
+  const toL = canonicalLanguage([...to][0]);
+  return fromL && toL ? { from: fromL, to: toL } : null;
+}
+
+/** Does a set of covered directions include the one a leg requires? */
+export function coversDirection(
+  covered: readonly Direction[],
+  required: Direction,
+): boolean {
+  return covered.some((d) => d.from === required.from && d.to === required.to);
+}
+
+/** How a direction reads for a person — "English to Japanese". */
+export function describeDirection(direction: Direction): string {
+  return `${direction.from} to ${direction.to}`;
+}
+
 /** What the player wants coached. `./focusEnum.ts` derives the DB type from it. */
 import type { FileSet } from "./submissionFile";
 
