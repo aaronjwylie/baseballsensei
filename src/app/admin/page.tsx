@@ -24,7 +24,7 @@ import {
   describeDirection,
   RUNG_LABEL,
 } from "@/domains/submission";
-import { listCoaches, listTranslators, notifyCoachAction, AssignCoachSelect, AssignTranslatorSelect, type OperatorProfile } from "@/domains/operator";
+import { listCoaches, listTranslators, notifyCoachAction, sendForTranslationAction, AssignCoachSelect, AssignTranslatorSelect, type OperatorProfile } from "@/domains/operator";
 import { requireRole } from "@/domains/account";
 import { RowActionForm } from "./RowActionForm";
 import { SendWithFileSet } from "./SendWithFileSet";
@@ -39,7 +39,6 @@ import {
   purgeFolderAction,
   resetStatusAction,
   resolveSubmissionAction,
-  sendForTranslationAction,
   uploadTranslationAction,
   unarchiveSubmissionAction,
 } from "./adminActions";

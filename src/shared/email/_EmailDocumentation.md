@@ -81,8 +81,29 @@ Numbered to match the path table's ①–⑨, so the two can be read side by sid
 | ⑦ | 14 | **Customer collected their feedback** | the admin | ✅ **built** — fires on the customer's first download |
 | ⑧ | 15 | the admin marks the submission resolved | customer | ✅ **built** — on “Mark resolved”, carrying the retention deadline |
 | ⑨ | 16 | **Uploads will be deleted in a week** | customer | ✅ **built** — the only *scheduled* message in the set, stamped so it can't send twice |
+| ⑩ | 6 | **Handed to the intake translator** | translator | ✅ **built** 2026-08-31 — `domains/operator/api/translatorActions.ts`, the same template as ③ with `role: "translator"` |
+| ⑪ | 12 | **Handed to the feedback translator** | translator | ✅ **built** 2026-08-31 — the response leg's counterpart |
 
 Three of these are new on 2026-08-01: ④, ⑦ and ⑨.
+
+**⑩ and ⑪ break the numbering's own rule, deliberately.** The handles were
+issued in step order, so a message for step 6 ought to sit between ② (step 4)
+and ③ (step 8). It cannot. **The handle is a persisted key** — it is written to
+`submission_event.label` and read back by `sent()` in `stageChain.ts` — so
+renumbering ③–⑨ to make room would orphan every historical trail row and every
+line that measures itself by one. Appending is the only non-destructive move, so
+the numbers are issue order from here and the **step column** is what to read
+for sequence.
+
+**Both were missing entirely until 2026-08-31**, and the way they were missing is
+worth keeping. `sendForTranslationAction` moved the rung and sent nothing. The
+rung is named `sent_to_intake_translator`; the stage chain then measured the
+hand-off as done by *reaching that rung*. Ladder asserted the send, chain
+confirmed it from the ladder, nothing observed an email — so every internal
+signal agreed, and only an empty inbox disagreed (Ben, QA 5.9.14). The lesson
+generalises past this bug: **a send may only ever be measured by the send.** Both
+lines now key off `sent(label)`, which is what ③ always did and is why the coach
+hand-off never had this problem.
 
 ### What actually happened to a message — 2026-08-02
 

@@ -47,7 +47,7 @@ export function AssignTranslatorSelect({
    */
   direction: Direction | null;
   assignedOperatorId?: string | null;
-  translators: { id: string; name: string; languages: string[] }[];
+  translators: { id: string; name: string; email: string; languages: string[] }[];
 }) {
   const [operatorId, setOperatorId] = useState(assignedOperatorId ?? "");
   const [state, action, pending] = useActionState<ActionResult, FormData>(
@@ -98,9 +98,17 @@ export function AssignTranslatorSelect({
           {eligible.map((t) => (
             <option key={t.id} value={t.id}>
               {/* Every option covers the leg now, so its direction reads as a
-                  confirmation the filter did its job, not a warning. */}
-              {t.name}
-              {t.languages[0] ? ` (${t.languages[0]})` : ""}
+                  confirmation the filter did its job, not a warning.
+
+                  The address is here because the direction alone does not
+                  identify anyone (Ben, QA 5.9.17). Five translators on the
+                  current roster are all called some variation of "Ben" and
+                  three of them share one direction, so name-plus-direction
+                  still picked out a set rather than a person — which is how a
+                  hand-off went to the wrong inbox. This control's entire
+                  effect is to send mail to that address, so it is the one fact
+                  that makes an option unambiguous. */}
+              {`${t.name}${t.languages[0] ? ` (${t.languages[0]})` : ""} — ${t.email}`}
             </option>
           ))}
         </select>

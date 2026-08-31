@@ -39,6 +39,7 @@ export { listTranslators, getTranslator } from "./api/translatorApi";
 export {
   assignTranslatorAction,
   createTranslatorAction,
+  sendForTranslationAction,
   updateTranslatorAction,
 } from "./api/translatorActions";
 export {

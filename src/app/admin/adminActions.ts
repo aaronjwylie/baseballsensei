@@ -415,60 +415,6 @@ export async function resolveSubmissionAction(
   return { ok: true };
 }
 
-/**
- * Rungs 5 and 10 — mark that the files have gone out for translation.
- *
- * **These rungs were unreachable.** Nothing in the app wrote them: uploading a
- * translation jumped straight from `assigned` to `intake_translated`, so a
- * submission sitting on the admin's laptop for two days was indistinguishable from
- * one he hadn't started. That is the exact thing the rung exists to show.
- *
- * It needs an explicit action because the download can't be it — an admin
- * downloads a file to check it as often as to translate it, and inferring intent
- * from a click would put submissions out for translation nobody sent.
- */
-export async function sendForTranslationAction(
-  _prev: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
-  await requireRole("admin");
-  const id = String(formData.get("submissionId") ?? "");
-  if (!id) return { error: "No submission. Reload and try again." };
-
-  const submission = await getSubmission(id);
-  if (!submission) return { error: "That submission no longer exists." };
-
-  /*
-    Each side can only be sent from the rung that precedes it.
-
-    Sending is only reachable **once a translator has been picked** — from
-    `*_translator_assigned`, never straight from `assigned`. Picking and sending
-    are two acts for a translator exactly as they are for a coach, so there is
-    no path that emails a hand-off to nobody.
-
-    And sending stops at `sent_to_*_translator`, not at `*_translating`: the
-    translator's own download earns the second, the same split
-    `sent_to_coach` → `in_review` makes on the coach side, and for the same
-    reason — it is the only place a submission stalls on a person.
-  */
-  const next =
-    submission.status === "intake_translator_assigned"
-      ? "sent_to_intake_translator"
-      : submission.status === "feedback_translator_assigned"
-        ? "sent_to_feedback_translator"
-        : null;
-  if (!next) {
-    return {
-      error:
-        "Pick a translator first. Sending is only possible once one is chosen, and only from the rung before it.",
-    };
-  }
-
-  await updateSubmission(id, { status: next });
-  revalidatePath("/admin");
-  return { ok: true };
-}
-
 export async function completeSubmissionAction(
   _prev: ActionResult,
   formData: FormData,

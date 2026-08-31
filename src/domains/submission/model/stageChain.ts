@@ -323,9 +323,15 @@ export const STAGE_CHAIN: Record<SubmissionStatus, ChainLine[]> = {
     {
       what: "Sent to the translator", next: "Send to the translator",
       from: "rung 6", act: "sendForTranslation",
-      toldOnFail: ["Admin/portal: “Pick a translator first.” *(not built)*"],
+      records: [...sendRecords("⑩ hand-off → intake translator")],
+      failures: [...sendFailures("⑩ hand-off → intake translator"), "Refused — that folder is empty, so there is nothing to send"],
+      toldOnFail: ["Admin/portal: “Pick a translator first.”", "Admin/portal: “There is nothing for the translator to work from.”"],
       toldOnSuccess: ["Admin/portal: the row moves to Sent", "Translator/email: the hand-off, with a download link per file"],
-      met: reached("sent_to_intake_translator"),
+      /* Measured by the send, not by the rung (Ben, QA 5.9.14). It used to be
+         `reached("sent_to_intake_translator")` — so the ladder asserted an email, this
+         line confirmed the assertion from the ladder, and nothing observed an
+         actual send. The hand-off shipped for weeks sending nothing. */
+      met: sent("⑩ hand-off → intake translator"),
     },
   ],
   sent_to_intake_translator: [
@@ -379,9 +385,15 @@ export const STAGE_CHAIN: Record<SubmissionStatus, ChainLine[]> = {
     {
       what: "Sent to the translator", next: "Send to the translator",
       from: "rung 12", act: "sendForTranslation",
-      toldOnFail: ["Admin/portal: “Pick a translator first.” *(not built)*"],
+      records: [...sendRecords("⑪ hand-off → feedback translator")],
+      failures: [...sendFailures("⑪ hand-off → feedback translator"), "Refused — that folder is empty, so there is nothing to send"],
+      toldOnFail: ["Admin/portal: “Pick a translator first.”", "Admin/portal: “There is nothing for the translator to work from.”"],
       toldOnSuccess: ["Admin/portal: the row moves to Sent", "Translator/email: the hand-off, with a download link per file"],
-      met: reached("sent_to_feedback_translator"),
+      /* Measured by the send, not by the rung (Ben, QA 5.9.14). It used to be
+         `reached("sent_to_feedback_translator")` — so the ladder asserted an email, this
+         line confirmed the assertion from the ladder, and nothing observed an
+         actual send. The hand-off shipped for weeks sending nothing. */
+      met: sent("⑪ hand-off → feedback translator"),
     },
   ],
   sent_to_feedback_translator: [
