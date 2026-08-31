@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 22,
-    "generatedAt": "2026-08-30T20:02:14.911Z",
-    "checks": 200,
-    "live": 200,
+    "build": 23,
+    "generatedAt": "2026-08-31T01:31:26.679Z",
+    "checks": 208,
+    "live": 208,
     "retired": 0,
-    "edited": 9
+    "edited": 10
   },
   "phases": [
     {
@@ -797,30 +797,92 @@
             },
             {
               "id": "5.9",
-              "what": "Assign a translator (Japanese-only coach)",
-              "expect": "Translation rungs appear. ⚠️ Derived from the coach grant's languages now, not the person's",
+              "what": "Linguistic alignment — the whole matrix. The rule is one symmetric set intersection: any shared language means no translation, none means translation, and either side blank means we cannot tell. It is not \"translate when the coach isn't English\" — that rule was retired precisely because it derived nothing useful for a Japanese parent sending to a Japanese coach. Run 5.9.1–5.9.8; each is one row of the matrix",
+              "expect": "",
               "history": [
                 {
                   "at": "2026-08-30T03:11:31.062Z",
                   "what": "Assign a translator (Japanese-only coach)",
                   "expect": "Translation rungs appear"
+                },
+                {
+                  "at": "2026-08-31T01:31:26.679Z",
+                  "what": "Assign a translator (Japanese-only coach)",
+                  "expect": "Translation rungs appear. ⚠️ Derived from the coach grant's languages now, not the person's"
                 }
               ]
             },
             {
+              "id": "5.9.1",
+              "what": "Customer English · coach Japanese",
+              "expect": "Translation is offered — the next action is \"Pick a translator\", not \"Hand to the coach\"",
+              "flag": "flag"
+            },
+            {
+              "id": "5.9.2",
+              "what": "Customer Japanese · coach English",
+              "expect": "Identical outcome to 5.9.1. The rule is symmetric; neither language is the platform's default",
+              "flag": "flag"
+            },
+            {
+              "id": "5.9.3",
+              "what": "Customer English · coach English",
+              "expect": "Translation rungs stay skipped; \"Hand to the coach\" is offered"
+            },
+            {
+              "id": "5.9.4",
+              "what": "Customer English · coach English, Japanese",
+              "expect": "Skipped. Overlap of any size means they can communicate — which language they use is then their choice, not a service",
+              "flag": "flag"
+            },
+            {
+              "id": "5.9.5",
+              "what": "Customer English, Japanese · coach Japanese",
+              "expect": "Skipped, for the same reason from the other side"
+            },
+            {
+              "id": "5.9.6",
+              "what": "Customer English · coach with nothing recorded",
+              "expect": "Skipped and silent. Blank is \"cannot tell\", never \"translate\" — prompting on an unanswered question nags on every row until someone fills it in",
+              "flag": "flag"
+            },
+            {
+              "id": "5.9.7",
+              "what": "Customer with nothing declared · any coach",
+              "expect": "Same: skipped, no prompt"
+            },
+            {
+              "id": "5.9.8",
+              "what": "Customer english · coach English (case and trailing space)",
+              "expect": "Skipped — matching is case-insensitive and trimmed"
+            },
+            {
               "id": "5.10",
-              "what": "A coach who shares the customer's language",
-              "expect": "Translation steps are skipped entirely"
+              "what": "The response leg, same matrix. Repeat 5.9.1 and 5.9.3 against the coach's feedback, after they upload it",
+              "expect": "Same two outcomes. It is a second passive constant in the same file and fixing one does not fix the other",
+              "flag": "flag",
+              "history": [
+                {
+                  "at": "2026-08-31T01:31:26.679Z",
+                  "what": "A coach who shares the customer's language",
+                  "expect": "Translation steps are skipped entirely"
+                }
+              ]
             },
             {
               "id": "5.11",
-              "what": "A coach with no languages recorded",
-              "expect": "Says so plainly rather than prompting. ⚠️ Note an admin grant is empty by design — check the coach card, not the person",
+              "what": "What an operator is told when languages are missing",
+              "expect": "The row says which side is blank rather than only that something is. ⚠️ An admin grant is empty by design — read the coach card, not the person",
               "history": [
                 {
                   "at": "2026-08-30T03:11:31.062Z",
                   "what": "A coach with no languages recorded",
                   "expect": "Says so plainly rather than prompting"
+                },
+                {
+                  "at": "2026-08-31T01:31:26.679Z",
+                  "what": "A coach with no languages recorded",
+                  "expect": "Says so plainly rather than prompting. ⚠️ Note an admin grant is empty by design — check the coach card, not the person"
                 }
               ]
             }

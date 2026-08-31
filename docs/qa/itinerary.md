@@ -270,9 +270,17 @@ than assuming the fix held.
 | 5.6 | Archive a submission | Leaves the active queue |
 | 5.7 | **Reset a status** to an earlier rung | Recorded in the trail **with your name and a reason** |
 | 5.8 | **Purge a folder** | ⚠️ Files gone; the *rows* survive; `/api/files/[id]` answers **410**, not 404|
-| 5.9 | Assign a **translator** (Japanese-only coach) | Translation rungs appear. ⚠️ Derived from the **coach grant's** languages now, not the person's |
-| 5.10 | A coach who shares the customer's language | Translation steps are **skipped** entirely |
-| 5.11 | A coach with **no languages recorded** | Says so plainly rather than prompting. ⚠️ Note an admin grant is empty by design — check the coach card, not the person |
+| 5.9 | **Linguistic alignment — the whole matrix.** The rule is one symmetric set intersection: *any* shared language means no translation, none means translation, and either side blank means we cannot tell. It is **not** "translate when the coach isn't English" — that rule was retired precisely because it derived nothing useful for a Japanese parent sending to a Japanese coach. Run 5.9.1–5.9.8; each is one row of the matrix |
+| 5.9.1 | Customer `English` · coach `Japanese` | ⚠️ **Translation is offered** — the next action is "Pick a translator", **not** "Hand to the coach" |
+| 5.9.2 | Customer `Japanese` · coach `English` | ⚠️ Identical outcome to 5.9.1. The rule is symmetric; neither language is the platform's default |
+| 5.9.3 | Customer `English` · coach `English` | Translation rungs stay skipped; "Hand to the coach" is offered |
+| 5.9.4 | Customer `English` · coach `English, Japanese` | ⚠️ **Skipped.** Overlap of *any* size means they can communicate — which language they use is then their choice, not a service |
+| 5.9.5 | Customer `English, Japanese` · coach `Japanese` | Skipped, for the same reason from the other side |
+| 5.9.6 | Customer `English` · coach with **nothing recorded** | ⚠️ Skipped and **silent**. Blank is "cannot tell", never "translate" — prompting on an unanswered question nags on every row until someone fills it in |
+| 5.9.7 | Customer with **nothing declared** · any coach | Same: skipped, no prompt |
+| 5.9.8 | Customer `english ` · coach `English` (case and trailing space) | Skipped — matching is case-insensitive and trimmed |
+| 5.10 | **The response leg, same matrix.** Repeat 5.9.1 and 5.9.3 against the coach's *feedback*, after they upload it | ⚠️ Same two outcomes. It is a second `passive` constant in the same file and fixing one does not fix the other |
+| 5.11 | What an operator is *told* when languages are missing | The row says which side is blank rather than only that something is. ⚠️ An **admin** grant is empty by design — read the coach card, not the person |
 
 ### 5.12 Settings (`/admin/settings`)
 | 5.12.1 | Change the price | **Landing page and step 4 both follow** (allow 5 min for the landing cache) |
