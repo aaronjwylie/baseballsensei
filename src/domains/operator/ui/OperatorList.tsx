@@ -161,12 +161,39 @@ export function OperatorList({
       </div>
 
       {addAction && (
-        <div className="rounded-2xl border border-line bg-white p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
-            Add {withArticle(filter ?? "operator")}
-          </h2>
-          <div className="mt-4">
-            <OperatorProfileForm roles={filter ? [filter] : ["admin"]} action={addAction} />
+        <div>
+          {/*
+            A spacer the exact height of the left column's heading, so the add
+            card's top lines up with the FIRST PERSON in the list rather than
+            with the "4 admins" count above them. Two cards starting at the same
+            y read as two columns; a card starting level with a heading reads as
+            hanging.
+
+            It carries the heading's own classes and a non-breaking space rather
+            than a measured height, so if the heading's size or spacing changes
+            this follows it instead of drifting. A div, not an h2 — an empty
+            heading would appear in the document outline and be announced as a
+            blank one.
+
+            `hidden lg:block` because below the two-column breakpoint the
+            columns stack, and then the spacer is just a gap for nothing.
+          */}
+          <div
+            aria-hidden
+            className="hidden text-sm font-semibold uppercase tracking-wide lg:block"
+          >
+            &nbsp;
+          </div>
+          <div className="rounded-2xl border border-line bg-white p-6 lg:mt-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
+              Add {withArticle(filter ?? "operator")}
+            </h2>
+            <div className="mt-4">
+              <OperatorProfileForm
+                roles={filter ? [filter] : ["admin"]}
+                action={addAction}
+              />
+            </div>
           </div>
         </div>
       )}
