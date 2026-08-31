@@ -50,6 +50,10 @@ const VARIANTS = {
     "border-accent bg-highlight text-accent hover:border-accent hover:bg-accent hover:text-paper focus-visible:ring-accent",
   onDark:
     "border-highlight bg-transparent text-highlight hover:bg-highlight hover:text-accent focus-visible:ring-highlight",
+  /* Destructive. Red outline that fills red on hover — the one action shaped to
+     look like it costs something, for deletes and the like. */
+  danger:
+    "border-red-600 bg-transparent text-red-600 hover:border-red-700 hover:bg-red-600 hover:text-white focus-visible:ring-red-600",
 } as const;
 
 export type ButtonVariant = keyof typeof VARIANTS;

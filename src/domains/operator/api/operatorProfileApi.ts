@@ -29,8 +29,9 @@ import type { Focus } from "@/domains/submission";
 import { releaseAndRequeue } from "@/domains/submission";
 import { setOperatorPassword } from "@/domains/account";
 import { createOperator } from "@/domains/account";
+import { storage } from "@/shared/storage";
 import { sendOperatorWelcomeEmail } from "./operatorWelcomeEmail";
-import { grantRole } from "./operatorRoleApi";
+import { grantRole, grantsFor } from "./operatorRoleApi";
 
 /**
  * One operator **in one role**.
@@ -235,6 +236,30 @@ export async function createProfiledOperator(
   await sendOperatorWelcomeEmail(input.email, input.name, role);
 
   return toProfile(row, grant);
+}
+
+/**
+ * Remove an operator from the platform entirely (Ben, QA 5.13.11).
+ *
+ * The reversible acts are revoking a role and pausing an account; this is the
+ * irreversible one, so it stays its own function and the guards that keep the
+ * platform reachable — never the last admin, never your own account — live in
+ * the action that calls it, next to the session that answers them.
+ *
+ * Order matters. **Free and requeue their work first**: the assignment rows
+ * cascade away with the operator, and a submission whose coach just vanished
+ * belongs back in the queue, not silently un-assigned (QA 5.13.8.1). **Then drop
+ * any photo blobs**, which the cascading grant rows would otherwise orphan in
+ * storage. Deleting the operator row takes its grants and its credential with it
+ * and leaves the trail intact with a null actor (`submission_event.actorId` is
+ * `set null`).
+ */
+export async function deleteOperator(operatorId: string): Promise<void> {
+  await releaseAndRequeue(operatorId);
+  for (const grant of await grantsFor(operatorId)) {
+    if (grant.imageUrl) void storage.remove(grant.imageUrl).catch(() => {});
+  }
+  await db.delete(operatorTable).where(eq(operatorTable.id, operatorId));
 }
 
 /** What may be changed about someone, across both of their rows. */

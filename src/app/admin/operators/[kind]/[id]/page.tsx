@@ -9,6 +9,7 @@ import {
   grantsFor,
   OperatorRoleCard,
   OperatorIdentityForm,
+  DeleteOperatorButton,
 } from "@/domains/operator";
 
 export const metadata: Metadata = {
@@ -93,6 +94,26 @@ export default async function EditOperatorPage(props: {
         </div>
       </div>
 
+      {/*
+        Delete is not a role change — it removes the person from the platform.
+        Kept apart, and last, so it reads as the deliberate end of the page
+        rather than another setting. Revoking a role or pausing an account are
+        the reversible acts above; this is the one that isn't (Ben, QA 5.13.11).
+      */}
+      <div className="mt-8 rounded-2xl border border-red-200 bg-red-50/40 p-6">
+        <h2 className="font-display text-lg font-medium uppercase tracking-[-0.01em] text-red-800">
+          Delete operator
+        </h2>
+        <p className="mt-0.5 max-w-prose text-sm text-ink-muted">
+          Removes {person.name} from the platform for good — every role, their
+          sign-in, and their photo. Any submission they were working on returns
+          to the queue for reassignment. This can&rsquo;t be undone; to step
+          someone back temporarily, untick their roles above instead.
+        </p>
+        <div className="mt-4">
+          <DeleteOperatorButton operatorId={id} name={person.name} />
+        </div>
+      </div>
     </Container>
   );
 }
