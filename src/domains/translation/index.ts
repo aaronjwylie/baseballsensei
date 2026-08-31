@@ -18,7 +18,10 @@ export {
   handBackTranslation,
   type TranslatorLeg,
 } from "./api/translationApi";
-export { handBackTranslationAction } from "./api/translationActions";
+export {
+  handBackTranslationAction,
+  removeTranslationFileAction,
+} from "./api/translationActions";
 export {
   LEGS,
   TRANSLATION_KINDS,

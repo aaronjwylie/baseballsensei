@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 28,
-    "generatedAt": "2026-08-31T23:16:03.764Z",
-    "checks": 230,
-    "live": 230,
+    "build": 29,
+    "generatedAt": "2026-08-31T23:23:21.099Z",
+    "checks": 235,
+    "live": 235,
     "retired": 0,
     "edited": 14
   },
@@ -1250,6 +1250,31 @@
                   "expect": "Lands in the intake_translation folder"
                 }
               ]
+            },
+            {
+              "id": "7.3.1",
+              "what": "⚠️ The \"Choose file\" button responds to the mouse. Hover it",
+              "expect": "Colour change and a pointer cursor. It is a shadow-DOM control reached only through the file: variant, so it inherits nothing — unstyled it reads as broken rather than plain. Same button on the coach's page and the operator photo"
+            },
+            {
+              "id": "7.3.2",
+              "what": "Remove an uploaded translation. Upload two, remove one",
+              "expect": "It goes from the list and from storage. No confirm step — the file is still on their machine, so a mistaken click costs one re-upload"
+            },
+            {
+              "id": "7.3.3",
+              "what": "Remove the last file, then try to hand back",
+              "expect": "Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on"
+            },
+            {
+              "id": "7.3.4",
+              "what": "⚠️ Remove after handing back (stale tab, or as another translator)",
+              "expect": "Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder"
+            },
+            {
+              "id": "7.3.5",
+              "what": "⚠️ Remove someone else's file. Post a remove for a file on a leg that isn't yours",
+              "expect": "Refused. And a remove aimed at an intake or feedback file is refused whoever asks — a translator must not be able to destroy the material they were given"
             },
             {
               "id": "7.4",

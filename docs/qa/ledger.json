@@ -1713,6 +1713,41 @@
       "expect": "The second changes nothing. The rung has already moved, so there is no rung to move",
       "retired": false,
       "history": []
+    },
+    "7.3.1": {
+      "firstSeen": "2026-08-31T23:23:21.099Z",
+      "what": "⚠️ The \"Choose file\" button responds to the mouse. Hover it",
+      "expect": "Colour change and a pointer cursor. It is a shadow-DOM control reached only through the file: variant, so it inherits nothing — unstyled it reads as broken rather than plain. Same button on the coach's page and the operator photo",
+      "retired": false,
+      "history": []
+    },
+    "7.3.2": {
+      "firstSeen": "2026-08-31T23:23:21.099Z",
+      "what": "Remove an uploaded translation. Upload two, remove one",
+      "expect": "It goes from the list and from storage. No confirm step — the file is still on their machine, so a mistaken click costs one re-upload",
+      "retired": false,
+      "history": []
+    },
+    "7.3.3": {
+      "firstSeen": "2026-08-31T23:23:21.099Z",
+      "what": "Remove the last file, then try to hand back",
+      "expect": "Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on",
+      "retired": false,
+      "history": []
+    },
+    "7.3.4": {
+      "firstSeen": "2026-08-31T23:23:21.099Z",
+      "what": "⚠️ Remove after handing back (stale tab, or as another translator)",
+      "expect": "Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder",
+      "retired": false,
+      "history": []
+    },
+    "7.3.5": {
+      "firstSeen": "2026-08-31T23:23:21.099Z",
+      "what": "⚠️ Remove someone else's file. Post a remove for a file on a leg that isn't yours",
+      "expect": "Refused. And a remove aimed at an intake or feedback file is refused whoever asks — a translator must not be able to destroy the material they were given",
+      "retired": false,
+      "history": []
     }
   }
 }

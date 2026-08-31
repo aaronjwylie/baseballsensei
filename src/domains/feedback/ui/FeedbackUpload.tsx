@@ -2,7 +2,7 @@
 
 import { useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/shared/ui";
+import { Button, fileInputClass } from "@/shared/ui";
 import {
   uploadFile,
   type UploadEndpoints,
@@ -133,7 +133,7 @@ export function FeedbackUpload({
           multiple
           disabled={busy}
           onChange={onSelect}
-          className="text-sm text-ink-muted file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-surface"
+          className={fileInputClass}
         />
         <Button
           type="button"

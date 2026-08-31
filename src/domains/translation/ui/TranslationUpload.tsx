@@ -2,7 +2,7 @@
 
 import { useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/shared/ui";
+import { Button, fileInputClass } from "@/shared/ui";
 import { failed, succeeded } from "@/shared/lib/actionResult";
 import {
   uploadFile,
@@ -12,7 +12,10 @@ import {
 // A client component imports the slice's client-safe model directly, not the
 // barrel — the barrel re-exports Postgres code that can't reach the browser.
 import { formatFileSize } from "@/domains/submission/model/submissionFile";
-import { handBackTranslationAction } from "../api/translationActions";
+import {
+  handBackTranslationAction,
+  removeTranslationFileAction,
+} from "../api/translationActions";
 import type { TranslationKind } from "../model/translationLeg";
 
 /** What the translator has handed over so far — the shape the routes echo back. */
@@ -59,6 +62,7 @@ export function TranslationUpload({
   );
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
 
   const endpoints: UploadEndpoints = {
     blobToken: "/api/translation/blob",
@@ -95,6 +99,19 @@ export function TranslationUpload({
     }
   }
 
+  async function remove(fileId: string) {
+    setRemoving(fileId);
+    setError(null);
+    const result = await removeTranslationFileAction(fileId);
+    setRemoving(null);
+    if (!succeeded(result)) {
+      setError(failed(result) ? result.error : "Couldn't remove that file.");
+      return;
+    }
+    setFiles((prev) => prev.filter((f) => f.id !== fileId));
+    router.refresh();
+  }
+
   async function handBack() {
     setBusy(true);
     setError(null);
@@ -121,12 +138,33 @@ export function TranslationUpload({
           {files.map((file) => (
             <li
               key={file.id}
-              className="flex items-center justify-between rounded-lg border border-line bg-canvas px-3 py-2 text-sm"
+              className="flex items-center gap-3 rounded-lg border border-line bg-canvas px-3 py-2 text-sm"
             >
-              <span className="truncate text-ink">{file.filename}</span>
-              <span className="ml-3 shrink-0 text-xs text-ink-muted">
+              <span className="min-w-0 flex-1 truncate text-ink">
+                {file.filename}
+              </span>
+              <span className="shrink-0 text-xs text-ink-muted">
                 {formatFileSize(file.sizeBytes)}
               </span>
+              {/*
+                Named "Remove", not an unlabelled ✕. The word is what tells a
+                screen reader — and anyone who has just uploaded three
+                similarly-named files — which file this button belongs to, so
+                the accessible name carries the filename too.
+
+                No confirm step: the file is still on their own machine, so the
+                cost of a mistaken click is one re-upload. A dialogue guarding
+                that would be asked more often than it saved anyone.
+              */}
+              <button
+                type="button"
+                onClick={() => void remove(file.id)}
+                disabled={busy || removing !== null}
+                aria-label={`Remove ${file.filename}`}
+                className="shrink-0 rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition-colors hover:bg-rose-50 hover:text-rose-700 disabled:opacity-40"
+              >
+                {removing === file.id ? "Removing…" : "Remove"}
+              </button>
             </li>
           ))}
         </ul>
@@ -144,7 +182,7 @@ export function TranslationUpload({
           multiple
           disabled={busy}
           onChange={onSelect}
-          className="text-sm text-ink-muted file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-surface"
+          className={fileInputClass}
         />
         <Button type="button" disabled={busy || files.length === 0} onClick={handBack}>
           {busy ? "Working…" : handBackLabel}

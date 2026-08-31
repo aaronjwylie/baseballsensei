@@ -354,6 +354,11 @@ than assuming the fix held.
 | 7.2.2 | ⚠️ **Someone else's leg.** As a translator assigned to a *different* submission, open a file you can reach | No rung moves. Being *a* translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not |
 | 7.2.3 | Download the same file twice | The second changes nothing. The rung has already moved, so there is no rung to move |
 | 7.3 | Upload the translation | Lands in the `intake_translation` folder. ⚠️ The status does **not** move on upload — uploading and handing back are two acts, as they are for the coach |
+| 7.3.1 | ⚠️ **The "Choose file" button responds to the mouse.** Hover it | Colour change and a pointer cursor. It is a shadow-DOM control reached only through the `file:` variant, so it inherits nothing — unstyled it reads as broken rather than plain. Same button on the coach's page and the operator photo |
+| 7.3.2 | **Remove an uploaded translation.** Upload two, remove one | It goes from the list and from storage. No confirm step — the file is still on their machine, so a mistaken click costs one re-upload |
+| 7.3.3 | Remove the last file, then try to hand back | Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on |
+| 7.3.4 | ⚠️ **Remove after handing back** (stale tab, or as another translator) | Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder |
+| 7.3.5 | ⚠️ **Remove someone else's file.** Post a remove for a file on a leg that isn't yours | Refused. And a remove aimed at an `intake` or `feedback` file is refused whoever asks — a translator must not be able to destroy the material they were given |
 | 7.4 | Hand back | `intake_translated`; the admin can now hand it to the coach |
 | 7.5 | Repeat for the **feedback** direction | `feedback_translating` → `feedback_translated` |
 | 7.6 | ⚠️ **Both legs, one translator.** Assign the same person both legs of one submission | **Two cards**, not one — they are separate jobs in opposite directions. Only the leg matching the current rung is under "To translate"; the other waits its turn |

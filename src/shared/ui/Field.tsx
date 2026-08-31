@@ -20,6 +20,27 @@ export const selectClass =
   "w-full rounded-lg border border-line bg-white px-3.5 h-[2.625rem] text-sm text-ink shadow-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/30";
 
 /**
+ * Shared `<input type="file">` styling — specifically, the browser's own
+ * "Choose file" button inside it.
+ *
+ * That button is a shadow-DOM control reachable only through the `file:`
+ * variant, which means it inherits nothing and has to be styled deliberately.
+ * Left alone it renders with no hover and no pointer cursor, and a button that
+ * doesn't respond to the mouse reads as **broken** rather than plain — which is
+ * exactly how it read in the translator portal (Ben, 2026-08-31).
+ *
+ * So the three things that make a button feel like one: `file:cursor-pointer`,
+ * a `hover:file:` colour change, and `file:transition-colors` so the change is
+ * a response rather than a flicker.
+ *
+ * One home because there are three file inputs — the coach's, the translator's
+ * and the operator photo — and they had already drifted into three different
+ * treatments, only one of which had ever been fixed.
+ */
+export const fileInputClass =
+  "block w-full text-sm text-ink-muted file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-ink file:px-4 file:py-2 file:text-xs file:font-semibold file:text-surface file:transition-colors hover:file:bg-accent focus-visible:outline-none";
+
+/**
  * A labelled form field.
  *
  * The label wraps the control so it's clickable without needing matching ids.
