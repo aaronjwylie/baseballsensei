@@ -295,6 +295,10 @@ than assuming the fix held.
 | 5.9.22 | **Upload is one click.** Press Upload in any folder | The file picker opens; choosing files uploads them. No separate "Choose files" step and no "No file selected" |
 | 5.9.23 | **Remove one file.** Use Remove beside a file in any folder | That file only — the folder keeps the rest. ⚠️ Distinct from Purge, which keeps the rows and drops the bytes |
 | 5.9.24 | After removing, read the trail | A row names the file and the folder. A folder that lost a file with no explanation is worse than one that still has it |
+| 5.9.25 | ⚠️ **Send "Both" to the coach, then read the email.** | Two headed groups: "The client's originals" and "The client's files, translated". A flat list of five links does not say which is which, and "Both" was chosen precisely because the distinction matters |
+| 5.9.26 | The originals come first | Even when the translation was uploaded first. Ordered by the folder list, not by whatever order the query returned |
+| 5.9.27 | Send a **single** folder | Stays a flat "Files to download" with no headings. A heading over a list that could not be anything else only costs a line |
+| 5.9.28 | The translator's ⑩ / ⑪ hand-off | Also flat: one folder is sent, so there is nothing to disambiguate |
 | 5.10 | **The response leg, same matrix.** Repeat 5.9.1 and 5.9.3 against the coach's *feedback*, after they upload it | ⚠️ Same two outcomes. It is a second `passive` constant in the same file and fixing one does not fix the other |
 | 5.11 | What an operator is *told* when languages are missing | The row says which side is blank rather than only that something is. ⚠️ An **admin** grant is empty by design — read the coach card, not the person |
 

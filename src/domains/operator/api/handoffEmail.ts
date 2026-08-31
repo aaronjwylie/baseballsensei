@@ -18,7 +18,29 @@
 import { emailShell, sendEmail } from "@/shared/email";
 import { site } from "@/shared/config/site";
 import { env } from "@/shared/config/env";
-import { formatFileSize, type Submission, type SubmissionFile } from "@/domains/submission";
+import {
+  FILE_KINDS,
+  formatFileSize,
+  type FileKind,
+  type Submission,
+  type SubmissionFile,
+} from "@/domains/submission";
+
+/**
+ * What each folder holds, in the recipient's terms.
+ *
+ * Named by **provenance**, never by language, which is the same rule the
+ * admin's send radio and the folder hints follow and for the same reason:
+ * nothing records what language a file is actually in, so "the Japanese
+ * version" is a guess, and it inverts the moment the customer is the Japanese
+ * one.
+ */
+const KIND_LABELS: Record<FileKind, string> = {
+  intake: "The client's originals",
+  intake_translation: "The client's files, translated",
+  feedback: "The coach's response",
+  feedback_translation: "The coach's response, translated",
+};
 
 function esc(value: string): string {
   return value.replace(
@@ -68,16 +90,49 @@ export function buildAssignmentEmail(
     : "";
 
   const available = files.filter((f) => f.fileUrl);
-  const filesHtml = available.length
-    ? `<p style="margin:16px 0 4px"><strong>Files to download</strong></p>
-       <ul style="margin:0;padding-left:20px">${available
-         .map(
-           (f) =>
-             `<li><a href="${env.siteUrl}/api/files/${f.id}">${esc(f.filename)}</a> (${formatFileSize(f.sizeBytes)})</li>`,
-         )
-         .join("")}</ul>`
-    : `<p style="margin:16px 0 4px"><strong>Files</strong></p>
-       <p style="margin:0">No files are attached. They may have been removed by the retention sweep.</p>`;
+
+  const list = (group: SubmissionFile[]) =>
+    `<ul style="margin:0;padding-left:20px">${group
+      .map(
+        (f) =>
+          `<li><a href="${env.siteUrl}/api/files/${f.id}">${esc(f.filename)}</a> (${formatFileSize(f.sizeBytes)})</li>`,
+      )
+      .join("")}</ul>`;
+
+  /*
+    Grouped by folder when the send covers more than one (Ben, 2026-08-31).
+
+    "Both" handed a coach the originals and the translation as a single flat
+    list, and filenames do not say which is which, so a coach receiving five
+    links had to open them to find out. The admin chose "Both" precisely
+    because the distinction matters, which makes it the one thing the email
+    could not afford to drop.
+
+    A single-folder send stays flat and unheaded, which is the common case. A
+    heading over a list that could not be anything else only costs the reader a
+    line.
+
+    Ordered by `FILE_KINDS`, so the originals always come before their
+    translation rather than following whatever order the query returned.
+  */
+  const groups = FILE_KINDS.map((kind) => ({
+    kind,
+    files: available.filter((f) => f.kind === kind),
+  })).filter((group) => group.files.length > 0);
+
+  const filesHtml = !available.length
+    ? `<p style="margin:16px 0 4px"><strong>Files</strong></p>
+       <p style="margin:0">No files are attached. They may have been removed by the retention sweep.</p>`
+    : groups.length === 1
+      ? `<p style="margin:16px 0 4px"><strong>Files to download</strong></p>
+         ${list(groups[0].files)}`
+      : groups
+          .map(
+            (group) =>
+              `<p style="margin:16px 0 4px"><strong>${KIND_LABELS[group.kind]}</strong></p>
+               ${list(group.files)}`,
+          )
+          .join("");
 
   return {
     subject: `${site.name}: a new review is assigned to you`,
