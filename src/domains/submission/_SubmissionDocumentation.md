@@ -357,6 +357,27 @@ rungs untranslated. `passive` is now answerable per submission —
 skips it. The coach's languages ride on `ProgressFacts.coachLanguages`, passed
 from the queue that already resolved the coach for the hint.
 
+**Staffing the leg by its direction — QA 5.9.9–5.9.13, 2026-08-31.** The gate
+already knows *which way* the work runs — it derived the direction and reduced it
+to a boolean. `requiredDirection(source, target)` keeps the pair, so the picker
+offers only translators who cover it (exact direction, or "both directions");
+`directionsOf(grant)` is the one place the stored display phrase becomes a
+capability, so nothing else parses it. The filter's input is the **leg**, not the
+submission — the two legs run opposite ways, so the set that is right for the
+intake is exactly wrong for the response (an English customer's Japanese coach
+needs `English to Japanese` in, `Japanese to English` back). The **assign action
+guards the same direction** the picker filters on — the dropdown is a
+convenience, the guard is the action — and an empty filtered list names the
+unstaffed direction rather than showing a dead Save. The **coach picker stays
+unfiltered** (a language mismatch is what *creates* the legs, not an error), and
+the assigned coach is dropped from the intake picker — they can't translate files
+they can't read. Where the two share a language the gate is a **recommendation,
+not a wall** (QA 5.9.5): "Pick a translator" is still the default, but "hand to
+the coach" stays beside it, for when the bilingual side's files were in the
+shared language after all. The detail panel prints the conclusion the code
+reached — *Linguistic alignment / non-alignment / can't-assess* — naming the
+blank side rather than passing silently as aligned.
+
 **Why nothing else caught them.** Predicates fixed this class for the *reads* —
 `isPaid`, `isReleased`, `whoseCourt` are exhaustive `Record`s, so a new rung is a
 compile error. The **writes** have no equivalent: a guard comparing one literal

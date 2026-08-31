@@ -3,6 +3,14 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { failed, succeeded, type ActionResult } from "@/shared/lib/actionResult";
+// The model directly, not the domain barrel — this is a `"use client"` file and
+// the barrel re-exports database code.
+import {
+  coversDirection,
+  describeDirection,
+  type Direction,
+} from "@/domains/submission/model/submission";
+import { directionsOf } from "../model/operatorProfile";
 import { assignTranslatorAction } from "../api/translatorActions";
 
 /**
@@ -26,13 +34,20 @@ import { assignTranslatorAction } from "../api/translatorActions";
 export function AssignTranslatorSelect({
   submissionId,
   leg,
+  direction,
   assignedOperatorId,
   translators,
 }: {
   submissionId: string;
   leg: "intake_translation" | "feedback_translation";
+  /**
+   * The way this leg must run — passed, not derived from `leg`, so the component
+   * never has to know which leg means which direction (QA 5.9). Only translators
+   * who cover it are offered; a wrong-way pick makes a file nobody can read.
+   */
+  direction: Direction | null;
   assignedOperatorId?: string | null;
-  translators: { id: string; name: string }[];
+  translators: { id: string; name: string; languages: string[] }[];
 }) {
   const [operatorId, setOperatorId] = useState(assignedOperatorId ?? "");
   const [state, action, pending] = useActionState<ActionResult, FormData>(
@@ -44,6 +59,24 @@ export function AssignTranslatorSelect({
   useEffect(() => {
     if (succeeded(state)) router.refresh();
   }, [state, router]);
+
+  // Eligibility is a capability test, not a name match: a translator may take
+  // this leg iff their covered directions include it (QA 5.9.9). "both
+  // directions" covers it too, by carrying both pairs.
+  const eligible = direction
+    ? translators.filter((t) => coversDirection(directionsOf(t.languages), direction))
+    : translators;
+
+  // A filtered list can be empty — one paused grant away (QA 5.9.12). Say which
+  // direction is unstaffed rather than showing an empty select beside a dead
+  // Save; the sentence names the leg to go staff, or the grant to un-pause.
+  if (direction && eligible.length === 0) {
+    return (
+      <p className="text-[13px] text-amber-700">
+        No active translator covers {describeDirection(direction)}.
+      </p>
+    );
+  }
 
   return (
     <form action={action} className="space-y-1.5">
@@ -57,12 +90,17 @@ export function AssignTranslatorSelect({
           disabled={pending}
           className="rounded-md border border-line bg-white px-2 py-1.5 text-sm disabled:opacity-60"
         >
+          {/* Disabled and unselected on purpose — an admin picks a person, they
+              don't confirm a default, even when the filtered list is one long. */}
           <option value="" disabled>
             Pick a translator…
           </option>
-          {translators.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
+          {eligible.map((t) => (
+            <option key={t.id} value={t.id}>
+              {/* Every option covers the leg now, so its direction reads as a
+                  confirmation the filter did its job, not a warning. */}
+              {t.name}
+              {t.languages[0] ? ` (${t.languages[0]})` : ""}
             </option>
           ))}
         </select>

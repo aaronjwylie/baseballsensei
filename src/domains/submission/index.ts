@@ -29,6 +29,10 @@ export {
   type Court,
   LANGUAGES,
   needsTranslation,
+  requiredDirection,
+  coversDirection,
+  describeDirection,
+  type Direction,
   type Language,
 } from "./model/submission";
 

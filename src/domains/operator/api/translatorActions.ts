@@ -11,8 +11,16 @@
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/shared/lib/actionResult";
 import { requireRole } from "@/domains/account";
-import { getSubmission, assignSubmissionTranslator } from "@/domains/submission";
-import { listAssignable } from "./operatorProfileApi";
+import {
+  getSubmission,
+  assignSubmissionTranslator,
+  assigneeFor,
+  requiredDirection,
+  coversDirection,
+  describeDirection,
+} from "@/domains/submission";
+import { listAssignable, getByRole } from "./operatorProfileApi";
+import { directionsOf } from "../model/operatorProfile";
 import {
   createProfiledOperatorAction,
   updateProfiledOperatorAction,
@@ -68,6 +76,33 @@ export async function assignTranslatorAction(
   const assignable = await listAssignable("translator");
   if (!assignable.some((operator) => operator.id === operatorId)) {
     return { error: "That translator isn't active — reload and pick another." };
+  }
+
+  /*
+    Direction guard — the filter is a convenience, this is the guard (QA 5.9.11).
+    A stale tab from before a translator's direction was edited can post someone
+    who no longer covers the leg; nothing downstream re-validates, and the wrong
+    person gets the hand-off email for a file they can't read. Derive the leg's
+    required direction the same way the gate and the picker do, and refuse a
+    translator who doesn't cover it — naming the direction, because the admin's
+    next question is always which way. Checked *after* active, since "paused" is
+    the fact the admin can fix from the roster. When the direction can't be
+    derived (no coach, a blank side) there is nothing to enforce.
+  */
+  const coachId = await assigneeFor(submissionId, "feedback");
+  const coach = coachId ? await getByRole(coachId, "coach") : null;
+  const translator = await getByRole(operatorId, "translator");
+  if (coach && translator) {
+    const direction =
+      leg === "intake_translation"
+        ? requiredDirection(submission.languages, coach.languages)
+        : requiredDirection(coach.languages, submission.languages);
+    if (direction && !coversDirection(directionsOf(translator.languages), direction)) {
+      const theirs = translator.languages[0];
+      return {
+        error: `${translator.name} translates ${theirs ?? "no direction set"} — this leg needs ${describeDirection(direction)}.`,
+      };
+    }
   }
 
   await assignSubmissionTranslator(submissionId, operatorId, leg);

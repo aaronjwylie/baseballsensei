@@ -20,6 +20,8 @@ import {
   type SubmissionEvent,
   whoseCourt,
   needsTranslation,
+  requiredDirection,
+  describeDirection,
   RUNG_LABEL,
 } from "@/domains/submission";
 import { listCoaches, listTranslators, notifyCoachAction, AssignCoachSelect, AssignTranslatorSelect, type OperatorProfile } from "@/domains/operator";
@@ -279,6 +281,62 @@ function SubmissionRow({
   );
 
   /*
+    The way each leg must run, when it needs one — the same derivation the gate
+    makes, kept as the pair so the picker offers only translators who cover it
+    (QA 5.9). The legs run OPPOSITE ways, so they are computed separately: intake
+    is the customer's files → the coach, response is the coach's feedback → the
+    customer. Null when the leg needs no translation, or a side is undeclared.
+  */
+  const intakeDirection = requiredDirection(
+    submission.languages,
+    assignedCoach?.languages,
+  );
+  const responseDirection = requiredDirection(
+    assignedCoach?.languages,
+    submission.languages,
+  );
+
+  /*
+    The routing decision in words, for the detail panel (Ben, QA 5.9.13). The
+    panel used to show the two inputs and leave the conclusion to the reader; the
+    code already reached it, so it prints it — and the "cannot tell" state names
+    the blank side rather than passing as aligned, which is where an admin would
+    notice a coach's grant was never filled in. Derived from the same directions
+    the gate and picker use, never a second comparison.
+  */
+  const alignmentLine = !assignedCoach
+    ? null
+    : (submission.languages?.length ?? 0) === 0
+      ? "The customer didn't declare a language — translation can't be assessed."
+      : assignedCoach.languages.length === 0
+        ? "The coach has no languages recorded — translation can't be assessed."
+        : intakeDirection || responseDirection
+          ? `Linguistic non-alignment. Route through translator (${[
+              intakeDirection && `${describeDirection(intakeDirection)} for the client files`,
+              responseDirection && `${describeDirection(responseDirection)} for the response`,
+            ]
+              .filter(Boolean)
+              .join(", ")}).`
+          : "Linguistic alignment. The coach handles this directly.";
+
+  /*
+    The gate fired, but the two DO share a language — the bilingual-source case,
+    where translating is a recommendation rather than a certainty (Ben, QA 5.9.5,
+    option B). The files might already be in the shared language, and only the
+    outstanding line carries a control, so a hard gate would strand the admin on
+    a translator they may not need. When they share a language we keep the skip
+    available beside the picker; a no-overlap gate stays hard, because there is
+    nothing the target could read to hand over.
+  */
+  const sharesLanguage =
+    !!assignedCoach &&
+    (submission.languages ?? []).some((a) =>
+      assignedCoach.languages.some(
+        (b) => a.trim().toLowerCase() === b.trim().toLowerCase(),
+      ),
+    );
+
+  /*
     The hint explains the delay when translation is wanted, or names a missing
     declaration otherwise. It's phrased for both reasons the intake gate fires —
     no shared language, and a bilingual customer whose files might be in the one
@@ -381,17 +439,58 @@ function SubmissionRow({
         }
         submissionId={submission.id}
         leg={act === "pickIntakeTranslator" ? "intake_translation" : "feedback_translation"}
+        direction={act === "pickIntakeTranslator" ? intakeDirection : responseDirection}
         assignedOperatorId={
           act === "pickIntakeTranslator"
             ? progress?.assignees.intake_translation
             : progress?.assignees.feedback_translation
         }
-        translators={translators}
+        translators={
+          // On intake the assigned coach can't translate files they can't read
+          // (that's why the leg exists), so they never appear (QA 5.9). The
+          // response leg is their own feedback, which they can.
+          act === "pickIntakeTranslator"
+            ? translators.filter((t) => t.id !== assignedCoachId)
+            : translators
+        }
       />
-      <p className="text-[11px] text-ink-muted">
-        Only needed when the languages don&apos;t overlap — picking is what makes
-        the hand-off sendable.
-      </p>
+      {sharesLanguage ? (
+        /*
+          Bilingual-source recommendation (QA 5.9.5, B): they share a language,
+          so hand-over stays available beside the picker — for when the files
+          turn out to be in it. Intake hands to the coach; the response leg's
+          equivalent skip is approving and sending as-is.
+        */
+        <>
+          {act === "pickIntakeTranslator" ? (
+            <SendWithFileSet
+              action={notifyCoachAction}
+              submissionId={submission.id}
+              sets={intakeSets}
+              label="or hand to the coach →"
+              className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-ink-muted hover:text-ink"
+            />
+          ) : (
+            <SendWithFileSet
+              action={completeSubmissionAction}
+              submissionId={submission.id}
+              sets={responseSets}
+              label="or approve &amp; send →"
+              className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-ink-muted hover:text-ink"
+            />
+          )}
+          <p className="text-[11px] text-ink-muted">
+            They share a language — if the files are already in one the{" "}
+            {act === "pickIntakeTranslator" ? "coach" : "customer"} reads, hand it
+            over instead.
+          </p>
+        </>
+      ) : (
+        <p className="text-[11px] text-ink-muted">
+          Needed because the languages don&apos;t line up — picking is what makes
+          the hand-off sendable.
+        </p>
+      )}
     </div>
   ) : act === "sendForTranslation" ? (
     <RowActionForm
@@ -571,18 +670,27 @@ function SubmissionRow({
               </dd>
             </>
           )}
+          {/* Each party is followed by the language they understand, so the
+              reader pairs them without scrolling; "understands" not "reads"
+              because most of what a customer uploads is spoken (Ben, QA 5.9.13). */}
           <dt className="text-ink-muted">Customer</dt>
           <dd className="m-0 font-mono text-[11.5px] text-ink-soft">{submission.customerEmail}</dd>
-          <dt className="text-ink-muted">Coach</dt>
-          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">{assignedCoach?.name ?? "—"}</dd>
-          <dt className="text-ink-muted">Customer reads</dt>
+          <dt className="text-ink-muted">Customer understands</dt>
           <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
             {submission.languages?.join(", ") || "not declared"}
           </dd>
-          <dt className="text-ink-muted">Coach reads</dt>
+          <dt className="text-ink-muted">Coach</dt>
+          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">{assignedCoach?.name ?? "—"}</dd>
+          <dt className="text-ink-muted">Coach understands</dt>
           <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
             {assignedCoach ? assignedCoach.languages.join(", ") || "none recorded" : "—"}
           </dd>
+          {alignmentLine && (
+            <>
+              <dt className="text-ink-muted">Pipeline status</dt>
+              <dd className="m-0 text-[11.5px] text-ink-soft">{alignmentLine}</dd>
+            </>
+          )}
           <dt className="text-ink-muted">Sent to coach</dt>
           <dd className="m-0 font-mono text-[11.5px] text-ink-soft">{submission.coachFileSet ?? "—"}</dd>
           <dt className="text-ink-muted">Sent to customer</dt>

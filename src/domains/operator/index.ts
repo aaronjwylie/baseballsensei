@@ -81,4 +81,5 @@ export { OperatorList } from "./ui/OperatorList";
 export { AssignCoachSelect } from "./ui/AssignCoachSelect";
 export { AssignTranslatorSelect } from "./ui/AssignTranslatorSelect";
 export type { OperatorProfile, NewOperatorProfile } from "./model/operatorProfile";
+export { directionsOf } from "./model/operatorProfile";
 export type { OperatorProfilePatch } from "./api/operatorProfileApi";
