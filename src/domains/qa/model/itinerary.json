@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 25,
-    "generatedAt": "2026-08-31T03:14:29.195Z",
-    "checks": 213,
-    "live": 213,
+    "build": 26,
+    "generatedAt": "2026-08-31T22:30:36.634Z",
+    "checks": 217,
+    "live": 217,
     "retired": 0,
     "edited": 10
   },
@@ -884,6 +884,29 @@
               "id": "5.9.13",
               "what": "The detail panel on a non-aligned submission",
               "expect": "Each party is followed immediately by the language they read, and a derived line names the routing decision in words — see the note"
+            },
+            {
+              "id": "5.9.14",
+              "what": "\"Send to the translator\" emails the translator. From intake_translator_assigned, click it, then read the trail",
+              "expect": "An email row appears (sent, then delivered) and the assigned translator's inbox has the hand-off with a download link per file — exactly as the coach hand-off does at ③. The rung is named emailed to the translator; reaching it without a send makes the ladder lie",
+              "flag": "flag"
+            },
+            {
+              "id": "5.9.15",
+              "what": "The same on the response leg, from feedback_translator_assigned",
+              "expect": "Same outcome. It is a second call site and fixing one does not fix the other",
+              "flag": "flag"
+            },
+            {
+              "id": "5.9.16",
+              "what": "Send with the translator's mail failing (bad address, or Resend key pulled)",
+              "expect": "The hand-off still completes and the trail records the failure — best-effort per ADR 004, never a silent success"
+            },
+            {
+              "id": "5.9.17",
+              "what": "Telling five translators apart. Open the picker with the current roster",
+              "expect": "Each option carries enough to identify the person — direction and email, not just a name. Five near-identical \"Ben\" names with nothing to separate them is how the wrong one gets assigned",
+              "flag": "flag"
             },
             {
               "id": "5.10",

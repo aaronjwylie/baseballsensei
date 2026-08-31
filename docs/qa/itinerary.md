@@ -284,6 +284,10 @@ than assuming the fix held.
 | 5.9.11 | Post an ineligible translator to the assign action from a stale tab | ⚠️ Refused server-side, with a reason. The dropdown filter is a convenience; the guard is the action — the mirror of the active-translator re-check already there |
 | 5.9.12 | A leg whose required direction no active translator covers | ⚠️ The control says which direction is unstaffed rather than offering an empty dropdown beside a dead Save |
 | 5.9.13 | The detail panel on a non-aligned submission | Each party is followed immediately by the language they read, and a derived line names the routing decision in words — see the note |
+| 5.9.14 | **"Send to the translator" emails the translator.** From `intake_translator_assigned`, click it, then read the trail | ⚠️ An `email` row appears (`sent`, then `delivered`) and the assigned translator's inbox has the hand-off with a download link per file — exactly as the coach hand-off does at ③. The rung is named *emailed to the translator*; reaching it without a send makes the ladder lie |
+| 5.9.15 | The same on the **response** leg, from `feedback_translator_assigned` | ⚠️ Same outcome. It is a second call site and fixing one does not fix the other |
+| 5.9.16 | **Send with the translator's mail failing** (bad address, or Resend key pulled) | The hand-off still completes and the trail records the failure — best-effort per ADR 004, never a silent success |
+| 5.9.17 | **Telling five translators apart.** Open the picker with the current roster | ⚠️ Each option carries enough to identify the person — direction and email, not just a name. Five near-identical "Ben" names with nothing to separate them is how the wrong one gets assigned |
 | 5.10 | **The response leg, same matrix.** Repeat 5.9.1 and 5.9.3 against the coach's *feedback*, after they upload it | ⚠️ Same two outcomes. It is a second `passive` constant in the same file and fixing one does not fix the other |
 | 5.11 | What an operator is *told* when languages are missing | The row says which side is blank rather than only that something is. ⚠️ An **admin** grant is empty by design — read the coach card, not the person |
 
