@@ -33,41 +33,50 @@ export const LANGUAGES = ["English", "Japanese"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 /**
- * Does this pairing need a translator?
+ * Does `source`'s content need translating for `target` to read it?
  *
- * **Intersect the two sets. Empty means translate.** Symmetric, one rule, and it
- * handles what the old one couldn't: the old rule assumed the customer's side —
- * *the platform is English, so translate when the coach doesn't read English* —
- * which derived nothing useful for a Japanese-speaking parent sending to a
- * Japanese coach.
+ * **Directional, and a subset — not a symmetric overlap** (Ben + Aaron, QA 5.9).
+ * `target` can read `source`'s files only if it reads *every* language `source`
+ * might have used, so translation is needed exactly when `source` declares a
+ * language `target` does not — **`source` is not a subset of `target`**.
  *
- * **Overlap of any size means no.** If the two share a language they can
- * communicate; which one they use is then a choice, not a service we provide.
+ * The direction is the leg: on **intake** `source` is the customer and `target`
+ * the coach (the customer's files must become readable to the coach); on
+ * **response** they swap (the coach's feedback must become readable to the
+ * customer). The same pairing therefore answers differently on the two legs,
+ * which is why the caller passes the sides in the leg's order rather than always
+ * customer-first.
  *
- * **Null means we can't tell**, and is not the same as `false`. Either side
- * having declared nothing makes the intersection meaningless, and prompting on
- * the strength of a blank field would nag on every submission until someone
- * filled it in — a prompt that's usually wrong is one people learn to dismiss.
+ * **Why subset and not any-overlap.** The old rule skipped whenever the two
+ * shared *any* language — which is wrong the moment `source` is bilingual and
+ * `target` is not. A customer who reads English and Japanese, sending to an
+ * English-only coach, may have uploaded Japanese footage the coach can't read;
+ * we share English, but that guarantees nothing about the files. Any-overlap
+ * trusted a file language nobody recorded. Subset translates that case instead
+ * of assuming.
  *
- * It is a **prompt, not a gate**. The translation rungs are optional and
- * operator-driven, so this only has to be right enough to raise the question;
- * the admin can send anything for translation regardless. That's what lets the rule
- * stay this simple — the edge cases are exactly what an operator is for.
+ * **The limitation this leaves standing — noted, deferred by decision (QA 5.9).**
+ * We still infer a file's language from its owner's declared languages, because
+ * nothing records the file's own. That inference is safe for a monolingual side
+ * and unsafe for a bilingual one, which is exactly why the bilingual case
+ * translates rather than trusts the guess. Recording the file's language at
+ * upload would retire the proxy — a real fix, scheduled, not built here.
  *
- * A caveat worth knowing: strictly it's the *files* that have a language, not
- * the people. A bilingual parent may submit Japanese footage. Person-language is
- * a proxy, and a good one, but it is a proxy — which is another reason this
- * prompts rather than decides.
+ * **Null means we can't tell** — either side declared nothing — and is not
+ * `false`. It reads as skip, never as gate: prompting on a blank nobody filled
+ * in nags on every submission until someone does.
  */
 export function needsTranslation(
-  customer: readonly string[] | undefined,
-  coach: readonly string[] | undefined,
+  source: readonly string[] | undefined,
+  target: readonly string[] | undefined,
 ): boolean | null {
-  const theirs = normalise(customer);
-  const ours = normalise(coach);
-  if (theirs.size === 0 || ours.size === 0) return null;
-  for (const language of theirs) if (ours.has(language)) return false;
-  return true;
+  const from = normalise(source);
+  const to = normalise(target);
+  if (from.size === 0 || to.size === 0) return null;
+  // `source` reads a language `target` can't — its files may be in that
+  // language, so they need translating.
+  for (const language of from) if (!to.has(language)) return true;
+  return false;
 }
 
 function normalise(languages: readonly string[] | undefined): Set<string> {

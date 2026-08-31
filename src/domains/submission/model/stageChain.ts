@@ -302,16 +302,17 @@ export const STAGE_CHAIN: Record<SubmissionStatus, ChainLine[]> = {
     {
       what: "Translator chosen, if this coach needs one", next: "Pick a translator, if needed",
       from: "rung 5",
-      why: "optional — a coach who shares a language skips it",
+      why: "optional — a coach who reads everything the customer might have sent skips it",
       act: "pickIntakeTranslator",
       /*
-        Passive for most, a gate for the ones that need it (Ben, QA 5.9). It
-        steps aside when the coach and the customer share a language — or when we
-        can't yet tell — and holds the pointer only when we positively know they
-        share none, so the flow ushers exactly those submissions through
-        translation instead of offering the hand-off that skips it. `!== true`
-        keeps the null case (one side undeclared) as skip, never as gate: blocking
-        on a question nobody answered would strand a row an operator can't fix.
+        Passive for most, a gate for the ones that need it (Ben/Aaron, QA 5.9).
+        The customer is the source, the coach the target: it steps aside when the
+        coach reads every language the customer declared — or when we can't yet
+        tell — and holds the pointer when the customer reads a language the coach
+        doesn't, because the files may be in that one. That catches the bilingual
+        customer sending to a monolingual coach, not just the no-overlap case.
+        `!== true` keeps the null case (one side undeclared) as skip, never a gate
+        on a question nobody answered.
       */
       passive: (s, f) => needsTranslation(s.languages, f.coachLanguages) !== true,
       toldOnFail: ["Admin/portal: “That did not go through — try again.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Translating"], met: (_s, f) => f.files.intake_translation > 0,
@@ -364,9 +365,12 @@ export const STAGE_CHAIN: Record<SubmissionStatus, ChainLine[]> = {
       from: "rung 10",
       why: "optional — skipped when the response is already readable",
       act: "pickFeedbackTranslator",
-      // The response leg's mirror of the intake gate above (Ben, QA 5.9): passive
-      // when the customer can read the coach's response, a gate when they can't.
-      passive: (s, f) => needsTranslation(s.languages, f.coachLanguages) !== true,
+      // The response leg runs the OTHER way (Ben/Aaron, QA 5.9): the coach's
+      // feedback must become readable to the customer, so the coach is the
+      // source and the customer the target — the reverse of the intake gate. A
+      // bilingual coach writing for a monolingual customer is the case this
+      // catches; the intake gate would miss it.
+      passive: (s, f) => needsTranslation(f.coachLanguages, s.languages) !== true,
       toldOnFail: ["Admin/portal: “That did not go through — try again.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Translating"], met: (_s, f) => f.files.feedback_translation > 0,
     },
     { what: "Approved and sent", next: "Approve and send", from: "feedbackEmailedAt", act: "approve", records: [...sendRecords("⑥ feedback ready → customer")], failures: [...sendFailures("⑥ feedback ready → customer"), "Refused — there is no response file to send"], toldOnFail: ["Admin/portal: “There is no response file to send yet.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Delivered"], met: (s) => !!s.feedbackEmailedAt },

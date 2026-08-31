@@ -269,25 +269,26 @@ function SubmissionRow({
   const intakeSets = availableSets(present.filter((k) => k === "intake" || k === "intake_translation"));
   const responseSets = availableSets(present.filter((k) => k === "feedback" || k === "feedback_translation"));
 
-  // Both declared sets, intersected. Null when either side hasn't said.
+  // The intake question: could the customer have sent files this coach can't
+  // read? True when the customer declares a language the coach doesn't — no
+  // overlap, or a bilingual customer against a monolingual coach (QA 5.9). Null
+  // when either side hasn't declared.
   const wantsTranslation = needsTranslation(
     submission.languages,
     assignedCoach?.languages,
   );
 
   /*
-    Say which side is missing, not just that something is.
-
-    Only one cause survives: a submission taken before step 1 asked. The coach
-    half can no longer be empty — the form offers three radios and the server
-    falls back to one, so `languagesForChoice` never returns an empty array, and
-    0014 backfilled every row that predated it.
+    The hint explains the delay when translation is wanted, or names a missing
+    declaration otherwise. It's phrased for both reasons the intake gate fires —
+    no shared language, and a bilingual customer whose files might be in the one
+    the coach lacks — since "no shared language" would be a lie in the second.
   */
   const translationHint =
     !assignedCoach
       ? null
       : wantsTranslation === true
-        ? `No shared language with ${assignedCoach.name} — translate the client files first.`
+        ? `Translate the client files first — ${assignedCoach.name} may not read the language they're in.`
         : (submission.languages?.length ?? 0) === 0
           ? "The customer didn't declare a language."
           : null;
