@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 27</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 28</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1624,6 +1624,21 @@ const PHASES = [
             "7.2",
             "Download the intake files",
             "Earns intake_translating. Observed from the download, never declared — there is no \"I've started\" button"
+          ],
+          [
+            "7.2.1",
+            "⚠️ In production, not just dev. Same download on the live site, then reload the admin queue",
+            "Still flips. Prod redirects to Blob and returns instantly, so the stamp runs in after() rather than a floating promise — a fire-and-forget here worked in dev and raced the response in prod"
+          ],
+          [
+            "7.2.2",
+            "⚠️ Someone else's leg. As a translator assigned to a different submission, open a file you can reach",
+            "No rung moves. Being a translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not"
+          ],
+          [
+            "7.2.3",
+            "Download the same file twice",
+            "The second changes nothing. The rung has already moved, so there is no rung to move"
           ],
           [
             "7.3",

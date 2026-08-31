@@ -250,10 +250,27 @@ async function walk(label: string, translating: boolean) {
     // The rung is earned by the translator opening the files, exactly as
     // `in_review` is earned by the coach — not by the admin declaring it.
     check(
-      (await markTranslatorCollected(s.id))?.status === "intake_translating",
+      (await markTranslatorCollected(s.id, intakeTranslator.id))?.status ===
+        "intake_translating",
       "   the translator's download earns intake_translating",
     );
-    check((await markTranslatorCollected(s.id)) === null, "   a re-download changes nothing");
+    check(
+      (await markTranslatorCollected(s.id, intakeTranslator.id)) === null,
+      "   a re-download changes nothing",
+    );
+    // Another translator opening the same file must not close a hand-off they
+    // are not part of — the guard the coach's side always had (Ben, 2026-08-31).
+    const bystander = await ensureTranslator(`${label} Bystander Translator`);
+    await updateSubmission(s.id, { status: "sent_to_intake_translator" });
+    check(
+      (await markTranslatorCollected(s.id, bystander.id)) === null,
+      "   another translator's download earns nothing",
+    );
+    check(
+      (await markTranslatorCollected(s.id, intakeTranslator.id))?.status ===
+        "intake_translating",
+      "   and the assigned translator still earns it",
+    );
     await rung(s.id, "intake_translating", "translator");
     await addSubmissionFile(
       { submissionId: s.id, filename: "clip-1-JA.mp4", contentType: "video/mp4", sizeBytes: 42_000_000, fileUrl: `sim/${s.id}/ja.mp4` },
@@ -308,7 +325,8 @@ async function walk(label: string, translating: boolean) {
     await updateSubmission(s.id, { status: "sent_to_feedback_translator" });
     await rung(s.id, "sent_to_feedback_translator", "translator");
     check(
-      (await markTranslatorCollected(s.id))?.status === "feedback_translating",
+      (await markTranslatorCollected(s.id, backTranslator.id))?.status ===
+        "feedback_translating",
       "   the return leg earns its rung the same way",
     );
     await rung(s.id, "feedback_translating", "translator");

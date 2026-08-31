@@ -1692,6 +1692,27 @@
       "expect": "Succeeds. Prod goes straight to Blob; a route-proxied upload would hit the ~4.5 MB serverless body cap",
       "retired": false,
       "history": []
+    },
+    "7.2.1": {
+      "firstSeen": "2026-08-31T23:16:03.764Z",
+      "what": "⚠️ In production, not just dev. Same download on the live site, then reload the admin queue",
+      "expect": "Still flips. Prod redirects to Blob and returns instantly, so the stamp runs in after() rather than a floating promise — a fire-and-forget here worked in dev and raced the response in prod",
+      "retired": false,
+      "history": []
+    },
+    "7.2.2": {
+      "firstSeen": "2026-08-31T23:16:03.764Z",
+      "what": "⚠️ Someone else's leg. As a translator assigned to a different submission, open a file you can reach",
+      "expect": "No rung moves. Being a translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not",
+      "retired": false,
+      "history": []
+    },
+    "7.2.3": {
+      "firstSeen": "2026-08-31T23:16:03.764Z",
+      "what": "Download the same file twice",
+      "expect": "The second changes nothing. The rung has already moved, so there is no rung to move",
+      "retired": false,
+      "history": []
     }
   }
 }

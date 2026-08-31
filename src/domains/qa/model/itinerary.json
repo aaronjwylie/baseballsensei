@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 27,
-    "generatedAt": "2026-08-31T23:05:17.276Z",
-    "checks": 227,
-    "live": 227,
+    "build": 28,
+    "generatedAt": "2026-08-31T23:16:03.764Z",
+    "checks": 230,
+    "live": 230,
     "retired": 0,
     "edited": 14
   },
@@ -1223,6 +1223,21 @@
                   "expect": "Earns intake_translating"
                 }
               ]
+            },
+            {
+              "id": "7.2.1",
+              "what": "⚠️ In production, not just dev. Same download on the live site, then reload the admin queue",
+              "expect": "Still flips. Prod redirects to Blob and returns instantly, so the stamp runs in after() rather than a floating promise — a fire-and-forget here worked in dev and raced the response in prod"
+            },
+            {
+              "id": "7.2.2",
+              "what": "⚠️ Someone else's leg. As a translator assigned to a different submission, open a file you can reach",
+              "expect": "No rung moves. Being a translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not"
+            },
+            {
+              "id": "7.2.3",
+              "what": "Download the same file twice",
+              "expect": "The second changes nothing. The rung has already moved, so there is no rung to move"
             },
             {
               "id": "7.3",

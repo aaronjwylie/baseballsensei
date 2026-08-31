@@ -350,6 +350,9 @@ than assuming the fix held.
 | --- | --- | --- |
 | 7.1 | Sees assigned translations only | Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real |
 | 7.2 | Download the intake files | Earns `intake_translating`. Observed from the download, never declared — there is no "I've started" button |
+| 7.2.1 | ⚠️ **In production, not just dev.** Same download on the live site, then reload the admin queue | Still flips. Prod redirects to Blob and returns instantly, so the stamp runs in `after()` rather than a floating promise — a fire-and-forget here worked in dev and raced the response in prod |
+| 7.2.2 | ⚠️ **Someone else's leg.** As a translator assigned to a *different* submission, open a file you can reach | No rung moves. Being *a* translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not |
+| 7.2.3 | Download the same file twice | The second changes nothing. The rung has already moved, so there is no rung to move |
 | 7.3 | Upload the translation | Lands in the `intake_translation` folder. ⚠️ The status does **not** move on upload — uploading and handing back are two acts, as they are for the coach |
 | 7.4 | Hand back | `intake_translated`; the admin can now hand it to the coach |
 | 7.5 | Repeat for the **feedback** direction | `feedback_translating` → `feedback_translated` |

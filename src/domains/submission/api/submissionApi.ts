@@ -35,7 +35,11 @@ import {
   type PublicSubmission,
 } from "../model/publicSubmission";
 import { fromRow } from "./submissionRow";
-import { assignOperator, releaseAssignments } from "./submissionAssignmentApi";
+import {
+  assignOperator,
+  isAssignedTo,
+  releaseAssignments,
+} from "./submissionAssignmentApi";
 import { recordSubmissionEvent } from "./submissionEventApi";
 
 /**
@@ -423,17 +427,35 @@ export async function assignSubmissionTranslator(
  */
 export async function markTranslatorCollected(
   id: string,
+  operatorId: string,
 ): Promise<Submission | null> {
   const submission = await getSubmission(id);
   if (!submission) return null;
-  const next =
+
+  /*
+    Which leg is this? Read from the rung the submission is on, not from the
+    folder they opened — a translator collects the intake on the way out and the
+    feedback on the way back, so the file's kind says nothing about whether this
+    is a pick-up. Any other rung is not a collection at all.
+  */
+  const leg =
     submission.status === "sent_to_intake_translator"
-      ? "intake_translating"
+      ? ({ produces: "intake_translation", next: "intake_translating" } as const)
       : submission.status === "sent_to_feedback_translator"
-        ? "feedback_translating"
+        ? ({ produces: "feedback_translation", next: "feedback_translating" } as const)
         : null;
-  if (!next) return null;
-  return updateSubmission(id, { status: next });
+  if (!leg) return null;
+
+  /*
+    **This translator's leg, not merely a translator's.** The download route can
+    only see that *a* translator is signed in; someone opening a colleague's
+    work must not close a hand-off they are not part of. The coach's
+    `noteCoachCollected` has always checked this and this had not — an
+    asymmetry, not a decision (Ben, 2026-08-31).
+  */
+  if (!(await isAssignedTo(id, operatorId, leg.produces))) return null;
+
+  return updateSubmission(id, { status: leg.next });
 }
 
 /**

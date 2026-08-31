@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getSession } from "@/domains/account";
 import {
   getSubmissionFile,
@@ -64,38 +64,48 @@ export async function GET(
   }
 
   /*
-    Step 9, observed rather than declared.
+    Steps 9 and 7, observed rather than declared — and scheduled with `after`,
+    not fired and forgotten.
 
-    Gated on it being *the assigned coach*: an admin opening the same file is
-    checking on the work, not starting it, and letting that count would make
-    `in_review` mean nothing again. Intake only — a coach re-reading their own
-    response isn't a pick-up.
+    These were `void`ed promises, which worked in development and could not be
+    relied on in production: dev streams the bytes from disk, so the handler
+    lives long enough for a stray promise to finish, while prod redirects to
+    Blob and returns *immediately*. The stamp was racing a serverless function
+    that had already answered. `after` is the platform's answer — it keeps the
+    invocation alive for the callback and, per Next 16's docs, still runs when
+    the response was a redirect, which is the only case that matters here.
 
-    Not awaited. The stamp and its email must never be the reason a download
-    fails, and the customer of this route is a coach waiting on bytes.
-  */
-  /*
+    Still off the critical path: the customer of this route is someone waiting
+    on bytes, and neither stamp nor its email is ever worth a failed download.
+
+    Gated on it being *their own* work. An admin opening the same file is
+    checking on it, not doing it, and letting that count would make `in_review`
+    mean nothing again. Both functions re-check the assignment themselves rather
+    than trusting the role in the session.
+
     Someone who is both a coach and a translator reaches both branches, and that
     is safe rather than lucky: each stamp only moves a submission sitting on the
     rung *it* follows, and `sent_to_coach` and `sent_to_*_translator` are
-    mutually exclusive. At most one can succeed, and the other is a no-op.
+    mutually exclusive. At most one can succeed; the other is a no-op.
   */
   if (session.roles.includes("coach") && isIntake(file)) {
-    void noteCoachCollected(file.submissionId, session.operatorId);
+    after(() => noteCoachCollected(file.submissionId, session.operatorId));
   }
 
   /*
-    The translator's equivalent. Same shape, same reasons — an admin opening the
-    file is checking on the work, not doing it.
-
-    No file-kind gate here, unlike the coach's: a translator collects the intake
-    on the way out and the feedback on the way back, so which folder they opened
-    doesn't say whether this is a pick-up. Where the submission already sits
-    does, and `markTranslatorCollected` reads that rather than being told.
+    The translator's equivalent, with no file-kind gate: a translator collects
+    the intake on the way out and the feedback on the way back, so which folder
+    they opened says nothing about whether this is a pick-up. Where the
+    submission already sits does, and `markTranslatorCollected` reads that
+    rather than being told.
   */
   if (session.roles.includes("translator")) {
-    void markTranslatorCollected(file.submissionId).catch((err) => {
-      console.error("[files] recording a translator collection failed:", err);
+    after(async () => {
+      try {
+        await markTranslatorCollected(file.submissionId, session.operatorId);
+      } catch (err) {
+        console.error("[files] recording a translator collection failed:", err);
+      }
     });
   }
 
