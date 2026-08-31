@@ -123,8 +123,8 @@ export function FeedbackAccess({ email }: { email: string }) {
       <h3 className="font-semibold text-ink">Download your feedback</h3>
       <p className="mt-1 text-sm text-ink-muted">
         For your privacy, we&apos;ll email a 6-digit code to{" "}
-        <span className="font-medium text-ink">{email}</span> to confirm it&apos;s
-        you.
+        <span className="font-medium text-ink">{email}</span>{" "}to confirm
+        it&apos;s you.
       </p>
 
       {state.step === "idle" || state.step === "sending" ? (

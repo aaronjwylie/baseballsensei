@@ -1062,6 +1062,14 @@ Read this section before coding. These have bitten *this* project.
   are **async** — `await` them.
 - **Server components can't use browser APIs**; mark `"use client"` when needed.
 - **Route handlers are `route.ts` with named exports** (`export async function GET/POST`).
+- **This build strips the space *after* a `{expression}` or a closing inline tag
+  in JSX text.** `Removes {name} from` renders "Removes benbenfrom"; `</span> has`
+  renders "…comhas". The space *before* an expression is kept; only the trailing
+  one is lost, and CSS/kerning has nothing to do with it — it's gone from the DOM
+  (confirmed 2026-08-30, QA 5.13.11 + the /status page). Backtick template
+  literals keep every space, so write interpolated copy as `{`… ${x} …`}`, or put
+  an explicit `{" "}` where the space must survive. This does **not** happen in
+  stock React — it's specific to this modified Next.js (see AGENTS.md).
 
 ---
 

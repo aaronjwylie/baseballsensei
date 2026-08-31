@@ -64,6 +64,7 @@ export {
 export { OperatorProfileForm } from "./ui/OperatorProfileForm";
 export { OperatorRoleCard } from "./ui/OperatorRoleCard";
 export { OperatorIdentityForm } from "./ui/OperatorIdentityForm";
+export { DeleteOperatorButton } from "./ui/DeleteOperatorButton";
 export {
   rolesFor,
   rolesForMany,
