@@ -130,8 +130,8 @@ export function QaAddCheck({
 
           <p className="text-[11px] text-ink-muted">
             The id decides where it lands — <span className="tabular-nums">1.1.15</span>{" "}
-            goes at the end of 1.1, <span className="tabular-nums">1.1.3.1</span> between
-            1.1.3 and 1.1.4. An id in a group that does not exist yet collects at the
+            goes at the end of 1.1, <span className="tabular-nums">1.1.3.1</span>{" "}
+            between 1.1.3 and 1.1.4. An id in a group that does not exist yet collects at the
             end of the board rather than being refused. Ids are never reused.
           </p>
         </div>

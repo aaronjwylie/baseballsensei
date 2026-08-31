@@ -166,9 +166,7 @@ export default async function QaPage({
           QA run
         </h1>
         <p className="mt-3 max-w-[60ch] text-[15px] text-ink-soft">
-          {itineraryMeta.live} live checks across {itinerary.length} phases. Marks
-          are shared: set one and the other person sees it within a few seconds,
-          without reloading.
+          {`${itineraryMeta.live} live checks across ${itinerary.length} phases. Marks are shared: set one and the other person sees it within a few seconds, without reloading.`}
         </p>
 
         {/*
@@ -193,7 +191,7 @@ export default async function QaPage({
           <div className="flex gap-2">
             <dt className="text-ink-muted">Checks</dt>
             <dd className="tabular-nums text-ink">
-              {itineraryMeta.live} live
+              {`${itineraryMeta.live} live`}
               {itineraryMeta.retired > 0 && ` · ${itineraryMeta.retired} retired`}
               {itineraryMeta.edited > 0 && ` · ${itineraryMeta.edited} reworded`}
             </dd>

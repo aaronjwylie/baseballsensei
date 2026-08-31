@@ -213,7 +213,7 @@ export default async function AdminHomePage({
     <Container>
       <div>
         <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">Submissions</h1>
-        <p className="mt-1 text-sm text-ink-muted">{all.length} total · the coaching queue</p>
+        <p className="mt-1 text-sm text-ink-muted">{`${all.length} total · the coaching queue`}</p>
       </div>
 
       <QueueTabs tabs={tabs} initialKey={initialKey} rows={rows} />

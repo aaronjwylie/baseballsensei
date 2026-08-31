@@ -164,7 +164,7 @@ function ReviewCard({
         </div>
         <div className="text-right">
           <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-            {files.length} file{files.length === 1 ? "" : "s"}
+            {`${files.length} file${files.length === 1 ? "" : "s"}`}
           </div>
           <SubmissionFileList files={files} emptyLabel="Files deleted" />
         </div>

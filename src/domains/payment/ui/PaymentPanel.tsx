@@ -170,8 +170,7 @@ function PaymentFields({
           <span className="font-semibold text-ink">{amount}</span>
         </div>
         <p className="mt-1 text-xs text-ink-muted">
-          {fileCount} file{fileCount === 1 ? "" : "s"} attached · one-time
-          payment · feedback in {site.turnaround}
+          {`${fileCount} file${fileCount === 1 ? "" : "s"} attached · one-time payment · feedback in ${site.turnaround}`}
         </p>
       </div>
 

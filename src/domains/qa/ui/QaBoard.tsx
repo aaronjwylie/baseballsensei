@@ -334,11 +334,13 @@ export function QaBoard({
           />
         </label>
         <p className="font-display text-[11px] uppercase tracking-[0.08em] text-ink-muted">
-          <span className="text-success">{count("pass")} pass</span>
+          <span className="text-success">{`${count("pass")} pass`}</span>
           {" · "}
-          <span className="text-rose-700">{count("fail")} fail</span>
+          <span className="text-rose-700">{`${count("fail")} fail`}</span>
           {" · "}
-          {count("skip")} skip {" · "} {all.length - done} to go
+          {`${count("skip")} skip`}
+          {" · "}
+          {`${all.length - done} to go`}
         </p>
       </div>
 

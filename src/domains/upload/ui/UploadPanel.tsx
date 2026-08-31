@@ -263,7 +263,7 @@ export function UploadPanel({
       {/* Count and size only — the accepted types live once, in the dropzone
           below, rather than being repeated here (QA 2.3.2). */}
       <p className="text-center text-sm text-band">
-        Up to {maxFiles} file{maxFiles === 1 ? "" : "s"}, {maxFileSizeMb} MB each
+        {`Up to ${maxFiles} file${maxFiles === 1 ? "" : "s"}, ${maxFileSizeMb} MB each`}
       </p>
 
       {removeError && (
@@ -294,7 +294,7 @@ export function UploadPanel({
 
       {atLimit && (
         <p className="text-center text-sm text-band">
-          That&rsquo;s the maximum of {maxFiles} file{maxFiles === 1 ? "" : "s"}.
+          {`That’s the maximum of ${maxFiles} file${maxFiles === 1 ? "" : "s"}.`}
         </p>
       )}
 
@@ -351,7 +351,7 @@ function Dropzone({
       </span>
       <span className="text-sm font-semibold">Click to upload or drag and drop</span>
       <span className="text-xs opacity-70">
-        {describeAllowedTypes()} · up to {maxFileSizeMb} MB
+        {`${describeAllowedTypes()} · up to ${maxFileSizeMb} MB`}
       </span>
       <input
         type="file"
