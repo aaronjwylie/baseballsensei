@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 24</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 25</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1303,6 +1303,35 @@ const PHASES = [
             "5.9.8",
             "Customer english · coach English (case and trailing space)",
             "Skipped — matching is case-insensitive and trimmed"
+          ],
+          [
+            "5.9.9",
+            "Who may take the intake leg. Customer English · coach Japanese, sitting at \"Pick a translator\". Open the dropdown",
+            "Only translators who cover English → Japanese are offered — the exact-direction ones and anyone set to \"both directions\". A Japanese to English translator must not be in the list",
+            "flag"
+          ],
+          [
+            "5.9.10",
+            "The same submission at the response leg, after the coach uploads their feedback",
+            "The list inverts — only Japanese → English and \"both directions\". The translator excluded at 5.9.9 is precisely the one required here, which is why the filter belongs to the leg and not to the submission",
+            "flag"
+          ],
+          [
+            "5.9.11",
+            "Post an ineligible translator to the assign action from a stale tab",
+            "Refused server-side, with a reason. The dropdown filter is a convenience; the guard is the action — the mirror of the active-translator re-check already there",
+            "flag"
+          ],
+          [
+            "5.9.12",
+            "A leg whose required direction no active translator covers",
+            "The control says which direction is unstaffed rather than offering an empty dropdown beside a dead Save",
+            "flag"
+          ],
+          [
+            "5.9.13",
+            "The detail panel on a non-aligned submission",
+            "Each party is followed immediately by the language they read, and a derived line names the routing decision in words — see the note"
           ],
           [
             "5.10",

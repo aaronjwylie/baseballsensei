@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 24,
-    "generatedAt": "2026-08-31T01:32:07.693Z",
-    "checks": 208,
-    "live": 208,
+    "build": 25,
+    "generatedAt": "2026-08-31T03:14:29.195Z",
+    "checks": 213,
+    "live": 213,
     "retired": 0,
     "edited": 10
   },
@@ -855,6 +855,35 @@
               "id": "5.9.8",
               "what": "Customer english · coach English (case and trailing space)",
               "expect": "Skipped — matching is case-insensitive and trimmed"
+            },
+            {
+              "id": "5.9.9",
+              "what": "Who may take the intake leg. Customer English · coach Japanese, sitting at \"Pick a translator\". Open the dropdown",
+              "expect": "Only translators who cover English → Japanese are offered — the exact-direction ones and anyone set to \"both directions\". A Japanese to English translator must not be in the list",
+              "flag": "flag"
+            },
+            {
+              "id": "5.9.10",
+              "what": "The same submission at the response leg, after the coach uploads their feedback",
+              "expect": "The list inverts — only Japanese → English and \"both directions\". The translator excluded at 5.9.9 is precisely the one required here, which is why the filter belongs to the leg and not to the submission",
+              "flag": "flag"
+            },
+            {
+              "id": "5.9.11",
+              "what": "Post an ineligible translator to the assign action from a stale tab",
+              "expect": "Refused server-side, with a reason. The dropdown filter is a convenience; the guard is the action — the mirror of the active-translator re-check already there",
+              "flag": "flag"
+            },
+            {
+              "id": "5.9.12",
+              "what": "A leg whose required direction no active translator covers",
+              "expect": "The control says which direction is unstaffed rather than offering an empty dropdown beside a dead Save",
+              "flag": "flag"
+            },
+            {
+              "id": "5.9.13",
+              "what": "The detail panel on a non-aligned submission",
+              "expect": "Each party is followed immediately by the language they read, and a derived line names the routing decision in words — see the note"
             },
             {
               "id": "5.10",

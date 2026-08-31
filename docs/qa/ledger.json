@@ -1535,6 +1535,41 @@
       "expect": "Skipped — matching is case-insensitive and trimmed",
       "retired": false,
       "history": []
+    },
+    "5.9.9": {
+      "firstSeen": "2026-08-31T03:14:29.195Z",
+      "what": "Who may take the intake leg. Customer English · coach Japanese, sitting at \"Pick a translator\". Open the dropdown",
+      "expect": "Only translators who cover English → Japanese are offered — the exact-direction ones and anyone set to \"both directions\". A Japanese to English translator must not be in the list",
+      "retired": false,
+      "history": []
+    },
+    "5.9.10": {
+      "firstSeen": "2026-08-31T03:14:29.195Z",
+      "what": "The same submission at the response leg, after the coach uploads their feedback",
+      "expect": "The list inverts — only Japanese → English and \"both directions\". The translator excluded at 5.9.9 is precisely the one required here, which is why the filter belongs to the leg and not to the submission",
+      "retired": false,
+      "history": []
+    },
+    "5.9.11": {
+      "firstSeen": "2026-08-31T03:14:29.195Z",
+      "what": "Post an ineligible translator to the assign action from a stale tab",
+      "expect": "Refused server-side, with a reason. The dropdown filter is a convenience; the guard is the action — the mirror of the active-translator re-check already there",
+      "retired": false,
+      "history": []
+    },
+    "5.9.12": {
+      "firstSeen": "2026-08-31T03:14:29.195Z",
+      "what": "A leg whose required direction no active translator covers",
+      "expect": "The control says which direction is unstaffed rather than offering an empty dropdown beside a dead Save",
+      "retired": false,
+      "history": []
+    },
+    "5.9.13": {
+      "firstSeen": "2026-08-31T03:14:29.195Z",
+      "what": "The detail panel on a non-aligned submission",
+      "expect": "Each party is followed immediately by the language they read, and a derived line names the routing decision in words — see the note",
+      "retired": false,
+      "history": []
     }
   }
 }

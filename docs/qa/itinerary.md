@@ -279,6 +279,11 @@ than assuming the fix held.
 | 5.9.6 | Customer `English` · coach with **nothing recorded** | ⚠️ Skipped and **silent**. Blank is "cannot tell", never "translate" — prompting on an unanswered question nags on every row until someone fills it in |
 | 5.9.7 | Customer with **nothing declared** · any coach | Same: skipped, no prompt |
 | 5.9.8 | Customer `english ` · coach `English` (case and trailing space) | Skipped — matching is case-insensitive and trimmed |
+| 5.9.9 | **Who may take the intake leg.** Customer `English` · coach `Japanese`, sitting at "Pick a translator". Open the dropdown | ⚠️ Only translators who cover **English → Japanese** are offered — the exact-direction ones *and* anyone set to "both directions". A `Japanese to English` translator must not be in the list |
+| 5.9.10 | The **same submission** at the response leg, after the coach uploads their feedback | ⚠️ The list **inverts** — only **Japanese → English** and "both directions". The translator excluded at 5.9.9 is precisely the one required here, which is why the filter belongs to the leg and not to the submission |
+| 5.9.11 | Post an ineligible translator to the assign action from a stale tab | ⚠️ Refused server-side, with a reason. The dropdown filter is a convenience; the guard is the action — the mirror of the active-translator re-check already there |
+| 5.9.12 | A leg whose required direction no active translator covers | ⚠️ The control says which direction is unstaffed rather than offering an empty dropdown beside a dead Save |
+| 5.9.13 | The detail panel on a non-aligned submission | Each party is followed immediately by the language they read, and a derived line names the routing decision in words — see the note |
 | 5.10 | **The response leg, same matrix.** Repeat 5.9.1 and 5.9.3 against the coach's *feedback*, after they upload it | ⚠️ Same two outcomes. It is a second `passive` constant in the same file and fixing one does not fix the other |
 | 5.11 | What an operator is *told* when languages are missing | The row says which side is blank rather than only that something is. ⚠️ An **admin** grant is empty by design — read the coach card, not the person |
 
