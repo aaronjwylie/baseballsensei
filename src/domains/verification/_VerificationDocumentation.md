@@ -36,7 +36,26 @@ used to mean a bounced receipt and a support thread.
 
 ---
 
-## 2 · Where we are now — 2026-08-02
+## 2 · Where we are now — 2026-08-29
+
+- ✅ **Five wrong codes is the wall, and the customer is counted down to it**
+  (QA 2.2.3). A mismatch now carries `remaining`, so the panel can say "3 attempts
+  left" instead of springing the lockout; the fifth wrong guess comes back as
+  `too_many_attempts`, not a pointless sixth box, and the input is *retired*
+  (`VerifyPanel`'s `locked`) until a fresh code resets the count.
+  `verificationFailureMessage` owns the countdown wording — the one sentence that
+  changes each time, so it can't be a static `VERIFICATION_MESSAGES` entry.
+- ✅ **The attempt spend is atomic.** It was a read-check-write, so a concurrent
+  burst all read the same count and all wrote `read + 1` — `batch × 5` guesses
+  against a single code. It's now one guarded
+  `UPDATE … WHERE verificationAttempts < MAX_ATTEMPTS`: zero rows back means the
+  cap is spent. The "increment before the comparison" invariant defeats the
+  *abort* bypass; this closes the *concurrent* one (bug hunt, #10).
+- ✅ **One attempt cap, shared** (QA 3.2). `MAX_ATTEMPTS` is `MAX_CODE_ATTEMPTS`
+  from `shared/lib` now — the same five the `/status` feedback-view code uses, one
+  source of truth so the two gates can't drift.
+
+Earlier, on 2026-08-02:
 
 - ✅ **A bounce is surfaced, not waited out.** The code's delivery is now tracked
   (`⑨`'s webhook records every outcome), and a bounce lands about **two seconds**

@@ -6,7 +6,7 @@ The **settings slice** — the limits the admin tunes without a deploy.
 
 ## 1 · The northstar
 
-Four numbers, one row, one admin form:
+Seven numbers, one row, one admin form:
 
 | Setting | Default | What it governs |
 | --- | --- | --- |
@@ -25,7 +25,7 @@ Worth knowing before anyone asks for "a timer in admin":
 
 | Clock | Value | How it's enforced |
 | --- | --- | --- |
-| **The flow window** — one clock for the whole unfinished attempt | **30 min**, sliding *(today: correct, but a second 10-min clock still runs on the verification code — see below)* | the flow cookie's own TTL. No scheduler: an expired token simply fails to verify |
+| **The flow window** — one clock for the whole unfinished attempt | **30 min**, sliding — and now the *only* clock before payment: the verification code shares it | the flow cookie's own TTL. No scheduler: an expired token simply fails to verify |
 | **Deferred cleanup** — a released submission's files | `retainCollectedDays` from `collectedAt`, or `retainDeliveredDays` from `completedAt` — **whichever is later** | the nightly sweep. **All four folders go**, records stay |
 | **A scheduled one-off** — the deletion warning | `warnBeforeDeletionDays` before the above | the same sweep, running *first* and against a nearer cutoff, so a single night can't both warn and delete |
 | **Deferred cleanup** — an abandoned submission | `retainUnpaidHours` | the sweep *and* every new submission. **Deleted outright** — files and record |
@@ -36,12 +36,16 @@ inherits whatever time is left rather than starting a new 30 minutes. A customer
 should be able to hold one number in their head ("I have half an hour"), not
 discover a second, shorter clock they were never told about.
 
-The window itself is now **30 minutes and sliding** (`FLOW_MAX_AGE_S`, widened
-from 10 on 2026-08-01 — ten proved too tight to verify an email and then choose
-files). ⚠️ What remains is the *second* clock: `CODE_TTL_MINUTES` is still 10 and
-enforced independently in `domains/verification`, so a customer well inside their
-window can still find the code dead. Collapsing the two is the rest of the
-one-clock rework.
+✅ **The one-clock rework is done.** The window is **30 minutes and sliding**, and
+there is now a single source of truth for it: `FLOW_WINDOW_MINUTES = 30` in
+`shared/lib/flowWindow.ts`. Both consumers derive from it —
+`FLOW_MAX_AGE_S` (via `FLOW_WINDOW_SECONDS`) in `domains/submission`, and
+`CODE_TTL_MINUTES` (`= FLOW_WINDOW_MINUTES`) in `domains/verification`, which
+re-exports rather than redeclares so the two can't drift. The former second,
+independent 10-minute code clock is gone; the constant lives in `shared/` because
+the two domains that depend on it may not own it without the other importing it
+(PRINCIPLES §5). It was six hours, then ten minutes (2026-07-30, too tight to
+verify then choose files), now thirty and sliding.
 
 Both cleanup clocks are **relative to the submission**, never to a wall-clock
 schedule — "24 hours after *it* completed", not "at 4am".
@@ -107,10 +111,14 @@ and these are business judgements, not engineering constants.
 - **One row, always.** `SETTINGS_ID` is fixed, so the table cannot grow a second.
   `getSettings()` creates it on first read rather than returning defaults, so the
   admin form always has something to edit.
-- **The schema bounds the knobs.** 1–2000 MB, 1–20 files, 1 hour to a year. The
-  ceilings stop a typo turning one upload into a storage bill; the retention floor
-  stops an operator setting a sweep so aggressive it deletes files out from under
-  a coach who is still working.
+- **The schema bounds the knobs.** $1–$10,000, 1–2000 MB, 1–20 files, retention
+  days 1–3650, the unpaid window 1 hour to a year. The ceilings stop a typo turning
+  one upload into a storage bill; the retention floor stops an operator setting a
+  sweep so aggressive it deletes files out from under a coach who is still working.
+  A **cross-field `.refine`** also ties the fields together: the deletion warning
+  must be no longer than the shorter of the two retention windows, or the sweep's
+  `retain − warn` cutoff goes negative and warns every just-delivered submission.
+  Per-field bounds can't express that, so it lives on the schema.
 - **Read through `getSettings()`, which is `cache`d per request.** The upload
   route, the flow page, and the sweep all ask; they share one query.
 
@@ -167,3 +175,20 @@ guard and the admin asked for the numbers to be his rather than ours
   the database can constrain.
 - **Its own slice rather than living in `account`.** These are platform settings,
   not operator identity; the only thing they share is that an admin edits them.
+
+**Hardened in the second bug-hunt round (2026-08, #10 and follow-ups):**
+
+- **A missing settings row now says so, loudly.** `getSettings` still creates the
+  row on first read, but when it has to fall back to `DEFAULT_SETTINGS` it
+  `console.warn`s that the price is repricing to the default — because that branch
+  silently makes the charge, the landing card and the terms page agree with each
+  other and disagree with the operator, the one failure that looks like nothing is
+  wrong.
+- **Concurrency on the upsert.** `getSettings`'s seed uses `onConflictDoNothing`
+  and `updateSettings` uses `onConflictDoUpdate`, so two requests racing to be
+  first don't collide.
+- **The cross-field warning constraint** (see the invariants) closed the case where
+  a warning longer than a retention window warned every just-delivered submission.
+- **The one-clock collapse** finished the flow-window rework: `CODE_TTL_MINUTES`
+  now derives from the single `FLOW_WINDOW_MINUTES` constant rather than running its
+  own 10-minute clock (see the timer taxonomy above).

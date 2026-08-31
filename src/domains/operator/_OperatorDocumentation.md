@@ -2,25 +2,113 @@
 
 ## The northstar
 
-`operator` is who can log into the operator portal and what they're allowed to
-touch. Three roles: **admin** (the admin), **coach**, and **translator**.
+`operator` is who exists as a person in the business and **which roles they
+hold** — the subject the portal is run by. Three roles: **admin** (the admin),
+**coach**, and **translator**, and one person can hold **several at once**: an
+admin who also coaches, a coach who translates their own submissions.
+
 **Customers never get an operator row** — they're identified by the email on
 their submission, not a login.
 
-The noun is an `Operator` (`{ id, email, role }`) — the password hash never
-leaves `api/credentialApi.ts`. The verbs are `login` / `logout` (server
-actions) and the guards `requireSession` / `requireRole` (the DAL). The session
-is a stateless HS256 JWT in an httpOnly cookie; the crypto seam lives in
-`shared/auth`, this domain owns the payload shape
-(`OperatorSession = { operatorId, role }`).
+**A role is a grant, not a column.** Each role a person holds is a row in
+`operator_role_grant`, and that row carries everything that role decides — its
+availability, its languages, its specialties, whether it wants the mail it
+generates, and (for a coach) its bio and photo. The three roles ask different
+questions with the same fields, so the answers live per grant rather than once
+per person (the "three magisteria", 2026-08-30 — see below). The `operator` row
+itself is now just identity: `{ id, email, name, isActive }`.
+
+**Signing in is `account`'s job, not this slice's** (the 2026-08-06 folder
+split, below). `login` / `logout`, the session, and the `requireSession` /
+`requireRole` guards all live in `domains/account`. The session it issues
+carries **`roles` — the whole set** (`OperatorSession = { operatorId, roles }`),
+so a guard never re-reads the database to ask a second time. What stays here is
+the operator record, the role grants, and the admin verbs that create, edit,
+assign, and remove people.
 
 Invariants:
 
-- The DAL is the **secure** check, done close to the data (in pages / actions).
-- `proxy.ts` is only an **optimistic** check (cookie present + coarse role
-  routing); it is never the sole line of defence.
-- A wrong-role operator is redirected to *their* portal, not to `/login` — they
-  are authenticated, just in the wrong place.
+- The DAL (in `account`) is the **secure** check, close to the data, and it
+  re-reads each request's **live** grants — a revoked role or a suspended
+  account takes hold at once, not when the week-long token expires.
+- `proxy.ts` is only an **optimistic** check; never the sole line of defence.
+- A wrong-role operator is redirected to *their* portal — or to the chooser
+  (`/portal`) if they hold several — not to `/login`; they are authenticated,
+  just in the wrong place.
+- **The platform must always have one admin.** Revoking the last admin grant,
+  deactivating the last admin, and deleting the last admin are each refused — a
+  zero-admin state has no in-app recovery.
+
+## Where we are — 2026-08-30
+
+**Roles are grants, and a person is the sum of them.** This is the shape the
+older sections below predate. The rebuild landed in two steps:
+
+- **2026-08-07 — one role became many.** `operator.role` (a single column) became
+  `operator_role_grant` (one row per role held), and the session grew from `role`
+  to `roles`. A changed session shape signs everyone out once, which is the safe
+  direction: an old cookie carrying `role` fails the shape check
+  (`isOperatorSession`) and reads as no session. The first cut of that check
+  failed *open* — an old cookie verified and arrived with `roles` undefined,
+  500ing `/admin` for everyone holding one — which is why the shape is now
+  verified, not assumed.
+- **2026-08-30 — the three magisteria.** `languages`, `specialties`, `bio` and
+  `imageUrl` moved off the person and onto the grant (migration `0026`). One
+  person had one list, so a coach who read English and Japanese was necessarily a
+  translator who worked *between* them — the same value standing in for two
+  different questions. A coach's languages decide whether a submission needs
+  translating; a translator's are a **direction** (English to Japanese / … / both
+  directions); an admin has none. Different facts, so they live per grant.
+
+Built on that this session (QA phase 5.13, PRs #59–#77):
+
+- ✅ **One card per role** (`OperatorRoleCard`), each owning only what that role
+  decides, saved independently so a stale submission can't strip the roles it
+  forgot to mention. The languages control is role-aware — a coach picks a **set**
+  (English / Japanese / Both), a translator a **direction** — and both are
+  `<select>`s sized by an explicit height (`selectClass`), because a native select
+  ignores `py-*` in WebKit and came out thin (5.13.4). The **create** form
+  (`OperatorProfileForm`) got the same role-aware dropdowns; it had been radios
+  offering only the coach vocabulary (5.13.4).
+- ✅ **Onboarding email** (`operatorWelcomeEmail`) — creating an operator, and
+  newly granting a role to an existing one, sends a best-effort message naming the
+  role, linking to `/login`, nudging "Forgot password" (no secret rides along).
+  Fired per role from `saveRoleAction` only when the role is *newly* granted; a
+  pause, unpause or settings re-save sends nothing, a re-grant after a revoke
+  sends again (5.13.2 / 5.13.4 / 5.13.5).
+- ✅ **An admin can mute their own notifications** — a `notify` flag on the grant
+  (migration `0027`) and a toggle on the admin card. Kept separate from `isActive`
+  (which login reads as authority, so muting could never ride on it) and from the
+  shared `contact@` inbox, which stays on every notice; `listAdminEmails` drops a
+  muted admin (5.13.6.2).
+- ✅ **Delete an operator outright** (`deleteOperator` + a danger zone on the edit
+  page). It frees and requeues their work first (see `submission`'s
+  `releaseAndRequeue`), drops their photo blobs, then deletes the operator row —
+  grants and credential cascade, the trail keeps its rows with a null actor.
+  Guarded against deleting the last admin, and against deleting your own account
+  (5.13.11).
+- ✅ **A revoked or paused operator returns their work to the queue** —
+  `saveRoleAction` and the deactivate path call `releaseAndRequeue`, dropping each
+  freed submission back to the rung its now-vacant leg is assigned from (5.13.8.1;
+  the rule lives in `submission`).
+- ✅ **The Operators list is one list, filtered by tab**, and keeps everyone: an
+  operator revoked to no roles stays on **All** (the tab left-joins the grants)
+  with a "no roles" pill until actually deleted, and a **No role** tab filters to
+  exactly them (5.13.1 / 5.13.9). Each row shows languages and specialties **per
+  role**, and the "needs …" prompt is computed per grant, so an admin-and-coach
+  is no longer told the empty admin grant "needs languages" while the coach's sit
+  filled in beside it (5.13.1).
+- ✅ **The coach photo field** shows a thumbnail, a way to remove it back to none,
+  and a button-styled picker; `saveRoleAction` grew the third outcome — upload
+  replaces, tick removes, empty keeps — dropping the old blob either way
+  (5.13.6.9).
+- ✅ **Multi-role operators can switch portals and see their login email** — the
+  portal bar keeps a "Switch role" button and shows the signed-in email under
+  Account (that UI lives in `app/` and `account`, QA 4.7 / 4.16).
+
+The dated sections below are the road here, kept because the argument was worth
+recording — but where one of them describes `role` as a column, or the session as
+carrying a single `role`, this section is the correction.
 
 ## The folder split — 2026-08-06
 

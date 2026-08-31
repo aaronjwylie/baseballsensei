@@ -47,7 +47,8 @@ this long from reading as one column.
   `copy.ts`, not by editing markup.
 - **Every call to action goes to `/start`** — the live paid flow, not an anchor.
 - **This slice imports one other domain: `settings`**, and only for the price. That import is
-  also why `index.ts` exports the page and nothing else — the barrel now reaches database
+  also why `index.ts` exports a deliberately narrow, server-only surface — the page and the
+  `faqPageSchema` structured-data object, and no copy objects. The barrel now reaches database
   code, and a client component importing it would pull Postgres into the browser bundle.
 
 ---
@@ -72,9 +73,11 @@ code.
 - ✅ **The price is live**, read from `settings` rather than transcribed, which is what makes
   `/` an ISR page (`revalidate = 300`) rather than a static one.
 - ✅ **Smooth-scroll anchors** (`#how-it-works`, `#coaches`, `#pricing`, `#faq`).
-- 🔶 **Nothing has been looked at in a browser.** The rebuild compiles, lints, prerenders and
-  serves the right strings; no human or machine has *seen* it. The 375px pass in particular is
-  reasoned, not observed.
+- ✅ **The page has since been through browser QA.** The 2026-08-15 rebuild shipped unseen; the
+  QA board has since exercised it in a browser and closed the observed defects — the hero
+  "How it works" button not scrolling, the ticker gap on ultra-wide screens (QA 1.1.3), the
+  FAQ toggle riding high in its circle, and the JSX trailing-space loss on `/status` (QA 5.13.11).
+  The 375px pass is still lighter than the desktop one.
 - 🔶 **`coach.role` is still "Title here"** — the Figma's placeholder, kept rather than
   invented, because making up a job title for a real named person is not a gap code fills.
 - 🔶 **One FAQ answer is authored, not transcribed.** The Figma's "Why Baseball Sensei?"
@@ -88,8 +91,12 @@ code.
 - 🔶 **The logo is light-on-dark only.** "BASEBALL" is set in white, so every ground it sits
   on has to be dark — which is why the interior header is ink rather than paper. A
   light-ground variant needs a new export, not a CSS filter.
-- 🔶 **No OG image, no favicon**, and no structured SEO metadata beyond title and description.
-  `app/layout.tsx` declares `openGraph` with no image to point at.
+- ✅ **SEO foundation is in** (2026-08-29). A generated OG share card (`app/opengraph-image.tsx`),
+  a generated lime favicon (`app/icon.tsx`), `robots.ts`, `sitemap.ts`, richer `openGraph`/Twitter
+  metadata and self-referencing canonicals in `app/layout.tsx`, plus JSON-LD — an
+  Organization + WebSite + Service/Offer graph in `shared/seo`, and a `FAQPage` built from the
+  same `faqs` this page renders (`model/schema.ts`, exported as `faqPageSchema`). It ships
+  ready for when the Basic Auth launch gate lifts.
 - 🔶 **Accessibility unaudited** — no Lighthouse run. Token pairs were checked by hand and all
   clear AA except `ink-muted` on paper at **3.88:1**, which is Audrey's own ramp step and is
   used at 134 call sites app-wide.
@@ -168,3 +175,10 @@ Decisions taken, with their reasoning:
 - **`navLinks` promoted to `shared/layout/`.** The header and the footer both render it, and
   two copies of one list is how a renamed section goes missing from one of them. The Figma's
   own nav matches it exactly, which is a good sign for the split.
+- **SEO foundation landed (2026-08-29).** The site had per-page titles and descriptions and
+  nothing else. Added crawl control (`robots.ts`, `sitemap.ts`), a generated OG card and
+  favicon, richer discovery metadata with self-referencing canonicals, and JSON-LD structured
+  data. The landing slice's part is `faqPageSchema` (`model/schema.ts`), a `FAQPage` graph
+  built from the same `faqs` array the section renders — one source, so the search rich result
+  can't disagree with the page. Its follow-up (2026-08-29) dropped the em dashes from three FAQ
+  answers, which were surfacing in that rich result.
