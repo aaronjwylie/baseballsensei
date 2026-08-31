@@ -200,3 +200,31 @@ obvious what is scaffolding and what is not.
 Not gaps — decisions to do these later, recorded so they are not rediscovered as
 bugs: an in-app `/feedback/[id]` viewer, coach deactivation UI, resumable uploads
 across a reload, React Email, and shadcn/ui.
+
+### Specialty alignment — deferred, and it belongs in the matrix eventually
+
+**Linguistic alignment decides which path a submission takes.** Whether the
+customer and the coach share a language is what branches the pipeline: share one
+and eight rungs are skipped, share none and the submission goes out for
+translation and comes back. It is the only property of the *pairing* that
+changes the shape of the work, and it is derived — `needsTranslation()`, one
+symmetric set intersection over the customer's declared languages and the coach's
+grant.
+
+**Specialty alignment is the same kind of question and is not asked at all.**
+A submission has a `focus` — Hitting, Pitching, Fielding, Catching, Other — and
+a coach grant carries `specialties`. Nothing compares them. An admin can assign
+a catching submission to a coach who only does pitching, and the portal will not
+mention it.
+
+Deliberately deferred, 2026-08-31: language decides whether work is *possible*,
+specialty decides whether it is *good*, and only the first one branches the
+pipeline. With a roster this size the admin knows who does what, and a prompt
+nobody needs is a prompt people learn to dismiss — the same reasoning that keeps
+the translation prompt a prompt rather than a gate.
+
+**It stops being true at the point where an admin no longer holds the roster in
+their head.** Then the assignment step wants the same treatment language got: a
+derived hint on the row, not a rule that refuses. Worth doing as an extension of
+the same mechanism rather than a second, differently-shaped one — the derivation
+already has a home, and the row already has somewhere to put a hint.
