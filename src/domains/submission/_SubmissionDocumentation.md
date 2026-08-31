@@ -343,8 +343,9 @@ Person-language is a **proxy** for file-language: safe for a monolingual side,
 unsafe for a bilingual one, which is exactly why the bilingual case translates
 rather than trusts the guess. **Recording the file's language at upload** would
 retire the proxy entirely and make every cell certain on both legs — the real
-fix, scheduled rather than built here. Until then, assume-worst is the honest
-reading of what we can actually know.
+fix, scheduled rather than built here (tracked in
+[`rollout.md`](../../../docs/design/rollout.md) → *Deferred by decision*). Until
+then, assume-worst is the honest reading of what we can actually know.
 
 **The routing that makes it act.** The derivation used to be *advisory*: the two
 "pick a translator" lines were `passive: true` as a **constant**, so
