@@ -67,6 +67,8 @@ export function AssignTranslatorSelect({
     ? translators.filter((t) => coversDirection(directionsOf(t.languages), direction))
     : translators;
 
+  const chosen = eligible.find((t) => t.id === operatorId) ?? null;
+
   // A filtered list can be empty — one paused grant away (QA 5.9.12). Say which
   // direction is unstaffed rather than showing an empty select beside a dead
   // Save; the sentence names the leg to go staff, or the grant to un-pause.
@@ -80,7 +82,7 @@ export function AssignTranslatorSelect({
 
   return (
     <form action={action} className="space-y-1.5">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <input type="hidden" name="submissionId" value={submissionId} />
         <input type="hidden" name="leg" value={leg} />
         <select
@@ -88,7 +90,7 @@ export function AssignTranslatorSelect({
           value={operatorId}
           onChange={(e) => setOperatorId(e.target.value)}
           disabled={pending}
-          className="rounded-md border border-line bg-white px-2 py-1.5 text-sm disabled:opacity-60"
+          className="min-w-0 max-w-[18rem] flex-1 truncate rounded-md border border-line bg-white px-2 py-1.5 text-sm disabled:opacity-60"
         >
           {/* Disabled and unselected on purpose — an admin picks a person, they
               don't confirm a default, even when the filtered list is one long. */}
@@ -98,17 +100,8 @@ export function AssignTranslatorSelect({
           {eligible.map((t) => (
             <option key={t.id} value={t.id}>
               {/* Every option covers the leg now, so its direction reads as a
-                  confirmation the filter did its job, not a warning.
-
-                  The address is here because the direction alone does not
-                  identify anyone (Ben, QA 5.9.17). Five translators on the
-                  current roster are all called some variation of "Ben" and
-                  three of them share one direction, so name-plus-direction
-                  still picked out a set rather than a person — which is how a
-                  hand-off went to the wrong inbox. This control's entire
-                  effect is to send mail to that address, so it is the one fact
-                  that makes an option unambiguous. */}
-              {`${t.name}${t.languages[0] ? ` (${t.languages[0]})` : ""} — ${t.email}`}
+                  confirmation the filter did its job, not a warning. */}
+              {`${t.name}${t.languages[0] ? ` (${t.languages[0]})` : ""}`}
             </option>
           ))}
         </select>
@@ -120,6 +113,24 @@ export function AssignTranslatorSelect({
           {pending ? "Saving…" : "Save"}
         </button>
       </div>
+      {/*
+        The address, under the control rather than inside the option (Ben, QA
+        5.9.17). It was in the option text for a day, which made every row of
+        the dropdown as wide as the longest email — the select then ran under
+        the folder column and swallowed its own Save button.
+
+        Under it is also the better place. An option list has to distinguish
+        five people at once; this line has to confirm one, and confirming the
+        choice you have just made is when the address actually earns its space.
+        The name and direction narrow the list, and this says where the mail
+        will go — which is this control's whole effect, and was the fact
+        missing when a hand-off went to the wrong Ben.
+      */}
+      {chosen && (
+        <p className="text-[12px] text-ink-muted">
+          {`Sends to ${chosen.email}`}
+        </p>
+      )}
       {failed(state) && (
         <p className="text-[13px] text-rose-700">{state.error}</p>
       )}
