@@ -104,11 +104,11 @@ export default async function EditOperatorPage(props: {
         <h2 className="font-display text-lg font-medium uppercase tracking-[-0.01em] text-red-800">
           Delete operator
         </h2>
+        {/* One string literal, not name-expression-then-text: the latter dropped
+            the space before "from" in the build, reading "benbenfrom" (Ben, QA
+            5.13.11). A literal keeps every space a real character. */}
         <p className="mt-0.5 max-w-prose text-sm text-ink-muted">
-          Removes {person.name} from the platform for good — every role, their
-          sign-in, and their photo. Any submission they were working on returns
-          to the queue for reassignment. This can&rsquo;t be undone; to step
-          someone back temporarily, untick their roles above instead.
+          {`Removes ${person.name} from the platform for good — every role, their sign-in, and their photo. Any submission they were working on returns to the queue for reassignment. This can’t be undone; to step someone back temporarily, untick their roles above instead.`}
         </p>
         <div className="mt-4">
           <DeleteOperatorButton operatorId={id} name={person.name} />
