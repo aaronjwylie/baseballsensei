@@ -289,8 +289,21 @@ precisely what those rungs exist to show.
 They need an **explicit action**, not an inferred one. The download can't be the
 signal: an admin opens a file to check it as often as to translate it, and
 guessing intent from a click would send submissions out for translation nobody
-sent. Hence **“Send for translation →”**, offered on both sides and marked
-*passive* so it never gates the English-coach rows that skip it.
+sent. Hence **“Pick a translator”**, offered on both legs.
+
+**The translation stage routes, it doesn't just advise — Ben, QA 5.9 (2026-08-31).**
+It was marked `passive: true` as a *constant*, which read the answer correctly
+(`needsTranslation` was right at every call) and then stepped over the line
+anyway: `describeStage` offered "Hand to the coach" whatever the languages were,
+so a Japanese-only coach's English customer sailed past the four intake-translation
+rungs untranslated. `passive` is now *answerable per submission* —
+`(s, f) => needsTranslation(s.languages, f.coachLanguages) !== true` on both
+translation lines — so the stage steps aside for a coach who shares a language
+(or when we can't tell) and **holds the pointer, offering "Pick a translator",
+only when they positively share none**. The `!== true` keeps the `null` case
+(one side undeclared) as skip, never a gate on a question nobody answered. The
+coach's languages ride on `ProgressFacts.coachLanguages`, passed from the queue
+that already had the coach in hand for the hint.
 
 **Why nothing else caught them.** Predicates fixed this class for the *reads* —
 `isPaid`, `isReleased`, `whoseCourt` are exhaustive `Record`s, so a new rung is a

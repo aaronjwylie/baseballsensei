@@ -302,6 +302,9 @@ function SubmissionRow({
     reached: progress?.reached ?? new Set<SubmissionStatus>(),
     emails: progress?.emails ?? new Map<string, boolean>(),
     assignees: progress?.assignees ?? {},
+    // The one fact the translation stages gate on (QA 5.9) — already in hand
+    // from the coach resolved above for the hint. Empty when none is assigned.
+    coachLanguages: assignedCoach?.languages ?? [],
   });
 
   /*
