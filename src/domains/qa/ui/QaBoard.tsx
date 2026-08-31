@@ -214,6 +214,55 @@ export function QaBoard({
     } catch { /* private mode — the field still works for this session */ }
   }, []);
 
+  /*
+    Stay where you were across a reload.
+
+    The board is 199 checks long and a tester lives in the middle of it. A
+    browser restores scroll on reload by measuring the page as it is at that
+    moment — and this page is server-rendered and tall, so restoration happens
+    against a document that is not yet its full height and lands at the top.
+    Losing your place in a 199-row list is a small thing that costs a scroll and
+    a re-find, every single time.
+
+    So the position is kept per path in `sessionStorage`: it survives a reload,
+    dies with the tab, and never follows anyone to another machine.
+    `scrollRestoration = "manual"` stops the browser doing its own worse version
+    first and fighting this one.
+
+    Restored after a frame, because the height has to exist before a scroll to
+    it means anything. Written on a rAF-throttled scroll so a long drag is one
+    write per frame rather than hundreds.
+  */
+  useEffect(() => {
+    const key = `qa-scroll:${window.location.pathname}`;
+    const previous = history.scrollRestoration;
+    history.scrollRestoration = "manual";
+
+    const saved = Number(sessionStorage.getItem(key) ?? "");
+    if (Number.isFinite(saved) && saved > 0) {
+      requestAnimationFrame(() => window.scrollTo(0, saved));
+    }
+
+    let queued = false;
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        try {
+          sessionStorage.setItem(key, String(window.scrollY));
+        } catch {
+          /* private mode — the board still works, it just forgets */
+        }
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      history.scrollRestoration = previous;
+    };
+  }, []);
+
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
     const tick = () => {
