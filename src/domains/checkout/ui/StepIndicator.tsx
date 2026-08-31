@@ -44,7 +44,7 @@ export function StepIndicator({
   return (
     <div>
       <p className="text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-band">
-        Step {currentNumber} of {TOTAL_STEPS}
+        {`Step ${currentNumber} of ${TOTAL_STEPS}`}
       </p>
 
       <ol className="mt-3 flex gap-2" aria-label="Progress">

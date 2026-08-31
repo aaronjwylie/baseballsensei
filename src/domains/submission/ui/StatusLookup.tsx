@@ -157,9 +157,9 @@ export function StatusLookup() {
         {result.state === "codeSent" && (
           <div className="rounded-2xl border border-line bg-white p-6">
             <p className="text-ink">
-              If <span className="font-medium">{result.email}</span> has
-              submissions with us, a 6-digit code is on its way &mdash; enter it
-              below.
+              If <span className="font-medium">{result.email}</span>{" "}
+              has submissions with us, a 6-digit code is on its way &mdash; enter
+              it below.
             </p>
             {/*
               Deliberately ambiguous — no submissions, a typo, and slow mail all

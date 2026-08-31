@@ -191,14 +191,14 @@ export function QaCheckRow({
           {notes.length === 0
             ? "+ note"
             : `${notes.length} note${notes.length > 1 ? "s" : ""}`}
-          {pending > 0 && <span className="ml-1 text-rose-700">· {pending} pending</span>}
-          {fixed > 0 && <span className="ml-1 text-amber-700">· {fixed} awaiting re-test</span>}
+          {pending > 0 && <span className="ml-1 text-rose-700">{`· ${pending} pending`}</span>}
+          {fixed > 0 && <span className="ml-1 text-amber-700">{`· ${fixed} awaiting re-test`}</span>}
           {/* Collapsed rows have to carry this too. A blocked finding that is
               only visible once you expand the note is a finding nobody scanning
               the board will see, which is the whole problem it was raised to
               avoid. */}
-          {claimed > 0 && <span className="ml-1 text-sky-700">· {claimed} being worked on</span>}
-          {blocked > 0 && <span className="ml-1 text-violet-700">· {blocked} blocked</span>}
+          {claimed > 0 && <span className="ml-1 text-sky-700">{`· ${claimed} being worked on`}</span>}
+          {blocked > 0 && <span className="ml-1 text-violet-700">{`· ${blocked} blocked`}</span>}
         </button>
         {mark?.actor && value && (
           <span className="text-[11px] text-ink-muted">{mark.actor}</span>
@@ -355,7 +355,7 @@ export function QaCheckRow({
               )}
               {n.statusBy && n.status !== "pending" && (
                 <p className="mt-0.5 text-[11px] text-ink-muted">
-                  {n.status} by {n.statusBy}
+                  {`${n.status} by ${n.statusBy}`}
                 </p>
               )}
             </div>
