@@ -95,6 +95,7 @@ export {
   assignSubmissionTranslator,
   markCustomerCollected,
   markSubmissionSentToCoach,
+  releaseAndRequeue,
   unarchiveSubmission,
   updateSubmission,
   findWarningDue,

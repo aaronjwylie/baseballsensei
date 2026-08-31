@@ -26,7 +26,7 @@ import { grantsForMany, type RoleGrant } from "./operatorRoleApi";
 import type { OperatorProfile, NewOperatorProfile } from "../model/operatorProfile";
 import type { Role } from "../model/operatorRoleEnum";
 import type { Focus } from "@/domains/submission";
-import { releaseAssignments } from "@/domains/submission";
+import { releaseAndRequeue } from "@/domains/submission";
 import { setOperatorPassword } from "@/domains/account";
 import { createOperator } from "@/domains/account";
 import { sendOperatorWelcomeEmail } from "./operatorWelcomeEmail";
@@ -300,7 +300,7 @@ export async function updateProfiledOperator(
   // stops showing a zombie assignee who can't act and no lingering row keeps
   // `isAssignedToSubmission` true. Reactivating does not restore assignments —
   // they are reassigned, like any returning operator's work.
-  if (isActive === false) await releaseAssignments(id);
+  if (isActive === false) await releaseAndRequeue(id);
 
   // An admin reset — no current-password check; the admin's authority is the guard.
   if (password) await setOperatorPassword(id, password);
