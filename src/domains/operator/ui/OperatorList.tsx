@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { OperatorProfileForm } from "./OperatorProfileForm";
-import { ROLES, type Role } from "../model/operatorRoleEnum";
+import { ROLES, withArticle, type Role } from "../model/operatorRoleEnum";
 import type { OperatorListing } from "../api/operatorProfileApi";
 import type { OperatorProfileFormState } from "../api/operatorProfileActions";
 
@@ -163,7 +163,7 @@ export function OperatorList({
       {addAction && (
         <div className="rounded-2xl border border-line bg-white p-6">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
-            Add {filter ? `a ${filter}` : "an operator"}
+            Add {withArticle(filter ?? "operator")}
           </h2>
           <div className="mt-4">
             <OperatorProfileForm roles={filter ? [filter] : ["admin"]} action={addAction} />

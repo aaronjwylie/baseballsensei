@@ -13,7 +13,7 @@ import {
   type TranslatorDirection,
 } from "../model/operatorProfile";
 import type { OperatorProfile } from "../model/operatorProfile";
-import type { Role } from "../model/operatorRoleEnum";
+import { withArticle, type Role } from "../model/operatorRoleEnum";
 import type { OperatorProfileFormState } from "../api/operatorProfileActions";
 
 /**
@@ -217,7 +217,7 @@ export function OperatorProfileForm({
               : "Adding…"
             : editing
               ? "Save changes"
-              : `Add ${primary}`}
+              : `Add ${withArticle(primary)}`}
         </Button>
               {state && "ok" in state && (
                 <SavedBadge>{editing ? "Saved" : `${noun} added`}</SavedBadge>
