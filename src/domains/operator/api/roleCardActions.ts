@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { requireRole } from "@/domains/account";
-import { releaseAssignments } from "@/domains/submission";
+import { releaseAndRequeue } from "@/domains/submission";
 import { db } from "@/shared/db";
 import { storage, coachImageKey } from "@/shared/storage";
 import { operatorTable } from "../model/operatorTable";
@@ -97,16 +97,18 @@ export async function saveRoleAction(
   if (!held) {
     await revokeRole(operatorId, role);
     /*
-      A revoked role takes its holder off the work it owed — the submissions go
-      back to the queue for an admin to reassign. Without this the assignment
-      outlives the role, and someone who kept another role could still pull the
-      files, because `isAssignedToSubmission` does not re-check the role.
+      A revoked role takes its holder off the work it owed, and the submission
+      drops back to the rung where that role is reassigned (Ben, QA 5.13.8.1) —
+      it went back to the queue but stayed on the desk it was on, showing a
+      reviewer for a submission nobody was reviewing. Without the release the
+      assignment also outlives the role, and someone who kept another role could
+      still pull the files, because `isAssignedToSubmission` does not re-check it.
 
       Carried over from `setRolesAction` (Aaron, #49), which this replaced. A
       pause deliberately does NOT do this: the grant survives, so the work they
       already hold is still theirs to finish.
     */
-    await releaseAssignments(operatorId, [role]);
+    await releaseAndRequeue(operatorId, [role]);
     revalidateOperatorPages();
     return { grant: null };
   }

@@ -26,13 +26,16 @@ import {
   type NewSubmission,
   type Submission,
   type SubmissionPatch,
+  type SubmissionStatus,
 } from "../model/submission";
+import type { FileKind } from "../model/submissionFile";
+import type { Role } from "@/domains/operator/model/operatorRoleEnum";
 import {
   toPublicSubmission,
   type PublicSubmission,
 } from "../model/publicSubmission";
 import { fromRow } from "./submissionRow";
-import { assignOperator } from "./submissionAssignmentApi";
+import { assignOperator, releaseAssignments } from "./submissionAssignmentApi";
 import { recordSubmissionEvent } from "./submissionEventApi";
 
 /**
@@ -250,6 +253,87 @@ export async function deleteSubmission(id: string): Promise<void> {
 }
 
 /** Assign a coach and move the submission to `assigned`. Admin action. */
+/*
+  Where a submission belongs when the role that owed a leg is taken off it — and
+  the rungs during which that is still true (Ben, QA 5.13.8.1).
+
+  Keyed by what the assignment *produces*. `target` is the rung the leg is
+  (re)assigned from; `whileAt` is the span where the leg is still outstanding, so
+  a person leaving mid-work sends it back but a person leaving after the leg is
+  delivered, or once the submission has moved on to another role's phase, changes
+  nothing — their departure must not undo finished work. `intake` files are
+  produced by nobody, so it is absent and requeues to nothing.
+*/
+const REQUEUE: Partial<
+  Record<
+    FileKind,
+    { target: SubmissionStatus; whileAt: SubmissionStatus[]; who: string }
+  >
+> = {
+  feedback: {
+    target: "new",
+    whileAt: ["assigned", "sent_to_coach", "in_review"],
+    who: "The coach",
+  },
+  intake_translation: {
+    target: "assigned",
+    whileAt: [
+      "intake_translator_assigned",
+      "sent_to_intake_translator",
+      "intake_translating",
+    ],
+    who: "The intake translator",
+  },
+  feedback_translation: {
+    target: "awaiting_approval",
+    whileAt: [
+      "feedback_translator_assigned",
+      "sent_to_feedback_translator",
+      "feedback_translating",
+    ],
+    who: "The feedback translator",
+  },
+};
+
+/**
+ * Put one freed submission back on the rung its now-vacant leg is assigned from —
+ * but only while that leg is still outstanding.
+ */
+async function requeueAfterRelease(
+  submissionId: string,
+  produces: FileKind,
+): Promise<void> {
+  const rule = REQUEUE[produces];
+  if (!rule) return;
+  const submission = await getSubmission(submissionId);
+  if (!submission || !rule.whileAt.includes(submission.status)) return;
+  await updateSubmission(
+    submissionId,
+    { status: rule.target },
+    `${rule.who} was unassigned — returned for reassignment`,
+  );
+}
+
+/**
+ * Release an operator's assignments **and** put the affected submissions back in
+ * the assignment queue (Ben, QA 5.13.8.1).
+ *
+ * `releaseAssignments` only clears the join, which left a revoked or paused
+ * coach's submission sitting in `in_review` with nobody in review. This is the
+ * whole gesture the callers want: the files leave their hands, and the
+ * submission drops back to where the next person is chosen. The requeue runs
+ * after the release transaction because `updateSubmission` opens its own.
+ */
+export async function releaseAndRequeue(
+  operatorId: string,
+  forRoles?: Role[],
+): Promise<void> {
+  const released = await releaseAssignments(operatorId, forRoles);
+  for (const { submissionId, produces } of released) {
+    await requeueAfterRelease(submissionId, produces);
+  }
+}
+
 export async function assignSubmissionCoach(
   submissionId: string,
   coachId: string,
