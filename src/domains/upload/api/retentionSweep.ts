@@ -1,15 +1,22 @@
 /**
  * Deleting files once they've served their purpose.
  *
- * Two rules that do **genuinely different things**, on operator-tunable clocks,
- * both relative to the submission's own timestamps — never to a wall clock:
+ * Three rules that do **genuinely different things**, on operator-tunable clocks,
+ * all relative to the submission's own timestamps — never to a wall clock:
  *
- * | | resolved | abandoned |
- * | --- | --- | --- |
- * | who | a completed review | never paid for |
- * | clock | `retainResolvedHours` after **its** `completedAt` | `retainUnpaidHours` after **its** `submittedAt` |
- * | files | deleted | deleted |
- * | record | **kept**, locator cleared | **deleted outright** |
+ * | | resolved | archived-while-owed | abandoned |
+ * | --- | --- | --- | --- |
+ * | who | a completed review | a paid submission set aside before release | never paid for |
+ * | clock | delivery/collection window after `completedAt`/`collectedAt` | the delivery window (`retainDeliveredDays`) after **its** `archivedAt` | `retainUnpaidHours` after **its** `submittedAt` |
+ * | warning | yes (`findWarningDue`) | **no** — the customer was never handed a link | n/a |
+ * | files | deleted | deleted | deleted |
+ * | record | **kept**, locator cleared | **kept**, locator cleared | **deleted outright** |
+ *
+ * The middle rule (Ben, QA 5.6) exists because archiving a live submission takes
+ * it off the queue but leaves a paid customer's video that no other clock was
+ * watching — `findResolvedDue` can't reach an unreleased status. It rides the
+ * same window a completed submission's files do, only measured from the archive
+ * and with the warning suppressed.
  *
  * The asymmetry is the point. A paid submission's history matters — the receipt
  * and the portal still have to say what was sent. Nothing was ever bought in the
@@ -33,6 +40,7 @@ import { getSettings } from "@/domains/settings";
 import {
   clearAllFileLocators,
   findAbandonedDue,
+  findArchivedOwedDue,
   findResolvedDue,
   findWarningDue,
   listAllSubmissionFiles,
@@ -46,6 +54,8 @@ import { discardUnpaidSubmission } from "./discardSubmission";
 export interface SweepReport {
   /** Completed submissions whose files were removed; the records remain. */
   resolvedPurged: number;
+  /** Archived-while-owed submissions purged on the same clock, minus the warning. */
+  archivedOwedPurged: number;
   /** Unpaid submissions deleted outright. */
   abandonedDiscarded: number;
   /** Customers told their files are about to go. */
@@ -54,9 +64,43 @@ export interface SweepReport {
   failures: number;
 }
 
+/**
+ * Forget the bytes, keep the record — the shared body of both paid purges.
+ *
+ * Removes every stored object, clears the locators so the portal can still say
+ * what was there, and moves the submission to `purged`. The two callers differ
+ * only in *which* window put the submission here and whether a warning preceded
+ * it; the deletion itself must not drift between them.
+ */
+async function purgeSubmissionFiles(
+  submissionId: string,
+  report: SweepReport,
+): Promise<void> {
+  const files = await listAllSubmissionFiles(submissionId);
+  for (const file of files) {
+    if (!file.fileUrl) continue;
+    try {
+      await storage.remove(file.fileUrl);
+      report.filesDeleted += 1;
+    } catch (err) {
+      // Keep going: one unreachable object must not strand the rest of the
+      // sweep. The locator is cleared either way — a file we can't delete is one
+      // we've already lost track of.
+      report.failures += 1;
+      console.error(`[sweep] could not delete ${file.fileUrl}:`, err);
+    }
+  }
+  await clearAllFileLocators(submissionId);
+  await updateSubmission(submissionId, {
+    filesPurgedAt: new Date().toISOString(),
+    status: "purged",
+  });
+}
+
 export async function runRetentionSweep(): Promise<SweepReport> {
   const report: SweepReport = {
     resolvedPurged: 0,
+    archivedOwedPurged: 0,
     abandonedDiscarded: 0,
     warningsSent: 0,
     filesDeleted: 0,
@@ -179,28 +223,25 @@ export async function runRetentionSweep(): Promise<SweepReport> {
   );
 
   for (const submission of due) {
-    const files = await listAllSubmissionFiles(submission.id);
-
-    for (const file of files) {
-      if (!file.fileUrl) continue;
-      try {
-        await storage.remove(file.fileUrl);
-        report.filesDeleted += 1;
-      } catch (err) {
-        // Keep going: one unreachable object must not strand the rest of the
-        // sweep. The locator is cleared either way — a file we can't delete is
-        // one we've already lost track of.
-        report.failures += 1;
-        console.error(`[sweep] could not delete ${file.fileUrl}:`, err);
-      }
-    }
-
-    await clearAllFileLocators(submission.id);
-    await updateSubmission(submission.id, {
-      filesPurgedAt: new Date().toISOString(),
-      status: "purged",
-    });
+    await purgeSubmissionFiles(submission.id, report);
     report.resolvedPurged += 1;
+  }
+
+  /*
+    ── archived while still owed: the same purge, no warning ────────────────
+
+    A paid submission set aside before it ever reached the customer (QA 5.6).
+    No delivery or collection clock was ever watching it, so it rides the
+    delivery backstop measured from when it was **archived** — the same window a
+    completed submission's files get. The difference the customer's absence earns
+    it: **no warning email**, because they were never handed a link to lose. The
+    bytes go, the record stays, exactly like the resolved purge above.
+  */
+  for (const submission of await findArchivedOwedDue(
+    new Date(now - days(settings.retainDeliveredDays)),
+  )) {
+    await purgeSubmissionFiles(submission.id, report);
+    report.archivedOwedPurged += 1;
   }
 
   // ── abandoned: leave nothing behind ────────────────────────────────────

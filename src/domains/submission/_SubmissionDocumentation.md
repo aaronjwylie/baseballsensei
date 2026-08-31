@@ -839,12 +839,25 @@ list has shrunk to a single entry — and the reason it survives is the useful p
 | `archivedAt` | out of the admin's active queue; still a real submission | `archiveSubmissionAction` / `unarchiveSubmissionAction` | yes |
 
 **Archiving isn't a status because it's orthogonal to every status.** A submission
-can be archived while `complete`, or `collected`, or `purged` — it's a statement
-about the admin's attention, not about where the work has got to. Anything that can be
-true *alongside* the ladder rather than *at a point on it* belongs here.
+can be archived at **any** rung — `in_review` as readily as `complete` — because
+it's a statement about the admin's attention, not about where the work has got
+to. Anything that can be true *alongside* the ladder rather than *at a point on
+it* belongs here.
 
 That's the test for anything proposed as a new status later: **if it can coexist
 with the state you're already in, it isn't a rung.**
+
+**Archive anywhere, with two guards (Ben, QA 5.6, 2026-08-30).** Archiving used
+to be offered only on released work (bookkeeping). It's now available at any rung
+from the override — the things that can never reach `complete` (a duplicate, a
+test entry, a cancelled or refunded customer) needed a way off the working
+surface. But archiving a **live** submission sets aside a paid customer still
+owed feedback, so: (1) it requires a reason and writes the actor + reason to the
+trail like a status reset; (2) the Archived view badges the owed ones
+(`archived · owed`) so they can't be read as filed-and-done; and (3)
+`findArchivedOwedDue` puts their files on the retention sweep — the delivery
+window measured from `archivedAt`, no warning email — so a "temporary" archive
+can't become permanent storage of a customer's video.
 
 ### Open questions — the decisions the northstar hasn't made
 
