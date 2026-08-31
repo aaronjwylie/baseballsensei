@@ -727,6 +727,40 @@ const RELEASED_STATUSES = SUBMISSION_STATUSES.filter((status) =>
   isReleased({ status }),
 );
 
+/** Paid, but the feedback hasn't reached the customer yet — the rungs where
+ *  work is still owed. */
+const PAID_UNRELEASED_STATUSES = SUBMISSION_STATUSES.filter(
+  (status) => isPaid({ status }) && !isReleased({ status }),
+);
+
+/**
+ * Archived submissions whose feedback was never delivered, past due for a purge
+ * (Ben, QA 5.6).
+ *
+ * Archiving a live submission takes it off the queue, but it is a **paid
+ * customer's video** that no clock was watching: `findResolvedDue` can't reach
+ * it — its status isn't released and it has no `completedAt` — so without this
+ * its files would live forever, which is how a "temporary" archive becomes
+ * permanent storage. It rides the **same window a completed submission's files
+ * do** — the delivery backstop, `retainDeliveredDays` — only measured from when
+ * it was **archived** rather than delivered, and with **no warning email**,
+ * because the customer was never given a link to expect one against. The record
+ * is kept and the bytes go, like every other paid purge.
+ */
+export async function findArchivedOwedDue(before: Date): Promise<Submission[]> {
+  const rows = await db
+    .select()
+    .from(submissionTable)
+    .where(
+      and(
+        isNotNull(submissionTable.archivedAt),
+        lt(submissionTable.archivedAt, before),
+        inArray(submissionTable.status, PAID_UNRELEASED_STATUSES),
+      ),
+    );
+  return rows.map(fromRow);
+}
+
 /**
  * Submissions that were never paid for and have gone quiet.
  *

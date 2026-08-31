@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { failed, succeeded, type ActionResult } from "@/shared/lib/actionResult";
 import {
   SUBMISSION_STATUSES,
+  isReleased,
   numberedRungLabel,
   type SubmissionStatus,
 } from "@/domains/submission/model/submission";
@@ -29,12 +30,14 @@ import { STAGE_CHAIN } from "@/domains/submission/model/stageChain";
 export function OperatorOverride({
   submissionId,
   status,
+  archiveAction,
   purgeAction,
   resetAction,
   deleteAction,
 }: {
   submissionId: string;
   status: SubmissionStatus;
+  archiveAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   purgeAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   resetAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   deleteAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
@@ -59,6 +62,20 @@ export function OperatorOverride({
   useEffect(() => {
     if (succeeded(reset)) router.refresh();
   }, [reset, router]);
+
+  // Archiving a live submission sets aside a paid customer still owed feedback —
+  // it needs a reason and a warning; archiving finished work is bookkeeping and
+  // needs neither (Ben, QA 5.6).
+  const owed = !isReleased({ status });
+  const [archiveReason, setArchiveReason] = useState("");
+  const [archive, archiveSubmit, archiving] = useActionState<
+    ActionResult,
+    FormData
+  >(archiveAction, undefined);
+
+  useEffect(() => {
+    if (succeeded(archive)) router.refresh();
+  }, [archive, router]);
 
   // Nothing may come back out of `purged` — the bytes it describes are gone, and
   // a status implying otherwise would make the queue lie about what a customer
@@ -209,6 +226,57 @@ export function OperatorOverride({
           </p>
         </form>
       )}
+
+      {/*
+        Archive — out of the queue, not gone. Available at any rung now (QA 5.6):
+        the things that can never reach `complete` — a duplicate, a test entry, a
+        cancelled or refunded customer — needed a way off the working surface. A
+        live one is set aside with feedback still owed, so it asks for a reason
+        and says what it is doing; a finished one is plain bookkeeping.
+      */}
+      <form
+        className={`space-y-2 rounded-lg border p-3 ${
+          owed ? "border-amber-300 bg-amber-50/40" : "border-line bg-paper-alt/40"
+        }`}
+        action={archiveSubmit}
+      >
+        <input type="hidden" name="submissionId" value={submissionId} />
+        <div className="flex flex-wrap items-end gap-2">
+          <span className="text-xs text-ink-muted">
+            {owed
+              ? "Archive — set aside, feedback still owed:"
+              : "Archive — file out of the queue:"}
+          </span>
+          <input
+            name="reason"
+            value={archiveReason}
+            onChange={(e) => setArchiveReason(e.target.value)}
+            placeholder={owed ? "why (required)" : "why (optional)"}
+            className={`${control} w-44 border-line bg-white`}
+          />
+          <button
+            type="submit"
+            disabled={archiving || (owed && archiveReason.trim() === "")}
+            title={
+              owed && archiveReason.trim() === ""
+                ? "A live submission needs a reason"
+                : undefined
+            }
+            className={`${controlButton} border-line bg-white text-ink hover:border-ink disabled:opacity-50`}
+          >
+            {archiving ? "Archiving…" : "Archive"}
+          </button>
+        </div>
+        {failed(archive) && <p className="text-xs text-rose-700">{archive.error}</p>}
+        {succeeded(archive) && <p className="text-xs text-emerald-700">Archived.</p>}
+        {owed && (
+          <p className="text-xs text-amber-700">
+            This hides an open obligation — a paid customer is still waiting. It is
+            recorded with your name and reason, flagged in the Archived view, and
+            its files are still purged on the normal clock.
+          </p>
+        )}
+      </form>
 
       <form
         className="flex flex-wrap items-center gap-2 rounded-lg border border-rose-300 bg-rose-50/60 p-3"

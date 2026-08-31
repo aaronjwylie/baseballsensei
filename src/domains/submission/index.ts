@@ -84,6 +84,7 @@ export {
   findByCustomerEmail,
   findByStripePaymentId,
   findAbandonedDue,
+  findArchivedOwedDue,
   findResolvedDue,
   getSubmission,
   isAssignedToSubmission,
