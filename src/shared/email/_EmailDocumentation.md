@@ -162,18 +162,44 @@ charged, the files are still here, and finishing takes one click.
 ### Outside the submission arc
 
 The nine above are the *submission's* messages, which is why they carry the path
-table's numbering. One message exists that isn't on that path at all:
+table's numbering. Two messages exist that aren't on that path at all — both
+operator-facing:
 
 | Trigger | To | Status |
 |---|---|---|
-| Operator requested a password reset | operator | ✅ **built** — `domains/operator/api/passwordResetEmail.ts`, one-hour link |
+| Operator requested a password reset | operator | ✅ **built** — `domains/account/api/passwordResetEmail.ts`, one-hour link |
+| An operator is added, or a role is newly assigned to them | operator | ✅ **built** — `domains/operator/api/operatorWelcomeEmail.ts`, names the role and links to `/login` with a "Forgot password" nudge |
 
-It's listed here because this doc's job is knowing which emails exist, not only
-which ones a submission causes. **It's also the second message in the product that
-best-effort sending serves badly** — the same shape as the verification code: the
-person is *blocked* on it, so a silent failure isn't degradation, it's a dead end.
-Two instances is a pattern, and it's worth deciding whether "blocking" messages
-should report their failure rather than swallow it.
+They're listed here because this doc's job is knowing which emails exist, not only
+which ones a submission causes.
+
+**The password reset is the second message in the product that best-effort sending
+serves badly** — the same shape as the verification code: the person is *blocked*
+on it, so a silent failure isn't degradation, it's a dead end. Two instances is a
+pattern, and it's worth deciding whether "blocking" messages should report their
+failure rather than swallow it.
+
+**The operator welcome — 2026-08-29 (Ben, QA 5.13.2 / 5.13.4 / 5.13.5).** Unlike
+the reset, it's best-effort in the ordinary way: the account exists whether or not
+the mail lands, so a failure logs and never throws into the action that created it.
+It fires from **two** places for the same reason — a person only *starts* holding a
+role in two ways:
+
+- when an operator is **created**, on the first grant (`createProfiledOperator`
+  in `operatorProfileApi.ts`);
+- when a role is **newly granted** to an existing operator (`saveRoleAction`), and
+  *only* then — the send is guarded on the role not already being held, so a pause,
+  an unpause or a settings re-save mails nothing, while a re-grant after a revoke
+  reads as not-held and mails again. Assigning coach *and* translator is two saves,
+  so two emails.
+
+The role rides as a **parameter, not a filename** (`sendOperatorWelcomeEmail(to,
+name, role)` / `buildOperatorWelcomeEmail(name, role)`): admin, coach and translator
+get one message with one word changed, so a fourth role changes a string rather than
+adds a template. **No password is ever included** — we hold only the bcrypt hash, so
+the copy points at "Forgot password" instead of relaying a secret out of band. It
+passes its **own footer** through `emailShell`'s fourth argument (below), because a
+coach is not "about your coaching submission".
 
 **④ and ⑦ are the same message twice**, pointed at the same recipient — "a
 download happened, the pipeline moved". Worth building as one mechanism with two
@@ -279,9 +305,21 @@ The domain that owns the *event* owns the send — not a central mailer:
 - `payment/` → the receipt (and the admin's copy of it)
 - `coach/` → assignment
 - `feedback/` → coach-submitted, approved-and-released, resolved
+- `account/` → the operator password reset
+- `operator/` → the operator welcome (create + role assignment), the hand-off notices
 
 `shared/email` stays transport plus the shell: `sendEmail()` and
-`emailShell()`, and nothing about what any particular message means.
+`emailShell(heading, body, cta?, footerNote?)`, and nothing about what any
+particular message means.
+
+**The shell's footer is overridable — 2026-08-29.** `emailShell` grew an optional
+fourth argument, `footerNote`. It **defaults** to *"This is an automated message
+about your coaching submission."*, which fits the customer messages that are most
+of the set. An **operator-facing** message passes its own line instead — the
+welcome email does (*"You're receiving this because an administrator added you as
+an operator."*), because telling a coach a note is "about your coaching submission"
+is a small lie about who they are. Everything else — every customer message, and
+the hand-off notices that don't override — takes the default.
 
 **Escape customer-supplied values.** Filenames and player names land in HTML;
 `paymentEmail.ts` has the helper and any new template needs the same treatment.

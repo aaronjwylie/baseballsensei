@@ -15,13 +15,17 @@ twice?" but **"is it still true if the domain changes?"**
 shared/
   db/         the Postgres connection — `db`, and nothing else
   storage/    the storage seam — local-disk (dev) + Blob (prod) drivers
+  upload/     the browser upload transport (moved here from a domain 2026-08-06)
   auth/       the session-cookie seam — jose token + cookie helpers
   stripe/     the SDK singleton
   email/      the Resend transport + the brand shell every message wears
-  lib/        rateLimit — the domain-less request throttle
-  ui/         Button · ButtonLink · Container · Field · Pill
-  layout/     SiteHeader · SiteFooter · Logo
-  config/     env (the only process.env reader) · site (brand facts)
+  seo/        JSON-LD schema builders + the <JsonLd> tag (site-wide structured data)
+  lib/        rateLimit · flowWindow · codeEntry · actionResult — domain-less helpers
+  ui/         Button · ButtonLink · Container · Field · FieldSelect · Pill ·
+              PasswordInput · LocalTime · SavedBadge · SectionHeading
+  layout/     SiteHeader · SiteFooter · SiteChrome · MobileNav · Logo ·
+              navLinks · AnchorScrollLink/Button · LegalPage
+  config/     env (the only process.env reader) · site (brand facts) · publicEnv
 ```
 
 ### The invariants
@@ -43,9 +47,11 @@ shared/
   at import. That would fail every build in an environment without production secrets —
   including Vercel preview builds and CI. Lazy reads fail at the point of use, where the
   error is also more useful. **This is a deliberate deviation from the spec.**
-- **`email/` owns the shell, not the messages.** The three transactional emails are
-  genuinely different and live in their domains; what they share — header, type scale, CTA,
-  footer — is written once here. *(PRINCIPLES #8.)*
+- **`email/` owns the shell, not the messages.** The transactional messages (nine on-spine,
+  see [`email/_EmailDocumentation.md`](email/_EmailDocumentation.md)) are genuinely different
+  and live in their domains as `api/xEmail.ts`; what they share — header, type scale, CTA,
+  footer — is written once here. `emailShell` also carries the shared `escapeHtml`, since every
+  template lands customer-supplied values in HTML. *(PRINCIPLES #8.)*
 - **`layout/` is domain-less on purpose.** Header and footer link to routes but know nothing
   about what happens on them. If they ever needed to, they'd stop being shared and become a
   widget layer — which this codebase deliberately doesn't have yet.
@@ -75,6 +81,37 @@ neither could own it (PRINCIPLES §5).
   visible in raw storage as well as in the database. That matters the one time
   someone has to look.
 
+### Since 2026-08-01
+
+The floor kept growing as two-domain needs surfaced and the QA pass fed fixes back
+into shared primitives.
+
+- ✅ **`upload/` is a shared seam now (2026-08-06).** The browser upload transport
+  left `domains/upload/ui/`, where `checkout`, `feedback` and `upload` all reached
+  across for it and closed a `feedback → upload → feedback` cycle. It passes the
+  `shared/` test outright — a domain home *forced* another domain to import it.
+- ✅ **`seo/` (2026-08-29).** JSON-LD schema builders (Organization, WebSite,
+  Service/Offer) and a `<JsonLd>` tag, so the site-wide structured data has one
+  domain-less home; the landing slice adds its own `FAQPage` on top.
+- ✅ **`lib/` gained `codeEntry` and `actionResult`.** `MAX_CODE_ATTEMPTS` is the
+  single source for the five-guess code-entry cap the verification gate and the
+  `/status` feedback code both use (QA 3.2); `actionResult` is the shared
+  `succeeded`/`failed` result shape for server actions.
+- ✅ **`ui/` roughly doubled** as the approved design and the QA pass landed:
+  `FieldSelect` (a Radix dropdown replacing the native `<select>`, QA 2.1.5),
+  `PasswordInput` (every password field is revealable), `LocalTime`, `SavedBadge`
+  and `SectionHeading`. `Field` grew `selectClass` (native selects sized by an
+  explicit height, QA 5.13.4) and `buttonStyles` grew a `danger` variant for
+  destructive actions.
+- ✅ **`layout/` gained the marketing chrome** — `SiteChrome` (the header floats
+  transparent over the hero and is ink everywhere else), `MobileNav`, the
+  `AnchorScroll` link/button pair (same-page anchors that scroll on repeat taps),
+  and `LegalPage` (the themed terms/privacy shell).
+- ✅ **The transactional emails wear the site theme (#40).** `shell.ts` still
+  builds HTML strings (no React Email), mirroring the `globals.css` hex by hand,
+  and `emailShell` grew an optional `footerNote` so an operator-facing message
+  isn't described to a coach as being "about your coaching submission".
+
 
 ### Before 2026-08-01
 
@@ -98,10 +135,11 @@ neither could own it (PRINCIPLES §5).
   Workspace handles receiving). To add a new transactional email, one `api/xEmail.ts`
   using `sendEmail` + `emailShell` — see [OPERATIONS.md §8](../../OPERATIONS.md) /
   [CLAUDE.md §7](../../CLAUDE.md#7-third-party-tool-integrations).
-- 🔶 **Design tokens are provisional.** `app/globals.css` carries the warm-neutral/blue set
-  taken from the reference wireframe (2026-07-29), replacing an invented navy/rose. Audrey's
-  approved design supersedes it. `email/shell.ts` mirrors the same hex values by hand, since
-  email can't read CSS variables — change one, change the other.
+- ✅ **Design tokens are Audrey's approved set now (2026-08-15).** `app/globals.css` carries
+  the palette and type from the Figma "Final design" — blue `#313fd2`, lime `#c9f950`, a
+  neutral ramp, Oswald display + Lexend body — superseding the provisional wireframe palette.
+  `email/shell.ts` still mirrors the same hex values by hand, since email can't read CSS
+  variables — change one, change the other.
 
 ---
 

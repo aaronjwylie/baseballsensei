@@ -40,7 +40,7 @@ almost everything else in here.
 
 ---
 
-## 2 · Where we are now — 2026-08-15
+## 2 · Where we are now — 2026-08-27
 
 Built from Audrey's Figma (`nZ2cQxvViIVzxrA9ILchVt`, frame `15385:17951`).
 
@@ -53,15 +53,18 @@ Built from Audrey's Figma (`nZ2cQxvViIVzxrA9ILchVt`, frame `15385:17951`).
   one told it succeeded goes away.
 - ✅ **Success replaces the form**, so a filled form can't sit under a "sent!"
   banner inviting a second identical send.
-- 🔶 **The consent line links to `/terms`, which is a placeholder.** The design
-  says "our friendly privacy policy" and there is no privacy policy. The link
-  should point at one before launch.
+- ✅ **The consent line links to `/privacy`**, a real page now (#22,
+  2026-08-27) — the design's "our friendly privacy policy" is honoured. It was a
+  `/terms` placeholder when this slice was built.
 - 🔶 **No rate limit.** The honeypot stops naive bots; it does nothing against
   someone deliberately submitting the form a thousand times. Worth an IP-based
   limit if it ever becomes a problem — not before.
-- 🔶 **`site.email` must be a real, monitored mailbox.** Every message goes
-  there and nowhere else. Receiving is Google Workspace on the root MX, which is
-  independent of Resend, so a reply reaches the admin's `contact@` inbox.
+- ✅ **Every message goes to `listAdminEmails()`** — the admin operators plus
+  the shared `contact@` inbox, the same recipient list a coaching submission's
+  arrival notice uses (QA 1.2.8, 2026-08-27) — so a message reaches whoever the
+  team has watching. Receiving is Google Workspace on the root MX, independent of
+  Resend, so a reply reaches the `contact@` inbox. Each of those addresses must
+  be real and monitored.
 
 ### Departures from the Figma
 

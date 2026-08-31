@@ -36,15 +36,18 @@ someone look for the login flow* — and the answer is "account".
 So the whole surface is here:
 
 ```
-model/role.ts                  ROLES · HOME_FOR_ROLE · CAN_BE_ASSIGNED · OperatorSession
-model/operatorRoleEnum.ts      the DB enum, beside the vocabulary it derives from
-model/credentialTable         the secret
-api/dal.ts                     requireSession · requireRole — the secure check
+model/session.ts               OperatorSession · HOME_FOR_ROLE · PORTAL_ORDER · portalsFor
+model/credentialTable.ts       the secret
+api/dal.ts                     getSession · requireSession · requireRole — the secure check
 api/auth.ts                    login · logout · changePassword
+api/credentialApi.ts           the only reader/writer of password_hash
 api/loginApi.ts                the two acts needing a person *and* a secret
 api/passwordReset*.ts          the forgot-password flow
 ui/                            all four password/login forms
 ```
+
+`Role` and its DB enum (`operatorRoleEnum.ts`) are **not** here — they went back
+to `operator` (below), and this domain imports `Role` from that declaration.
 
 **`Role` came here first, and went back.** The argument for keeping it was that
 what a role *decides* is access — which portal you land in, what a guard lets
@@ -150,6 +153,46 @@ through the domain functions, which write the right rows. `scripts/simulate.ts`
 now asks the login path itself, from the outside, whether a freshly created
 operator can actually sign in and whether a reset actually changes a password.
 Reverting either fix turns those checks red.
+
+## A session is a set of roles, re-checked every request — 2026-08-07 → 2026-08-29
+
+The first `OperatorSession` was `{ operatorId, role }` — one role. That was
+wrong about the business: **a person can hold several kinds at once.** Someone
+runs the platform *and* coaches; a coach who reads both languages translates
+their own submissions. So the shape is now:
+
+```ts
+OperatorSession = { operatorId, roles: Role[] }   // an array, never a single role
+```
+
+`roles` is **every kind they are** (`model/session.ts`). `requireRole(...allowed)`
+passes if *any* held role is allowed — holding an extra kind was never a reason
+to say no — and a signed-in but wrong-place operator is redirected to a portal
+they *do* hold: `HOME_FOR_ROLE[theirs]` if they hold exactly one, else the
+`/portal` chooser (`portalsFor` / `PORTAL_ORDER` order it, admin-first as a
+tiebreak, not a hierarchy). All three live in `model/session.ts`.
+
+**Changing the shape signed everyone out once — and exposed a fail-open.** An old
+cookie carries `role`, no `roles`. `verifySessionToken` proves the *signature*,
+not the *shape*: it cast the payload with `as T`, so those old cookies verified
+perfectly and arrived with `roles` undefined, and the first `roles.some(...)`
+threw a 500 on `/admin` for everyone still holding one. The note written at the
+time — "an old cookie fails to parse, the safe direction" — was wrong; it failed
+**open**. `isOperatorSession` now shape-checks the payload, and an unrecognised
+one is *no session* (→ `/login`, costing one sign-in). See the ⟨EVIDENCE⟩ block
+in `model/session.ts`.
+
+**`getSession` re-derives authority from the DB every request — 2026-08-29.** The
+roles baked into a seven-day token are a login-time snapshot; trusting them alone
+means deactivating an operator or revoking a role doesn't take hold until the
+token expires — up to a week in which a removed coach still downloads a minor's
+video and delivers feedback. So `getSession` (in `api/dal.ts`) reads the account
+live each request via `liveRolesFor`: `null` once the operator is gone or
+`isActive` is false (the session is spent → `/login`), otherwise the roles whose
+grant is still active in `operatorRoleGrantTable`, which **replace** the token's
+set so every `requireRole` decides on current truth. Login also filters to active
+grants, so a paused grant never enters a session in the first place. Memoized with
+`cache()`, so it is one read a request however many components ask.
 
 ## Where we came from
 
