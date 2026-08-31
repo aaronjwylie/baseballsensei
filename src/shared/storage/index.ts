@@ -50,15 +50,15 @@ export function feedbackFileKey(submissionId: string, filename: string): string 
 }
 
 /**
- * Build the storage key for a translation the admin uploads.
+ * Build the storage key for a file filed into one of the four folders.
  *
  * Its own subfolder per kind, so the four folders are visible in the object
  * store as well as in the database — which matters the one time someone has to
  * look at raw storage to work out what a submission actually contains.
  */
-export function translationFileKey(
+export function folderFileKey(
   submissionId: string,
-  kind: "intake_translation" | "feedback_translation",
+  kind: "intake" | "intake_translation" | "feedback" | "feedback_translation",
   filename: string,
 ): string {
   return `${submissionFolder(submissionId)}/${kind}/${randomUUID().slice(0, 8)}-${safeName(filename)}`;

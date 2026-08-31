@@ -41,26 +41,32 @@ import type { ChangeEvent } from "react";
  */
 export function FileButton({
   label,
+  name,
   multiple = false,
   disabled = false,
   accept,
+  size = "md",
   onSelect,
 }: {
   label: string;
+  /** Set when the input is a real form field rather than a JS-only trigger. */
+  name?: string;
   multiple?: boolean;
   disabled?: boolean;
   accept?: string;
+  size?: "sm" | "md";
   onSelect: (event: ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
     <label
-      className={`inline-flex shrink-0 cursor-pointer items-center whitespace-nowrap rounded-full bg-ink px-4 py-2 text-xs font-semibold text-surface transition-colors hover:bg-accent focus-within:ring-2 focus-within:ring-accent/40 ${
-        disabled ? "pointer-events-none opacity-50" : ""
-      }`}
+      className={`inline-flex shrink-0 cursor-pointer items-center whitespace-nowrap rounded-full bg-ink font-semibold text-surface transition-colors hover:bg-accent focus-within:ring-2 focus-within:ring-accent/40 ${
+        size === "sm" ? "px-2.5 py-1 text-[11px]" : "px-4 py-2 text-xs"
+      } ${disabled ? "pointer-events-none opacity-50" : ""}`}
     >
       {label}
       <input
         type="file"
+        name={name}
         multiple={multiple}
         accept={accept}
         disabled={disabled}

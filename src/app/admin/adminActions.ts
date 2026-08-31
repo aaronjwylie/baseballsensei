@@ -18,7 +18,9 @@ import { numberedRungLabel,
   listFilesByKinds,
   recordSubmissionEvent,
   archiveSubmission,
+  deleteSubmissionFile,
   getSubmission,
+  getSubmissionFile,
   isPaid,
   isReleased,
   unarchiveSubmission,
@@ -29,7 +31,7 @@ import { numberedRungLabel,
 } from "@/domains/submission";
 import { approveAndComplete, resolveSubmission } from "@/domains/feedback";
 import { getSettings } from "@/domains/settings";
-import { storage, translationFileKey } from "@/shared/storage";
+import { storage, folderFileKey } from "@/shared/storage";
 
 export async function archiveSubmissionAction(
   _prev: ActionResult,
@@ -106,7 +108,7 @@ export async function unarchiveSubmissionAction(
  * promise about what *they* may send, and the admin's working copies must not eat
  * into it.
  */
-export async function uploadTranslationAction(
+export async function uploadToFolderAction(
   _prev: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
@@ -115,16 +117,30 @@ export async function uploadTranslationAction(
   const rawKind = String(formData.get("kind") ?? "");
   if (!id) return { error: "No submission. Reload and try again." };
 
-  // Only the two translation folders are writable here. The originals are the
-  // customer's and the coach's own uploads; an admin overwriting either would
-  // destroy the record of what was actually submitted.
-  if (rawKind !== "intake_translation" && rawKind !== "feedback_translation") {
-    return {
-      error:
-        "Only the two translation folders accept uploads here: the originals are the customer's and the coach's own.",
-    };
+  /*
+    All four folders take uploads (Ben, 2026-08-31). This was restricted to the
+    two translation folders on the reasoning that the originals are the
+    customer's and the coach's own, and an admin writing to them would destroy
+    the record of what was actually submitted.
+
+    Half of that still holds and half of it never did. Adding a file **is not
+    overwriting one** — nothing here replaces or removes anything, every upload
+    is its own row, and the folder keeps what was already in it. And the cases
+    are ordinary: a customer whose upload failed emails the clip instead, a
+    coach sends their response by reply rather than through the portal. Refusing
+    those means the admin does the work outside the system and the folder is a
+    lie either way.
+
+    What the old rule was protecting is worth keeping, so it is kept
+    differently: an admin writing into a folder that is somebody else's earns a
+    trail row naming the file. The record of who put what where survives, which
+    is the thing that actually mattered.
+  */
+  if (!FILE_KINDS.includes(rawKind as FileKind)) {
+    return { error: "That is not one of the four folders." };
   }
-  const kind: FileKind = rawKind;
+  const kind: FileKind = rawKind as FileKind;
+  const isSomeoneElses = kind === "intake" || kind === "feedback";
 
   const submission = await getSubmission(id);
   if (!submission) return { error: "That submission no longer exists." };
@@ -139,7 +155,7 @@ export async function uploadTranslationAction(
 
   for (const file of files) {
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const key = translationFileKey(id, kind, file.name);
+    const key = folderFileKey(id, kind, file.name);
     const fileUrl = await storage.save(key, bytes, file.type);
     await addSubmissionFile(
       {
@@ -151,6 +167,16 @@ export async function uploadTranslationAction(
       },
       kind,
     );
+    if (isSomeoneElses) {
+      // Whose folder this is belongs in the trail, because the folder itself
+      // can no longer tell you — a file the admin added and a file the customer
+      // uploaded look identical once they are both rows.
+      await recordSubmissionEvent(
+        id,
+        submission.status,
+        `Admin uploaded "${file.name}" into the ${kind} folder`,
+      );
+    }
   }
 
   /*
@@ -185,6 +211,56 @@ export async function uploadTranslationAction(
   if (kind === "feedback_translation" && wasResponse) {
     await updateSubmission(id, { status: "feedback_translated" });
   }
+
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/**
+ * Remove one file from a folder. Admin-only.
+ *
+ * The single-file counterpart to `purgeFolderAction`, and it differs from it in
+ * what it leaves behind — deliberately, because they answer different
+ * questions.
+ *
+ * A **purge** keeps the row and drops the bytes, so the folder can still say
+ * what was there and `/api/files/[id]` answers 410 rather than 404. That is
+ * right for retention: the file existed, it was collected, and it is gone on
+ * schedule.
+ *
+ * A **removal** is the admin saying it should not have been there at all — the
+ * wrong take, a duplicate, a file uploaded to the wrong folder. A tombstone for
+ * that is noise in a folder someone has to read at a glance, so the row goes
+ * too, and the event carries the name instead. Nothing is silently destroyed;
+ * it simply stops occupying the working surface.
+ *
+ * Bytes first, then the row, so a failed storage delete can't strand a row
+ * pointing at nothing.
+ */
+export async function removeFileAction(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireRole("admin");
+  const fileId = String(formData.get("fileId") ?? "");
+  if (!fileId) return { error: "No file. Reload and try again." };
+
+  const file = await getSubmissionFile(fileId);
+  if (!file) return { error: "That file is already gone." };
+
+  const submission = await getSubmission(file.submissionId);
+  if (!submission) return { error: "That submission no longer exists." };
+
+  if (file.fileUrl) await storage.remove(file.fileUrl);
+  await deleteSubmissionFile(fileId);
+
+  // Loud, like every other override. A folder that lost a file with no
+  // explanation is worse than one that still has it.
+  await recordSubmissionEvent(
+    submission.id,
+    submission.status,
+    `Admin removed "${file.filename}" from the ${file.kind} folder`,
+  );
 
   revalidatePath("/admin");
   return { ok: true };

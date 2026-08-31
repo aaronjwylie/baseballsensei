@@ -7,7 +7,7 @@ import {
   type Submission,
   type SubmissionFile,
 } from "@/domains/submission";
-import { storage, translationFileKey } from "@/shared/storage";
+import { storage, folderFileKey } from "@/shared/storage";
 import {
   legFor,
   isLegDone,
@@ -76,7 +76,7 @@ export async function saveTranslationFile(
   bytes: Uint8Array,
   contentType: string,
 ): Promise<SubmissionFile> {
-  const key = translationFileKey(submissionId, produces, filename);
+  const key = folderFileKey(submissionId, produces, filename);
   const fileUrl = await storage.save(key, bytes, contentType);
   return addSubmissionFile(
     { submissionId, filename, contentType, sizeBytes: bytes.byteLength, fileUrl },

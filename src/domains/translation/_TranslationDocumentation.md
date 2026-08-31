@@ -101,7 +101,7 @@ both, so `legsForTranslator` carries `produces` and the portal keys its cards on
 both legs would have seen one card and silently lost the other.
 
 **2026-08-31 · Upload and hand-back stay two acts.** The admin's own
-`uploadTranslationAction` advances the status the moment a file lands, because
+`uploadToFolderAction` advances the status the moment a file lands, because
 that is an admin *filing* a translation that already happened off-platform. A
 translator uploading their own work is not that: they may upload three files
 over an afternoon, and the leg is finished when they say so. Same split, same

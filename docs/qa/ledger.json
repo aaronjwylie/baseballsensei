@@ -1754,6 +1754,55 @@
       "expect": "Refused. And a remove aimed at an intake or feedback file is refused whoever asks — a translator must not be able to destroy the material they were given",
       "retired": false,
       "history": []
+    },
+    "5.9.18": {
+      "firstSeen": "2026-08-31T23:37:43.499Z",
+      "what": "⚠️ The send radio names sets, not languages. Reach a hand-off with both an original and a translation",
+      "expect": "Reads \"The client's originals / The translation / Both\" at step 8, and \"The coach's response / …\" at step 13. ⚠️ It read \"English / Japanese\" until 2026-08-31 — wrong in both directions, since nothing records what language any file is actually in",
+      "retired": false,
+      "history": []
+    },
+    "5.9.19": {
+      "firstSeen": "2026-08-31T23:37:43.499Z",
+      "what": "The four folder hints say the same",
+      "expect": "No \"the Japanese version\" / \"the English version\". Provenance is knowable; language is not",
+      "retired": false,
+      "history": []
+    },
+    "5.9.20": {
+      "firstSeen": "2026-08-31T23:37:43.499Z",
+      "what": "Upload into all four folders. Try each",
+      "expect": "All four accept. The two originals were read-only; adding a file is not overwriting one, and a failed upload emailed in has to go somewhere",
+      "retired": false,
+      "history": []
+    },
+    "5.9.21": {
+      "firstSeen": "2026-08-31T23:37:43.499Z",
+      "what": "⚠️ After uploading into intake or feedback as the admin, read the trail",
+      "expect": "A row names the file and the folder. That record is what the old read-only rule was protecting",
+      "retired": false,
+      "history": []
+    },
+    "5.9.22": {
+      "firstSeen": "2026-08-31T23:37:43.499Z",
+      "what": "Upload is one click. Press Upload in any folder",
+      "expect": "The file picker opens; choosing files uploads them. No separate \"Choose files\" step and no \"No file selected\"",
+      "retired": false,
+      "history": []
+    },
+    "5.9.23": {
+      "firstSeen": "2026-08-31T23:37:43.499Z",
+      "what": "Remove one file. Use Remove beside a file in any folder",
+      "expect": "That file only — the folder keeps the rest. ⚠️ Distinct from Purge, which keeps the rows and drops the bytes",
+      "retired": false,
+      "history": []
+    },
+    "5.9.24": {
+      "firstSeen": "2026-08-31T23:37:43.499Z",
+      "what": "After removing, read the trail",
+      "expect": "A row names the file and the folder. A folder that lost a file with no explanation is worse than one that still has it",
+      "retired": false,
+      "history": []
     }
   }
 }

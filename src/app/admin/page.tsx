@@ -39,7 +39,8 @@ import {
   purgeFolderAction,
   resetStatusAction,
   resolveSubmissionAction,
-  uploadTranslationAction,
+  removeFileAction,
+  uploadToFolderAction,
   unarchiveSubmissionAction,
 } from "./adminActions";
 
@@ -399,6 +400,7 @@ function SubmissionRow({
       action={notifyCoachAction}
       submissionId={submission.id}
       sets={intakeSets}
+      side="intake"
       label="Send email →"
       className="rounded-md border border-accent px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent/5"
     />
@@ -409,6 +411,7 @@ function SubmissionRow({
         action={completeSubmissionAction}
         submissionId={submission.id}
         sets={responseSets}
+        side="feedback"
         label="Approve & send →"
         className="rounded-md border border-emerald-500 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
       />
@@ -466,6 +469,7 @@ function SubmissionRow({
               action={notifyCoachAction}
               submissionId={submission.id}
               sets={intakeSets}
+              side="intake"
               label="or hand to the coach →"
               className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-ink-muted hover:text-ink"
             />
@@ -474,6 +478,7 @@ function SubmissionRow({
               action={completeSubmissionAction}
               submissionId={submission.id}
               sets={responseSets}
+              side="feedback"
               label="or approve &amp; send →"
               className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-ink-muted hover:text-ink"
             />
@@ -633,7 +638,8 @@ function SubmissionRow({
           <FileFolders
             submissionId={submission.id}
             folders={folderMap}
-            uploadAction={uploadTranslationAction}
+            uploadAction={uploadToFolderAction}
+            removeAction={removeFileAction}
           />
         ) : (
           <SubmissionFileList files={files} emptyLabel="Nothing uploaded yet." />

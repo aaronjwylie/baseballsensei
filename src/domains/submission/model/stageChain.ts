@@ -221,7 +221,7 @@ const sendFailures = (label: string) => [
  * What the **operator's and the coach's** uploads say when they go wrong:
  * nothing.
  *
- * `uploadTranslationAction` is a Server Action returning `void`, and the
+ * `uploadToFolderAction` is a Server Action returning `void`, and the
  * feedback route runs no policy — neither checks size, type or count, and
  * neither has a channel to report a refusal through. A file that fails is a
  * page that refreshes unchanged.

@@ -288,6 +288,13 @@ than assuming the fix held.
 | 5.9.15 | The same on the **response** leg, from `feedback_translator_assigned` | ⚠️ Same outcome. It is a second call site and fixing one does not fix the other |
 | 5.9.16 | **Send with the translator's mail failing** (bad address, or Resend key pulled) | The hand-off still completes and the trail records the failure — best-effort per ADR 004, never a silent success |
 | 5.9.17 | **Telling five translators apart.** Open the picker with the current roster | ⚠️ Each option carries enough to identify the person — direction and email, not just a name. Five near-identical "Ben" names with nothing to separate them is how the wrong one gets assigned |
+| 5.9.18 | ⚠️ **The send radio names sets, not languages.** Reach a hand-off with both an original and a translation | Reads "The client's originals / The translation / Both" at step 8, and "The coach's response / …" at step 13. ⚠️ It read **"English / Japanese"** until 2026-08-31 — wrong in both directions, since nothing records what language any file is actually in |
+| 5.9.19 | The four folder hints say the same | No "the Japanese version" / "the English version". Provenance is knowable; language is not |
+| 5.9.20 | **Upload into all four folders.** Try each | All four accept. The two originals were read-only; adding a file is not overwriting one, and a failed upload emailed in has to go somewhere |
+| 5.9.21 | ⚠️ After uploading into `intake` or `feedback` as the admin, read the trail | A row names the file and the folder. That record is what the old read-only rule was protecting |
+| 5.9.22 | **Upload is one click.** Press Upload in any folder | The file picker opens; choosing files uploads them. No separate "Choose files" step and no "No file selected" |
+| 5.9.23 | **Remove one file.** Use Remove beside a file in any folder | That file only — the folder keeps the rest. ⚠️ Distinct from Purge, which keeps the rows and drops the bytes |
+| 5.9.24 | After removing, read the trail | A row names the file and the folder. A folder that lost a file with no explanation is worse than one that still has it |
 | 5.10 | **The response leg, same matrix.** Repeat 5.9.1 and 5.9.3 against the coach's *feedback*, after they upload it | ⚠️ Same two outcomes. It is a second `passive` constant in the same file and fixing one does not fix the other |
 | 5.11 | What an operator is *told* when languages are missing | The row says which side is blank rather than only that something is. ⚠️ An **admin** grant is empty by design — read the coach card, not the person |
 

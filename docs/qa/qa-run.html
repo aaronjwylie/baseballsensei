@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 30</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 31</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1355,6 +1355,41 @@ const PHASES = [
             "Telling five translators apart. Open the picker with the current roster",
             "Each option carries enough to identify the person — direction and email, not just a name. Five near-identical \"Ben\" names with nothing to separate them is how the wrong one gets assigned",
             "flag"
+          ],
+          [
+            "5.9.18",
+            "⚠️ The send radio names sets, not languages. Reach a hand-off with both an original and a translation",
+            "Reads \"The client's originals / The translation / Both\" at step 8, and \"The coach's response / …\" at step 13. ⚠️ It read \"English / Japanese\" until 2026-08-31 — wrong in both directions, since nothing records what language any file is actually in"
+          ],
+          [
+            "5.9.19",
+            "The four folder hints say the same",
+            "No \"the Japanese version\" / \"the English version\". Provenance is knowable; language is not"
+          ],
+          [
+            "5.9.20",
+            "Upload into all four folders. Try each",
+            "All four accept. The two originals were read-only; adding a file is not overwriting one, and a failed upload emailed in has to go somewhere"
+          ],
+          [
+            "5.9.21",
+            "⚠️ After uploading into intake or feedback as the admin, read the trail",
+            "A row names the file and the folder. That record is what the old read-only rule was protecting"
+          ],
+          [
+            "5.9.22",
+            "Upload is one click. Press Upload in any folder",
+            "The file picker opens; choosing files uploads them. No separate \"Choose files\" step and no \"No file selected\""
+          ],
+          [
+            "5.9.23",
+            "Remove one file. Use Remove beside a file in any folder",
+            "That file only — the folder keeps the rest. ⚠️ Distinct from Purge, which keeps the rows and drops the bytes"
+          ],
+          [
+            "5.9.24",
+            "After removing, read the trail",
+            "A row names the file and the folder. A folder that lost a file with no explanation is worse than one that still has it"
           ],
           [
             "5.10",

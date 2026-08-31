@@ -5,10 +5,36 @@ import { useRouter } from "next/navigation";
 import { failed, succeeded, type ActionResult } from "@/shared/lib/actionResult";
 import type { FileSet } from "@/domains/submission/model/submissionFile";
 
-const LABELS: Record<FileSet, string> = {
-  original: "English",
-  translation: "Japanese",
-  both: "Both",
+/**
+ * What each set *is* — never what language it is in.
+ *
+ * These read "English" / "Japanese" until 2026-08-31, and that was wrong in
+ * both directions at once (Ben). `original` is whatever the customer uploaded,
+ * which is Japanese whenever the customer is; the coach's own response is
+ * Japanese far more often than not, and step 13's radio called it "English".
+ * One map, two hand-offs, wrong at both.
+ *
+ * The deeper problem is that **we do not know what language any file is in.**
+ * Nothing records it — that is the gap tracked as "record the file's language
+ * at upload" — so a language on this label was always an inference dressed as a
+ * fact, and the one place it mattered most: the admin choosing what to send is
+ * exactly the person who would act on it.
+ *
+ * So the labels name the set by its provenance, which we do know for certain
+ * because it is the folder the file is in. Per side, because "the originals"
+ * means the customer's at step 8 and the coach's at step 13.
+ */
+const LABELS: Record<"intake" | "feedback", Record<FileSet, string>> = {
+  intake: {
+    original: "The client's originals",
+    translation: "The translation",
+    both: "Both",
+  },
+  feedback: {
+    original: "The coach's response",
+    translation: "The translation",
+    both: "Both",
+  },
 };
 
 /**
@@ -38,12 +64,15 @@ export function SendWithFileSet({
   action,
   submissionId,
   sets,
+  side,
   label,
   className,
 }: {
   action: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   submissionId: string;
   sets: FileSet[];
+  /** Which hand-off this is — it decides whose "originals" these are. */
+  side: "intake" | "feedback";
   label: string;
   className?: string;
 }) {
@@ -86,7 +115,7 @@ export function SendWithFileSet({
                 onChange={() => setFileSet(option)}
                 className="h-3.5 w-3.5"
               />
-              {LABELS[option]}
+              {LABELS[side][option]}
             </label>
           ))}
         </fieldset>
