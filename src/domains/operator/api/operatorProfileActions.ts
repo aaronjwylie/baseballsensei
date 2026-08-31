@@ -23,10 +23,16 @@ import { revalidateOperatorPages } from "./operatorPages";
 import { storage, coachImageKey } from "@/shared/storage";
 import { FOCUS_OPTIONS, type Focus } from "@/domains/submission";
 import {
+  LANGUAGE_CHOICES,
   languagesForChoice,
   readLanguageChoice,
+  type LanguageChoice,
 } from "@/domains/submission";
-import { DEFAULT_LANGUAGE_CHOICE } from "../model/operatorProfile";
+import {
+  DEFAULT_LANGUAGE_CHOICE,
+  TRANSLATOR_DIRECTIONS,
+  type TranslatorDirection,
+} from "../model/operatorProfile";
 import {
   createProfiledOperator,
   updateProfiledOperator,
@@ -39,6 +45,31 @@ export type OperatorProfileFormState = { error: string } | { ok: true } | undefi
 
 function isFocus(value: string): value is Focus {
   return (FOCUS_OPTIONS as readonly string[]).includes(value);
+}
+
+const isLanguageChoice = (value: string): value is LanguageChoice =>
+  (LANGUAGE_CHOICES as readonly string[]).includes(value);
+const isTranslatorDirection = (value: string): value is TranslatorDirection =>
+  (TRANSLATOR_DIRECTIONS as readonly string[]).includes(value);
+
+/**
+ * The languages field, parsed by role — the same split the edit card's
+ * `saveRoleAction` makes (Ben, QA 5.13.4). A coach picks a language set, mapped
+ * through `languagesForChoice`; a translator picks a *direction*, stored
+ * verbatim as its single value; an admin has none. A value that isn't one of the
+ * offered options falls back to the safe default rather than being trusted in.
+ */
+function languagesFromForm(role: Role, formData: FormData): string[] {
+  const value = String(formData.get("languages") ?? "").trim();
+  if (role === "coach") {
+    return languagesForChoice(
+      isLanguageChoice(value) ? value : DEFAULT_LANGUAGE_CHOICE,
+    );
+  }
+  if (role === "translator") {
+    return isTranslatorDirection(value) ? [value] : [];
+  }
+  return [];
 }
 
 /**
@@ -69,9 +100,7 @@ export async function createProfiledOperatorAction(
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const specialties = formData.getAll("specialties").map(String).filter(isFocus);
-  const languages = languagesForChoice(
-    readLanguageChoice(formData.get("languages"), DEFAULT_LANGUAGE_CHOICE),
-  );
+  const languages = languagesFromForm(role, formData);
   const bio = String(formData.get("bio") ?? "").trim();
 
   if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8) {

@@ -147,11 +147,15 @@ export async function unassignOperator(
 export async function releaseAssignments(
   operatorId: string,
   forRoles?: Role[],
-): Promise<void> {
+): Promise<{ submissionId: string; produces: FileKind }[]> {
   const kinds = forRoles
     ? new Set(forRoles.flatMap((r) => PRODUCES_BY_ROLE[r]))
     : null; // null → every kind
-  if (kinds && kinds.size === 0) return;
+  if (kinds && kinds.size === 0) return [];
+
+  // What came loose, so a caller can put those submissions back on the rung
+  // where the freed role is reassigned (QA 5.13.8.1) — see `releaseAndRequeue`.
+  const released: { submissionId: string; produces: FileKind }[] = [];
 
   await db.transaction(async (tx) => {
     const rows = await tx
@@ -179,8 +183,11 @@ export async function releaseAssignments(
         .update(submissionTable)
         .set({ updatedAt: new Date() })
         .where(eq(submissionTable.id, row.submissionId));
+      released.push({ submissionId: row.submissionId, produces: row.produces });
     }
   });
+
+  return released;
 }
 
 /** Everyone on this submission, and what each of them owes. */

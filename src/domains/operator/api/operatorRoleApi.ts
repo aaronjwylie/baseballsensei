@@ -89,6 +89,9 @@ export async function otherActiveAdminExists(
 export interface RoleGrant {
   role: Role;
   isActive: boolean;
+  /** Whether this role's holder wants the mail it generates — admin only, in
+   *  practice (QA 5.13.6.2). Defaults on. */
+  notify: boolean;
   languages: string[];
   specialties: Focus[];
   /** Coach only, in practice — the public site shows no one else. */
@@ -110,6 +113,7 @@ export async function grantsFor(operatorId: string): Promise<RoleGrant[]> {
   return rows.map((r) => ({
     role: r.role,
     isActive: r.isActive,
+    notify: r.notify,
     languages: r.languages,
     specialties: r.specialties,
     bio: r.bio ?? undefined,
@@ -208,6 +212,7 @@ export async function grantsForMany(
     byId.get(row.operatorId)?.push({
       role: row.role,
       isActive: row.isActive,
+      notify: row.notify,
       languages: row.languages,
       specialties: row.specialties,
       bio: row.bio ?? undefined,
@@ -323,6 +328,7 @@ export async function setRoleSettings(
     specialties?: Focus[];
     bio?: string | null;
     imageUrl?: string | null;
+    notify?: boolean;
   },
 ): Promise<void> {
   if (Object.keys(values).length === 0) return;

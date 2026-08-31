@@ -1,10 +1,17 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button, Field, PasswordInput, SavedBadge, inputClass } from "@/shared/ui";
-import { FOCUS_OPTIONS, choiceForLanguages } from "@/domains/submission/model/submission";
-import { LanguageChoiceField } from "@/domains/submission/ui/LanguageChoiceField";
-import { DEFAULT_LANGUAGE_CHOICE } from "../model/operatorProfile";
+import { Button, Field, PasswordInput, SavedBadge, inputClass, selectClass } from "@/shared/ui";
+import {
+  FOCUS_OPTIONS,
+  LANGUAGE_CHOICES,
+  choiceForLanguages,
+} from "@/domains/submission/model/submission";
+import {
+  DEFAULT_LANGUAGE_CHOICE,
+  TRANSLATOR_DIRECTIONS,
+  type TranslatorDirection,
+} from "../model/operatorProfile";
 import type { OperatorProfile } from "../model/operatorProfile";
 import type { Role } from "../model/operatorRoleEnum";
 import type { OperatorProfileFormState } from "../api/operatorProfileActions";
@@ -125,21 +132,58 @@ export function OperatorProfileForm({
       </fieldset>
       )}
 
-      <LanguageChoiceField
-        label="Languages"
-        hint={
-          isPublic
-            ? "What this coach reads. A submission is translated when it shares none with the customer."
-            : holds("translator")
-              ? "What they work between."
-              : "What they read — so the portal can show who is able to talk to whom."
-        }
-        defaultChoice={
-          existing
-            ? choiceForLanguages(existing.languages, DEFAULT_LANGUAGE_CHOICE)
-            : DEFAULT_LANGUAGE_CHOICE
-        }
-      />
+      {/*
+        A fixed dropdown, not radios (Ben, QA 5.13.4) — and role-aware, the same
+        two selects the edit card uses, so creating and editing ask the identical
+        question the identical way. A coach picks a language set; a translator
+        picks a direction. Admin has no languages, so no field — matching the
+        edit card. `inputClass` gives the select the same height as every other
+        control, which is the cohesion the note asked for. Creation is single-
+        role, so exactly one of these renders.
+      */}
+      {holds("coach") ? (
+        <Field
+          label="Languages"
+          hint="What this coach reads. A submission is translated when it shares none with the customer."
+        >
+          <select
+            name="languages"
+            defaultValue={
+              existing
+                ? choiceForLanguages(existing.languages, DEFAULT_LANGUAGE_CHOICE)
+                : DEFAULT_LANGUAGE_CHOICE
+            }
+            className={selectClass}
+          >
+            {LANGUAGE_CHOICES.map((choice) => (
+              <option key={choice} value={choice}>
+                {choice === "both" ? "Both" : choice}
+              </option>
+            ))}
+          </select>
+        </Field>
+      ) : holds("translator") ? (
+        <Field label="Languages" hint="Which direction they translate.">
+          <select
+            name="languages"
+            defaultValue={
+              existing &&
+              TRANSLATOR_DIRECTIONS.includes(
+                existing.languages[0] as TranslatorDirection,
+              )
+                ? existing.languages[0]
+                : TRANSLATOR_DIRECTIONS[0]
+            }
+            className={selectClass}
+          >
+            {TRANSLATOR_DIRECTIONS.map((direction) => (
+              <option key={direction} value={direction}>
+                {direction === "both directions" ? "Both directions" : direction}
+              </option>
+            ))}
+          </select>
+        </Field>
+      ) : null}
 
       {isPublic && (
         <>

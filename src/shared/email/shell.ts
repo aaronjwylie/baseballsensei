@@ -48,6 +48,13 @@ export function emailShell(
   heading: string,
   body: string,
   cta?: EmailCta,
+  /**
+   * The footer line after the wordmark. Defaults to the submission wording that
+   * fits the customer messages, which are most of them; an operator-facing
+   * message (a welcome, a hand-off) passes its own, because telling a coach a
+   * note is "about your coaching submission" is a small lie about who they are.
+   */
+  footerNote = "This is an automated message about your coaching submission.",
 ): string {
   return `
   <div style="font-family:${BODY};background:${PAPER_ALT};padding:32px 16px;">
@@ -65,7 +72,7 @@ export function emailShell(
         }
       </div>
       <div style="padding:20px 32px;background:${PAPER_ALT};border-top:1px solid ${LINE};font-size:12px;color:${INK_MUTED};">
-        ${site.name} · This is an automated message about your coaching submission.
+        ${site.name} · ${footerNote}
       </div>
     </div>
   </div>`;

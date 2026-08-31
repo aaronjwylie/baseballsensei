@@ -1,10 +1,25 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { requireRole } from "@/domains/account";
-import { releaseAssignments } from "@/domains/submission";
+import { releaseAndRequeue } from "@/domains/submission";
+import { db } from "@/shared/db";
 import { storage, coachImageKey } from "@/shared/storage";
-import { FOCUS_OPTIONS, type Focus } from "@/domains/submission";
+import { operatorTable } from "../model/operatorTable";
+import { sendOperatorWelcomeEmail } from "./operatorWelcomeEmail";
+import {
+  FOCUS_OPTIONS,
+  LANGUAGE_CHOICES,
+  languagesForChoice,
+  type Focus,
+  type LanguageChoice,
+} from "@/domains/submission";
 import { type Role } from "../model/operatorRoleEnum";
+import {
+  DEFAULT_LANGUAGE_CHOICE,
+  TRANSLATOR_DIRECTIONS,
+  type TranslatorDirection,
+} from "../model/operatorProfile";
 import {
   grantRole,
   grantsFor,
@@ -44,6 +59,11 @@ export type RoleCardState =
   | { error?: undefined; grant: RoleGrant | null }
   | undefined;
 
+const isLanguageChoice = (value: string): value is LanguageChoice =>
+  (LANGUAGE_CHOICES as readonly string[]).includes(value);
+const isTranslatorDirection = (value: string): value is TranslatorDirection =>
+  (TRANSLATOR_DIRECTIONS as readonly string[]).includes(value);
+
 const isFocus = (value: string): value is Focus =>
   (FOCUS_OPTIONS as readonly string[]).includes(value);
 
@@ -77,40 +97,50 @@ export async function saveRoleAction(
   if (!held) {
     await revokeRole(operatorId, role);
     /*
-      A revoked role takes its holder off the work it owed — the submissions go
-      back to the queue for an admin to reassign. Without this the assignment
-      outlives the role, and someone who kept another role could still pull the
-      files, because `isAssignedToSubmission` does not re-check the role.
+      A revoked role takes its holder off the work it owed, and the submission
+      drops back to the rung where that role is reassigned (Ben, QA 5.13.8.1) —
+      it went back to the queue but stayed on the desk it was on, showing a
+      reviewer for a submission nobody was reviewing. Without the release the
+      assignment also outlives the role, and someone who kept another role could
+      still pull the files, because `isAssignedToSubmission` does not re-check it.
 
       Carried over from `setRolesAction` (Aaron, #49), which this replaced. A
       pause deliberately does NOT do this: the grant survives, so the work they
       already hold is still theirs to finish.
     */
-    await releaseAssignments(operatorId, [role]);
+    await releaseAndRequeue(operatorId, [role]);
     revalidateOperatorPages();
     return { grant: null };
   }
+
+  // The grants as they stand before this save — reused for two decisions: a
+  // role newly granted here sends its assignment email (Ben, QA 5.13.2), and the
+  // photo this role currently has is the one a replace or a remove must clean up.
+  const priorGrants = await grantsFor(operatorId);
+  const wasHeld = priorGrants.some((g) => g.role === role);
 
   // Idempotent: granting a role someone already holds keeps its `grantedAt`.
   await grantRole(operatorId, role, session.operatorId);
 
   /*
-    One free-text field, split on commas, rather than a fixed set of tickboxes.
+    A fixed choice from the dropdown, not free text (Ben, QA 5.13.4 / 5.13.6).
 
-    The languages a coach reads are not a closed list the way the coaching
-    focuses are — the roster already spans English and Japanese and will not
-    stop there, and a dropdown of two would have to be edited in code every time
-    someone is hired. Trimmed and de-duplicated so "English, english " is one
-    language rather than two.
+    The two roles answer different questions with the same field, so it's parsed
+    by role: a coach picks a language set (English / Japanese / both), mapped
+    through `languagesForChoice`; a translator picks a *direction*, stored
+    verbatim as the grant's single language value — only ever displayed, never
+    intersected. A value that isn't one of the offered options (a hand-made
+    request) falls back to the safe default rather than being trusted in.
   */
-  const languages = [
-    ...new Set(
-      String(formData.get("languages") ?? "")
-        .split(",")
-        .map((l) => l.trim())
-        .filter(Boolean),
-    ),
-  ];
+  const langValue = String(formData.get("languages") ?? "").trim();
+  const languages =
+    role === "coach"
+      ? languagesForChoice(
+          isLanguageChoice(langValue) ? langValue : DEFAULT_LANGUAGE_CHOICE,
+        )
+      : isTranslatorDirection(langValue)
+        ? [langValue]
+        : [];
   const specialties = formData.getAll("specialties").map(String).filter(isFocus);
   /*
     `admin` is available by definition — holding it is being it — so its card
@@ -118,18 +148,60 @@ export async function saveRoleAction(
   */
   const isActive = role === "admin" ? true : formData.get("available") !== null;
 
+  /*
+    The admin's mail switch (Ben, QA 5.13.6.2) — distinct from `isActive`, which
+    for an admin is always true because their authority can't be paused. Only the
+    admin card renders this field, so a card without it leaves the stored value
+    untouched rather than reading an absent checkbox as "off".
+  */
+  const notify = role === "admin" ? formData.get("notify") !== null : undefined;
+
   const bioRaw = formData.get("bio");
-  const imageUrl = await savePhoto(operatorId, formData);
+
+  /*
+    The photo has three outcomes (Ben, QA 5.13.6.9): a new upload replaces the
+    old, ticking "remove" clears it back to none, and leaving both alone keeps
+    what's there. Either change drops the previous object so storage doesn't
+    orphan it.
+  */
+  const removeImage = formData.get("removeImage") !== null;
+  const newImageUrl = await savePhoto(operatorId, formData);
+  const priorImageUrl = priorGrants.find((g) => g.role === role)?.imageUrl;
+  if ((newImageUrl || removeImage) && priorImageUrl) {
+    void storage.remove(priorImageUrl).catch(() => {});
+  }
+  const imageUpdate: { imageUrl?: string | null } = newImageUrl
+    ? { imageUrl: newImageUrl }
+    : removeImage
+      ? { imageUrl: null }
+      : {};
 
   await setRoleSettings(operatorId, role, {
     languages,
     specialties,
+    ...(notify !== undefined ? { notify } : {}),
     ...(bioRaw !== null ? { bio: String(bioRaw).trim() || null } : {}),
-    // Absent means "keep the current one", which is what an empty file input
-    // means to the person who left it alone.
-    ...(imageUrl ? { imageUrl } : {}),
+    ...imageUpdate,
   });
   await setGrantActive(operatorId, role, isActive);
+
+  /*
+    Tell them a role has been assigned — the same per-role message creation
+    sends, one email per role, only when the role is newly granted (Ben, QA
+    5.13.2). Each card saves its own role, so assigning coach and translator is
+    two saves and two emails; a pause, an unpause or a settings edit re-saves a
+    role already held and sends nothing; a revoke returned above; a re-grant
+    after a revoke reads as not-held here and mails again. Best-effort — a bounced
+    notice must never fail the save that already landed.
+  */
+  if (!wasHeld) {
+    const [op] = await db
+      .select({ email: operatorTable.email, name: operatorTable.name })
+      .from(operatorTable)
+      .where(eq(operatorTable.id, operatorId))
+      .limit(1);
+    if (op) await sendOperatorWelcomeEmail(op.email, op.name, role);
+  }
 
   revalidateOperatorPages();
   const grants = await grantsFor(operatorId);

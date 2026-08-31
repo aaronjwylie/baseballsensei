@@ -5,6 +5,21 @@ export const inputClass =
   "w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink shadow-sm outline-none transition-colors placeholder:text-ink-muted focus:border-accent focus:ring-2 focus:ring-accent/30";
 
 /**
+ * Shared `<select>` styling — a text input's twin, but sized by an explicit
+ * height rather than vertical padding.
+ *
+ * A native select does not honour `py-*` the way a text input does — WebKit in
+ * particular lays the control out to its own intrinsic height and the padding
+ * barely moves it, so a select wearing `inputClass` came out visibly thinner
+ * than the inputs beside it (Ben, QA 5.13.4). A fixed height is the one thing
+ * every engine renders the same, so this pins it to the input's 42px (`py-2.5`
+ * + `text-sm` + border) and the two finally line up. The native menu and arrow
+ * are kept — only the box height is taken into our own hands.
+ */
+export const selectClass =
+  "w-full rounded-lg border border-line bg-white px-3.5 h-[2.625rem] text-sm text-ink shadow-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/30";
+
+/**
  * A labelled form field.
  *
  * The label wraps the control so it's clickable without needing matching ids.
