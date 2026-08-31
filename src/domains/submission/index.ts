@@ -85,6 +85,7 @@ export {
   createSubmission,
   deleteSubmission,
   findByCoach,
+  legsForTranslator,
   findByCustomerEmail,
   findByStripePaymentId,
   findAbandonedDue,

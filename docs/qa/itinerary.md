@@ -348,11 +348,21 @@ than assuming the fix held.
 
 | # | Check | Expected |
 | --- | --- | --- |
-| 7.1 | Sees assigned translations only | |
-| 7.2 | Download the intake files | Earns `intake_translating` |
-| 7.3 | Upload the translation | Lands in the `intake_translation` folder |
-| 7.4 | Hand back | Status advances; the coach can now see it |
+| 7.1 | Sees assigned translations only | Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real |
+| 7.2 | Download the intake files | Earns `intake_translating`. Observed from the download, never declared — there is no "I've started" button |
+| 7.3 | Upload the translation | Lands in the `intake_translation` folder. ⚠️ The status does **not** move on upload — uploading and handing back are two acts, as they are for the coach |
+| 7.4 | Hand back | `intake_translated`; the admin can now hand it to the coach |
 | 7.5 | Repeat for the **feedback** direction | `feedback_translating` → `feedback_translated` |
+| 7.6 | ⚠️ **Both legs, one translator.** Assign the same person both legs of one submission | **Two cards**, not one — they are separate jobs in opposite directions. Only the leg matching the current rung is under "To translate"; the other waits its turn |
+| 7.7 | Each card names its direction | The direction sits **above** the player's name. With both legs held, the name alone cannot tell them apart |
+| 7.8 | Hand back with **no file uploaded** | Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on |
+| 7.9 | Hand back **twice** (two tabs, submit both) | The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI |
+| 7.10 | ⚠️ **Another translator's leg.** As translator A, post a hand-back for a leg assigned to translator B | Refused. Role is not ownership — being *a* translator must not close *any* leg |
+| 7.11 | ⚠️ **The other folder.** Holding only the intake leg, upload to `feedback_translation` | Refused by the upload routes. Ownership is per leg, not per submission |
+| 7.12 | A translator with nothing assigned | The calm centred panel, not a page of empty "(0)" headings |
+| 7.13 | A leg whose files the retention sweep has cleared | "Files deleted" rather than an empty list or a broken link |
+| 7.14 | Handed-back legs stay visible | Under "Handed back", with the file count they delivered |
+| 7.15 | Upload a **large** file (over ~5 MB) as a translator | Succeeds. Prod goes straight to Blob; a route-proxied upload would hit the ~4.5 MB serverless body cap |
 
 ---
 

@@ -998,30 +998,54 @@
     "7.1": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "Sees assigned translations only",
-      "expect": "",
+      "expect": "Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-31T23:05:17.276Z",
+          "what": "Sees assigned translations only",
+          "expect": ""
+        }
+      ]
     },
     "7.2": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "Download the intake files",
-      "expect": "Earns intake_translating",
+      "expect": "Earns intake_translating. Observed from the download, never declared — there is no \"I've started\" button",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-31T23:05:17.276Z",
+          "what": "Download the intake files",
+          "expect": "Earns intake_translating"
+        }
+      ]
     },
     "7.3": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "Upload the translation",
-      "expect": "Lands in the intake_translation folder",
+      "expect": "Lands in the intake_translation folder. ⚠️ The status does not move on upload — uploading and handing back are two acts, as they are for the coach",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-31T23:05:17.276Z",
+          "what": "Upload the translation",
+          "expect": "Lands in the intake_translation folder"
+        }
+      ]
     },
     "7.4": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "Hand back",
-      "expect": "Status advances; the coach can now see it",
+      "expect": "intake_translated; the admin can now hand it to the coach",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-31T23:05:17.276Z",
+          "what": "Hand back",
+          "expect": "Status advances; the coach can now see it"
+        }
+      ]
     },
     "7.5": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -1596,6 +1620,76 @@
       "firstSeen": "2026-08-31T22:30:36.634Z",
       "what": "Telling five translators apart. Open the picker with the current roster",
       "expect": "Each option carries enough to identify the person — direction and email, not just a name. Five near-identical \"Ben\" names with nothing to separate them is how the wrong one gets assigned",
+      "retired": false,
+      "history": []
+    },
+    "7.6": {
+      "firstSeen": "2026-08-31T23:05:17.276Z",
+      "what": "⚠️ Both legs, one translator. Assign the same person both legs of one submission",
+      "expect": "Two cards, not one — they are separate jobs in opposite directions. Only the leg matching the current rung is under \"To translate\"; the other waits its turn",
+      "retired": false,
+      "history": []
+    },
+    "7.7": {
+      "firstSeen": "2026-08-31T23:05:17.276Z",
+      "what": "Each card names its direction",
+      "expect": "The direction sits above the player's name. With both legs held, the name alone cannot tell them apart",
+      "retired": false,
+      "history": []
+    },
+    "7.8": {
+      "firstSeen": "2026-08-31T23:05:17.276Z",
+      "what": "Hand back with no file uploaded",
+      "expect": "Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on",
+      "retired": false,
+      "history": []
+    },
+    "7.9": {
+      "firstSeen": "2026-08-31T23:05:17.276Z",
+      "what": "Hand back twice (two tabs, submit both)",
+      "expect": "The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI",
+      "retired": false,
+      "history": []
+    },
+    "7.10": {
+      "firstSeen": "2026-08-31T23:05:17.276Z",
+      "what": "⚠️ Another translator's leg. As translator A, post a hand-back for a leg assigned to translator B",
+      "expect": "Refused. Role is not ownership — being a translator must not close any leg",
+      "retired": false,
+      "history": []
+    },
+    "7.11": {
+      "firstSeen": "2026-08-31T23:05:17.276Z",
+      "what": "⚠️ The other folder. Holding only the intake leg, upload to feedback_translation",
+      "expect": "Refused by the upload routes. Ownership is per leg, not per submission",
+      "retired": false,
+      "history": []
+    },
+    "7.12": {
+      "firstSeen": "2026-08-31T23:05:17.276Z",
+      "what": "A translator with nothing assigned",
+      "expect": "The calm centred panel, not a page of empty \"(0)\" headings",
+      "retired": false,
+      "history": []
+    },
+    "7.13": {
+      "firstSeen": "2026-08-31T23:05:17.276Z",
+      "what": "A leg whose files the retention sweep has cleared",
+      "expect": "\"Files deleted\" rather than an empty list or a broken link",
+      "retired": false,
+      "history": []
+    },
+    "7.14": {
+      "firstSeen": "2026-08-31T23:05:17.276Z",
+      "what": "Handed-back legs stay visible",
+      "expect": "Under \"Handed back\", with the file count they delivered",
+      "retired": false,
+      "history": []
+    },
+    "7.15": {
+      "firstSeen": "2026-08-31T23:05:17.276Z",
+      "what": "Upload a large file (over ~5 MB) as a translator",
+      "expect": "Succeeds. Prod goes straight to Blob; a route-proxied upload would hit the ~4.5 MB serverless body cap",
       "retired": false,
       "history": []
     }

@@ -579,6 +579,46 @@ export async function findByCoach(coachId: string): Promise<Submission[]> {
   return rows.map((r) => fromRow(r.submission));
 }
 
+/**
+ * A translator's queue — **legs**, not submissions.
+ *
+ * The near-mirror of `findByCoach`, and the one place it deliberately differs:
+ * a coach is joined on the single `feedback` kind and gets submissions back, so
+ * one row per submission. A translator holds either translation kind and can
+ * hold *both* on the same submission — the customer's files out, the coach's
+ * response back — so the row carries `produces` and one submission may appear
+ * twice. Collapsing to submissions here would silently drop one of a
+ * translator's two jobs, and it would be the second one, weeks later.
+ */
+export async function legsForTranslator(
+  operatorId: string,
+): Promise<{ submission: Submission; produces: FileKind }[]> {
+  const rows = await db
+    .select({
+      submission: submissionTable,
+      produces: submissionAssignmentTable.produces,
+    })
+    .from(submissionTable)
+    .innerJoin(
+      submissionAssignmentTable,
+      eq(submissionAssignmentTable.submissionId, submissionTable.id),
+    )
+    .where(
+      and(
+        eq(submissionAssignmentTable.operatorId, operatorId),
+        inArray(submissionAssignmentTable.produces, [
+          "intake_translation",
+          "feedback_translation",
+        ]),
+      ),
+    )
+    .orderBy(desc(submissionTable.submittedAt));
+  return rows.map((r) => ({
+    submission: fromRow(r.submission),
+    produces: r.produces,
+  }));
+}
+
 /** The status-lookup read: a customer's submissions, trimmed to what's safe.
  * Feedback files are deliberately not exposed here — delivery rides on the
  * signed link in the customer's email, not on this email lookup. */
