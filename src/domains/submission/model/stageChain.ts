@@ -20,6 +20,7 @@
  * Pure and client-safe: no database, no `process.env`. A `"use client"`
  * component imports this directly rather than the slice barrel.
  */
+import { needsTranslation } from "./submission";
 import type { Submission, SubmissionStatus } from "./submission";
 import type { FileKind } from "./submissionFile";
 
@@ -39,6 +40,17 @@ export interface ProgressFacts {
    * and the scalar column that used to answer this could only hold one.
    */
   assignees: Readonly<Partial<Record<FileKind, string>>>;
+  /**
+   * The assigned coach's languages — the one fact the translation stages gate
+   * on (Ben, QA 5.9).
+   *
+   * On the facts rather than the `Submission` because it isn't the submission's:
+   * it's the coach's, and only the chain's two "pick a translator" lines ask it.
+   * Empty when no coach is assigned yet, which reads as **can't tell** — the
+   * intersection is meaningless without both sides, so `needsTranslation`
+   * returns `null` and the stage stays passive rather than falsely gating.
+   */
+  coachLanguages: readonly string[];
 }
 
 /**
@@ -101,8 +113,15 @@ export interface ChainLine {
    *
    * A line where the send *is* the action — the hand-off — keeps its pointer,
    * because there a person really does press something.
+   *
+   * **A function when the answer depends on the submission** (Ben, QA 5.9). Most
+   * lines are passive or not by their nature — a send, an off-platform download.
+   * The two translation stages are the exception: optional for a coach who
+   * shares a language, a real gate for one who doesn't, and only *this*
+   * submission's languages say which. A constant boolean can't express "steps
+   * aside for most, blocks for some", so those lines answer it per submission.
    */
-  passive?: boolean;
+  passive?: boolean | ((submission: Submission, facts: ProgressFacts) => boolean);
   /** The control that satisfies it, if a person can. */
   act?: ChainAction;
   /**
@@ -283,11 +302,19 @@ export const STAGE_CHAIN: Record<SubmissionStatus, ChainLine[]> = {
     {
       what: "Translator chosen, if this coach needs one", next: "Pick a translator, if needed",
       from: "rung 5",
-      why: "optional — a coach who shares a language skips it",
+      why: "optional — a coach who reads everything the customer might have sent skips it",
       act: "pickIntakeTranslator",
-      // Never blocks: most submissions skip translation entirely, so treating
-      // this as a gate would leave every shared-language row looking unfinished.
-      passive: true,
+      /*
+        Passive for most, a gate for the ones that need it (Ben/Aaron, QA 5.9).
+        The customer is the source, the coach the target: it steps aside when the
+        coach reads every language the customer declared — or when we can't yet
+        tell — and holds the pointer when the customer reads a language the coach
+        doesn't, because the files may be in that one. That catches the bilingual
+        customer sending to a monolingual coach, not just the no-overlap case.
+        `!== true` keeps the null case (one side undeclared) as skip, never a gate
+        on a question nobody answered.
+      */
+      passive: (s, f) => needsTranslation(s.languages, f.coachLanguages) !== true,
       toldOnFail: ["Admin/portal: “That did not go through — try again.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Translating"], met: (_s, f) => f.files.intake_translation > 0,
     },
     { what: "Handed to the coach", next: "Hand to the coach", from: "③", act: "handoff", records: [...sendRecords("③ hand-off → coach")], failures: [...sendFailures("③ hand-off → coach")], toldOnFail: ["Admin/portal: “This has already gone to a coach. Reload to see where it is.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Sent"], met: sent("③ hand-off → coach") },
@@ -338,7 +365,12 @@ export const STAGE_CHAIN: Record<SubmissionStatus, ChainLine[]> = {
       from: "rung 10",
       why: "optional — skipped when the response is already readable",
       act: "pickFeedbackTranslator",
-      passive: true,
+      // The response leg runs the OTHER way (Ben/Aaron, QA 5.9): the coach's
+      // feedback must become readable to the customer, so the coach is the
+      // source and the customer the target — the reverse of the intake gate. A
+      // bilingual coach writing for a monolingual customer is the case this
+      // catches; the intake gate would miss it.
+      passive: (s, f) => needsTranslation(f.coachLanguages, s.languages) !== true,
       toldOnFail: ["Admin/portal: “That did not go through — try again.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Translating"], met: (_s, f) => f.files.feedback_translation > 0,
     },
     { what: "Approved and sent", next: "Approve and send", from: "feedbackEmailedAt", act: "approve", records: [...sendRecords("⑥ feedback ready → customer")], failures: [...sendFailures("⑥ feedback ready → customer"), "Refused — there is no response file to send"], toldOnFail: ["Admin/portal: “There is no response file to send yet.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Delivered"], met: (s) => !!s.feedbackEmailedAt },
@@ -450,15 +482,22 @@ export function describeStage(
 ): ChainState[] {
   const lines = STAGE_CHAIN[submission.status];
   const met = lines.map((line) => line.met(submission, facts));
-  const now = lines.findIndex((line, i) => !met[i] && !line.passive);
+  // Passive can be a constant or a question about this submission (QA 5.9), so
+  // resolve it once per line and read the answer everywhere below.
+  const passive = lines.map((line) =>
+    typeof line.passive === "function"
+      ? line.passive(submission, facts)
+      : !!line.passive,
+  );
+  const now = lines.findIndex((_line, i) => !met[i] && !passive[i]);
 
   // Nothing outstanding: fall back to the last line anyone can press, so a
   // reset can't strand the rung with its work done and its status behind.
-  const actionable = (line: ChainLine) => !!line.act && !line.passive;
-  let control = now >= 0 && actionable(lines[now]) ? now : -1;
+  const actionable = (i: number) => !!lines[i].act && !passive[i];
+  let control = now >= 0 && actionable(now) ? now : -1;
   if (control < 0 && now < 0) {
     for (let i = lines.length - 1; i >= 0; i -= 1) {
-      if (actionable(lines[i])) { control = i; break; }
+      if (actionable(i)) { control = i; break; }
     }
   }
   if (control < 0 && now >= 0) control = now;

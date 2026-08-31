@@ -491,6 +491,64 @@ sixteen-value enum was always the migration, and there is nothing to migrate.
 
 ---
 
+## Deferred by decision
+
+The pipeline is complete; these are refinements the team has looked at, agreed the
+shape of, and deliberately chosen **not** to build yet. Recorded here so a "later"
+doesn't quietly become a "never", and so the reasoning survives the decision.
+
+### Record a file's language at upload — retire the translation proxy · QA 5.9, 2026-08-31
+
+**The gap.** Translation need is derived from the **people's** declared languages,
+never the **file's** — because nothing records what language a file is actually
+in. That inference is a proxy, and a fine one for a monolingual side: an
+English-only customer sends English footage. It breaks for a **bilingual** side,
+where either language is possible and we've recorded nothing about the file
+itself. Those are the cells the matrix marks *assume-worst*: a customer who reads
+both, sending to a monolingual coach, is translated because the footage *might* be
+in the language the coach can't read — even on the occasions it isn't.
+
+**The decision taken now.** Assume they don't align, and translate (Aaron's call).
+It is the honest reading of what we can know, and it errs toward "the coach can
+read it" over "an unreadable file was delivered". The cost is a translation leg a
+bilingual customer sometimes didn't need — and translation is the expensive step —
+paid to stay safe while the proxy stands. The full rule and the matrix are the
+northstar in
+[`_SubmissionDocumentation.md`](../../src/domains/submission/_SubmissionDocumentation.md) —
+"The translation rule, from first principles".
+
+**The real fix, when it's built.** Ask the uploader — the one person who *knows* —
+what language the files are in, at **step 3**, and store it on the file. Then
+`needsTranslation` compares the **file's** language against the receiver's, and
+every cell of the matrix becomes certain on both legs: the assume-worst rows
+collapse to their true answers, and no bilingual customer pays for a translation
+they didn't need.
+
+**The shape.**
+
+- A `language` on `submission_file` (or a per-upload prompt that stamps it), from
+  the same `LANGUAGES` vocabulary. **Migration** — a field against live shape, not
+  an empty table.
+- **Step 3** asks it: the customer answers for their own files, the coach for the
+  response at upload; a translator's output inherits the leg it serves.
+- `needsTranslation(source, target)` stays the same **subset** check — it just
+  reads a *known* single language on the source side rather than the owner's whole
+  declared set, so `{fileLanguage} ⊄ receiver` becomes a one-element question with
+  a definite answer.
+- It also gives **direction derivation** something true to work from — the leg
+  runs from the file's language to the receiver's — which is what an automated
+  translator match would need before translator selection is anything more than a
+  human picking from a list. (That was QA 5.9's other flagged-and-deferred item;
+  it and this one share the same root, and this fix unlocks it.)
+
+**Why deferred, not dropped.** The assume-worst rule keeps the platform correct in
+the meantime — never wrong toward unreadable, only sometimes cautious — so this
+buys precision and a saved translation, not correctness. It changes the customer's
+upload step and touches both legs, so it is worth scheduling on its own rather than
+smuggling into a fix.
+
+---
+
 ---
 
 ## Related

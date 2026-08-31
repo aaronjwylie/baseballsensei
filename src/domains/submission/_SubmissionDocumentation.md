@@ -289,8 +289,73 @@ precisely what those rungs exist to show.
 They need an **explicit action**, not an inferred one. The download can't be the
 signal: an admin opens a file to check it as often as to translate it, and
 guessing intent from a click would send submissions out for translation nobody
-sent. Hence **“Send for translation →”**, offered on both sides and marked
-*passive* so it never gates the English-coach rows that skip it.
+sent. Hence **“Pick a translator”**, offered on both legs.
+
+### The translation rule, from first principles — Ben + Aaron, QA 5.9 (2026-08-31)
+
+**What translation is for.** A hand-off makes a set of files readable by whoever
+receives them. There are two: **intake** — the customer's files, so the coach can
+review them — and **response** — the coach's feedback, so the customer can use it.
+
+**The one thing we do not know.** We never record the language a file is actually
+*in*, only the **declared languages of the people**. So the file's language is
+inferred from its owner's: a file may be in any language its owner reads, and we
+cannot tell which.
+
+**The rule that falls out of that.** The receiver can read the file only if it
+reads **every** language the file might be in — every language the owner
+declared. So translation is needed exactly when the **owner declares a language
+the receiver does not**: the owner's set is *not a subset* of the receiver's.
+Overlap is not enough — a bilingual owner and a monolingual receiver share a
+language and **still** need translating, because the file might be in the other
+one. **When we cannot be sure, we assume they don't align and translate** (Aaron's
+call, 2026-08-31): being wrong toward "an unreadable file was delivered" is worse
+than paying for a translation that turns out unnecessary.
+
+**It is directional, and the leg sets the direction.** Intake: owner = customer,
+receiver = coach. Response: the roles swap — owner = coach, receiver = customer.
+The same pairing therefore answers **oppositely** on the two legs: an
+English-only customer with a bilingual coach *skips* intake (the coach reads
+English) but *translates* the response (the coach might write Japanese the
+customer can't read). `needsTranslation(source, target)` takes the sides in the
+leg's order; the two chain lines call it **customer-first on intake, coach-first
+on response**.
+
+**The matrix, one direction — `source → target`:**
+
+| source \ target | reads En | reads Ja | reads both | undeclared |
+| --- | --- | --- | --- | --- |
+| **reads En** | skip | translate | skip | can't tell → skip |
+| **reads Ja** | translate | skip | skip | can't tell → skip |
+| **reads both** | translate | translate | skip | can't tell → skip |
+| **undeclared** | skip | skip | skip | skip |
+
+Read a leg by naming the sides: **intake** reads the customer down the left and
+the coach across the top; **response** reads the coach down and the customer
+across. Both legs are the *same* table, entered from the leg's owner.
+
+**Null is skip, never a gate.** Either side undeclared makes the subset question
+meaningless, and blocking on a blank nobody filled would nag every submission
+until someone did — a prompt that is usually wrong is one people learn to dismiss.
+
+**The limitation this leaves standing — noted, deferred by decision.**
+Person-language is a **proxy** for file-language: safe for a monolingual side,
+unsafe for a bilingual one, which is exactly why the bilingual case translates
+rather than trusts the guess. **Recording the file's language at upload** would
+retire the proxy entirely and make every cell certain on both legs — the real
+fix, scheduled rather than built here (tracked in
+[`rollout.md`](../../../docs/design/rollout.md) → *Deferred by decision*). Until
+then, assume-worst is the honest reading of what we can actually know.
+
+**The routing that makes it act.** The derivation used to be *advisory*: the two
+"pick a translator" lines were `passive: true` as a **constant**, so
+`describeStage` offered "Hand to the coach" whatever the languages were, and a
+Japanese-only coach's English customer sailed past the four intake-translation
+rungs untranslated. `passive` is now answerable per submission —
+`(s, f) => needsTranslation(…) !== true` — so a submission that needs translating
+**holds the pointer and offers "Pick a translator"** instead of the hand-off that
+skips it. The coach's languages ride on `ProgressFacts.coachLanguages`, passed
+from the queue that already resolved the coach for the hint.
 
 **Why nothing else caught them.** Predicates fixed this class for the *reads* —
 `isPaid`, `isReleased`, `whoseCourt` are exhaustive `Record`s, so a new rung is a
