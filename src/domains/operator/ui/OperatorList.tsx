@@ -190,7 +190,8 @@ export function OperatorList({
             </h2>
             <div className="mt-4">
               <OperatorProfileForm
-                roles={filter ? [filter] : ["admin"]}
+                roles={filter ? [filter] : ["coach"]}
+                chooseRole={!filter}
                 action={addAction}
               />
             </div>

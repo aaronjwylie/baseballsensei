@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button, Field, PasswordInput, SavedBadge, inputClass, selectClass } from "@/shared/ui";
 import {
   FOCUS_OPTIONS,
@@ -13,7 +13,7 @@ import {
   type TranslatorDirection,
 } from "../model/operatorProfile";
 import type { OperatorProfile } from "../model/operatorProfile";
-import { withArticle, type Role } from "../model/operatorRoleEnum";
+import { ROLES, withArticle, type Role } from "../model/operatorRoleEnum";
 import type { OperatorProfileFormState } from "../api/operatorProfileActions";
 
 /**
@@ -38,6 +38,7 @@ export function OperatorProfileForm({
   roles,
   action: submitAction,
   existing,
+  chooseRole = false,
 }: {
   /** Every kind this person holds — the fields are the union of what they need. */
   roles: Role[];
@@ -47,6 +48,15 @@ export function OperatorProfileForm({
   ) => Promise<OperatorProfileFormState>;
   /** Absent when adding; the person being edited otherwise. */
   existing?: OperatorProfile;
+  /**
+   * Ask which kind to create, rather than being told.
+   *
+   * The "All" tab has no kind to bind, and used to fall back to `admin` — so it
+   * offered admin's short set of fields and silently created admins whatever the
+   * operator had in mind. Here the choice is the first thing on the form, and
+   * the fields below follow it.
+   */
+  chooseRole?: boolean;
 }) {
   const [state, action, pending] = useActionState<OperatorProfileFormState, FormData>(
     submitAction,
@@ -55,7 +65,13 @@ export function OperatorProfileForm({
   const editing = existing !== undefined;
   // Only a coach is shown publicly, so only a coach is asked for the two fields
   // that exist for the public site.
-  const holds = (role: Role) => roles.includes(role);
+  /*
+    When the page chose the kind, `roles` is the answer and never changes. When
+    it did not, this is the answer and the fields below re-render as it moves.
+  */
+  const [picked, setPicked] = useState<Role>(roles[0] ?? "coach");
+  const effective: Role[] = chooseRole ? [picked] : roles;
+  const holds = (role: Role) => effective.includes(role);
   const isPublic = holds("coach");
   /*
     Specialties are the coaching focuses — Hitting, Pitching and the rest. They
@@ -64,7 +80,7 @@ export function OperatorProfileForm({
     need, even though they are not the one reviewing it.
   */
   const showSpecialties = holds("coach") || holds("translator");
-  const primary = roles[0] ?? "admin";
+  const primary = effective[0] ?? "admin";
   const noun = primary.charAt(0).toUpperCase() + primary.slice(1);
 
   return (
@@ -76,6 +92,35 @@ export function OperatorProfileForm({
       )}
 
       {editing && <input type="hidden" name="operatorId" value={existing.id} />}
+
+      {/*
+        Which kind, first — because it decides what the rest of the form asks
+        for. A coach is asked about specialties and a public bio; an admin is
+        asked none of that. Putting the question anywhere but the top would mean
+        fields appearing above a control the operator had not reached yet.
+
+        Sent as a field rather than bound to the action, so a page that does not
+        know the kind can still say it. A page that DOES know binds it and this
+        is a hidden input the server ignores in favour of its own.
+      */}
+      {chooseRole ? (
+        <Field label="Kind" hint="Decides what else this form asks for.">
+          <select
+            name="role"
+            value={picked}
+            onChange={(e) => setPicked(e.target.value as Role)}
+            className={selectClass}
+          >
+            {ROLES.map((role) => (
+              <option key={role} value={role}>
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </option>
+            ))}
+          </select>
+        </Field>
+      ) : (
+        <input type="hidden" name="role" value={primary} />
+      )}
 
       <Field label="Name">
         <input

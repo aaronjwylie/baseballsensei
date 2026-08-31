@@ -40,10 +40,14 @@ import {
   getByRole,
 } from "./operatorProfileApi";
 import { isEligibleAdmin, otherActiveAdminExists } from "./operatorRoleApi";
-import type { Role } from "../model/operatorRoleEnum";
+import { ROLES, type Role } from "../model/operatorRoleEnum";
 import { redirect } from "next/navigation";
 
 export type OperatorProfileFormState = { error: string } | { ok: true } | undefined;
+
+/** Guards the `role` field on a form whose page did not bind one. */
+const isRole = (value: string): value is Role =>
+  (ROLES as readonly string[]).includes(value);
 
 function isFocus(value: string): value is Focus {
   return (FOCUS_OPTIONS as readonly string[]).includes(value);
@@ -92,11 +96,32 @@ async function savePhoto(id: string, formData: FormData): Promise<string | null>
 /** Which pages show this role, so a save is reflected without a hard reload. */
 
 export async function createProfiledOperatorAction(
-  role: Role,
+  /**
+   * The kind to create when the page already knows it — the Coaches tab makes
+   * coaches. Pass `null` from a page that does not, and the form says which
+   * through a `role` field instead.
+   *
+   * Reading it from the form rather than always binding it is what the "All"
+   * tab needed: it had no kind to bind, fell back to "admin", and so offered
+   * admin's fields and silently created admins whatever the operator meant.
+   */
+  bound: Role | null,
   _prev: OperatorProfileFormState,
   formData: FormData,
 ): Promise<OperatorProfileFormState> {
   await requireRole("admin");
+
+  const asked = String(formData.get("role") ?? "");
+  const role: Role = bound ?? (isRole(asked) ? asked : "coach");
+  /*
+    A bound page wins over the form. Trusting the field on a page that already
+    knows its kind would let a stale or hand-made request create a role the
+    operator never chose — and there is no reason for the two to disagree.
+
+    Where nothing is bound, the field is validated against ROLES rather than
+    cast. An admin may create any kind anyway, so this is about not writing a
+    nonsense value, not about privilege.
+  */
 
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();

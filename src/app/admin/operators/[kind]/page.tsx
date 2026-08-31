@@ -105,13 +105,24 @@ export default async function OperatorsPage(props: {
         ))}
       </nav>
 
-      <p className="mt-4 max-w-2xl text-sm text-ink-muted">{blurb}</p>
+      {/*
+        Full width, not max-w-2xl. It sat above a two-column layout and wrapped
+        halfway across, so it read as belonging to the left column rather than
+        to the page. One sentence is short enough that the usual line-length
+        guidance does not bite.
+      */}
+      <p className="mt-4 text-sm text-ink-muted">{blurb}</p>
 
       <OperatorList
         filter={role}
         people={people}
         addAction={
-          noRole ? undefined : createProfiledOperatorAction.bind(null, role ?? "admin")
+          /*
+            Bind the kind only when this page has one. The "All" tab does not,
+            and binding "admin" there made it offer admin's fields and create
+            admins whatever the operator meant — the form asks instead.
+          */
+          noRole ? undefined : createProfiledOperatorAction.bind(null, role ?? null)
         }
       />
     </Container>
