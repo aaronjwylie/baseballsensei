@@ -39,15 +39,40 @@ export async function archiveSubmissionAction(
   const id = String(formData.get("submissionId") ?? "");
   if (!id) return { error: "No submission — reload and try again." };
 
+  const reason = String(formData.get("reason") ?? "").trim();
+
   const submission = await getSubmission(id);
-  // Only completed work is archivable, and never twice.
   if (!submission) return { error: "That submission no longer exists." };
-  if (!isReleased(submission)) {
-    return { error: "Only delivered work can be archived — this hasn't reached the customer yet." };
-  }
   if (submission.archivedAt) return { error: "It is already archived." };
 
+  /*
+    Archiving anywhere in the pipeline now (Ben, QA 5.6) — a duplicate, a test
+    entry, a cancelled or refunded customer can never reach `complete`, and had
+    no way out of the queue before. But archiving *finished* work is bookkeeping,
+    while archiving a **live** one sets aside a paid customer still owed feedback:
+    that is a decision, not tidying, so it must carry a reason. Either way the
+    trail records who did it and why, on the current rung, like a status reset —
+    and the Archived view badges the owed ones so they can't be mistaken for
+    filed-and-done.
+  */
+  const owed = !isReleased(submission);
+  if (owed && !reason) {
+    return {
+      error:
+        "This customer is still owed feedback — give a reason for setting it aside.",
+    };
+  }
+
   await archiveSubmission(id);
+  await noteSubmissionAction(
+    id,
+    submission.status,
+    owed
+      ? `archived while owed — ${reason}`
+      : reason
+        ? `archived — ${reason}`
+        : "archived",
+  );
   revalidatePath("/admin");
   return { ok: true };
 }

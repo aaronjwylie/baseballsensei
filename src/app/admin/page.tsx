@@ -477,7 +477,23 @@ function SubmissionRow({
       */
       facts={
         submission.archivedAt ? (
-          <span className={`${pillClass} border-line text-ink-muted`}>archived</span>
+          isReleased(submission) ? (
+            <span className={`${pillClass} border-line text-ink-muted`}>archived</span>
+          ) : (
+            /*
+              Archived while the feedback was still owed — a paid customer set
+              aside before they got anything (Ben, QA 5.6). This must NOT read
+              like a filed-and-done row: an archived `resolved` is "finished and
+              filed", an archived `in_review` is "an open obligation, parked".
+              Colour and text both mark it, and the rail still names the rung it
+              stopped on.
+            */
+            <span
+              className={`${pillClass} border-amber-300 bg-amber-50 text-amber-800`}
+            >
+              archived · owed
+            </span>
+          )
         ) : (
           /*
             Filled ink when it's ours, outlined when it isn't.
@@ -577,6 +593,7 @@ function SubmissionRow({
           <OperatorOverride
             submissionId={submission.id}
             status={submission.status}
+            archiveAction={archiveSubmissionAction}
             purgeAction={purgeFolderAction}
             resetAction={resetStatusAction}
             deleteAction={deleteSubmissionAction}

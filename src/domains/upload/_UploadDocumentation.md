@@ -62,7 +62,18 @@ flowchart LR
 
 ---
 
-## 2 · Where we are now — 2026-08-28
+## 2 · Where we are now — 2026-08-30
+
+**The retention sweep grew a third rule** (Ben, QA 5.6). Archiving is now allowed
+at any rung, which created submissions no clock was watching: a paid one set
+aside before release has no `completedAt` for `findResolvedDue` to key on, so its
+files would have lived forever. `findArchivedOwedDue` catches them — the same
+delivery window a completed submission's files get, measured from `archivedAt`,
+with **no warning email** (the customer was never handed a link). Both paid
+purges now share one `purgeSubmissionFiles` body so they can't drift; the record
+is kept and only the bytes go, like every paid purge.
+
+## 2b · The upload step rework — 2026-08-28
 
 **The upload step was reworked** (QA 2.3.2–2.3.9.1). It was a chain of cards — an
 empty card that turned into an upload, then a separate "+" that spawned the next
