@@ -36,10 +36,12 @@ import {
 import {
   createProfiledOperator,
   updateProfiledOperator,
+  deleteOperator,
   getByRole,
 } from "./operatorProfileApi";
 import { isEligibleAdmin, otherActiveAdminExists } from "./operatorRoleApi";
 import type { Role } from "../model/operatorRoleEnum";
+import { redirect } from "next/navigation";
 
 export type OperatorProfileFormState = { error: string } | { ok: true } | undefined;
 
@@ -219,6 +221,45 @@ export async function updateProfiledOperatorAction(
  * A dummy argument is a lie the type system cannot see. Identity does not have
  * a role, so this does not take one.
  */
+/**
+ * Delete an operator outright (Ben, QA 5.13.11).
+ *
+ * Two walls, both about keeping a way in:
+ * - **Never the last admin.** Deleting the only one is a lockout with no in-app
+ *   recovery, the same reason `saveRoleAction` refuses stripping the last admin
+ *   grant — and the reason we never let the platform reach zero admins.
+ * - **Never your own account.** Too easy to strand yourself mid-session, and
+ *   there is always another admin to do it deliberately.
+ *
+ * On success it redirects to the roster — the page it deleted no longer exists.
+ */
+export async function deleteOperatorAction(
+  _prev: OperatorProfileFormState,
+  formData: FormData,
+): Promise<OperatorProfileFormState> {
+  const session = await requireRole("admin");
+
+  const id = String(formData.get("operatorId") ?? "");
+  if (!id) return { error: "No operator — reload the page and try again." };
+
+  if (id === session.operatorId) {
+    return {
+      error: "You can't delete your own account — ask another admin to.",
+    };
+  }
+
+  if ((await isEligibleAdmin(id)) && !(await otherActiveAdminExists(id))) {
+    return {
+      error:
+        "This is the only admin — grant admin to someone else before deleting them, or the platform locks everyone out.",
+    };
+  }
+
+  await deleteOperator(id);
+  revalidateOperatorPages();
+  redirect("/admin/operators/all");
+}
+
 export async function updateOperatorIdentityAction(
   _prev: OperatorProfileFormState,
   formData: FormData,
