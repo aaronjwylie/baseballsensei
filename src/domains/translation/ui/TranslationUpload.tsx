@@ -178,7 +178,7 @@ export function TranslationUpload({
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <FileButton
-          label="Choose files"
+          label={progress ? "Uploading…" : "Upload"}
           multiple
           disabled={busy}
           onSelect={onSelect}
@@ -190,9 +190,9 @@ export function TranslationUpload({
           type="button"
           disabled={busy || files.length === 0}
           onClick={handBack}
-          className="shrink-0 whitespace-nowrap"
+          className="shrink-0 whitespace-nowrap sm:ml-auto"
         >
-          {busy ? "Working…" : handBackLabel}
+          {busy && !progress ? "Handing back…" : handBackLabel}
         </Button>
       </div>
 

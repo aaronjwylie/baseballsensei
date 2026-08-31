@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 32</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 33</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1656,6 +1656,36 @@ const PHASES = [
             "6.8",
             "Admin approves and completes",
             "Status complete; customer emailed"
+          ],
+          [
+            "6.9",
+            "⚠️ Remove an uploaded feedback file. Upload two, remove one",
+            "That file only. The coach had no undo at all until 2026-08-31 — a wrong take could only be sent alongside the right one and explained by email"
+          ],
+          [
+            "6.10",
+            "Remove the last file, then Send for approval",
+            "Refused. An empty send parks a submission awaiting approval of nothing"
+          ],
+          [
+            "6.11",
+            "⚠️ Remove after sending (stale tab)",
+            "Refused. Past awaiting_approval the file is what the admin is reviewing"
+          ],
+          [
+            "6.12",
+            "⚠️ Remove someone else's, or the customer's. Post a remove for another coach's file, then for an intake file",
+            "Both refused. A coach must not be able to destroy the material they were given"
+          ],
+          [
+            "6.13",
+            "The panel says what the button does",
+            "A line under it: the admin reviews it and releases it to the customer. ⚠️ The translator's card carried this from the start and the coach's did not"
+          ],
+          [
+            "6.14",
+            "Upload and Send sit apart",
+            "Upload left, Send for approval right. During an upload only the Upload button reads busy, so the send never looks pressed when it hasn't been"
           ]
         ]
       }
@@ -1707,7 +1737,7 @@ const PHASES = [
           ],
           [
             "7.3.2",
-            "Remove an uploaded translation. Upload two, remove one",
+            "Remove an uploaded translation. Upload two, remove one (the coach's mirror is 6.9)",
             "It goes from the list and from storage. No confirm step — the file is still on their machine, so a mistaken click costs one re-upload"
           ],
           [

@@ -355,6 +355,13 @@ than assuming the fix held.
 
 ---
 
+| 6.9 | ⚠️ **Remove an uploaded feedback file.** Upload two, remove one | That file only. The coach had no undo at all until 2026-08-31 — a wrong take could only be sent alongside the right one and explained by email |
+| 6.10 | Remove the last file, then Send for approval | Refused. An empty send parks a submission awaiting approval of nothing |
+| 6.11 | ⚠️ **Remove after sending** (stale tab) | Refused. Past `awaiting_approval` the file is what the admin is reviewing |
+| 6.12 | ⚠️ **Remove someone else's, or the customer's.** Post a remove for another coach's file, then for an `intake` file | Both refused. A coach must not be able to destroy the material they were given |
+| 6.13 | The panel says what the button does | A line under it: the admin reviews it and releases it to the customer. ⚠️ The translator's card carried this from the start and the coach's did not |
+| 6.14 | Upload and Send sit apart | Upload left, Send for approval right. During an upload only the Upload button reads busy, so the send never looks pressed when it hasn't been |
+
 ## Phase 7 · Translator portal (`/translator`)
 
 | # | Check | Expected |
@@ -368,7 +375,7 @@ than assuming the fix held.
 | 7.3.1 | ⚠️ **The "Choose files" button responds to the mouse.** Hover it | Colour change and a pointer cursor, and **no "No file selected"** beside it — the panel lists uploads directly above, so that readout contradicted the page. Same control on the coach's page |
 | 7.3.1a | Reach it by **keyboard** — tab to it and press Enter or Space | The picker opens and the button shows a focus ring. The real input is visually hidden, not `display:none`, so it stays in the tab order |
 | 7.3.1b | Neither button wraps to two lines | Narrow the window. ⚠️ "Hand back" broke across two lines and doubled the button's height when the file input was greedy for width |
-| 7.3.2 | **Remove an uploaded translation.** Upload two, remove one | It goes from the list and from storage. No confirm step — the file is still on their machine, so a mistaken click costs one re-upload |
+| 7.3.2 | **Remove an uploaded translation.** Upload two, remove one (the coach's mirror is 6.9) | It goes from the list and from storage. No confirm step — the file is still on their machine, so a mistaken click costs one re-upload |
 | 7.3.3 | Remove the last file, then try to hand back | Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on |
 | 7.3.4 | ⚠️ **Remove after handing back** (stale tab, or as another translator) | Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder |
 | 7.3.5 | ⚠️ **Remove someone else's file.** Post a remove for a file on a leg that isn't yours | Refused. And a remove aimed at an `intake` or `feedback` file is refused whoever asks — a translator must not be able to destroy the material they were given |

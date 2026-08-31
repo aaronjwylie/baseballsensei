@@ -33,5 +33,9 @@ export {
   noteCustomerCollected,
   resolveSubmission,
 } from "./api/feedbackApi";
+export {
+  sendFeedbackForApprovalAction,
+  removeFeedbackFileAction,
+} from "./api/feedbackActions";
 export { FeedbackUpload } from "./ui/FeedbackUpload";
 export { FeedbackAccess } from "./ui/FeedbackAccess";

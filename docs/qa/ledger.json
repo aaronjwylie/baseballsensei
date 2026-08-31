@@ -1729,10 +1729,16 @@
     },
     "7.3.2": {
       "firstSeen": "2026-08-31T23:23:21.099Z",
-      "what": "Remove an uploaded translation. Upload two, remove one",
+      "what": "Remove an uploaded translation. Upload two, remove one (the coach's mirror is 6.9)",
       "expect": "It goes from the list and from storage. No confirm step — the file is still on their machine, so a mistaken click costs one re-upload",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-08-31T23:52:00.678Z",
+          "what": "Remove an uploaded translation. Upload two, remove one",
+          "expect": "It goes from the list and from storage. No confirm step — the file is still on their machine, so a mistaken click costs one re-upload"
+        }
+      ]
     },
     "7.3.3": {
       "firstSeen": "2026-08-31T23:23:21.099Z",
@@ -1829,6 +1835,48 @@
       "firstSeen": "2026-08-31T23:43:53.295Z",
       "what": "The translator's ⑩ / ⑪ hand-off",
       "expect": "Also flat: one folder is sent, so there is nothing to disambiguate",
+      "retired": false,
+      "history": []
+    },
+    "6.9": {
+      "firstSeen": "2026-08-31T23:52:00.678Z",
+      "what": "⚠️ Remove an uploaded feedback file. Upload two, remove one",
+      "expect": "That file only. The coach had no undo at all until 2026-08-31 — a wrong take could only be sent alongside the right one and explained by email",
+      "retired": false,
+      "history": []
+    },
+    "6.10": {
+      "firstSeen": "2026-08-31T23:52:00.678Z",
+      "what": "Remove the last file, then Send for approval",
+      "expect": "Refused. An empty send parks a submission awaiting approval of nothing",
+      "retired": false,
+      "history": []
+    },
+    "6.11": {
+      "firstSeen": "2026-08-31T23:52:00.678Z",
+      "what": "⚠️ Remove after sending (stale tab)",
+      "expect": "Refused. Past awaiting_approval the file is what the admin is reviewing",
+      "retired": false,
+      "history": []
+    },
+    "6.12": {
+      "firstSeen": "2026-08-31T23:52:00.678Z",
+      "what": "⚠️ Remove someone else's, or the customer's. Post a remove for another coach's file, then for an intake file",
+      "expect": "Both refused. A coach must not be able to destroy the material they were given",
+      "retired": false,
+      "history": []
+    },
+    "6.13": {
+      "firstSeen": "2026-08-31T23:52:00.678Z",
+      "what": "The panel says what the button does",
+      "expect": "A line under it: the admin reviews it and releases it to the customer. ⚠️ The translator's card carried this from the start and the coach's did not",
+      "retired": false,
+      "history": []
+    },
+    "6.14": {
+      "firstSeen": "2026-08-31T23:52:00.678Z",
+      "what": "Upload and Send sit apart",
+      "expect": "Upload left, Send for approval right. During an upload only the Upload button reads busy, so the send never looks pressed when it hasn't been",
       "retired": false,
       "history": []
     }
