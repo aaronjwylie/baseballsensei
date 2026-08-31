@@ -37,7 +37,7 @@ export async function archiveSubmissionAction(
 ): Promise<ActionResult> {
   await requireRole("admin");
   const id = String(formData.get("submissionId") ?? "");
-  if (!id) return { error: "No submission — reload and try again." };
+  if (!id) return { error: "No submission. Reload and try again." };
 
   const reason = String(formData.get("reason") ?? "").trim();
 
@@ -59,7 +59,7 @@ export async function archiveSubmissionAction(
   if (owed && !reason) {
     return {
       error:
-        "This customer is still owed feedback — give a reason for setting it aside.",
+        "This customer is still owed feedback. Give a reason for setting it aside.",
     };
   }
 
@@ -83,7 +83,7 @@ export async function unarchiveSubmissionAction(
 ): Promise<ActionResult> {
   await requireRole("admin");
   const id = String(formData.get("submissionId") ?? "");
-  if (!id) return { error: "No submission — reload and try again." };
+  if (!id) return { error: "No submission. Reload and try again." };
 
   await unarchiveSubmission(id);
   revalidatePath("/admin");
@@ -113,7 +113,7 @@ export async function uploadTranslationAction(
   await requireRole("admin");
   const id = String(formData.get("submissionId") ?? "");
   const rawKind = String(formData.get("kind") ?? "");
-  if (!id) return { error: "No submission — reload and try again." };
+  if (!id) return { error: "No submission. Reload and try again." };
 
   // Only the two translation folders are writable here. The originals are the
   // customer's and the coach's own uploads; an admin overwriting either would
@@ -121,7 +121,7 @@ export async function uploadTranslationAction(
   if (rawKind !== "intake_translation" && rawKind !== "feedback_translation") {
     return {
       error:
-        "Only the two translation folders accept uploads here — the originals are the customer's and the coach's own.",
+        "Only the two translation folders accept uploads here: the originals are the customer's and the coach's own.",
     };
   }
   const kind: FileKind = rawKind;
@@ -210,7 +210,7 @@ export async function purgeFolderAction(
   await requireRole("admin");
   const id = String(formData.get("submissionId") ?? "");
   const rawKind = String(formData.get("kind") ?? "");
-  if (!id) return { error: "No submission — reload and try again." };
+  if (!id) return { error: "No submission. Reload and try again." };
   if (!FILE_KINDS.includes(rawKind as FileKind)) {
     return { error: `“${rawKind}” is not one of the four folders.` };
   }
@@ -233,7 +233,7 @@ export async function purgeFolderAction(
     }
   }
   if (removed === 0) {
-    return { error: "Nothing to delete — that folder is already empty." };
+    return { error: "Nothing to delete: that folder is already empty." };
   }
 
   await noteSubmissionAction(
@@ -265,10 +265,10 @@ export async function deleteSubmissionAction(
   await requireRole("admin");
   const id = String(formData.get("submissionId") ?? "");
   const confirm = String(formData.get("confirm") ?? "").trim();
-  if (!id) return { error: "No submission — reload and try again." };
+  if (!id) return { error: "No submission. Reload and try again." };
   if (confirm !== "DELETE") {
     return {
-      error: "Type DELETE to confirm — this removes the submission for good.",
+      error: "Type DELETE to confirm. This removes the submission for good.",
     };
   }
 
@@ -335,7 +335,7 @@ export async function resetStatusAction(
     unchanged hit the second guard and did nothing, silently. See
     `shared/lib/actionResult.ts`.
   */
-  if (!id) return { error: "No submission — reload the page and try again." };
+  if (!id) return { error: "No submission. Reload the page and try again." };
   if (!SUBMISSION_STATUSES.includes(rawStatus as SubmissionStatus)) {
     return { error: `“${rawStatus}” is not a status on the ladder.` };
   }
@@ -346,13 +346,13 @@ export async function resetStatusAction(
 
   if (submission.status === status) {
     return {
-      error: `It is already at ${numberedRungLabel(status)} — pick a different rung to move it back to.`,
+      error: `It is already at ${numberedRungLabel(status)}. Pick a different rung to move it back to.`,
     };
   }
   // Nothing may be moved out of `purged`: the files it describes no longer
   // exist, and a status that implies otherwise is worse than no status at all.
   if (submission.status === "purged") {
-    return { error: "Purged submissions cannot be moved — the files are gone." };
+    return { error: "Purged submissions cannot be moved: the files are gone." };
   }
   // Nor back before payment — that would put a paid submission somewhere the
   // discard path is willing to delete it outright.
@@ -407,7 +407,7 @@ export async function resolveSubmissionAction(
 ): Promise<ActionResult> {
   await requireRole("admin");
   const id = String(formData.get("submissionId") ?? "");
-  if (!id) return { error: "No submission — reload and try again." };
+  if (!id) return { error: "No submission. Reload and try again." };
 
   const settings = await getSettings();
   await resolveSubmission(id, settings.retainCollectedDays);
@@ -433,7 +433,7 @@ export async function sendForTranslationAction(
 ): Promise<ActionResult> {
   await requireRole("admin");
   const id = String(formData.get("submissionId") ?? "");
-  if (!id) return { error: "No submission — reload and try again." };
+  if (!id) return { error: "No submission. Reload and try again." };
 
   const submission = await getSubmission(id);
   if (!submission) return { error: "That submission no longer exists." };
@@ -460,7 +460,7 @@ export async function sendForTranslationAction(
   if (!next) {
     return {
       error:
-        "Pick a translator first — sending is only possible once one is chosen, and only from the rung before it.",
+        "Pick a translator first. Sending is only possible once one is chosen, and only from the rung before it.",
     };
   }
 
@@ -475,7 +475,7 @@ export async function completeSubmissionAction(
 ): Promise<ActionResult> {
   await requireRole("admin");
   const id = String(formData.get("submissionId") ?? "");
-  if (!id) return { error: "No submission — reload and try again." };
+  if (!id) return { error: "No submission. Reload and try again." };
 
   // Same fallback as step 8: an unrecognised choice sends the originals, which
   // are the set that always exists.

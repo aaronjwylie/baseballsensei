@@ -45,7 +45,7 @@ import {
 } from "./adminActions";
 
 export const metadata: Metadata = {
-  title: "Admin — Submissions",
+  title: "Admin: Submissions",
   robots: { index: false },
 };
 
@@ -307,9 +307,9 @@ function SubmissionRow({
   const alignmentLine = !assignedCoach
     ? null
     : (submission.languages?.length ?? 0) === 0
-      ? "The customer didn't declare a language — translation can't be assessed."
+      ? "The customer didn't declare a language. Translation can't be assessed."
       : assignedCoach.languages.length === 0
-        ? "The coach has no languages recorded — translation can't be assessed."
+        ? "The coach has no languages recorded. Translation can't be assessed."
         : intakeDirection || responseDirection
           ? `Linguistic non-alignment. Route through translator (${[
               intakeDirection && `${describeDirection(intakeDirection)} for the client files`,
@@ -346,7 +346,7 @@ function SubmissionRow({
     !assignedCoach
       ? null
       : wantsTranslation === true
-        ? `Translate the client files first — ${assignedCoach.name} may not read the language they're in.`
+        ? `Translate the client files first. ${assignedCoach.name} may not read the language they're in.`
         : (submission.languages?.length ?? 0) === 0
           ? "The customer didn't declare a language."
           : null;
@@ -480,14 +480,14 @@ function SubmissionRow({
             />
           )}
           <p className="text-[11px] text-ink-muted">
-            They share a language — if the files are already in one the{" "}
+            They share a language. If the files are already in one the{" "}
             {act === "pickIntakeTranslator" ? "coach" : "customer"} reads, hand it
             over instead.
           </p>
         </>
       ) : (
         <p className="text-[11px] text-ink-muted">
-          Needed because the languages don&apos;t line up — picking is what makes
+          Needed because the languages don&apos;t line up. Picking is what makes
           the hand-off sendable.
         </p>
       )}
@@ -501,7 +501,7 @@ function SubmissionRow({
     />
   ) : act === "uploadIntake" || act === "uploadResponse" ? (
     <p className="text-[11px] text-ink-muted">
-      Off-platform work — upload the result into the{" "}
+      Off-platform work: upload the result into the{" "}
       {act === "uploadIntake" ? "client" : "coach"}-translated folder on the right.
     </p>
   ) : act ? (

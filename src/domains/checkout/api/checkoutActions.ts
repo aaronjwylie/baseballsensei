@@ -82,7 +82,7 @@ function fail(error: string): { ok: false; error: string } {
  * response is to start over, which is what the flag tells it to do.
  */
 function gone(
-  error = "Your session timed out. We've started you fresh — sorry about that.",
+  error = "Your session timed out. We've started you fresh, sorry about that.",
 ): { ok: false; error: string; gone: true } {
   return { ok: false, error, gone: true };
 }
@@ -203,7 +203,7 @@ export async function startSubmissionAction(
   const sent = await sendCode(submission.id, submission.customerEmail);
   if (!sent) {
     return fail(
-      "We couldn't send your code — please check the address and try again.",
+      "We couldn't send your code. Please check the address and try again.",
     );
   }
 
@@ -259,7 +259,7 @@ export async function resendCodeAction(): Promise<ActionResult> {
   const sent = await sendCode(submission.id, submission.customerEmail);
   return sent
     ? DONE
-    : fail("We couldn't send your code — please try again in a moment.");
+    : fail("We couldn't send your code. Please try again in a moment.");
 }
 
 /**

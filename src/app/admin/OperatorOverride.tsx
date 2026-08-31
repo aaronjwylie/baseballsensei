@@ -221,7 +221,7 @@ export function OperatorOverride({
           )}
           <p className="text-xs text-ink-muted">
             {unchanged
-              ? "Pick a rung it should go back to — it is on that one now."
+              ? "Pick a rung it should go back to. It is on that one now."
               : "Recorded against the submission with your name on it."}
           </p>
         </form>
@@ -244,8 +244,8 @@ export function OperatorOverride({
         <div className="flex flex-wrap items-end gap-2">
           <span className="text-xs text-ink-muted">
             {owed
-              ? "Archive — set aside, feedback still owed:"
-              : "Archive — file out of the queue:"}
+              ? "Archive, set aside, feedback still owed:"
+              : "Archive, file out of the queue:"}
           </span>
           <input
             name="reason"
@@ -271,7 +271,7 @@ export function OperatorOverride({
         {succeeded(archive) && <p className="text-xs text-emerald-700">Archived.</p>}
         {owed && (
           <p className="text-xs text-amber-700">
-            This hides an open obligation — a paid customer is still waiting. It is
+            This hides an open obligation: a paid customer is still waiting. It is
             recorded with your name and reason, flagged in the Archived view, and
             its files are still purged on the normal clock.
           </p>
@@ -291,9 +291,9 @@ export function OperatorOverride({
             className={`${control} ml-1.5 border-rose-200 bg-white`}
           >
             <option value="intake">Client</option>
-            <option value="intake_translation">Client — translated</option>
+            <option value="intake_translation">Client (translated)</option>
             <option value="feedback">Coach</option>
-            <option value="feedback_translation">Coach — translated</option>
+            <option value="feedback_translation">Coach (translated)</option>
           </select>
         </label>
         <button
@@ -322,7 +322,7 @@ export function OperatorOverride({
       >
         <input type="hidden" name="submissionId" value={submissionId} />
         <p className="text-xs font-semibold text-rose-800">
-          Delete the whole submission — record, files and trail. No way back.
+          Delete the whole submission: record, files and trail. No way back.
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <input

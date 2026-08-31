@@ -39,7 +39,7 @@ export function buildOperatorWelcomeEmail(
 ): { subject: string; html: string } {
   const phrase = ROLE_PHRASE[role];
   return {
-    subject: `${site.name} — you've been added as ${phrase}`,
+    subject: `${site.name}: you've been added as ${phrase}`,
     html: emailShell(
       `Welcome to ${site.name}`,
       `<p>Hi ${escapeName(name)}, an administrator has added you to ${site.name} as ${phrase}. Sign in below to reach your portal.</p>

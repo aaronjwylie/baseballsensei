@@ -26,7 +26,7 @@ const ROLE_COPY: Record<Role, { title: string; blurb: string }> = {
   admin: {
     title: "Admin",
     blurb:
-      "Runs the platform — the queue, onboarding, settings, and who else is an operator.",
+      "Runs the platform: the queue, onboarding, settings, and who else is an operator.",
   },
   coach: {
     title: "Coach",
@@ -190,8 +190,8 @@ export function OperatorRoleCard({
                     defaultChecked={stored?.isActive ?? true}
                   />
                   <label htmlFor={availableId} className="text-[13px] text-ink-muted">
-                    Taking {role === "coach" ? "submissions" : "translations"} —
-                    untick to pause without removing the role
+                    Taking {role === "coach" ? "submissions" : "translations"}.
+                    Untick to pause without removing the role
                   </label>
                 </div>
               )}
@@ -206,7 +206,7 @@ export function OperatorRoleCard({
                     className="mt-0.5"
                   />
                   <label htmlFor={notifyId} className="text-[13px] text-ink-muted">
-                    Email me submission and system notifications — untick to stop
+                    Email me submission and system notifications. Untick to stop
                     your own copies; you stay a full admin, and the shared inbox
                     still receives everything.
                   </label>

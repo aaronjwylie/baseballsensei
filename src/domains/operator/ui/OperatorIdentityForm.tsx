@@ -66,7 +66,7 @@ export function OperatorIdentityForm({
 
       <Field
         label="New password"
-        hint="Leave blank to keep the current one. An admin setting this needs no current password — the admin's authority is the guard."
+        hint="Leave blank to keep the current one. An admin setting this needs no current password: the admin's authority is the guard."
       >
         <PasswordInput name="password" autoComplete="new-password" />
       </Field>

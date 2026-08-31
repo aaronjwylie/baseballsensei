@@ -123,7 +123,7 @@ export function VerifyPanel({
       */}
       <p className="text-sm text-[color:var(--field-label,var(--color-ink))]">
         Sent to <strong>{email}</strong>. It expires in {CODE_TTL_MINUTES}{" "}
-        minutes &mdash; check your spam folder if it hasn&rsquo;t arrived.
+        minutes. Check your spam folder if it hasn&rsquo;t arrived.
       </p>
 
       <div>

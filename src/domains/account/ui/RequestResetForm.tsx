@@ -16,7 +16,7 @@ export function RequestResetForm() {
   if (state && "sent" in state) {
     return (
       <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-        If that email has an operator account, a reset link is on its way — it
+        If that email has an operator account, a reset link is on its way. It
         works for one hour. Check your inbox (and spam).
       </p>
     );

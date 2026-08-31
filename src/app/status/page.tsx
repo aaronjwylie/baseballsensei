@@ -5,7 +5,7 @@ import { StatusLookup } from "@/domains/submission";
 export const metadata: Metadata = {
   title: "Check your status",
   description:
-    "Enter your email to see the status of your coaching reviews — no login needed.",
+    "Enter your email to see the status of your coaching reviews. No login needed.",
 };
 
 export default function StatusPage() {

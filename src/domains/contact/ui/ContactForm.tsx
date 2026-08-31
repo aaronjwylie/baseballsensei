@@ -58,7 +58,7 @@ export function ContactForm({
           Message sent
         </h2>
         <p className="mt-3 text-[15px] leading-[1.5] text-paper">
-          Thanks — a person will read it and reply to the address you gave us.
+          Thanks. A person will read it and reply to the address you gave us.
         </p>
       </div>
     );

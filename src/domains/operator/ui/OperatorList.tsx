@@ -48,7 +48,7 @@ export function OperatorList({
         <ul className="mt-3 space-y-3">
           {people.length === 0 && (
             <li className="rounded-2xl border border-line bg-white p-5 text-sm text-ink-muted">
-              No {plural}{" "}yet{addAction ? " — add one on the right." : "."}
+              No {plural}{" "}yet{addAction ? ". Add one on the right." : "."}
               {filter === "translator" && (
                 <> A submission only needs one when the coach and the customer
                 share no language.</>
@@ -138,7 +138,7 @@ export function OperatorList({
                 return (
                   <div key={role} className="mt-1 text-sm text-ink-muted">
                     <span className="font-medium capitalize text-ink">{role}</span>
-                    {" — "}
+                    {": "}
                     {detail}
                   </div>
                 );
@@ -152,7 +152,7 @@ export function OperatorList({
               */}
               {person.missing.length > 0 && (
                 <p className="mt-2 text-[13px] font-medium text-amber-700">
-                  {`${person.missing.join("; ")} — add on their page.`}
+                  {`${person.missing.join("; ")}. Add on their page.`}
                 </p>
               )}
             </li>

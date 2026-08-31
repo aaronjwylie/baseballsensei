@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 const BLURB: Record<string, string> = {
-  admin: "The queue, onboarding, settings — running the platform.",
+  admin: "The queue, onboarding, settings: running the platform.",
   coach: "Submissions assigned to you, and where you upload your feedback.",
   translator: "Submissions waiting on a translation, out and back.",
 };
@@ -52,8 +52,8 @@ export default async function PortalChooserPage() {
         ) : (
           <>
             <p className="mx-auto mt-2 max-w-md text-sm text-ink-muted">
-              You hold more than one role. Pick the one you are here for &mdash;
-              you can switch any time.
+              You hold more than one role. Pick the one you are here for; you can
+              switch any time.
             </p>
             {/* One row of equal cards: flex-1 makes every card the same width and
                 the row's default stretch makes them the same height, so a longer

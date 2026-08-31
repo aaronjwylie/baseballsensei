@@ -127,7 +127,7 @@ const STATUS_META: Record<
 
   // The one middle state worth surfacing: it changes what they should *do*.
   purge_imminent: {
-    label: "Ready — expiring soon",
+    label: "Ready, expiring soon",
     className: "bg-amber-50 text-amber-700 border-amber-200",
   },
   purged: {

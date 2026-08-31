@@ -25,8 +25,8 @@ export default async function TranslatorPage() {
     <PortalEmptyState title="Translator">
       <p>
         You&rsquo;re signed in. For now, translation work is handed off outside
-        the app &mdash; the admin will send you the files to translate and you
-        return the finished translation to them directly.
+        the app: the admin will send you the files to translate and you return
+        the finished translation to them directly.
       </p>
       <p>
         Downloading and uploading your translations here, from your own queue, is

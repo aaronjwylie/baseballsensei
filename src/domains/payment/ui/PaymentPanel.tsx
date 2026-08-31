@@ -46,7 +46,7 @@ export function PaymentPanel({
         role="alert"
         className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
       >
-        Payments aren&apos;t configured — NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is
+        Payments aren&apos;t configured. NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is
         missing. This is a setup problem on our side, not yours.
       </p>
     );
@@ -165,7 +165,7 @@ function PaymentFields({
       <div className="rounded-2xl bg-paper-alt p-5">
         <div className="flex items-baseline justify-between">
           <span className="text-sm text-ink-soft">
-            Video review — {playerName}
+            Video review: {playerName}
           </span>
           <span className="font-semibold text-ink">{amount}</span>
         </div>

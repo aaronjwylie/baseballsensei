@@ -69,7 +69,7 @@ export function QaAddCheck({
         Add a check
         {added && (
           <span className="ml-auto normal-case tracking-normal text-success">
-            Added {added} — it is in position now
+            Added {added}, it is in position now
           </span>
         )}
       </button>
@@ -129,7 +129,7 @@ export function QaAddCheck({
           {error && <p className="text-[12px] text-rose-700">{error}</p>}
 
           <p className="text-[11px] text-ink-muted">
-            The id decides where it lands — <span className="tabular-nums">1.1.15</span>{" "}
+            The id decides where it lands: <span className="tabular-nums">1.1.15</span>{" "}
             goes at the end of 1.1, <span className="tabular-nums">1.1.3.1</span>{" "}
             between 1.1.3 and 1.1.4. An id in a group that does not exist yet collects at the
             end of the board rather than being refused. Ids are never reused.

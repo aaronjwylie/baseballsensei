@@ -96,7 +96,7 @@ export function QaCheckRow({
     if (saving || !onWithdraw) return;
     if (
       !window.confirm(
-        `Withdraw ${check.id}? It leaves the board, but its id is never reused — anything already marked or noted on it stays attached.`,
+        `Withdraw ${check.id}? It leaves the board, but its id is never reused. Anything already marked or noted on it stays attached.`,
       )
     )
       return;
@@ -207,7 +207,7 @@ export function QaCheckRow({
           <button
             type="button"
             onClick={() => void withdraw()}
-            title="Take this check back. Its id stays spent — ids are never reused."
+            title="Take this check back. Its id stays spent; ids are never reused."
             className="font-display text-[11px] uppercase tracking-[0.08em] text-ink-muted underline-offset-2 hover:text-rose-700 hover:underline"
           >
             Withdraw
@@ -218,13 +218,13 @@ export function QaCheckRow({
       {check.history && check.history.length > 0 && (
         <details className="mt-1 pl-[68px] text-[11px] text-ink-muted">
           <summary className="cursor-pointer">
-            Reworded {check.history.length}× — a verdict given earlier was against
+            Reworded {check.history.length}×: a verdict given earlier was against
             different words
           </summary>
           <ul className="mt-1 space-y-1 border-l-2 border-line pl-3">
             {check.history.map((h, hi) => (
               <li key={hi}>
-                <span className="tabular-nums">{h.at.slice(0, 10)}</span> — “{h.what}”
+                <span className="tabular-nums">{h.at.slice(0, 10)}</span>: “{h.what}”
               </li>
             ))}
           </ul>
@@ -257,14 +257,14 @@ export function QaCheckRow({
                     onClick={() => void onNoteStatus(n.id, "resolved")}
                     className="border border-success px-1.5 py-0.5 font-display text-[10px] uppercase tracking-[0.08em] text-success hover:bg-success hover:text-white"
                   >
-                    Re-tested — resolve
+                    Re-tested, resolve
                   </button>
                 )}
                 {n.status === "pending" && (
                   <button
                     type="button"
                     onClick={() => void onNoteStatus(n.id, "blocked")}
-                    title="Real, but not addressable yet — waiting on someone. Leaves the fixer's queue, stays on the board."
+                    title="Real, but not addressable yet: waiting on someone. Leaves the fixer's queue, stays on the board."
                     className="border border-line px-1.5 py-0.5 font-display text-[10px] uppercase tracking-[0.08em] text-ink-muted hover:border-accent hover:text-accent"
                   >
                     Needs input
@@ -342,12 +342,12 @@ export function QaCheckRow({
               {n.revisions.length > 0 && (
                 <details className="mt-1 text-[11px] text-ink-muted">
                   <summary className="cursor-pointer">
-                    Edited {n.revisions.length}× — earlier wording kept
+                    Edited {n.revisions.length}×: earlier wording kept
                   </summary>
                   <ul className="mt-1 space-y-1 border-l-2 border-line pl-3">
                     {n.revisions.map((r, ri) => (
                       <li key={ri} className="whitespace-pre-wrap">
-                        <span className="tabular-nums">{r.at.slice(11, 16)}Z</span> — “{r.body}”
+                        <span className="tabular-nums">{r.at.slice(11, 16)}Z</span>: “{r.body}”
                       </li>
                     ))}
                   </ul>

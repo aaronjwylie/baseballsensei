@@ -27,7 +27,7 @@ export const contactInputSchema = z.object({
   message: z
     .string()
     .trim()
-    .min(10, "Please tell us a little more — at least a sentence.")
+    .min(10, "Please tell us a little more, at least a sentence.")
     .max(4000, "Please keep it under 4000 characters."),
   consent: z.literal(true, {
     message: "Please agree to the privacy policy.",

@@ -25,10 +25,10 @@ export function sendSubmissionReceipt(to: string, details: ReceiptDetails) {
 
   return sendEmail({
     to,
-    subject: `${site.name} — submission confirmed for ${playerName}`,
+    subject: `${site.name}: submission confirmed for ${playerName}`,
     html: emailShell(
       "You're all set ✅",
-      `<p>Thanks — your submission for <strong>${escapeHtml(playerName)}</strong> is in and paid for.</p>
+      `<p>Thanks, your submission for <strong>${escapeHtml(playerName)}</strong> is in and paid for.</p>
 
        <h2 style="margin:28px 0 8px;font-size:15px;text-transform:uppercase;letter-spacing:0.06em;color:#818184;">Receipt</h2>
        <table style="width:100%;border-collapse:collapse;font-size:15px;">
@@ -93,10 +93,10 @@ export function sendPaymentReceivedEmail(opts: {
   const files = `${opts.fileCount} file${opts.fileCount === 1 ? "" : "s"}`;
   return sendEmail({
     to: opts.to,
-    subject: `${site.name} — new paid submission: ${opts.playerName}`,
+    subject: `${site.name}: new paid submission for ${opts.playerName}`,
     html: emailShell(
       "A new submission is paid and waiting",
-      `<p><strong>${player}</strong>${focus} — ${files}.</p>
+      `<p><strong>${player}</strong>${focus}, ${files}.</p>
        <p>It's in the queue and needs a coach.</p>`,
       { label: "Open the queue", url: opts.queueUrl },
     ),
@@ -124,11 +124,11 @@ export function sendPaymentFailed(
   const player = escapeHtml(details.playerName);
   return sendEmail({
     to,
-    subject: `${site.name} — your payment didn't go through`,
+    subject: `${site.name}: your payment didn't go through`,
     html: emailShell(
       "That card didn't go through",
       `<p>Your card was declined, so we haven't charged you anything.</p>
-       <p><strong>Nothing is lost.</strong> The files you uploaded for ${player} are still with us, and you can finish checking out whenever you're ready — you won't need to upload them again.</p>
+       <p><strong>Nothing is lost.</strong> The files you uploaded for ${player} are still with us, and you can finish checking out whenever you're ready, and you won't need to upload them again.</p>
        <p>If it keeps happening, try another card or get in touch and we'll sort it out.</p>`,
       { label: "Finish checking out", url: details.startUrl },
     ),

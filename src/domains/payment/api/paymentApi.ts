@@ -79,7 +79,7 @@ export async function createPaymentIntent(
     amount,
     currency,
     receipt_email: submission.customerEmail,
-    description: `${site.name} — video review for ${submission.playerName}`,
+    description: `${site.name}: video review for ${submission.playerName}`,
     // Let the Stripe dashboard decide which methods are offered, so enabling
     // Apple/Google Pay later is a dashboard toggle rather than a deploy.
     automatic_payment_methods: { enabled: true },

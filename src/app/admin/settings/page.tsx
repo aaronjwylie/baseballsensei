@@ -4,7 +4,7 @@ import { requireRole } from "@/domains/account";
 import { getSettings, SettingsForm } from "@/domains/settings";
 
 export const metadata: Metadata = {
-  title: "Admin — Settings",
+  title: "Admin Settings",
   robots: { index: false },
 };
 
@@ -16,7 +16,7 @@ export default async function AdminSettingsPage() {
     <Container>
       <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">Settings</h1>
       <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-        Pricing, upload limits, and retention — these take effect immediately, no
+        Pricing, upload limits, and retention. These take effect immediately, no
         deploy needed.
       </p>
 

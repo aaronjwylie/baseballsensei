@@ -77,7 +77,7 @@ export function StageChain({
             <span className="font-semibold">{outstanding.next}</span>
             <span className="mt-px block text-[11px] font-normal text-ink-muted">
               {outstanding.from}
-              {outstanding.why ? ` — ${outstanding.why}` : ""}
+              {outstanding.why ? `, ${outstanding.why}` : ""}
             </span>
             {outstanding.holdsControl && control ? (
               <div className="mt-2">{control}</div>
@@ -91,7 +91,7 @@ export function StageChain({
                 override. */}
             <p className="text-[12px] italic text-ink-muted">
               Everything here is done and the rung hasn&apos;t moved
-              {handle ? ` — run “${handle.next}” again to advance it` : ""}.
+              {handle ? `, so run “${handle.next}” again to advance it` : ""}.
             </p>
             {control ? <div className="mt-2">{control}</div> : null}
           </div>

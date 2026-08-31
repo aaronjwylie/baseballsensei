@@ -73,7 +73,7 @@ export async function saveRoleAction(
   formData: FormData,
 ): Promise<RoleCardState> {
   const session = await requireRole("admin");
-  if (!operatorId) return { error: "No operator was named — reload and try again." };
+  if (!operatorId) return { error: "No operator was named. Reload and try again." };
 
   const held = formData.get("held") !== null;
 
@@ -90,7 +90,7 @@ export async function saveRoleAction(
   ) {
     return {
       error:
-        "This is the only active admin — grant admin to someone else before removing it, or the portal locks everyone out.",
+        "This is the only active admin. Grant admin to someone else before removing it, or the portal locks everyone out.",
     };
   }
 

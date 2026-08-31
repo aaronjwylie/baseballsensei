@@ -30,9 +30,9 @@ export default function PrivacyPage() {
     >
       <LegalSection title="What we collect">
         <p>
-          The details you enter &mdash; your name and email, the player&rsquo;s
-          first name and age, and anything you type into a submission or the
-          contact form &mdash; and the files you upload for review. Payments are
+          The details you enter (your name and email, the player&rsquo;s first
+          name and age, and anything you type into a submission or the contact
+          form) and the files you upload for review. Payments are
           handled by Stripe; we never see or store your full card number.
         </p>
       </LegalSection>

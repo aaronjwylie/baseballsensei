@@ -29,10 +29,10 @@ export function sendFeedbackReady(
 
   return sendEmail({
     to,
-    subject: `${site.name} — your coaching feedback is ready`,
+    subject: `${site.name}: your coaching feedback is ready`,
     html: emailShell(
       "Your feedback is ready 🎬",
-      `<p>Your coach has finished reviewing${playerName ? ` ${escapeFeedbackHtml(playerName)}'s` : " your"} submission. Tap below to download the full breakdown — this link is private to you.</p>${retention}`,
+      `<p>Your coach has finished reviewing${playerName ? ` ${escapeFeedbackHtml(playerName)}'s` : " your"} submission. Tap below to download the full breakdown. This link is private to you.</p>${retention}`,
       { label: "See your feedback", url: feedbackUrl },
     ),
   });
@@ -83,7 +83,7 @@ export function sendResponseSubmittedEmail(opts: {
   const files = `${opts.fileCount} file${opts.fileCount === 1 ? "" : "s"}`;
   return sendEmail({
     to: opts.to,
-    subject: `${site.name} — review ready to approve: ${opts.playerName}`,
+    subject: `${site.name}: review ready to approve for ${opts.playerName}`,
     html: emailShell(
       "A review is waiting for approval",
       `<p><strong>${coach}</strong> has submitted ${files} for <strong>${player}</strong>.</p>
@@ -113,11 +113,11 @@ export function sendCustomerCollectedEmail(opts: {
   const player = escapeFeedbackHtml(opts.playerName);
   return sendEmail({
     to: opts.to,
-    subject: `${site.name} — ${opts.playerName}'s feedback was collected`,
+    subject: `${site.name}: ${opts.playerName}'s feedback was collected`,
     html: emailShell(
       "The customer has their feedback",
       `<p>The review for <strong>${player}</strong> has been downloaded.</p>
-       <p>The job is done — it can be marked resolved whenever you like. Their uploads are now on the retention clock.</p>`,
+       <p>The job is done. It can be marked resolved whenever you like. Their uploads are now on the retention clock.</p>`,
       { label: "Open the queue", url: opts.submissionUrl },
     ),
   });
@@ -151,7 +151,7 @@ export function sendThankYouEmail(opts: {
   const player = escapeFeedbackHtml(opts.playerName);
   return sendEmail({
     to: opts.to,
-    subject: `${site.name} — thanks, and see you next time`,
+    subject: `${site.name}: thanks, and see you next time`,
     html: emailShell(
       "Thanks for training with us",
       `<p>We hope the feedback on <strong>${player}</strong> was useful.</p>
@@ -186,10 +186,10 @@ export function sendDeletionWarning(opts: {
   });
   return sendEmail({
     to: opts.to,
-    subject: `${site.name} — your files are deleted in ${opts.daysLeft} days`,
+    subject: `${site.name}: your files are deleted in ${opts.daysLeft} days`,
     html: emailShell(
       "Save anything you still want",
-      `<p>The files from <strong>${player}</strong>'s review — everything you sent us, and the coach's response — are deleted from our servers on <strong>${when}</strong>.</p>
+      `<p>The files from <strong>${player}</strong>'s review, everything you sent us and the coach's response, are deleted from our servers on <strong>${when}</strong>.</p>
        <p>If you've already saved your copy, there's nothing to do. If not, this is the last reminder: download it now and keep it somewhere safe.</p>`,
     ),
   });
