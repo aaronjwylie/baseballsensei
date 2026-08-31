@@ -34,7 +34,7 @@ export async function sendContactMessage(input: ContactInput) {
   return sendEmail({
     to: await listAdminEmails(),
     replyTo: input.email,
-    subject: `${site.name} — message from ${name}`,
+    subject: `${site.name}: message from ${name}`,
     html: emailShell(
       "Someone sent a message",
       `<p><strong>${name}</strong> wrote in from the contact form.</p>

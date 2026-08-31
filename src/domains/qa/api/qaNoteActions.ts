@@ -78,7 +78,7 @@ export async function editNoteAction(
   if (!done) {
     return {
       ok: false,
-      error: "Someone has already picked this up — add a new note instead of changing this one.",
+      error: "Someone has already picked this up. Add a new note instead of changing this one.",
     };
   }
   revalidatePath("/qa");
@@ -90,7 +90,7 @@ export async function deleteNoteAction(id: string): Promise<{ ok: boolean; error
 
   const done = await deleteNote(id);
   if (!done) {
-    return { ok: false, error: "Someone has already picked this up — it can no longer be deleted." };
+    return { ok: false, error: "Someone has already picked this up; it can no longer be deleted." };
   }
   revalidatePath("/qa");
   return { ok: true };
@@ -105,7 +105,7 @@ export async function withdrawFieldCheckAction(
   if (!done) {
     return {
       ok: false,
-      error: "Already folded into the itinerary — retire it there instead, so its verdicts survive.",
+      error: "Already folded into the itinerary; retire it there instead, so its verdicts survive.",
     };
   }
   revalidatePath("/qa");

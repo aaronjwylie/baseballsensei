@@ -44,7 +44,7 @@ export async function assignTranslatorAction(
   const submissionId = String(formData.get("submissionId") ?? "");
   const operatorId = String(formData.get("operatorId") ?? "");
   const leg = String(formData.get("leg") ?? "");
-  if (!submissionId) return { error: "No submission — reload and try again." };
+  if (!submissionId) return { error: "No submission. Reload and try again." };
   if (!operatorId) return { error: "Pick a translator first." };
   if (leg !== "intake_translation" && leg !== "feedback_translation") {
     return { error: "That is not a translation leg." };
@@ -75,7 +75,7 @@ export async function assignTranslatorAction(
   */
   const assignable = await listAssignable("translator");
   if (!assignable.some((operator) => operator.id === operatorId)) {
-    return { error: "That translator isn't active — reload and pick another." };
+    return { error: "That translator isn't active. Reload and pick another." };
   }
 
   /*
@@ -100,7 +100,7 @@ export async function assignTranslatorAction(
     if (direction && !coversDirection(directionsOf(translator.languages), direction)) {
       const theirs = translator.languages[0];
       return {
-        error: `${translator.name} translates ${theirs ?? "no direction set"} — this leg needs ${describeDirection(direction)}.`,
+        error: `${translator.name} translates ${theirs ?? "no direction set"}. This leg needs ${describeDirection(direction)}.`,
       };
     }
   }

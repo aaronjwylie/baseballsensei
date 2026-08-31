@@ -64,7 +64,7 @@ export type VerificationResult =
 /** One sentence per failure, so the wording lives in one place. */
 export const VERIFICATION_MESSAGES: Record<VerificationFailure, string> = {
   no_code: "We haven't sent a code yet. Ask for a new one below.",
-  expired: `That code has expired. Codes last ${CODE_TTL_MINUTES} minutes — ask for a new one below.`,
+  expired: `That code has expired. Codes last ${CODE_TTL_MINUTES} minutes. Ask for a new one below.`,
   too_many_attempts:
     "Too many incorrect attempts. Ask for a new code to try again.",
   mismatch: "That code doesn't match. Check the email and try again.",
@@ -80,7 +80,7 @@ export function verificationFailureMessage(
 ): string {
   if (result.reason === "mismatch") {
     const n = result.remaining;
-    return `That code doesn't match — ${n} ${n === 1 ? "attempt" : "attempts"} left.`;
+    return `That code doesn't match. ${n} ${n === 1 ? "attempt" : "attempts"} left.`;
   }
   return VERIFICATION_MESSAGES[result.reason];
 }

@@ -73,14 +73,14 @@ export function buildAssignmentEmail(
        <ul style="margin:0;padding-left:20px">${available
          .map(
            (f) =>
-             `<li><a href="${env.siteUrl}/api/files/${f.id}">${esc(f.filename)}</a> — ${formatFileSize(f.sizeBytes)}</li>`,
+             `<li><a href="${env.siteUrl}/api/files/${f.id}">${esc(f.filename)}</a> (${formatFileSize(f.sizeBytes)})</li>`,
          )
          .join("")}</ul>`
     : `<p style="margin:16px 0 4px"><strong>Files</strong></p>
-       <p style="margin:0">No files are attached — they may have been removed by the retention sweep.</p>`;
+       <p style="margin:0">No files are attached. They may have been removed by the retention sweep.</p>`;
 
   return {
-    subject: `${site.name} — a new review is assigned to you`,
+    subject: `${site.name}: a new review is assigned to you`,
     html: emailShell(
       "You have a new review",
       `<p>Hi ${esc(recipientName)}, a submission is ready for your feedback.</p>
@@ -133,11 +133,11 @@ export function sendCollectedEmail(opts: {
   const player = esc(opts.playerName);
   return sendEmail({
     to: opts.to,
-    subject: `${site.name} — ${opts.collectorName} picked up ${opts.playerName}`,
+    subject: `${site.name}: ${opts.collectorName} picked up ${opts.playerName}`,
     html: emailShell(
       `The ${opts.role} has the files`,
       `<p><strong>${who}</strong> has downloaded the files for <strong>${player}</strong>, so the review is under way.</p>
-       <p>Nothing to do — this is just the hand-off closing.</p>`,
+       <p>Nothing to do. This is just the hand-off closing.</p>`,
       { label: "Open the queue", url: opts.submissionUrl },
     ),
   });

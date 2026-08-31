@@ -426,7 +426,7 @@ export const STAGE_CHAIN: Record<SubmissionStatus, ChainLine[]> = {
   purged: [
     { what: "Bytes removed from storage", next: "Remove the bytes", from: "filesPurgedAt", toldOnSuccess: ["Admin/portal: the filenames show struck through in the folders"], met: (s) => !!s.filesPurgedAt },
     { what: "Locators cleared", next: "Clear the locators", from: "fileUrl = null", toldOnSuccess: ["Customer/status: an old link answers 410 — gone, not missing"], met: (s) => !!s.filesPurgedAt },
-    { what: "Record kept — permanently", next: "Keep the record", from: "the row survives", toldOnSuccess: ["Admin/portal: the row still says what was sent, forever"], met: () => true },
+    { what: "Record kept, permanently", next: "Keep the record", from: "the row survives", toldOnSuccess: ["Admin/portal: the row still says what was sent, forever"], met: () => true },
   ],
 };
 

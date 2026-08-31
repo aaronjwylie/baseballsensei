@@ -45,11 +45,11 @@ export async function addFieldCheck(input: {
 }): Promise<AddCheckResult> {
   const id = input.id.trim();
   if (!isCheckId(id)) {
-    return { ok: false, error: `"${id}" is not an id — use digits and dots, like 1.1.15 or 3.4.2.1.` };
+    return { ok: false, error: `"${id}" is not an id. Use digits and dots, like 1.1.15 or 3.4.2.1.` };
   }
   const spent = await spentIds();
   if (spent.has(id)) {
-    return { ok: false, error: `${id} is taken. Ids are never reused, even by a check that was withdrawn — pick another.` };
+    return { ok: false, error: `${id} is taken. Ids are never reused, even by a check that was withdrawn. Pick another.` };
   }
 
   try {

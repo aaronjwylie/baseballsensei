@@ -141,7 +141,7 @@ export async function createProfiledOperatorAction(
     });
     id = created.id;
   } catch {
-    return { error: `Could not create the ${role} — is that email already in use?` };
+    return { error: `Could not create the ${role}. Is that email already in use?` };
   }
 
   // The photo needs the new id, so it is saved after creation. A photo failure
@@ -198,7 +198,7 @@ export async function updateProfiledOperatorAction(
   ) {
     return {
       error:
-        "This is the only active admin — you can't deactivate them. Grant admin to someone else first.",
+        "This is the only active admin. You can't deactivate them. Grant admin to someone else first.",
     };
   }
 
@@ -225,7 +225,7 @@ export async function updateProfiledOperatorAction(
       ...(imageUrl ? { imageUrl } : {}),
     });
   } catch {
-    return { error: `Could not update the ${role} — is that email already in use?` };
+    return { error: `Could not update the ${role}. Is that email already in use?` };
   }
 
   revalidateOperatorPages();
@@ -265,18 +265,18 @@ export async function deleteOperatorAction(
   const session = await requireRole("admin");
 
   const id = String(formData.get("operatorId") ?? "");
-  if (!id) return { error: "No operator — reload the page and try again." };
+  if (!id) return { error: "No operator. Reload the page and try again." };
 
   if (id === session.operatorId) {
     return {
-      error: "You can't delete your own account — ask another admin to.",
+      error: "You can't delete your own account. Ask another admin to.",
     };
   }
 
   if ((await isEligibleAdmin(id)) && !(await otherActiveAdminExists(id))) {
     return {
       error:
-        "This is the only admin — grant admin to someone else before deleting them, or the platform locks everyone out.",
+        "This is the only admin. Grant admin to someone else before deleting them, or the platform locks everyone out.",
     };
   }
 
@@ -313,7 +313,7 @@ export async function updateOperatorIdentityAction(
     if (password) await setOperatorPassword(id, password);
   } catch {
     // The realistic failure is the unique constraint on email.
-    return { error: "Could not save — is that email already in use?" };
+    return { error: "Could not save. Is that email already in use?" };
   }
 
   revalidateOperatorPages();

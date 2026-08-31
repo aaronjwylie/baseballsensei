@@ -94,7 +94,7 @@ export function SettingsForm({ settings }: { settings: PlatformSettings }) {
 
         <Field
           label="Delete files this long after the customer downloads (days)"
-          hint="The clock starts when they collect, not when we send — so nothing is ever deleted before they have it. Everything goes together, their uploads and the coach's response alike."
+          hint="The clock starts when they collect, not when we send, so nothing is ever deleted before they have it. Everything goes together, their uploads and the coach's response alike."
         >
           <input
             name="retainCollectedDays"
@@ -124,7 +124,7 @@ export function SettingsForm({ settings }: { settings: PlatformSettings }) {
 
         <Field
           label="Warn the customer this many days before deleting"
-          hint="One email, sent once. Set to 0 to delete without warning — not recommended, since it's their only chance to grab another copy."
+          hint="One email, sent once. Set to 0 to delete without warning. Not recommended, since it's their only chance to grab another copy."
         >
           <input
             name="warnBeforeDeletionDays"
@@ -139,7 +139,7 @@ export function SettingsForm({ settings }: { settings: PlatformSettings }) {
 
         <Field
           label="Delete uploads this long after an unpaid submission starts (hours)"
-          hint="Covers abandoned checkouts — files uploaded by someone who never paid."
+          hint="Covers abandoned checkouts: files uploaded by someone who never paid."
         >
           <input
             name="retainUnpaidHours"

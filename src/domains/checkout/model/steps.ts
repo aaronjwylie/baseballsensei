@@ -67,13 +67,13 @@ export const STEP_COPY: Record<
   { eyebrow: string; title: string; body: (ctx: { maxFiles: number }) => string }
 > = {
   details: {
-    eyebrow: "Step 01 — About you",
+    eyebrow: "Step 01: About you",
     title: "Tell us about the player.",
     body: () =>
       "A few details help your coach understand who they're working with.",
   },
   verify: {
-    eyebrow: "Step 02 — Check your email",
+    eyebrow: "Step 02: Check your email",
     title: "Confirm we can reach you.",
     /*
       AUTHORED — the design has no verification step. Written to say why the
@@ -85,13 +85,13 @@ export const STEP_COPY: Record<
       "We've sent you a 6-digit code. Enter it below so your coach's feedback lands somewhere you'll actually see it.",
   },
   upload: {
-    eyebrow: "Step 03 — Show your coach",
+    eyebrow: "Step 03: Show your coach",
     title: "What would you like help with?",
     body: ({ maxFiles }) =>
       `Upload up to ${maxFiles} files that help your coach understand what you're working on. Videos are best for hitting and pitching mechanics, but you can also include photos or supporting documents.`,
   },
   pay: {
-    eyebrow: "Step 04 — Checkout",
+    eyebrow: "Step 04: Checkout",
     title: "Last step.",
     /*
       AUTHORED — the design has no payment step. It leads with the files being
@@ -100,6 +100,6 @@ export const STEP_COPY: Record<
       had already succeeded (ADR 009).
     */
     body: () =>
-      "Your files are in and your email is confirmed. Pay once and your coach gets to work — there's no subscription and nothing recurring.",
+      "Your files are in and your email is confirmed. Pay once and your coach gets to work. There's no subscription and nothing recurring.",
   },
 };

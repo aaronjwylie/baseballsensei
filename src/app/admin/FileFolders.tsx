@@ -39,7 +39,7 @@ const FOLDERS: {
   },
   {
     kind: "intake_translation",
-    label: "Client — translated",
+    label: "Client (translated)",
     hint: "Upload the Japanese version for the coach",
     writable: true,
   },
@@ -51,7 +51,7 @@ const FOLDERS: {
   },
   {
     kind: "feedback_translation",
-    label: "Coach — translated",
+    label: "Coach (translated)",
     hint: "Upload the English version for the customer",
     writable: true,
   },

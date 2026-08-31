@@ -64,7 +64,7 @@ function describeUploadFailure(signal: AbortSignal, err: unknown): string {
     if (reason instanceof DOMException && reason.name === "TimeoutError") {
       return "The upload stalled and didn't finish. Check your connection and try again.";
     }
-    return "The upload kept restarting and couldn't complete — usually a setup issue on our side, not your file. Please try again shortly.";
+    return "The upload kept restarting and couldn't complete, usually a setup issue on our side, not your file. Please try again shortly.";
   }
   const message = err instanceof Error ? err.message : "";
   // The Blob client can't get an upload token when the flow session has lapsed;
@@ -205,7 +205,7 @@ export function UploadPanel({
             state: {
               status: "error",
               file,
-              message: `That file is ${formatFileSize(file.size)} — the limit is ${maxFileSizeMb} MB.`,
+              message: `That file is ${formatFileSize(file.size)}. The limit is ${maxFileSizeMb} MB.`,
               retriable: false,
             },
           },

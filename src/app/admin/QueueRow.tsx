@@ -121,7 +121,7 @@ export function QueueRow({
               <StageChain stage={stage} control={control} />
             </div>
             <div>
-              <Label>Files — four folders</Label>
+              <Label>Files: four folders</Label>
               {folders}
             </div>
           </div>
@@ -290,7 +290,7 @@ function Trail({
                 </span>
               );
             })()}
-            {e.note ? <span className="text-ink-muted"> — {e.note}</span> : null}
+            {e.note ? <span className="text-ink-muted">: {e.note}</span> : null}
           </span>
           <span className="tabular-nums text-ink-muted">
             <LocalTime iso={e.at} />

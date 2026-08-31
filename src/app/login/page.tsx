@@ -16,7 +16,7 @@ export default function LoginPage() {
           Operator sign in
         </h1>
         <p className="mt-2 text-sm text-ink-muted">
-          For coaches and staff. Customers don&apos;t need an account — check a
+          For coaches and staff. Customers don&apos;t need an account; check a
           submission from the status page.
         </p>
         <div className="mt-8 rounded-2xl border border-line bg-white p-6 sm:p-8">

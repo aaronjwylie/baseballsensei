@@ -61,7 +61,7 @@ export async function assignCoachAction(
   await requireRole("admin");
   const submissionId = String(formData.get("submissionId") ?? "");
   const coachId = String(formData.get("coachId") ?? "");
-  if (!submissionId) return { error: "No submission — reload and try again." };
+  if (!submissionId) return { error: "No submission. Reload and try again." };
   if (!coachId) return { error: "Pick a coach first." };
 
   /*
@@ -91,7 +91,7 @@ export async function assignCoachAction(
   */
   const assignable = await listAssignable("coach");
   if (!assignable.some((coach) => coach.id === coachId)) {
-    return { error: "That coach isn't active — reload and pick another." };
+    return { error: "That coach isn't active. Reload and pick another." };
   }
 
   await assignSubmissionCoach(submissionId, coachId);
@@ -114,7 +114,7 @@ export async function notifyCoachAction(
 ): Promise<ActionResult> {
   await requireRole("admin");
   const submissionId = String(formData.get("submissionId") ?? "");
-  if (!submissionId) return { error: "No submission — reload and try again." };
+  if (!submissionId) return { error: "No submission. Reload and try again." };
 
   const submission = await getSubmission(submissionId);
   /*
@@ -141,7 +141,7 @@ export async function notifyCoachAction(
 
   const coach = await getCoach(assignee);
   if (!coach) {
-    return { error: "The assigned operator is no longer a coach — reassign it." };
+    return { error: "The assigned operator is no longer a coach. Reassign it." };
   }
 
   /*

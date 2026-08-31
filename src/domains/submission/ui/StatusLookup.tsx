@@ -158,7 +158,7 @@ export function StatusLookup() {
           <div className="rounded-2xl border border-line bg-white p-6">
             <p className="text-ink">
               If <span className="font-medium">{result.email}</span>{" "}
-              has submissions with us, a 6-digit code is on its way &mdash; enter
+              has submissions with us, a 6-digit code is on its way. Enter
               it below.
             </p>
             {/*
@@ -171,7 +171,7 @@ export function StatusLookup() {
             */}
             <p className="mt-1.5 text-sm text-ink-muted">
               Nothing after a few minutes? This email may have no submissions, or
-              it may be mistyped &mdash; check your spam folder, then try a
+              it may be mistyped. Check your spam folder, then try a
               different address above.
             </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">

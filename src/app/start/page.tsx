@@ -18,7 +18,7 @@ export const metadata: Metadata = {
  */
 const PAYMENT_NOTICE: Record<string, string> = {
   failed:
-    "We couldn't confirm that payment. If you were charged, email us and we'll sort it out — don't pay again.",
+    "We couldn't confirm that payment. If you were charged, email us and we'll sort it out. Please don't pay again.",
   missing: "That payment didn't come back with a reference. Please try again.",
 };
 

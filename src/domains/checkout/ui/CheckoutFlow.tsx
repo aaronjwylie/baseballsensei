@@ -398,7 +398,7 @@ function Confirmation({
         {`We’ve got ${fileCount} file${fileCount === 1 ? "" : "s"} for ${playerName} and your payment went through. A receipt is on its way to your inbox.`}
       </p>
       <p className="mt-2 text-paper">
-        A coach will send a personal video walkthrough — we&rsquo;ll email you
+        A coach will send a personal video walkthrough. We&rsquo;ll email you
         the moment it&rsquo;s ready.
       </p>
 

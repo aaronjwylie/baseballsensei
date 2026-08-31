@@ -131,7 +131,7 @@ export async function PATCH(req: NextRequest) {
     const done = await editNote(id, text.trim());
     if (!done) {
       return NextResponse.json(
-        { ok: false, error: "Not editable — someone has claimed or closed it." },
+        { ok: false, error: "Not editable: someone has claimed or closed it." },
         { status: 409 },
       );
     }
@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
   if (!by?.trim()) {
     /* Required, not defaulted — see the note at the top of this file. */
     return NextResponse.json(
-      { ok: false, error: "by required — a finding nobody can be asked about is half a finding" },
+      { ok: false, error: "by required: a finding nobody can be asked about is half a finding" },
       { status: 400 },
     );
   }
@@ -201,7 +201,7 @@ export async function DELETE(req: NextRequest) {
   return done
     ? NextResponse.json({ ok: true })
     : NextResponse.json(
-        { ok: false, error: "Not deletable — someone has claimed or closed it." },
+        { ok: false, error: "Not deletable: someone has claimed or closed it." },
         { status: 409 },
       );
 }

@@ -85,7 +85,7 @@ export async function POST(request: Request) {
         ? pending
           ? "Too many wrong codes. Request a fresh one above."
           : "That code has expired. Request a fresh one above."
-        : `That code doesn't match — ${left} ${left === 1 ? "attempt" : "attempts"} left.`;
+        : `That code doesn't match. ${left} ${left === 1 ? "attempt" : "attempts"} left.`;
       return NextResponse.json(
         { error },
         { status: 400 },

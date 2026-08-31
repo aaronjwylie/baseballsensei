@@ -23,13 +23,13 @@ const FILTERS = {
     role: undefined,
     label: "All",
     blurb:
-      "Everyone who can sign in. One person can be more than one kind — the tabs are filters over this list, not separate lists.",
+      "Everyone who can sign in. One person can be more than one kind: the tabs are filters over this list, not separate lists.",
   },
   admins: {
     role: "admin" as Role,
     label: "Admins",
     blurb:
-      "They run the platform: the queue, assignment, settings, and onboarding. Recording their languages is worth doing — an admin often has to talk to a customer, a coach and a translator in the same afternoon.",
+      "They run the platform: the queue, assignment, settings, and onboarding. Recording their languages is worth doing, since an admin often has to talk to a customer, a coach and a translator in the same afternoon.",
   },
   coaches: {
     role: "coach" as Role,
@@ -41,13 +41,13 @@ const FILTERS = {
     role: "translator" as Role,
     label: "Translators",
     blurb:
-      "They carry a submission between languages — out to the coach, and back to the customer. Needed only when a coach and a customer share none.",
+      "They carry a submission between languages: out to the coach, and back to the customer. Needed only when a coach and a customer share none.",
   },
   none: {
     role: undefined,
     label: "No role",
     blurb:
-      "They can sign in but hold no role yet — newly added, or revoked down to nothing. They stay here, reachable and grantable, until an admin deletes them outright.",
+      "They can sign in but hold no role yet: newly added, or revoked down to nothing. They stay here, reachable and grantable, until an admin deletes them outright.",
   },
 } as const;
 
@@ -59,7 +59,7 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
   const { kind } = await props.params;
   return {
-    title: isFilter(kind) ? `Operators — ${FILTERS[kind].label}` : "Operators",
+    title: isFilter(kind) ? `Operators: ${FILTERS[kind].label}` : "Operators",
     robots: { index: false },
   };
 }
