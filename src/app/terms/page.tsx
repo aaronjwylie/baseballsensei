@@ -32,7 +32,7 @@ export default async function TermsPage() {
       <LegalSection title="What you're buying">
         <p>
           One review, by one coach, of the files you attach to a single
-          submission — video, images, or documents — for{" "}
+          submission (video, images, or documents) for{" "}
           {formatPrice(settings.priceCents)} {site.price.unit}. There is no
           subscription and no recurring charge. Payment is taken once, at
           checkout, by Stripe.
