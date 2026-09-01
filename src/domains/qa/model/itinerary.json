@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 36,
-    "generatedAt": "2026-09-01T01:54:11.069Z",
-    "checks": 264,
-    "live": 264,
+    "build": 37,
+    "generatedAt": "2026-09-01T01:59:04.510Z",
+    "checks": 266,
+    "live": 266,
     "retired": 0,
     "edited": 18
   },
@@ -1549,6 +1549,16 @@
               "id": "8.9",
               "what": "⚠️ Download still works after that change",
               "expect": "It is a plain <a>, not ButtonLink. next/link intercepts internal hrefs and was skipping this one only because target was set"
+            },
+            {
+              "id": "8.9.1",
+              "what": "⚠️ Two files, one row shape. Deliver a submission with a short filename and a long one, then open the customer's download page",
+              "expect": "Both rows identical: name, size, Download on the right. ⚠️ The list was flex-wrap, so a long name pushed its button onto a second line and two files in one list looked like two designs"
+            },
+            {
+              "id": "8.9.2",
+              "what": "A very long filename",
+              "expect": "Truncates with an ellipsis. The size and the button never move; the name is the only thing that gives way"
             },
             {
               "id": "8.10",

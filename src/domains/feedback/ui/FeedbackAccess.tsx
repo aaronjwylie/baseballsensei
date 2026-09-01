@@ -90,16 +90,34 @@ export function FeedbackAccess({ email }: { email: string }) {
                 {group.files.map((file) => (
                   <li
                     key={file.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-white p-3"
+                    /*
+                      One row shape, and the button is always on the right (Ben,
+                      2026-08-31).
+
+                      This was `flex-wrap`, which is why two files in the same
+                      list looked like two different designs: a flex line wraps
+                      before it shrinks, so a long filename pushed the button
+                      onto a second row while a short one left it beside the
+                      name. Nothing about the file differed, only its name's
+                      length.
+
+                      `flex-nowrap` plus a `flex-1 min-w-0 truncate` name is the
+                      shape the upload panels and the admin's folders already
+                      use: the name gives way with an ellipsis, and the size and
+                      the button never move.
+                    */
+                    className="flex items-center gap-3 rounded-xl border border-line bg-white p-3"
                   >
-                    <span className="min-w-0 truncate text-sm text-ink">
+                    <span className="min-w-0 flex-1 truncate text-sm text-ink">
                       {file.filename}
-                      {file.sizeBytes ? (
-                        <span className="ml-2 text-xs text-ink-muted">
-                          {formatFileSize(file.sizeBytes)}
-                        </span>
-                      ) : null}
                     </span>
+                    {/* Its own item rather than nested inside the truncated
+                        name, or the ellipsis eats the file size first. */}
+                    {file.sizeBytes ? (
+                      <span className="shrink-0 text-xs text-ink-muted">
+                        {formatFileSize(file.sizeBytes)}
+                      </span>
+                    ) : null}
                     {/*
                       Same tab, deliberately. `target="_blank"` opened a window
                       that flashed and closed itself on every download (Ben,
@@ -124,7 +142,7 @@ export function FeedbackAccess({ email }: { email: string }) {
                     <a
                       href={`/api/feedback/${file.id}`}
                       download={file.filename}
-                      className={buttonClasses("primary", "md")}
+                      className={buttonClasses("primary", "md", "shrink-0")}
                     >
                       Download
                     </a>

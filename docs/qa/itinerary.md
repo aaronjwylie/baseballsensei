@@ -417,6 +417,8 @@ than assuming the fix held.
 | 8.8 | The Download button doesn't flash a tab | Same tab, no window opening and closing. The route answers with `Content-Disposition: attachment`, so nothing was ever going to be shown in it |
 | 8.9 | ⚠️ Download still works after that change | It is a plain `<a>`, not `ButtonLink`. `next/link` intercepts internal hrefs and was skipping this one only because `target` was set |
 
+| 8.9.1 | ⚠️ **Two files, one row shape.** Deliver a submission with a short filename and a long one, then open the customer's download page | Both rows identical: name, size, Download on the right. ⚠️ The list was `flex-wrap`, so a long name pushed its button onto a second line and two files in one list looked like two designs |
+| 8.9.2 | A very long filename | Truncates with an ellipsis. The size and the button never move; the name is the only thing that gives way |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |

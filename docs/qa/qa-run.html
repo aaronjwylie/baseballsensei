@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 36</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 37</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1903,6 +1903,16 @@ const PHASES = [
             "8.9",
             "⚠️ Download still works after that change",
             "It is a plain <a>, not ButtonLink. next/link intercepts internal hrefs and was skipping this one only because target was set"
+          ],
+          [
+            "8.9.1",
+            "⚠️ Two files, one row shape. Deliver a submission with a short filename and a long one, then open the customer's download page",
+            "Both rows identical: name, size, Download on the right. ⚠️ The list was flex-wrap, so a long name pushed its button onto a second line and two files in one list looked like two designs"
+          ],
+          [
+            "8.9.2",
+            "A very long filename",
+            "Truncates with an ellipsis. The size and the button never move; the name is the only thing that gives way"
           ],
           [
             "8.10",

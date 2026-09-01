@@ -1980,6 +1980,20 @@
       "expect": "\"Step n of 20\". It said \"of 16\" from the day translation added four rungs, and a screen reader was the only place that showed",
       "retired": false,
       "history": []
+    },
+    "8.9.1": {
+      "firstSeen": "2026-09-01T01:59:04.510Z",
+      "what": "⚠️ Two files, one row shape. Deliver a submission with a short filename and a long one, then open the customer's download page",
+      "expect": "Both rows identical: name, size, Download on the right. ⚠️ The list was flex-wrap, so a long name pushed its button onto a second line and two files in one list looked like two designs",
+      "retired": false,
+      "history": []
+    },
+    "8.9.2": {
+      "firstSeen": "2026-09-01T01:59:04.510Z",
+      "what": "A very long filename",
+      "expect": "Truncates with an ellipsis. The size and the button never move; the name is the only thing that gives way",
+      "retired": false,
+      "history": []
     }
   }
 }
