@@ -16,6 +16,7 @@ export {
   RUNG_LABEL,
   numberedRungLabel,
   hasResponse,
+  awaitsTranslationDecision,
   isPaid,
   isReleased,
   isWithCoach,

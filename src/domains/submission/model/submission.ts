@@ -333,6 +333,58 @@ export function hasResponse(submission: Pick<Submission, "status">): boolean {
 }
 
 /**
+ * Is a translation decision still live on this submission?
+ *
+ * Added 2026-08-31 (Ben) to stop a stale amber warning. The admin queue was
+ * flagging "Translate the client files first" on a **collected** submission,
+ * because the flag was derived from `needsTranslation` alone — a comparison of
+ * two language sets, which is true from the moment a coach is assigned and
+ * stays true forever. Nothing in it could ever become false, so the warning
+ * could only ever be added, never withdrawn.
+ *
+ * The languages answer *whether* translating is called for. This answers
+ * *whether that is still anyone's problem*, which is a question about the
+ * ladder and therefore a predicate rather than a comparison (CLAUDE.md §8).
+ *
+ * True on the two rungs where the choice is open — `assigned` for the intake
+ * leg, `awaiting_approval` for the response — and through the rungs where a
+ * leg is out and not yet back. False the moment each leg lands: at
+ * `intake_translated` the intake decision is settled and the response one has
+ * not arisen, so a hint about either would be describing the past or the
+ * future rather than the work.
+ */
+const TRANSLATION_OPEN_AT_STATUS: Record<SubmissionStatus, boolean> = {
+  draft: false,
+  awaiting_payment: false,
+  // No coach yet, so there is nothing to compare a language against.
+  new: false,
+  assigned: true,
+  intake_translator_assigned: true,
+  sent_to_intake_translator: true,
+  intake_translating: true,
+  // The intake leg is home. The response leg's turn has not come.
+  intake_translated: false,
+  sent_to_coach: false,
+  in_review: false,
+  awaiting_approval: true,
+  feedback_translator_assigned: true,
+  sent_to_feedback_translator: true,
+  feedback_translating: true,
+  feedback_translated: false,
+  complete: false,
+  collected: false,
+  resolved: false,
+  purge_imminent: false,
+  purged: false,
+};
+
+export function awaitsTranslationDecision(
+  submission: Pick<Submission, "status">,
+): boolean {
+  return TRANSLATION_OPEN_AT_STATUS[submission.status];
+}
+
+/**
  * May the customer see the response?
  *
  * True from `complete` onward — step 13 is the moment it reaches them, and

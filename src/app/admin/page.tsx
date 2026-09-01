@@ -10,6 +10,7 @@ import {
   type SubmissionFile,
   type SubmissionStatus,
   isReleased,
+  awaitsTranslationDecision,
   availableSets,
   listFoldersForSubmissions,
   type FileKind,
@@ -341,9 +342,22 @@ function SubmissionRow({
     declaration otherwise. It's phrased for both reasons the intake gate fires —
     no shared language, and a bilingual customer whose files might be in the one
     the coach lacks — since "no shared language" would be a lie in the second.
+
+    **Gated on the decision still being open** (Ben, 2026-08-31). Everything
+    else here is a comparison of two language sets, which goes true the moment a
+    coach is assigned and can never go false again: nothing about a customer's
+    languages changes when the work gets done. So a submission that had been
+    translated, delivered and *collected* was still flagged "Translate the
+    client files first", and the flag out-ranks the outstanding line — so the
+    one place the queue says what to do next was permanently occupied by a job
+    finished days ago.
+
+    `awaitsTranslationDecision` is the missing half: the languages say whether
+    translating is called for, the rung says whether it is still anyone's
+    problem.
   */
   const translationHint =
-    !assignedCoach
+    !assignedCoach || !awaitsTranslationDecision(submission)
       ? null
       : wantsTranslation === true
         ? `Translate the client files first. ${assignedCoach.name} may not read the language they're in.`

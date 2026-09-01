@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 37,
-    "generatedAt": "2026-09-01T01:59:04.510Z",
-    "checks": 266,
-    "live": 266,
+    "build": 38,
+    "generatedAt": "2026-09-01T02:03:59.639Z",
+    "checks": 270,
+    "live": 270,
     "retired": 0,
     "edited": 18
   },
@@ -1011,6 +1011,26 @@
               "id": "5.9.28",
               "what": "The translator's ⑩ / ⑪ hand-off",
               "expect": "Also flat: one folder is sent, so there is nothing to disambiguate"
+            },
+            {
+              "id": "5.9.29",
+              "what": "⚠️ The amber flag withdraws itself. Take a translated submission all the way to collected, then read the queue row",
+              "expect": "No translation warning. ⚠️ It read \"Translate the client files first\" on a collected submission, because the flag came from a language comparison that goes true when a coach is assigned and can never go false"
+            },
+            {
+              "id": "5.9.30",
+              "what": "The flag out-ranks the outstanding line",
+              "expect": "So a stale one occupies the only place the row says what to do next. Check the row shows the real next action once the hint is gone"
+            },
+            {
+              "id": "5.9.31",
+              "what": "The hint appears where it should",
+              "expect": "assigned through intake_translating, and awaiting_approval through feedback_translating. Silent at intake_translated and sent_to_coach: that leg is settled and the response leg's turn has not come"
+            },
+            {
+              "id": "5.9.32",
+              "what": "\"The customer didn't declare a language\" obeys the same gate",
+              "expect": "Useful at the hand-off decision, noise on a delivered submission"
             },
             {
               "id": "5.10",

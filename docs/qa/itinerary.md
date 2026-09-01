@@ -305,6 +305,10 @@ than assuming the fix held.
 | 5.9.26 | The originals come first | Even when the translation was uploaded first. Ordered by the folder list, not by whatever order the query returned |
 | 5.9.27 | Send a **single** folder | Stays a flat "Files to download" with no headings. A heading over a list that could not be anything else only costs a line |
 | 5.9.28 | The translator's ⑩ / ⑪ hand-off | Also flat: one folder is sent, so there is nothing to disambiguate |
+| 5.9.29 | ⚠️ **The amber flag withdraws itself.** Take a translated submission all the way to `collected`, then read the queue row | No translation warning. ⚠️ It read "Translate the client files first" on a **collected** submission, because the flag came from a language comparison that goes true when a coach is assigned and can never go false |
+| 5.9.30 | The flag out-ranks the outstanding line | So a stale one occupies the only place the row says what to do next. Check the row shows the real next action once the hint is gone |
+| 5.9.31 | The hint appears where it should | `assigned` through `intake_translating`, and `awaiting_approval` through `feedback_translating`. Silent at `intake_translated` and `sent_to_coach`: that leg is settled and the response leg's turn has not come |
+| 5.9.32 | "The customer didn't declare a language" obeys the same gate | Useful at the hand-off decision, noise on a delivered submission |
 | 5.10 | **The response leg, same matrix.** Repeat 5.9.1 and 5.9.3 against the coach's *feedback*, after they upload it | ⚠️ Same two outcomes. It is a second `passive` constant in the same file and fixing one does not fix the other |
 | 5.11 | What an operator is *told* when languages are missing | The row says which side is blank rather than only that something is. ⚠️ An **admin** grant is empty by design — read the coach card, not the person |
 

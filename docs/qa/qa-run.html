@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 37</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 38</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1440,6 +1440,26 @@ const PHASES = [
             "5.9.28",
             "The translator's ⑩ / ⑪ hand-off",
             "Also flat: one folder is sent, so there is nothing to disambiguate"
+          ],
+          [
+            "5.9.29",
+            "⚠️ The amber flag withdraws itself. Take a translated submission all the way to collected, then read the queue row",
+            "No translation warning. ⚠️ It read \"Translate the client files first\" on a collected submission, because the flag came from a language comparison that goes true when a coach is assigned and can never go false"
+          ],
+          [
+            "5.9.30",
+            "The flag out-ranks the outstanding line",
+            "So a stale one occupies the only place the row says what to do next. Check the row shows the real next action once the hint is gone"
+          ],
+          [
+            "5.9.31",
+            "The hint appears where it should",
+            "assigned through intake_translating, and awaiting_approval through feedback_translating. Silent at intake_translated and sent_to_coach: that leg is settled and the response leg's turn has not come"
+          ],
+          [
+            "5.9.32",
+            "\"The customer didn't declare a language\" obeys the same gate",
+            "Useful at the hand-off decision, noise on a delivered submission"
           ],
           [
             "5.10",
