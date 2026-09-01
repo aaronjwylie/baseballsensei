@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 40</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 41</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1973,6 +1973,16 @@ const PHASES = [
             "8.9.10",
             "A card with no feedback shows no link",
             "And a page with no downloads shows none on any card"
+          ],
+          [
+            "8.9.11",
+            "⚠️ Both code emails look the same. Trigger the step-2 verification code and the /status access code, and put them side by side",
+            "Identical grey rounded panel, display face, same size and tracking. ⚠️ They differed in five ways: box, typeface, size, tracking and colour"
+          ],
+          [
+            "8.9.12",
+            "The panel follows the shell's palette",
+            "Its greys are the shell's PAPER_ALT and LINE, not literals, so a palette change carries the code box with it"
           ],
           [
             "8.10",

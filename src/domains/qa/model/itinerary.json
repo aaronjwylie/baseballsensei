@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 40,
-    "generatedAt": "2026-09-01T02:21:53.834Z",
-    "checks": 278,
-    "live": 278,
+    "build": 41,
+    "generatedAt": "2026-09-01T02:27:27.121Z",
+    "checks": 280,
+    "live": 280,
     "retired": 0,
     "edited": 18
   },
@@ -1619,6 +1619,16 @@
               "id": "8.9.10",
               "what": "A card with no feedback shows no link",
               "expect": "And a page with no downloads shows none on any card"
+            },
+            {
+              "id": "8.9.11",
+              "what": "⚠️ Both code emails look the same. Trigger the step-2 verification code and the /status access code, and put them side by side",
+              "expect": "Identical grey rounded panel, display face, same size and tracking. ⚠️ They differed in five ways: box, typeface, size, tracking and colour"
+            },
+            {
+              "id": "8.9.12",
+              "what": "The panel follows the shell's palette",
+              "expect": "Its greys are the shell's PAPER_ALT and LINE, not literals, so a palette change carries the code box with it"
             },
             {
               "id": "8.10",

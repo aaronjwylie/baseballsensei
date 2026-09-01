@@ -2078,6 +2078,20 @@
       "expect": "And a page with no downloads shows none on any card",
       "retired": false,
       "history": []
+    },
+    "8.9.11": {
+      "firstSeen": "2026-09-01T02:27:27.121Z",
+      "what": "⚠️ Both code emails look the same. Trigger the step-2 verification code and the /status access code, and put them side by side",
+      "expect": "Identical grey rounded panel, display face, same size and tracking. ⚠️ They differed in five ways: box, typeface, size, tracking and colour",
+      "retired": false,
+      "history": []
+    },
+    "8.9.12": {
+      "firstSeen": "2026-09-01T02:27:27.121Z",
+      "what": "The panel follows the shell's palette",
+      "expect": "Its greys are the shell's PAPER_ALT and LINE, not literals, so a palette change carries the code box with it",
+      "retired": false,
+      "history": []
     }
   }
 }

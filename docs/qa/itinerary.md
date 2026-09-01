@@ -431,6 +431,8 @@ than assuming the fix held.
 | 8.9.8 | Same on the `/status/[token]` link from ⑥ | No code prompt at all. The signed link *is* the proof; asking again proves nothing new |
 | 8.9.9 | ⚠️ **A "Feedback ready" card leads to its files.** Click Download ↓ on the card | Jumps to the panel below the stack. Nothing on the card said the files were already on the page, so customers went back to their email for the link instead of scrolling |
 | 8.9.10 | A card with no feedback shows no link | And a page with no downloads shows none on any card |
+| 8.9.11 | ⚠️ **Both code emails look the same.** Trigger the step-2 verification code and the `/status` access code, and put them side by side | Identical grey rounded panel, display face, same size and tracking. ⚠️ They differed in five ways: box, typeface, size, tracking and colour |
+| 8.9.12 | The panel follows the shell's palette | Its greys are the shell's `PAPER_ALT` and `LINE`, not literals, so a palette change carries the code box with it |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |

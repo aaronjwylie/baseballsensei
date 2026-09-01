@@ -6,7 +6,7 @@
  * link is the status page rather than a single file, because a review may now be
  * several files: the customer looks up their email and downloads each one.
  */
-import { emailShell, sendEmail } from "@/shared/email";
+import { codeBlock, emailShell, sendEmail } from "@/shared/email";
 import { site } from "@/shared/config/site";
 
 export function sendFeedbackReady(
@@ -50,7 +50,7 @@ export function sendFeedbackViewCode(to: string, code: string) {
     html: emailShell(
       "Your feedback access code",
       `<p>Enter this code on the status page to view your coaching feedback:</p>
-       <p style="margin:24px 0;font-size:34px;font-weight:700;letter-spacing:0.18em;color:#161616;">${code}</p>
+       ${codeBlock(code)}
        <p>It expires in 10 minutes. If you didn't request this, you can ignore this email.</p>`,
     ),
   });

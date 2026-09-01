@@ -86,6 +86,24 @@ Numbered to match the path table's ①–⑨, so the two can be read side by sid
 
 Three of these are new on 2026-08-01: ④, ⑦ and ⑨.
 
+**Every code goes in the same box.** There are two — ① at step 2 and the
+status-page access code — and they were built independently: one in a grey
+rounded panel in the display face at 38px/0.22em, the other a bare paragraph in
+the body face at 34px/0.18em. Five differences, none of them a decision, on the
+two messages a customer is most likely to see back to back (Ben, 2026-08-31).
+`codeBlock()` in `shell.ts` is now the only place that markup exists.
+
+The panel earns its place: a code is the one thing in an email a person has to
+**transcribe**, and the box is what marks where it ends — letter-spacing with no
+boundary leaves the reader guessing whether a trailing space belongs to it. It
+is built from the shell's own tokens, because the first version hardcoded
+`#f2f2f2` and `#d9d9da`, which are `PAPER_ALT` and `LINE` declared four lines
+above it, and would have silently stopped matching the shell the first time the
+palette moved.
+
+Neither the operator welcome nor the password reset carries a code — the first
+deliberately mails no secret, the second is a link — so those are unchanged.
+
 **⑩ and ⑪ break the numbering's own rule, deliberately.** The handles were
 issued in step order, so a message for step 6 ought to sit between ② (step 4)
 and ③ (step 8). It cannot. **The handle is a persisted key** — it is written to

@@ -18,6 +18,7 @@
  * mail (web fonts are unreliable there), so the display stack falls to a
  * condensed system face.
  */
+import { escapeHtml } from "./escapeHtml";
 import { site } from "@/shared/config/site";
 
 export interface EmailCta {
@@ -42,6 +43,36 @@ function wordmark(): string {
   const last = words.pop() ?? "";
   const lead = words.join(" ");
   return `${lead ? `${lead} ` : ""}<span style="color:${LIME};">${last}</span>`;
+}
+
+/**
+ * A one-time code, in the box.
+ *
+ * **One home, because there is more than one code** (Ben, 2026-08-31). The
+ * verification code at step 2 and the status-page access code are the same
+ * thing to a reader — a short string to copy out of an inbox — and they looked
+ * like two products: one sat in a grey rounded box in the display face at 38px
+ * and 0.22em, the other was a bare paragraph in the body face at 34px and
+ * 0.18em. Five differences, none of them decided.
+ *
+ * The box is not decoration. A code is the one thing in an email a person has
+ * to *transcribe*, and the panel is what marks where it ends — letter-spacing
+ * without a boundary leaves the reader guessing whether a trailing space is
+ * part of it. The display face is the same one the wordmark uses, so the code
+ * reads as ours rather than as pasted-in text.
+ *
+ * Built from the shell's own tokens rather than literals. The first version of
+ * this markup hardcoded `#f2f2f2` and `#d9d9da`, which are `PAPER_ALT` and
+ * `LINE` four lines above it — so the code panel would have quietly stopped
+ * matching the shell the first time the palette moved.
+ *
+ * Escaped, though every caller passes digits we generated. A code is not
+ * user-supplied *today*, and the cost of that staying true is one function call.
+ */
+export function codeBlock(code: string): string {
+  return `<div style="margin:20px 0;padding:18px;background:${PAPER_ALT};border:1px solid ${LINE};border-radius:14px;text-align:center;">
+         <span style="font-family:${DISPLAY};font-size:38px;font-weight:700;letter-spacing:0.22em;color:${INK};">${escapeHtml(code)}</span>
+       </div>`;
 }
 
 export function emailShell(
