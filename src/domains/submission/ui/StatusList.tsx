@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 
 import { ButtonLink } from "@/shared/ui";
+import { FEEDBACK_ANCHOR } from "@/shared/lib/anchors";
 import type { PublicSubmission } from "../model/publicSubmission";
 
 /**
@@ -50,7 +51,11 @@ export function StatusList({
     <>
       <ul className="space-y-3">
         {submissions.map((submission, index) => (
-          <StatusRow key={index} submission={submission} />
+          <StatusRow
+            key={index}
+            submission={submission}
+            hasDownloads={!!feedbackAccess}
+          />
         ))}
       </ul>
       {submissions.some((s) => s.hasFeedback) && feedbackAccess && (
@@ -136,7 +141,14 @@ const STATUS_META: Record<
   },
 };
 
-function StatusRow({ submission }: { submission: PublicSubmission }) {
+function StatusRow({
+  submission,
+  hasDownloads,
+}: {
+  submission: PublicSubmission;
+  /** Only link to a panel that is actually on the page. */
+  hasDownloads: boolean;
+}) {
   const meta = STATUS_META[submission.status];
   return (
     <li className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white p-5">
@@ -147,11 +159,30 @@ function StatusRow({ submission }: { submission: PublicSubmission }) {
           {formatDate(submission.submittedAt)}
         </div>
       </div>
-      <span
-        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${meta.className}`}
-      >
-        {meta.label}
-      </span>
+      <div className="flex items-center gap-3">
+        <span
+          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${meta.className}`}
+        >
+          {meta.label}
+        </span>
+        {/*
+          A card whose feedback is ready leads to it (Ben, 2026-08-31). The
+          downloads were on the same page all along, below the stack, and
+          nothing on the card said so — a customer who saw "Feedback ready"
+          went back to their email for the link instead of scrolling.
+
+          An in-page anchor rather than a route: everything is already here,
+          and `scroll-mt` on the target keeps the heading off the top edge.
+        */}
+        {submission.hasFeedback && hasDownloads ? (
+          <a
+            href={`#${FEEDBACK_ANCHOR}`}
+            className="shrink-0 text-xs font-semibold text-accent underline underline-offset-2 hover:text-ink"
+          >
+            Download ↓
+          </a>
+        ) : null}
+      </div>
     </li>
   );
 }

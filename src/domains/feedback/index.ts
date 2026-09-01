@@ -20,6 +20,7 @@ export {
   FEEDBACK_CODE_TTL_S,
   MAX_FEEDBACK_CODE_ATTEMPTS,
   issueFeedbackViewCode,
+  listFeedbackForEmail,
   verifyFeedbackViewCode,
   type FeedbackGroup,
   type PendingFeedbackCode,
@@ -38,5 +39,6 @@ export {
   removeFeedbackFileAction,
 } from "./api/feedbackActions";
 export { FeedbackUpload } from "./ui/FeedbackUpload";
-export { FeedbackAccess } from "./ui/FeedbackAccess";
+export { FeedbackDownloads } from "./ui/FeedbackDownloads";
+export { StatusPanel } from "./ui/StatusPanel";
 export { FeedbackDownloadRow } from "./ui/FeedbackDownloadRow";

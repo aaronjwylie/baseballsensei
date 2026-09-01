@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Field, inputClass } from "@/shared/ui";
@@ -15,7 +15,31 @@ type Result =
   | { state: "idle" }
   | { state: "codeSent"; email: string }
   | { state: "error"; message: string }
-  | { state: "loaded"; email: string; submissions: PublicSubmission[] };
+  | {
+      state: "loaded";
+      email: string;
+      submissions: PublicSubmission[];
+      /*
+        Kept, not discarded (Ben, 2026-08-31). `verifyFeedbackViewCode` returns
+        the list *and* the downloads under one grant — "one code, one grant: the
+        customer's whole view". This dropped the second half and let a separate
+        panel ask for a fresh code to fetch what the server had already sent.
+      */
+      groups: DownloadGroup[];
+    };
+
+/*
+  The shape of `FeedbackGroup`, declared rather than imported.
+
+  `domains/feedback` imports this slice, so importing it back would close a
+  cycle the structure check refuses — and the rendering genuinely belongs over
+  there, which is why it arrives as `renderDownloads` instead. This lookup only
+  needs to carry the value across, so it describes it rather than owning it.
+*/
+export interface DownloadGroup {
+  playerName: string;
+  files: { id: string; filename: string; sizeBytes: number }[];
+}
 
 /**
  * Status lookup by email — **and a code, because typing an address proves
@@ -32,7 +56,19 @@ type Result =
  *
  * The same code then covers the downloads — one act of proof, one grant.
  */
-export function StatusLookup() {
+export function StatusLookup({
+  renderDownloads,
+}: {
+  /**
+   * How to render the downloads that came back with the list.
+   *
+   * A prop rather than an import: the component that draws them lives in
+   * `domains/feedback`, which already depends on this slice. Supplied by a
+   * client parent over there, so the function crosses a client-to-client
+   * boundary rather than a server one.
+   */
+  renderDownloads?: (groups: DownloadGroup[]) => ReactNode;
+} = {}) {
   const [result, setResult] = useState<Result>({ state: "idle" });
   const [code, setCode] = useState("");
   // A wrong code stays on the code card and shows here, with the tries left —
@@ -97,6 +133,7 @@ export function StatusLookup() {
       });
       const json = (await res.json().catch(() => ({}))) as {
         submissions?: PublicSubmission[];
+        groups?: DownloadGroup[];
         error?: string;
       };
       if (!res.ok) {
@@ -111,6 +148,7 @@ export function StatusLookup() {
         state: "loaded",
         email: result.email,
         submissions: json.submissions ?? [],
+        groups: json.groups ?? [],
       });
     } catch {
       // A network blip is a retry too — keep them on the card.
@@ -208,6 +246,7 @@ export function StatusLookup() {
           <StatusList
             submissions={result.submissions}
             email={result.email}
+            feedbackAccess={renderDownloads?.(result.groups)}
           />
         )}
       </div>

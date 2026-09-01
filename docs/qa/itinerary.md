@@ -427,6 +427,10 @@ than assuming the fix held.
 | 8.9.4 | No tab flash on either page | Clicking Download starts a download in place. `target="_blank"` opened a window with nothing in it — the route answers `Content-Disposition: attachment` |
 | 8.9.5 | ⚠️ **Drag the window wider on the ⑥ page** | The text column never gets *narrower*. It did, twice: the site container steps its padding at 640px and 1024px for a 1400px layout, and against a `max-w-xl` cap those steps ate the column, 536 to 512 to 456 |
 | 8.9.6 | Resize slowly across the whole range | Heading and vertical rhythm scale continuously, with no snap at a breakpoint |
+| 8.9.7 | ⚠️ **One code, not two.** Look yourself up on `/status`, enter the code, and reach the card stack | The downloads are **on the page**. ⚠️ A second "email me a code" panel sat below the cards asking for proof already given — and codes are single-use, so it was a fresh trip to the inbox for files the server had already returned |
+| 8.9.8 | Same on the `/status/[token]` link from ⑥ | No code prompt at all. The signed link *is* the proof; asking again proves nothing new |
+| 8.9.9 | ⚠️ **A "Feedback ready" card leads to its files.** Click Download ↓ on the card | Jumps to the panel below the stack. Nothing on the card said the files were already on the page, so customers went back to their email for the link instead of scrolling |
+| 8.9.10 | A card with no feedback shows no link | And a page with no downloads shows none on any card |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |

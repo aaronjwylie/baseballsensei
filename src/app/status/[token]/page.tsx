@@ -6,7 +6,7 @@ import {
   verifyStatusToken,
 } from "@/domains/submission";
 import { StatusList } from "@/domains/submission";
-import { FeedbackAccess } from "@/domains/feedback";
+import { FeedbackDownloads, listFeedbackForEmail } from "@/domains/feedback";
 
 export const metadata: Metadata = {
   title: "Your submissions",
@@ -79,7 +79,7 @@ export default async function StatusByTokenPage({
           <StatusList
             submissions={submissions}
             email={email}
-            feedbackAccess={<FeedbackAccess email={email} />}
+            feedbackAccess={<FeedbackDownloads groups={await listFeedbackForEmail(email)} />}
           />
         </div>
 
