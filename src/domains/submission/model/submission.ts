@@ -628,19 +628,38 @@ export function choiceForLanguages(
  * One word each, so twenty of them read as one process rather than twenty
  * sentences. The rung says *where*; the line under it says what's owed.
  */
+/*
+  One word per rung, and it must be true of the rung it names.
+
+  5 and 12 read "Sent" until 2026-08-31 (Ben), which they are not: a translator
+  has been *chosen* there and nothing has gone out. The email is 6 and 13. So
+  the rail read "Sent · Sent" across a pair where only the second had sent
+  anything, and there was no way to tell from it whether a translator had
+  actually been emailed.
+
+  That is the same failure that let ⑩ go missing for weeks — a name asserting a
+  send nobody had written. It is worth being strict about here for the same
+  reason: these labels are what an admin reads instead of the trail.
+
+  Participles throughout, never imperatives (`_NomenclatureLaw.md` §2). "Send"
+  would say the right thing about 5 and be the only instruction in a list of
+  states; "Chosen" says it in the list's own grammar. Sharing a word across the
+  two legs is deliberate and unchanged — position carries the difference on the
+  rail, and `numberedRungLabel` restores it everywhere else.
+*/
 export const RUNG_LABEL: Record<SubmissionStatus, string> = {
   draft: "Draft",
   awaiting_payment: "Upload",
   new: "New",
   assigned: "Assigned",
-  intake_translator_assigned: "Sent",
+  intake_translator_assigned: "Chosen",
   sent_to_intake_translator: "Sent",
   intake_translating: "Translating",
   intake_translated: "Translated",
   sent_to_coach: "Sent",
   in_review: "Reviewing",
   awaiting_approval: "Submitted",
-  feedback_translator_assigned: "Sent",
+  feedback_translator_assigned: "Chosen",
   sent_to_feedback_translator: "Sent",
   feedback_translating: "Translating",
   feedback_translated: "Translated",

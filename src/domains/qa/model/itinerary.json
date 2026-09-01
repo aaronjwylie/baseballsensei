@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 35,
-    "generatedAt": "2026-09-01T01:44:04.272Z",
-    "checks": 261,
-    "live": 261,
+    "build": 36,
+    "generatedAt": "2026-09-01T01:54:11.069Z",
+    "checks": 264,
+    "live": 264,
     "retired": 0,
     "edited": 18
   },
@@ -1549,6 +1549,21 @@
               "id": "8.9",
               "what": "⚠️ Download still works after that change",
               "expect": "It is a plain <a>, not ButtonLink. next/link intercepts internal hrefs and was skipping this one only because target was set"
+            },
+            {
+              "id": "8.10",
+              "what": "⚠️ Rungs 5 and 12 say \"Chosen\", not \"Sent\". Assign a translator and stop before sending",
+              "expect": "The rail reads 5 · Chosen, and only 6 · Sent once the email goes. ⚠️ Both read \"Sent\" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent"
+            },
+            {
+              "id": "8.11",
+              "what": "The reset-status dropdown agrees",
+              "expect": "Same words, same numbers. It reads the one label map"
+            },
+            {
+              "id": "8.12",
+              "what": "⚠️ Screen-reader step count. Inspect the rail's aria-label",
+              "expect": "\"Step n of 20\". It said \"of 16\" from the day translation added four rungs, and a screen reader was the only place that showed"
             }
           ]
         }

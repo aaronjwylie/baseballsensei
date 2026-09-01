@@ -68,7 +68,10 @@ export function StatusRail({
   return (
     <div
       className={detail ? "relative h-[61px]" : "relative h-11"}
-      aria-label={`Step ${at + 1} of 16: ${RUNG_LABEL[status]}`}
+      /* Counted, not written down. This said "of 16" while the ladder
+         had 20 rungs — it went stale the moment translation was added,
+         and a screen reader was the only place it showed. */
+      aria-label={`Step ${at + 1} of ${SUBMISSION_STATUSES.length}: ${RUNG_LABEL[status]}`}
     >
       <span
         className={`${pillClass} absolute top-0 -translate-x-1/2 ${
