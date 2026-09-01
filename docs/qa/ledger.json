@@ -1879,6 +1879,27 @@
       "expect": "Upload left, Send for approval right. During an upload only the Upload button reads busy, so the send never looks pressed when it hasn't been",
       "retired": false,
       "history": []
+    },
+    "8.7": {
+      "firstSeen": "2026-09-01T00:02:41.928Z",
+      "what": "⚠️ The customer's download moves complete → collected. Open the link from ⑥ in a browser signed out of the portal",
+      "expect": "The rung moves and the admin gets ⑦. ⚠️ Signed in as an operator it deliberately does not — staff checking a file is not the customer collecting it, and letting it count would delete the feedback 30 days after staff looked. This is the likeliest reason a QA download \"does nothing\"",
+      "retired": false,
+      "history": []
+    },
+    "8.8": {
+      "firstSeen": "2026-09-01T00:02:41.928Z",
+      "what": "The Download button doesn't flash a tab",
+      "expect": "Same tab, no window opening and closing. The route answers with Content-Disposition: attachment, so nothing was ever going to be shown in it",
+      "retired": false,
+      "history": []
+    },
+    "8.9": {
+      "firstSeen": "2026-09-01T00:02:41.928Z",
+      "what": "⚠️ Download still works after that change",
+      "expect": "It is a plain <a>, not ButtonLink. next/link intercepts internal hrefs and was skipping this one only because target was set",
+      "retired": false,
+      "history": []
     }
   }
 }

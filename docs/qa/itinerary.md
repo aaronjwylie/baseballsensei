@@ -407,6 +407,10 @@ than assuming the fix held.
 
 ---
 
+| 8.7 | ⚠️ **The customer's download moves `complete` → `collected`.** Open the link from ⑥ in a browser **signed out of the portal** | The rung moves and the admin gets ⑦. ⚠️ **Signed in as an operator it deliberately does not** — staff checking a file is not the customer collecting it, and letting it count would delete the feedback 30 days after *staff* looked. This is the likeliest reason a QA download "does nothing" |
+| 8.8 | The Download button doesn't flash a tab | Same tab, no window opening and closing. The route answers with `Content-Disposition: attachment`, so nothing was ever going to be shown in it |
+| 8.9 | ⚠️ Download still works after that change | It is a plain `<a>`, not `ButtonLink`. `next/link` intercepts internal hrefs and was skipping this one only because `target` was set |
+
 ## Phase 9 · System jobs
 
 **9.5 was one check covering two facts** and was split on 2026-08-27, after a pass found delivery

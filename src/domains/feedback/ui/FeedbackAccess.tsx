@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, ButtonLink, Field, inputClass } from "@/shared/ui";
+import { Button, Field, buttonClasses, inputClass } from "@/shared/ui";
 import { formatFileSize } from "@/domains/submission/model/submissionFile";
 
 interface FeedbackGroup {
@@ -100,14 +100,34 @@ export function FeedbackAccess({ email }: { email: string }) {
                         </span>
                       ) : null}
                     </span>
-                    <ButtonLink
+                    {/*
+                      Same tab, deliberately. `target="_blank"` opened a window
+                      that flashed and closed itself on every download (Ben,
+                      2026-08-31) — the tab had nothing to show, because the
+                      route answers with `Content-Disposition: attachment` and
+                      the browser downloads rather than navigating.
+
+                      That header is why dropping it is safe: both storage
+                      drivers stream through this route, so the response is
+                      always an attachment and the status page is never
+                      navigated away from.
+
+                      **A plain `<a>`, not `ButtonLink`.** That wraps
+                      `next/link`, which intercepts internal hrefs for
+                      client-side navigation and was skipping this one *only*
+                      because `target` was set. Dropping the target without
+                      dropping the Link would have handed `/api/feedback/[id]`
+                      to the router as if it were a page. The sibling
+                      `SubmissionFileList` uses a bare anchor for the same
+                      reason.
+                    */}
+                    <a
                       href={`/api/feedback/${file.id}`}
-                      size="md"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      download={file.filename}
+                      className={buttonClasses("primary", "md")}
                     >
                       Download
-                    </ButtonLink>
+                    </a>
                   </li>
                 ))}
               </ul>

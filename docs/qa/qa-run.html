@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 33</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 34</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1858,6 +1858,21 @@ const PHASES = [
             "8.6",
             "Download a second time",
             "Still works; collected not re-stamped"
+          ],
+          [
+            "8.7",
+            "⚠️ The customer's download moves complete → collected. Open the link from ⑥ in a browser signed out of the portal",
+            "The rung moves and the admin gets ⑦. ⚠️ Signed in as an operator it deliberately does not — staff checking a file is not the customer collecting it, and letting it count would delete the feedback 30 days after staff looked. This is the likeliest reason a QA download \"does nothing\""
+          ],
+          [
+            "8.8",
+            "The Download button doesn't flash a tab",
+            "Same tab, no window opening and closing. The route answers with Content-Disposition: attachment, so nothing was ever going to be shown in it"
+          ],
+          [
+            "8.9",
+            "⚠️ Download still works after that change",
+            "It is a plain <a>, not ButtonLink. next/link intercepts internal hrefs and was skipping this one only because target was set"
           ]
         ]
       }

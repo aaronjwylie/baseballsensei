@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 33,
-    "generatedAt": "2026-08-31T23:52:00.678Z",
-    "checks": 252,
-    "live": 252,
+    "build": 34,
+    "generatedAt": "2026-09-01T00:02:41.928Z",
+    "checks": 255,
+    "live": 255,
     "retired": 0,
     "edited": 16
   },
@@ -1485,6 +1485,21 @@
               "id": "8.6",
               "what": "Download a second time",
               "expect": "Still works; collected not re-stamped"
+            },
+            {
+              "id": "8.7",
+              "what": "⚠️ The customer's download moves complete → collected. Open the link from ⑥ in a browser signed out of the portal",
+              "expect": "The rung moves and the admin gets ⑦. ⚠️ Signed in as an operator it deliberately does not — staff checking a file is not the customer collecting it, and letting it count would delete the feedback 30 days after staff looked. This is the likeliest reason a QA download \"does nothing\""
+            },
+            {
+              "id": "8.8",
+              "what": "The Download button doesn't flash a tab",
+              "expect": "Same tab, no window opening and closing. The route answers with Content-Disposition: attachment, so nothing was ever going to be shown in it"
+            },
+            {
+              "id": "8.9",
+              "what": "⚠️ Download still works after that change",
+              "expect": "It is a plain <a>, not ButtonLink. next/link intercepts internal hrefs and was skipping this one only because target was set"
             }
           ]
         }

@@ -67,13 +67,14 @@ export async function GET(
     Steps 9 and 7, observed rather than declared — and scheduled with `after`,
     not fired and forgotten.
 
-    These were `void`ed promises, which worked in development and could not be
-    relied on in production: dev streams the bytes from disk, so the handler
-    lives long enough for a stray promise to finish, while prod redirects to
-    Blob and returns *immediately*. The stamp was racing a serverless function
-    that had already answered. `after` is the platform's answer — it keeps the
-    invocation alive for the callback and, per Next 16's docs, still runs when
-    the response was a redirect, which is the only case that matters here.
+    These were `void`ed promises. Both drivers stream today, so the invocation
+    outlives the handler and those promises probably did land — but "probably,
+    because of how the driver we happen to use returns bytes" is not a
+    guarantee, and `OpenResult.redirectTo` exists precisely so a driver can stop
+    streaming one day. `after` is the platform's supported mechanism: it keeps
+    the invocation alive for the callback and, per Next 16's docs, runs even
+    when the response was a redirect. The stamp stops depending on a detail two
+    layers away.
 
     Still off the critical path: the customer of this route is someone waiting
     on bytes, and neither stamp nor its email is ever worth a failed download.

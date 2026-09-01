@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import {
   getSubmission,
   getSubmissionFile,
@@ -65,22 +65,38 @@ export async function GET(
       (await isAssignedToSubmission(file.submissionId, session.operatorId)));
 
   if (!isPrivileged) {
-    /*
-      Step 14, observed rather than declared — the mirror of step 9.
-
-      Only a customer's download counts, and only a caller with no session at all
-      is the customer: an operator opening the file to check it — assigned or not
-      — is not collecting it, and letting that start the retention clock would
-      delete the feedback thirty days after *staff* looked at it.
-
-      Not awaited, for the same reason as step 9 — the notification must never be
-      why a download fails.
-    */
-    if (session === null) void noteCustomerCollected(file.submissionId);
-
     const submission = await getSubmission(file.submissionId);
     if (!submission || !isReleased(submission)) {
       return new Response("Not found", { status: 404 });
+    }
+
+    /*
+      Step 14, observed rather than declared — the mirror of step 9.
+
+      Only a customer's download counts, and only a caller with no session at
+      all is the customer: an operator opening the file to check it, assigned or
+      not, is not collecting it, and letting that start the retention clock
+      would delete the feedback thirty days after *staff* looked at it. **This
+      is why a download made while signed in as the admin does not move the
+      rung** — correct, and worth knowing while testing (Ben, 2026-08-31).
+
+      `after`, not a floating promise. Both drivers stream today, so the
+      invocation does outlive the handler and a `void`ed promise probably did
+      land — but "probably, because of how the driver we happen to use returns
+      bytes" is not a guarantee, and `OpenResult.redirectTo` exists precisely so
+      a driver can stop streaming one day. `after` is the platform's supported
+      mechanism and it runs even when the response was a redirect, so the stamp
+      stops depending on a detail two layers away. **Post-response work in a
+      route handler goes in `after`; there is no case here where `void` is
+      right.**
+
+      And it is stamped *after* the release gate, not before. Stamping a
+      collection and then deciding whether the caller was even allowed the file
+      is backwards; it was harmless only because `markCustomerCollected`
+      re-checks the rung itself.
+    */
+    if (session === null) {
+      after(() => noteCustomerCollected(file.submissionId));
     }
   }
 
