@@ -423,6 +423,10 @@ than assuming the fix held.
 
 | 8.9.1 | ⚠️ **Two files, one row shape.** Deliver a submission with a short filename and a long one, then open the customer's download page | Both rows identical: name, size, Download on the right. ⚠️ The list was `flex-wrap`, so a long name pushed its button onto a second line and two files in one list looked like two designs |
 | 8.9.2 | A very long filename | Truncates with an ellipsis. The size and the button never move; the name is the only thing that gives way |
+| 8.9.3 | ⚠️ **Both customer download pages, not one.** Check the signed link from the ⑥ email *and* the status lookup | Identical rows on both. ⚠️ Each had built this row for itself, so the first fix landed on one page and the same report came back about the other. They render one shared component now |
+| 8.9.4 | No tab flash on either page | Clicking Download starts a download in place. `target="_blank"` opened a window with nothing in it — the route answers `Content-Disposition: attachment` |
+| 8.9.5 | ⚠️ **Drag the window wider on the ⑥ page** | The text column never gets *narrower*. It did, twice: the site container steps its padding at 640px and 1024px for a 1400px layout, and against a `max-w-xl` cap those steps ate the column, 536 to 512 to 456 |
+| 8.9.6 | Resize slowly across the whole range | Heading and vertical rhythm scale continuously, with no snap at a breakpoint |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |

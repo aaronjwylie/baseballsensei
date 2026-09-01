@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Container, ButtonLink } from "@/shared/ui";
+import { ButtonLink } from "@/shared/ui";
+import { FeedbackDownloadRow } from "@/domains/feedback";
 import {
-  formatFileSize,
   getSubmission,
   isReleased,
   listFeedbackFiles,
@@ -37,8 +37,22 @@ export default async function FeedbackPage({
       : [];
 
   return (
-    <section className="py-14 sm:py-20">
-      <Container className="max-w-xl">
+    /*
+      Fluid rather than stepped (Ben, 2026-08-31).
+
+      This page used the site `Container`, whose padding steps at 640px and
+      1024px because it is built for a 1400px layout. Capped at `max-w-xl` those
+      steps invert: the box stops growing at 576px but the padding keeps
+      stepping *inward*, so dragging the window wider made the text column
+      narrower — 536 to 512 to 456 — twice, visibly, in the wrong direction.
+
+      A narrow card wants constant padding and one cap. The vertical rhythm and
+      the heading are `clamp()` for the same reason: they now interpolate across
+      the whole range instead of snapping at a width that has nothing to do with
+      this page.
+    */
+    <section className="py-[clamp(3.5rem,2.5rem+3vw,5rem)]">
+      <div className="mx-auto w-full max-w-xl px-5">
         {files.length === 0 ? (
           <div className="rounded-2xl border border-line bg-white p-8 text-center">
             <h1 className="text-2xl font-bold tracking-tight text-ink">
@@ -55,7 +69,7 @@ export default async function FeedbackPage({
         ) : (
           <>
             <div className="text-center">
-              <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+              <h1 className="text-[clamp(1.875rem,1.5rem+1.6vw,2.25rem)] font-bold tracking-tight text-ink">
                 Your feedback is ready 🎬
               </h1>
               <p className="mt-4 text-ink-muted">
@@ -69,32 +83,18 @@ export default async function FeedbackPage({
 
             <ul className="mt-10 space-y-3">
               {files.map((file) => (
-                <li
+                <FeedbackDownloadRow
                   key={file.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white p-5"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate font-medium text-ink">
-                      {file.filename}
-                    </div>
-                    <div className="text-xs text-ink-muted">
-                      {formatFileSize(file.sizeBytes)}
-                    </div>
-                  </div>
-                  <ButtonLink
-                    href={`/api/feedback/${file.id}`}
-                    size="md"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Download
-                  </ButtonLink>
-                </li>
+                  fileId={file.id}
+                  filename={file.filename}
+                  sizeBytes={file.sizeBytes}
+                  padding="p-5"
+                />
               ))}
             </ul>
           </>
         )}
-      </Container>
+      </div>
     </section>
   );
 }

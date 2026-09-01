@@ -39,3 +39,4 @@ export {
 } from "./api/feedbackActions";
 export { FeedbackUpload } from "./ui/FeedbackUpload";
 export { FeedbackAccess } from "./ui/FeedbackAccess";
+export { FeedbackDownloadRow } from "./ui/FeedbackDownloadRow";

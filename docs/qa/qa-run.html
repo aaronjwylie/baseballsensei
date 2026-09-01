@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 38</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 39</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1933,6 +1933,26 @@ const PHASES = [
             "8.9.2",
             "A very long filename",
             "Truncates with an ellipsis. The size and the button never move; the name is the only thing that gives way"
+          ],
+          [
+            "8.9.3",
+            "⚠️ Both customer download pages, not one. Check the signed link from the ⑥ email and the status lookup",
+            "Identical rows on both. ⚠️ Each had built this row for itself, so the first fix landed on one page and the same report came back about the other. They render one shared component now"
+          ],
+          [
+            "8.9.4",
+            "No tab flash on either page",
+            "Clicking Download starts a download in place. target=\"_blank\" opened a window with nothing in it — the route answers Content-Disposition: attachment"
+          ],
+          [
+            "8.9.5",
+            "⚠️ Drag the window wider on the ⑥ page",
+            "The text column never gets narrower. It did, twice: the site container steps its padding at 640px and 1024px for a 1400px layout, and against a max-w-xl cap those steps ate the column, 536 to 512 to 456"
+          ],
+          [
+            "8.9.6",
+            "Resize slowly across the whole range",
+            "Heading and vertical rhythm scale continuously, with no snap at a breakpoint"
           ],
           [
             "8.10",

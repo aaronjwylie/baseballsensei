@@ -2022,6 +2022,34 @@
       "expect": "Useful at the hand-off decision, noise on a delivered submission",
       "retired": false,
       "history": []
+    },
+    "8.9.3": {
+      "firstSeen": "2026-09-01T02:15:30.609Z",
+      "what": "⚠️ Both customer download pages, not one. Check the signed link from the ⑥ email and the status lookup",
+      "expect": "Identical rows on both. ⚠️ Each had built this row for itself, so the first fix landed on one page and the same report came back about the other. They render one shared component now",
+      "retired": false,
+      "history": []
+    },
+    "8.9.4": {
+      "firstSeen": "2026-09-01T02:15:30.609Z",
+      "what": "No tab flash on either page",
+      "expect": "Clicking Download starts a download in place. target=\"_blank\" opened a window with nothing in it — the route answers Content-Disposition: attachment",
+      "retired": false,
+      "history": []
+    },
+    "8.9.5": {
+      "firstSeen": "2026-09-01T02:15:30.609Z",
+      "what": "⚠️ Drag the window wider on the ⑥ page",
+      "expect": "The text column never gets narrower. It did, twice: the site container steps its padding at 640px and 1024px for a 1400px layout, and against a max-w-xl cap those steps ate the column, 536 to 512 to 456",
+      "retired": false,
+      "history": []
+    },
+    "8.9.6": {
+      "firstSeen": "2026-09-01T02:15:30.609Z",
+      "what": "Resize slowly across the whole range",
+      "expect": "Heading and vertical rhythm scale continuously, with no snap at a breakpoint",
+      "retired": false,
+      "history": []
     }
   }
 }

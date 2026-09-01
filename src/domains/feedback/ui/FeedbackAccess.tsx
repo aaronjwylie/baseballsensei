@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Field, buttonClasses, inputClass } from "@/shared/ui";
-import { formatFileSize } from "@/domains/submission/model/submissionFile";
+import { Button, Field, inputClass } from "@/shared/ui";
+import { FeedbackDownloadRow } from "./FeedbackDownloadRow";
 
 interface FeedbackGroup {
   playerName: string;
@@ -88,65 +88,12 @@ export function FeedbackAccess({ email }: { email: string }) {
               </div>
               <ul className="mt-2 space-y-2">
                 {group.files.map((file) => (
-                  <li
+                  <FeedbackDownloadRow
                     key={file.id}
-                    /*
-                      One row shape, and the button is always on the right (Ben,
-                      2026-08-31).
-
-                      This was `flex-wrap`, which is why two files in the same
-                      list looked like two different designs: a flex line wraps
-                      before it shrinks, so a long filename pushed the button
-                      onto a second row while a short one left it beside the
-                      name. Nothing about the file differed, only its name's
-                      length.
-
-                      `flex-nowrap` plus a `flex-1 min-w-0 truncate` name is the
-                      shape the upload panels and the admin's folders already
-                      use: the name gives way with an ellipsis, and the size and
-                      the button never move.
-                    */
-                    className="flex items-center gap-3 rounded-xl border border-line bg-white p-3"
-                  >
-                    <span className="min-w-0 flex-1 truncate text-sm text-ink">
-                      {file.filename}
-                    </span>
-                    {/* Its own item rather than nested inside the truncated
-                        name, or the ellipsis eats the file size first. */}
-                    {file.sizeBytes ? (
-                      <span className="shrink-0 text-xs text-ink-muted">
-                        {formatFileSize(file.sizeBytes)}
-                      </span>
-                    ) : null}
-                    {/*
-                      Same tab, deliberately. `target="_blank"` opened a window
-                      that flashed and closed itself on every download (Ben,
-                      2026-08-31) — the tab had nothing to show, because the
-                      route answers with `Content-Disposition: attachment` and
-                      the browser downloads rather than navigating.
-
-                      That header is why dropping it is safe: both storage
-                      drivers stream through this route, so the response is
-                      always an attachment and the status page is never
-                      navigated away from.
-
-                      **A plain `<a>`, not `ButtonLink`.** That wraps
-                      `next/link`, which intercepts internal hrefs for
-                      client-side navigation and was skipping this one *only*
-                      because `target` was set. Dropping the target without
-                      dropping the Link would have handed `/api/feedback/[id]`
-                      to the router as if it were a page. The sibling
-                      `SubmissionFileList` uses a bare anchor for the same
-                      reason.
-                    */}
-                    <a
-                      href={`/api/feedback/${file.id}`}
-                      download={file.filename}
-                      className={buttonClasses("primary", "md", "shrink-0")}
-                    >
-                      Download
-                    </a>
-                  </li>
+                    fileId={file.id}
+                    filename={file.filename}
+                    sizeBytes={file.sizeBytes}
+                  />
                 ))}
               </ul>
             </div>

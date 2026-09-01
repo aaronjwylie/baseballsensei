@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 38,
-    "generatedAt": "2026-09-01T02:03:59.639Z",
-    "checks": 270,
-    "live": 270,
+    "build": 39,
+    "generatedAt": "2026-09-01T02:15:30.609Z",
+    "checks": 274,
+    "live": 274,
     "retired": 0,
     "edited": 18
   },
@@ -1579,6 +1579,26 @@
               "id": "8.9.2",
               "what": "A very long filename",
               "expect": "Truncates with an ellipsis. The size and the button never move; the name is the only thing that gives way"
+            },
+            {
+              "id": "8.9.3",
+              "what": "⚠️ Both customer download pages, not one. Check the signed link from the ⑥ email and the status lookup",
+              "expect": "Identical rows on both. ⚠️ Each had built this row for itself, so the first fix landed on one page and the same report came back about the other. They render one shared component now"
+            },
+            {
+              "id": "8.9.4",
+              "what": "No tab flash on either page",
+              "expect": "Clicking Download starts a download in place. target=\"_blank\" opened a window with nothing in it — the route answers Content-Disposition: attachment"
+            },
+            {
+              "id": "8.9.5",
+              "what": "⚠️ Drag the window wider on the ⑥ page",
+              "expect": "The text column never gets narrower. It did, twice: the site container steps its padding at 640px and 1024px for a 1400px layout, and against a max-w-xl cap those steps ate the column, 536 to 512 to 456"
+            },
+            {
+              "id": "8.9.6",
+              "what": "Resize slowly across the whole range",
+              "expect": "Heading and vertical rhythm scale continuously, with no snap at a breakpoint"
             },
             {
               "id": "8.10",
