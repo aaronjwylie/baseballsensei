@@ -270,12 +270,18 @@ than assuming the fix held.
 | 5.6 | Archive a submission | Leaves the active queue |
 | 5.7 | **Reset a status** to an earlier rung | Recorded in the trail **with your name and a reason** |
 | 5.8 | **Purge a folder** | ⚠️ Files gone; the *rows* survive; `/api/files/[id]` answers **410**, not 404|
-| 5.9 | **Linguistic alignment — the whole matrix.** The rule is one symmetric set intersection: *any* shared language means no translation, none means translation, and either side blank means we cannot tell. It is **not** "translate when the coach isn't English" — that rule was retired precisely because it derived nothing useful for a Japanese parent sending to a Japanese coach. Run 5.9.1–5.9.8; each is one row of the matrix |
+| 5.9 | **Linguistic alignment — the whole matrix**, as ruled by Ben 2026-08-31. Three outcomes, not two: **skip** when the target reads everything the source does; **translate** when they share nothing; **translate with the hand-over still offered** when they share a language but the source also reads one the target doesn't — the files *might* be in the shared one, and only the admin can say. Either side blank is "cannot tell", which skips silently. **Identical on the way back**, with coach as source and customer as target. It is **not** "translate when the coach isn't English" — that derived nothing for a Japanese parent sending to a Japanese coach. 5.9.1–5.9.5.2 are the nine rows |
 | 5.9.1 | Customer `English` · coach `Japanese` | ⚠️ **Translation is offered** — the next action is "Pick a translator", **not** "Hand to the coach" |
 | 5.9.2 | Customer `Japanese` · coach `English` | ⚠️ Identical outcome to 5.9.1. The rule is symmetric; neither language is the platform's default |
 | 5.9.3 | Customer `English` · coach `English` | Translation rungs stay skipped; "Hand to the coach" is offered |
-| 5.9.4 | Customer `English` · coach `English, Japanese` | ⚠️ **Skipped.** Overlap of *any* size means they can communicate — which language they use is then their choice, not a service |
-| 5.9.5 | Customer `English, Japanese` · coach `Japanese` | Skipped, for the same reason from the other side |
+| 5.9.3.1 | Customer `Japanese` · coach `Japanese` | Skipped. Neither language is the platform's default |
+| 5.9.4 | Customer `English` · coach `English, Japanese` | **Skipped.** The coach reads everything the customer does, so whatever the files are in, they can read them |
+| 5.9.4.1 | Customer `Japanese` · coach `English, Japanese` | Skipped, same reason from the other side |
+| 5.9.5 | Customer `English, Japanese` · coach `Japanese` | ⚠️ **Translate, with "or hand to the coach" still offered beside the picker.** They share Japanese, but the customer also reads English and the files may be in it. ⚠️ This row said **"Skipped"** until 2026-08-31 and the build already disagreed with it; Ben's matrix settles it in the build's favour, plus the escape hatch |
+| 5.9.5.1 | Customer `English, Japanese` · coach `English` | Same: translate, hand-over still offered |
+| 5.9.5.2 | Customer `English, Japanese` · coach `English, Japanese` | Skipped |
+| 5.9.5.3 | ⚠️ **The no-overlap rows offer no escape.** Re-check 5.9.1 and 5.9.2 | Only "Pick a translator" — **no** "or hand to the coach". There is nothing the target could read, so skipping would hand someone files they cannot open |
+| 5.9.5.4 | ⚠️ **The whole matrix again on the response leg.** Repeat 5.9.1, 5.9.4 and 5.9.5 against the coach's feedback | Identical outcomes with the parties swapped. Sharing a language is symmetric; *who reads what the other doesn't* is not, and the response gate reverses its arguments to match |
 | 5.9.6 | Customer `English` · coach with **nothing recorded** | ⚠️ Skipped and **silent**. Blank is "cannot tell", never "translate" — prompting on an unanswered question nags on every row until someone fills it in |
 | 5.9.7 | Customer with **nothing declared** · any coach | Same: skipped, no prompt |
 | 5.9.8 | Customer `english ` · coach `English` (case and trailing space) | Skipped — matching is case-insensitive and trimmed |
