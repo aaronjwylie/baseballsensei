@@ -7,12 +7,17 @@ import { hero } from "../model/copy";
  * The opening band: a full-bleed photograph, the promise over it, two calls to
  * action.
  *
- * **The gradient is what makes the type legible**, not a mood. The photograph
- * is bright sky on its right and mid-tone dirt on its left, so white text laid
- * straight onto it fails contrast in patches that move as the image is cropped
- * at different widths. The left-to-right black ramp guarantees the copy column
- * a dark ground at every breakpoint, which is why it stops around the midpoint
- * rather than veiling the whole picture.
+ * **The copy sits on the right, the batter on the left.** The photograph frames
+ * the batter on its right, so the image is mirrored (`-scale-x-100`) to move him
+ * to the left, opposite the copy, rather than leaving him trapped under the text
+ * panel. The mirror is invisible except for a reversed jersey number, which a
+ * motion-blurred action frame carries without notice.
+ *
+ * **The gradient is what makes the type legible**, not a mood. White text laid
+ * straight onto the photograph fails contrast in patches that move as the image
+ * is cropped at different widths. The right-to-left black ramp guarantees the
+ * copy column a dark ground at every breakpoint, and stops around the midpoint
+ * rather than veiling the whole picture, leaving the batter clear on the left.
  *
  * `priority` because this is the largest contentful paint on the site — without
  * it Next defers the fetch and the hero lands after the fold has already been
@@ -30,12 +35,12 @@ export function Hero() {
         fill
         priority
         sizes="100vw"
-        className="object-cover object-[70%_center]"
+        className="object-cover object-[70%_center] -scale-x-100"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent lg:to-40%" />
+      <div className="absolute inset-0 bg-gradient-to-l from-ink via-ink/80 to-transparent lg:to-40%" />
 
       <Container className="relative pb-20 pt-[140px] lg:pb-28 lg:pt-[190px]">
-        <div className="max-w-[520px]">
+        <div className="ml-auto max-w-[520px]">
           <p className="flex items-center gap-2 font-display text-[11px] font-medium uppercase tracking-[0.08em] text-highlight">
             <span
               aria-hidden
