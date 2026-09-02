@@ -23,8 +23,8 @@ import { hero } from "../model/copy";
  * it Next defers the fetch and the hero lands after the fold has already been
  * painted empty.
  *
- * The header is its own sky band above this section now (see `SiteChrome`), not
- * a bar floating over it, so this section starts below the header and the top
+ * The header is its own gradient bar above this section now (see `SiteChrome`),
+ * not a bar floating over it, so this section starts below the header and the top
  * padding is ordinary breathing room rather than clearance for an overlay.
  */
 export function Hero() {

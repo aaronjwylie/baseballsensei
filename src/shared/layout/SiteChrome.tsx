@@ -22,9 +22,9 @@ const PORTAL = /^\/(admin|coach|translator|portal|account|login|forgot-password|
 /**
  * The header ground depends on what the page opens on.
  *
- * The landing page opens on the hero photograph and wears its own strip of sky
- * as a band above it (`homeHeader`) — a separate image from the hero, sitting
- * over nothing. `/contact` and the feedback flow open on a full-bleed photo and
+ * The landing page opens on the hero photograph and wears its own solid bar
+ * above it (`homeHeader`) — a gradient bar, distinct from the hero rather than
+ * floating over it. `/contact` and the feedback flow open on a full-bleed photo and
  * float the header over it (`overlayHeader`). Everywhere else starts on paper
  * and needs the header to carry its own ink ground — the wordmark is white, so a
  * transparent header on a light page is an invisible one.
