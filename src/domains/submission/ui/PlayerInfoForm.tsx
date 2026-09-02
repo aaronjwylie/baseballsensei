@@ -141,10 +141,22 @@ export function PlayerInfoForm({
         Half of the translation rule, asked with the same component and the same
         three options the coach form uses — a shared vocabulary is what lets the
         two halves intersect at all.
+
+        **It asks what they understand, not what they want back** (Ben,
+        2026-08-31). It read "What language should your feedback be in?", which
+        described a delivery format this field does not control — and made
+        "Both" a promise of two versions. Nobody was ever going to receive two.
+
+        "Understand" rather than "speak" or "read": the review is a coach
+        talking over video, so reading is too narrow, and someone can understand
+        a language they would not claim to speak. It is also the word the admin
+        panel already uses on both halves of this same rule, so all three
+        surfaces now ask one question in one vocabulary — which is exactly what
+        `LanguageChoiceField` exists to protect and was not getting.
       */}
       <LanguageChoiceField
-        label="What language should your feedback be in?"
-        hint="Choose Both if either works. If your coach doesn't share one, we'll have the review translated."
+        label="What language do you understand?"
+        hint="Choose Both if either works for you. You'll get one review either way; this just tells us whether your coach needs a translator."
         error={errors.languages?.message}
         inputProps={register("languages")}
       />

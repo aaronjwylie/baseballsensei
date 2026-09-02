@@ -2120,6 +2120,27 @@
       "expect": "It had been failing to start on a server-only import since the QA pass began, so the one check that walks the ladder was dark. It now runs, and asserts that parsing the language twice gives the same answer",
       "retired": false,
       "history": []
+    },
+    "5.9.0": {
+      "firstSeen": "2026-09-02T21:02:22.175Z",
+      "what": "⚠️ The question asks what they understand, not what they want back. Read step 1's language field",
+      "expect": "\"What language do you understand?\" ⚠️ It asked \"What language should your feedback be in?\", which named a delivery format this field does not control — and made Both a promise of two versions nobody was ever going to receive",
+      "retired": false,
+      "history": []
+    },
+    "5.9.0.1": {
+      "firstSeen": "2026-09-02T21:02:22.175Z",
+      "what": "The hint says so outright",
+      "expect": "Choosing Both still yields one review. The wording has to carry it, because the label had been implying otherwise",
+      "retired": false,
+      "history": []
+    },
+    "5.9.0.2": {
+      "firstSeen": "2026-09-02T21:02:22.175Z",
+      "what": "One vocabulary on all three surfaces",
+      "expect": "Step 1, the coach's card, and the admin panel all say understands — not \"reads\" on one and \"should your feedback be in\" on another. Both halves of an intersection have to be spelled the same",
+      "retired": false,
+      "history": []
     }
   }
 }

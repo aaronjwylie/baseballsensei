@@ -499,8 +499,8 @@ function SubmissionRow({
           )}
           <p className="text-[11px] text-ink-muted">
             They share a language. If the files are already in one the{" "}
-            {act === "pickIntakeTranslator" ? "coach" : "customer"} reads, hand it
-            over instead.
+            {act === "pickIntakeTranslator" ? "coach" : "customer"} understands,
+            hand it over instead.
           </p>
         </>
       ) : (

@@ -3,7 +3,10 @@ import { Field } from "@/shared/ui";
 import { LANGUAGE_CHOICES, type LanguageChoice } from "../model/submission";
 
 /**
- * Which languages someone reads — asked identically of the customer and the coach.
+ * Which languages someone understands — asked identically of the customer and
+ * the coach, in one vocabulary. "Understands" rather than "reads" because a
+ * review is a coach talking over video, and rather than "speaks" because
+ * someone can understand a language they would not claim to speak.
  *
  * One component for both sides, because they feed one rule: a question asked
  * two different ways invites two different vocabularies, and the halves of an

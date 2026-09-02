@@ -274,6 +274,9 @@ than assuming the fix held.
 | 5.9.1 | Customer `English` · coach `Japanese` | ⚠️ **Translation is offered** — the next action is "Pick a translator", **not** "Hand to the coach" |
 | 5.9.2 | Customer `Japanese` · coach `English` | ⚠️ Identical outcome to 5.9.1. The rule is symmetric; neither language is the platform's default |
 | 5.9.3 | Customer `English` · coach `English` | Translation rungs stay skipped; "Hand to the coach" is offered |
+| 5.9.0 | ⚠️ **The question asks what they understand, not what they want back.** Read step 1's language field | "What language do you understand?" ⚠️ It asked "What language should your feedback be in?", which named a delivery format this field does not control — and made **Both** a promise of two versions nobody was ever going to receive |
+| 5.9.0.1 | The hint says so outright | Choosing Both still yields one review. The wording has to carry it, because the label had been implying otherwise |
+| 5.9.0.2 | One vocabulary on all three surfaces | Step 1, the coach's card, and the admin panel all say **understands** — not "reads" on one and "should your feedback be in" on another. Both halves of an intersection have to be spelled the same |
 | 5.9.2.1 | ⚠️ **The language you pick is the language stored.** Create a submission choosing `Japanese`, then read the row | `["Japanese"]`. ⚠️ **Every submission ever created was `["English"]`** regardless of the choice: the schema transformed the answer into an array, the client sent the transformed value, the server re-parsed its own output, the enum refused an array and `.catch("English")` answered confidently. Nothing failed anywhere |
 | 5.9.2.2 | Repeat for `both` | `["English","Japanese"]` |
 | 5.9.2.3 | ⚠️ **Step back and forward again.** Choose Japanese, continue, return to step 1 | The choice is still selected. It was the one field stepping back forgot, so a customer fixing a typo silently reset to the default |

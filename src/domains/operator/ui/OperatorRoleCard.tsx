@@ -218,7 +218,7 @@ export function OperatorRoleCard({
                   label="Languages"
                   hint={
                     role === "coach"
-                      ? "What this coach reads. A submission is translated when it shares none with the customer."
+                      ? "What this coach understands. A submission is translated when it shares none with the customer."
                       : "Which direction they translate."
                   }
                 >

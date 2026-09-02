@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 42,
-    "generatedAt": "2026-09-02T20:39:47.079Z",
-    "checks": 284,
-    "live": 284,
+    "build": 43,
+    "generatedAt": "2026-09-02T21:02:22.175Z",
+    "checks": 287,
+    "live": 287,
     "retired": 0,
     "edited": 18
   },
@@ -833,6 +833,21 @@
               "id": "5.9.3",
               "what": "Customer English · coach English",
               "expect": "Translation rungs stay skipped; \"Hand to the coach\" is offered"
+            },
+            {
+              "id": "5.9.0",
+              "what": "⚠️ The question asks what they understand, not what they want back. Read step 1's language field",
+              "expect": "\"What language do you understand?\" ⚠️ It asked \"What language should your feedback be in?\", which named a delivery format this field does not control — and made Both a promise of two versions nobody was ever going to receive"
+            },
+            {
+              "id": "5.9.0.1",
+              "what": "The hint says so outright",
+              "expect": "Choosing Both still yields one review. The wording has to carry it, because the label had been implying otherwise"
+            },
+            {
+              "id": "5.9.0.2",
+              "what": "One vocabulary on all three surfaces",
+              "expect": "Step 1, the coach's card, and the admin panel all say understands — not \"reads\" on one and \"should your feedback be in\" on another. Both halves of an intersection have to be spelled the same"
             },
             {
               "id": "5.9.2.1",
