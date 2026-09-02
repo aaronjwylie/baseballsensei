@@ -21,6 +21,7 @@ import {
   isPaid,
   listSubmissionFiles,
   noteEmailSent,
+  languagesForChoice,
   parseSubmissionInput,
   readFlowSession,
   setFlowSession,
@@ -185,7 +186,16 @@ export async function startSubmissionAction(
     console.error("[checkout] opportunistic sweep failed:", err);
   }
 
-  const submission = await createSubmission(parsed.value);
+  /*
+    The one place the choice is widened into the set the intersection works on.
+    It used to happen inside the schema, which meant it happened in the browser
+    too and the server then re-parsed its own output — see the note on
+    `languages` in `submissionInput.ts`. Once, here, next to the insert.
+  */
+  const submission = await createSubmission({
+    ...parsed.value,
+    languages: languagesForChoice(parsed.value.languages),
+  });
   await setFlowSession(submission.id);
 
   /*

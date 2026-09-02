@@ -17,7 +17,6 @@ import { z } from "zod";
 import {
   FOCUS_OPTIONS,
   LANGUAGE_CHOICES,
-  languagesForChoice,
 } from "./submission";
 
 const MIN_NOTES_LENGTH = 20;
@@ -118,10 +117,28 @@ export const submissionInputSchema = z.object({
     to catch: the answer the intersection can't use is simply not expressible,
     and `.catch` covers a post that didn't come from the form.
   */
-  languages: z
-    .enum(LANGUAGE_CHOICES)
-    .catch("English")
-    .transform(languagesForChoice),
+  /*
+    **No `.transform` here, and that is the whole point** (Ben, QA 5.9.2,
+    2026-08-31).
+
+    It used to widen the choice into a `string[]`, which made the schema
+    non-idempotent: its own output was no longer valid input. That matters
+    because this schema is parsed **twice** — once in the browser by
+    `zodResolver`, whose transformed output the form then sends, and again on
+    the server, which must never trust the client. The second parse received
+    `["Japanese"]`, the enum rejected an array, and `.catch("English")` turned
+    that into a silent, confident wrong answer.
+
+    Every submission ever created came out `["English"]` regardless of what the
+    customer picked, and nothing anywhere failed. The `.catch` is what made it
+    silent — which is worth remembering about `.catch` in general: it converts a
+    shape error into plausible data, so it belongs only where the schema cannot
+    disagree with itself.
+
+    Widening is now the caller's job, once, on the server, next to the insert.
+    A schema that is applied twice has to be a function that can be.
+  */
+  languages: z.enum(LANGUAGE_CHOICES).catch("English"),
 });
 
 /** What the form collects, before parsing — every field a string. */

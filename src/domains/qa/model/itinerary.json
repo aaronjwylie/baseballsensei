@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 41,
-    "generatedAt": "2026-09-01T02:27:27.121Z",
-    "checks": 280,
-    "live": 280,
+    "build": 42,
+    "generatedAt": "2026-09-02T20:39:47.079Z",
+    "checks": 284,
+    "live": 284,
     "retired": 0,
     "edited": 18
   },
@@ -833,6 +833,26 @@
               "id": "5.9.3",
               "what": "Customer English · coach English",
               "expect": "Translation rungs stay skipped; \"Hand to the coach\" is offered"
+            },
+            {
+              "id": "5.9.2.1",
+              "what": "⚠️ The language you pick is the language stored. Create a submission choosing Japanese, then read the row",
+              "expect": "[\"Japanese\"]. ⚠️ Every submission ever created was [\"English\"] regardless of the choice: the schema transformed the answer into an array, the client sent the transformed value, the server re-parsed its own output, the enum refused an array and .catch(\"English\") answered confidently. Nothing failed anywhere"
+            },
+            {
+              "id": "5.9.2.2",
+              "what": "Repeat for both",
+              "expect": "[\"English\",\"Japanese\"]"
+            },
+            {
+              "id": "5.9.2.3",
+              "what": "⚠️ Step back and forward again. Choose Japanese, continue, return to step 1",
+              "expect": "The choice is still selected. It was the one field stepping back forgot, so a customer fixing a typo silently reset to the default"
+            },
+            {
+              "id": "5.9.2.4",
+              "what": "⚠️ npm run simulate runs at all",
+              "expect": "It had been failing to start on a server-only import since the QA pass began, so the one check that walks the ladder was dark. It now runs, and asserts that parsing the language twice gives the same answer"
             },
             {
               "id": "5.9.3.1",

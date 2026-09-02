@@ -18,7 +18,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx --tsconfig tsconfig.json scripts/seed.ts",
-    "simulate": "tsx --tsconfig tsconfig.json scripts/simulate.ts",
+    "simulate": "tsx --tsconfig tsconfig.simulate.json scripts/simulate.ts",
     "db:ladder": "tsx --tsconfig tsconfig.json scripts/seed-ladder.ts",
     "payment": "tsx --tsconfig tsconfig.json scripts/test-payment.ts",
     "flow": "tsx --tsconfig tsconfig.json scripts/test-flow.ts",

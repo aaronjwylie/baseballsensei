@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 41</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 42</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1276,6 +1276,26 @@ const PHASES = [
             "5.9.3",
             "Customer English · coach English",
             "Translation rungs stay skipped; \"Hand to the coach\" is offered"
+          ],
+          [
+            "5.9.2.1",
+            "⚠️ The language you pick is the language stored. Create a submission choosing Japanese, then read the row",
+            "[\"Japanese\"]. ⚠️ Every submission ever created was [\"English\"] regardless of the choice: the schema transformed the answer into an array, the client sent the transformed value, the server re-parsed its own output, the enum refused an array and .catch(\"English\") answered confidently. Nothing failed anywhere"
+          ],
+          [
+            "5.9.2.2",
+            "Repeat for both",
+            "[\"English\",\"Japanese\"]"
+          ],
+          [
+            "5.9.2.3",
+            "⚠️ Step back and forward again. Choose Japanese, continue, return to step 1",
+            "The choice is still selected. It was the one field stepping back forgot, so a customer fixing a typo silently reset to the default"
+          ],
+          [
+            "5.9.2.4",
+            "⚠️ npm run simulate runs at all",
+            "It had been failing to start on a server-only import since the QA pass began, so the one check that walks the ladder was dark. It now runs, and asserts that parsing the language twice gives the same answer"
           ],
           [
             "5.9.3.1",

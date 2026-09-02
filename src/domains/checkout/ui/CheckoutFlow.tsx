@@ -188,6 +188,10 @@ export function CheckoutFlow({
       playerAge: values.playerAge ? String(values.playerAge) : "",
       focus: values.focus ?? "",
       customerNotes: values.customerNotes ?? "",
+      // Carried like every other field. It was the one answer stepping back
+      // forgot, so a customer who went back to fix a typo silently reset their
+      // language to nothing and re-submitted the default (Ben, QA 5.9.2).
+      languages: values.languages,
     });
 
     /*

@@ -41,6 +41,7 @@ import {
   markCoachCollected,
   markTranslatorCollected,
   assignSubmissionTranslator,
+  languagesForChoice,
   assignOperator,
   isAssignedTo,
   releaseAssignments,
@@ -716,7 +717,20 @@ function checkLanguageRule() {
     [["English"], ["Japanese"], true, "no overlap"],
     [["Japanese"], ["Japanese"], false, "Japanese both sides — the case the old coach-only rule got wrong"],
     [["English"], ["English", "Japanese"], false, "bilingual coach overlaps — sets differ, and that's fine"],
-    [["English", "Japanese"], ["Japanese"], false, "bilingual customer overlaps"],
+    /*
+      Ben's matrix, ruled 2026-08-31. A bilingual **source** gates even though
+      the two sides overlap: sharing a language says they *could* have used it,
+      not that the files are in it, and the target cannot read the other one.
+      The admin is offered the hand-over beside the picker rather than blocked.
+
+      This case asserted `false` until that ruling — the old symmetric reading,
+      "any shared language means no translation" — and the shipped code had
+      already disagreed with it.
+    */
+    [["English", "Japanese"], ["Japanese"], true, "bilingual customer, monolingual coach"],
+    [["English", "Japanese"], ["English"], true, "the same the other way round"],
+    [["Japanese"], ["English", "Japanese"], false, "bilingual target reads everything"],
+    [["English", "Japanese"], ["English", "Japanese"], false, "bilingual both sides"],
     [["English"], [], null, "coach hasn't declared — unknown, not no"],
     [[], ["English"], null, "customer hasn't declared — unknown, not no"],
     [["english"], ["English"], false, "case and spacing don't make a mismatch"],
@@ -739,11 +753,32 @@ function checkLanguageRule() {
       customerNotes: "Please review my swing mechanics.",
       ...(languages === undefined ? {} : { languages }),
     }).languages;
-  check(parse("English").join() === "English", "posts English");
-  check(parse("Japanese").join() === "Japanese", "posts Japanese");
-  check(parse("both").join() === "English,Japanese", "posts both");
-  check(parse(undefined).join() === "English", "a post with no answer falls back to English");
-  check(parse("Klingon").join() === "English", "an answer we don't offer falls back too");
+  check(parse("English") === "English", "posts English");
+  check(parse("Japanese") === "Japanese", "posts Japanese");
+  check(parse("both") === "both", "posts both");
+  check(parse(undefined) === "English", "a post with no answer falls back to English");
+  check(parse("Klingon") === "English", "an answer we don't offer falls back too");
+
+  /*
+    **Parsing twice must not change the answer** (Ben, QA 5.9.2).
+
+    This schema is genuinely parsed twice on every submission: once in the
+    browser by `zodResolver`, and again on the server, which must not trust the
+    client. It used to widen the choice into a `string[]`, so the second parse
+    met an array, the enum refused it, and `.catch` quietly answered "English".
+    Every submission came out English no matter what was picked, and the checks
+    above all passed — because they only ever parsed once.
+  */
+  for (const choice of ["English", "Japanese", "both"] as const) {
+    check(
+      parse(parse(choice)) === choice,
+      `   parsing ${choice} twice is the same as parsing it once`,
+    );
+  }
+
+  // And the widening the server does with the result, once, at the insert.
+  check(languagesForChoice("both").join() === "English,Japanese", "both widens to the pair");
+  check(languagesForChoice("Japanese").join() === "Japanese", "Japanese widens to itself");
 }
 
 /**

@@ -2092,6 +2092,34 @@
       "expect": "Its greys are the shell's PAPER_ALT and LINE, not literals, so a palette change carries the code box with it",
       "retired": false,
       "history": []
+    },
+    "5.9.2.1": {
+      "firstSeen": "2026-09-02T20:39:47.079Z",
+      "what": "⚠️ The language you pick is the language stored. Create a submission choosing Japanese, then read the row",
+      "expect": "[\"Japanese\"]. ⚠️ Every submission ever created was [\"English\"] regardless of the choice: the schema transformed the answer into an array, the client sent the transformed value, the server re-parsed its own output, the enum refused an array and .catch(\"English\") answered confidently. Nothing failed anywhere",
+      "retired": false,
+      "history": []
+    },
+    "5.9.2.2": {
+      "firstSeen": "2026-09-02T20:39:47.079Z",
+      "what": "Repeat for both",
+      "expect": "[\"English\",\"Japanese\"]",
+      "retired": false,
+      "history": []
+    },
+    "5.9.2.3": {
+      "firstSeen": "2026-09-02T20:39:47.079Z",
+      "what": "⚠️ Step back and forward again. Choose Japanese, continue, return to step 1",
+      "expect": "The choice is still selected. It was the one field stepping back forgot, so a customer fixing a typo silently reset to the default",
+      "retired": false,
+      "history": []
+    },
+    "5.9.2.4": {
+      "firstSeen": "2026-09-02T20:39:47.079Z",
+      "what": "⚠️ npm run simulate runs at all",
+      "expect": "It had been failing to start on a server-only import since the QA pass began, so the one check that walks the ladder was dark. It now runs, and asserts that parsing the language twice gives the same answer",
+      "retired": false,
+      "history": []
     }
   }
 }
