@@ -13,6 +13,14 @@ import { hero } from "../model/copy";
  * panel. The mirror is invisible except for a reversed jersey number, which a
  * motion-blurred action frame carries without notice.
  *
+ * **The desktop band is tall enough to hold the batter head to feet.** He is a
+ * full-body figure, so a short cover crop lopped off his helmet and shoes. A
+ * `lg:min-h` gives the band the height that keeps the whole swing in frame, and
+ * the copy is centred in it (`justify-center`); the vertical crop bias sits high
+ * (`object-[70%_35%]`) so the helmet is the last thing to go if a very wide
+ * viewport still has to trim. Below `lg` the band is content-height, copy over
+ * the darkened photo as before.
+ *
  * **The gradient is what makes the type legible**, not a mood. White text laid
  * straight onto the photograph fails contrast in patches that move as the image
  * is cropped at different widths. The right-to-left black ramp guarantees the
@@ -36,11 +44,11 @@ export function Hero() {
         fill
         priority
         sizes="100vw"
-        className="object-cover object-[70%_center] -scale-x-100"
+        className="object-cover object-[70%_35%] -scale-x-100"
       />
       <div className="absolute inset-0 bg-gradient-to-l from-ink via-ink/80 to-transparent lg:to-40%" />
 
-      <Container className="relative pb-20 pt-20 lg:pb-28 lg:pt-28">
+      <Container className="relative pb-20 pt-20 lg:flex lg:min-h-[720px] lg:flex-col lg:justify-center lg:pb-28 lg:pt-28 2xl:min-h-[880px]">
         <div className="ml-auto max-w-[520px]">
           <p className="flex items-center gap-2 font-display text-[11px] font-medium uppercase tracking-[0.08em] text-highlight">
             <span
