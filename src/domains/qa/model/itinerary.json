@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 43,
-    "generatedAt": "2026-09-02T21:02:22.175Z",
-    "checks": 287,
-    "live": 287,
+    "build": 44,
+    "generatedAt": "2026-09-02T21:22:29.333Z",
+    "checks": 289,
+    "live": 289,
     "retired": 0,
     "edited": 18
   },
@@ -1664,6 +1664,16 @@
               "id": "8.9.12",
               "what": "The panel follows the shell's palette",
               "expect": "Its greys are the shell's PAPER_ALT and LINE, not literals, so a palette change carries the code box with it"
+            },
+            {
+              "id": "8.9.13",
+              "what": "⚠️ A collection writes its trail row, not just its email. Collect as a customer, then read the trail",
+              "expect": "Both a collected rung and a ⑦ row. ⚠️ e2e sent and delivered ⑦ while writing no row — the record that proves a send happened was the one that vanished"
+            },
+            {
+              "id": "8.9.14",
+              "what": "Every ①–⑪ send leaves a row",
+              "expect": "All eleven call sites await the write now. Ten had been winning a race the eleventh lost inside an after() callback, which tears down the moment its promise resolves"
             },
             {
               "id": "8.10",

@@ -93,7 +93,7 @@ export async function completePayment({
     statusUrl,
   });
 
-  void noteEmailSent(submission.id, "② receipt → customer", receipt);
+  await noteEmailSent(submission.id, "② receipt → customer", receipt);
 
   // The other half of ②. Gated on `justPaid` above, so a redelivered webhook
   // announces the same sale twice to nobody. Admin lookup is wrapped for the
@@ -111,7 +111,7 @@ export async function completePayment({
       fileCount: files.length,
       queueUrl: `${env.siteUrl}/admin`,
     });
-    void noteEmailSent(submission.id, "② arrival → Admin", arrival);
+    await noteEmailSent(submission.id, "② arrival → Admin", arrival);
   }
 }
 
@@ -168,5 +168,5 @@ export async function handleFailedPayment(
     startUrl: `${env.siteUrl}/start`,
   });
   // The intent id rides in the `note` so `declineEmailedFor` can dedupe on it.
-  void noteEmailSent(submission.id, DECLINE_EMAIL_LABEL, result, intent.id);
+  await noteEmailSent(submission.id, DECLINE_EMAIL_LABEL, result, intent.id);
 }

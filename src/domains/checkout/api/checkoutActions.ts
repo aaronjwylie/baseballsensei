@@ -240,7 +240,7 @@ async function sendCode(submissionId: string, email: string): Promise<boolean> {
   if (!code) return false;
   const result = await sendVerificationCode(email, code);
   // Not awaited: recording the send must never be why the send appears to fail.
-  void noteEmailSent(submissionId, "① code → customer", result);
+  await noteEmailSent(submissionId, "① code → customer", result);
   return result.ok;
 }
 

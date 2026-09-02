@@ -106,7 +106,7 @@ export async function sendFeedbackForApproval(
     fileCount: files.length,
     reviewUrl: `${env.siteUrl}/admin`,
   });
-  void noteEmailSent(submissionId, "⑤ response submitted → Admin + coach", submitted);
+  await noteEmailSent(submissionId, "⑤ response submitted → Admin + coach", submitted);
 
   return updated;
 }
@@ -139,7 +139,7 @@ export async function resolveSubmission(
       retentionDays,
       startUrl: `${env.siteUrl}/start`,
     });
-    void noteEmailSent(submissionId, "⑧ thank you → customer", result);
+    await noteEmailSent(submissionId, "⑧ thank you → customer", result);
   }
 
   return updated;
@@ -158,15 +158,26 @@ export async function resolveSubmission(
 export async function noteCustomerCollected(
   submissionId: string,
 ): Promise<void> {
-  const collected = await markCustomerCollected(submissionId);
-  if (!collected) return;
+  /*
+    Wrapped, like `noteCoachCollected` and unlike its own first version. The
+    status moves on the first line; anything that throws after that leaves a
+    submission marked collected with nobody told and no record of the attempt.
+    Swallowing here is right because the caller is a download that must not fail
+    over a notification — but swallowing *silently* is not, hence the log.
+  */
+  try {
+    const collected = await markCustomerCollected(submissionId);
+    if (!collected) return;
 
-  const result = await sendCustomerCollectedEmail({
-    to: await listAdminEmails(),
-    playerName: collected.playerName,
-    submissionUrl: `${env.siteUrl}/admin`,
-  });
-  void noteEmailSent(submissionId, "⑦ collected → Admin", result);
+    const result = await sendCustomerCollectedEmail({
+      to: await listAdminEmails(),
+      playerName: collected.playerName,
+      submissionUrl: `${env.siteUrl}/admin`,
+    });
+    await noteEmailSent(submissionId, "⑦ collected → Admin", result);
+  } catch (err) {
+    console.error("[feedback] recording a customer collection failed:", err);
+  }
 }
 
 /**
@@ -228,7 +239,7 @@ export async function approveAndComplete(
       updated.playerName,
       settings.retainCollectedDays,
     );
-    void noteEmailSent(submissionId, "⑥ feedback ready → customer", ready);
+    await noteEmailSent(submissionId, "⑥ feedback ready → customer", ready);
   }
 
   return updated;

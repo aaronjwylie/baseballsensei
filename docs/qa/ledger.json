@@ -2141,6 +2141,20 @@
       "expect": "Step 1, the coach's card, and the admin panel all say understands — not \"reads\" on one and \"should your feedback be in\" on another. Both halves of an intersection have to be spelled the same",
       "retired": false,
       "history": []
+    },
+    "8.9.13": {
+      "firstSeen": "2026-09-02T21:22:29.333Z",
+      "what": "⚠️ A collection writes its trail row, not just its email. Collect as a customer, then read the trail",
+      "expect": "Both a collected rung and a ⑦ row. ⚠️ e2e sent and delivered ⑦ while writing no row — the record that proves a send happened was the one that vanished",
+      "retired": false,
+      "history": []
+    },
+    "8.9.14": {
+      "firstSeen": "2026-09-02T21:22:29.333Z",
+      "what": "Every ①–⑪ send leaves a row",
+      "expect": "All eleven call sites await the write now. Ten had been winning a race the eleventh lost inside an after() callback, which tears down the moment its promise resolves",
+      "retired": false,
+      "history": []
     }
   }
 }

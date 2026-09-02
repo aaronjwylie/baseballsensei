@@ -92,7 +92,7 @@ export async function noteCoachCollected(
       playerName: collected.playerName,
       submissionUrl: `${env.siteUrl}/admin`,
     });
-    void noteEmailSent(submissionId, "④ picked up → Admin", result);
+    await noteEmailSent(submissionId, "④ picked up → Admin", result);
   } catch (err) {
     console.error("[coach] recording a collection failed:", err);
   }

@@ -440,6 +440,8 @@ than assuming the fix held.
 | 8.9.10 | A card with no feedback shows no link | And a page with no downloads shows none on any card |
 | 8.9.11 | ⚠️ **Both code emails look the same.** Trigger the step-2 verification code and the `/status` access code, and put them side by side | Identical grey rounded panel, display face, same size and tracking. ⚠️ They differed in five ways: box, typeface, size, tracking and colour |
 | 8.9.12 | The panel follows the shell's palette | Its greys are the shell's `PAPER_ALT` and `LINE`, not literals, so a palette change carries the code box with it |
+| 8.9.13 | ⚠️ **A collection writes its trail row, not just its email.** Collect as a customer, then read the trail | Both a `collected` rung **and** a ⑦ row. ⚠️ e2e sent and delivered ⑦ while writing no row — the record that proves a send happened was the one that vanished |
+| 8.9.14 | Every ①–⑪ send leaves a row | All eleven call sites `await` the write now. Ten had been winning a race the eleventh lost inside an `after()` callback, which tears down the moment its promise resolves |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |

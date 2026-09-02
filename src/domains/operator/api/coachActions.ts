@@ -174,7 +174,7 @@ export async function notifyCoachAction(
     submission,
     files,
   });
-  void noteEmailSent(submissionId, "③ hand-off → coach", result);
+  await noteEmailSent(submissionId, "③ hand-off → coach", result);
 
   // Record what they were actually sent. "What did we give them?" is asked
   // later, and by then the folders may hold more than they did today.

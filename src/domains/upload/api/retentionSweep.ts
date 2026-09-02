@@ -175,7 +175,7 @@ export async function runRetentionSweep(): Promise<SweepReport> {
             deletesOn,
             daysLeft: settings.warnBeforeDeletionDays,
           });
-          void noteEmailSent(
+          await noteEmailSent(
             submission.id,
             "⑨ deletion warning → customer",
             result,

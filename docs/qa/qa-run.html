@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 43</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 44</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -2018,6 +2018,16 @@ const PHASES = [
             "8.9.12",
             "The panel follows the shell's palette",
             "Its greys are the shell's PAPER_ALT and LINE, not literals, so a palette change carries the code box with it"
+          ],
+          [
+            "8.9.13",
+            "⚠️ A collection writes its trail row, not just its email. Collect as a customer, then read the trail",
+            "Both a collected rung and a ⑦ row. ⚠️ e2e sent and delivered ⑦ while writing no row — the record that proves a send happened was the one that vanished"
+          ],
+          [
+            "8.9.14",
+            "Every ①–⑪ send leaves a row",
+            "All eleven call sites await the write now. Ten had been winning a race the eleventh lost inside an after() callback, which tears down the moment its promise resolves"
           ],
           [
             "8.10",

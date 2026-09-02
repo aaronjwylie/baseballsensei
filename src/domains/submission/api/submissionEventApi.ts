@@ -105,9 +105,25 @@ export async function recordSubmissionEvent(
  *
  * ```ts
  * const ok = await sendSomething(...);
- * void noteEmailSent(id, "② receipt → customer", ok);
+ * await noteEmailSent(id, "② receipt → customer", ok);
  * ```
  */
+/*
+  **Await this. Never `void` it** (Ben, QA e2e run, 2026-08-31).
+
+  All eleven call sites fired it as a floating promise, on the reasoning that a
+  trail row must never delay a response. Ten of them got away with it because
+  the surrounding request stayed alive long enough for the insert to land — and
+  then ⑦ lost the race inside an `after()` callback, which tears down as soon as
+  the promise it was given resolves. Resend confirmed the email went out and was
+  delivered; only the row was missing, so the trail said a customer collected
+  their feedback and nobody was told. The one record that exists to prove a send
+  happened is the one that disappeared.
+
+  Awaiting costs a single insert and is safe by construction: this function
+  swallows its own failures, so it cannot throw into the caller no matter what
+  the database does.
+*/
 export async function noteEmailSent(
   submissionId: string,
   label: string,
