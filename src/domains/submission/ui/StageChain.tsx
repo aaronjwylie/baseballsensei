@@ -23,8 +23,20 @@ import type { ChainState } from "../model/stageChain";
 export function StageChain({
   stage,
   control,
+  lastCompleted,
 }: {
   stage: ChainState[];
+  /**
+   * The step that got the submission to this rung.
+   *
+   * *Completed* lists only what has happened **on the current rung**, which is
+   * deliberate — the chain is per-rung and a submission that has just arrived
+   * genuinely has nothing done here yet. But "Nothing yet." on a submission
+   * that is paid, assigned, translated and sent reads as though nothing has
+   * ever happened (Ben, QA e2j). The rung it just reached is the one thing that
+   * is certainly complete, so it stands in rather than an empty panel.
+   */
+  lastCompleted?: { label: string; at?: string };
   /** Rendered under the line the submission is waiting on. */
   control?: ReactNode;
 }) {
@@ -65,6 +77,25 @@ export function StageChain({
               </span>
             </li>
           ))}
+        </ol>
+      ) : lastCompleted ? (
+        <ol className="list-none p-0">
+          <li className="grid grid-cols-[15px_1fr] items-start gap-2 py-0.5 text-[12px] leading-snug text-ink-muted">
+            <span className="pt-px font-mono text-[11px] text-emerald-600">✓</span>
+            <span>
+              {`Reached ${lastCompleted.label}`}
+              {lastCompleted.at ? (
+                <span className="ml-1.5 text-[10.5px] text-ink-muted opacity-80">
+                  {new Date(lastCompleted.at).toLocaleString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              ) : null}
+            </span>
+          </li>
         </ol>
       ) : (
         <p className="text-[12px] italic text-ink-muted">Nothing yet.</p>

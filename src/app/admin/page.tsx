@@ -10,6 +10,7 @@ import {
   type SubmissionFile,
   type SubmissionStatus,
   isReleased,
+  numberedRungLabel,
   awaitsTranslationDecision,
   availableSets,
   listFoldersForSubmissions,
@@ -329,6 +330,18 @@ function SubmissionRow({
     available beside the picker; a no-overlap gate stays hard, because there is
     nothing the target could read to hand over.
   */
+  /*
+    The people on each translation leg, resolved from the assignment rather than
+    from the picker's current value — the panel has to say who *has* it, not who
+    is selected in a dropdown that may not have been saved.
+  */
+  const intakeTranslator =
+    translators.find((t) => t.id === progress?.assignees.intake_translation) ??
+    null;
+  const responseTranslator =
+    translators.find((t) => t.id === progress?.assignees.feedback_translation) ??
+    null;
+
   const sharesLanguage =
     !!assignedCoach &&
     (submission.languages ?? []).some((a) =>
@@ -645,6 +658,16 @@ function SubmissionRow({
         translationHint ??
         (outstanding && !submission.archivedAt ? outstanding.next : undefined)
       }
+      /*
+        The rung it reached, read off the trail, so `Completed` says something
+        true on a submission whose current rung has nothing done on it yet
+        (Ben, QA e2j). Reaching the rung is the last thing that certainly
+        completed, and the trail already records exactly when.
+      */
+      lastCompleted={{
+        label: numberedRungLabel(submission.status),
+        at: events.filter((e) => e.status === submission.status).at(-1)?.at,
+      }}
       stage={stage}
       control={control}
       folders={
@@ -708,6 +731,36 @@ function SubmissionRow({
             <>
               <dt className="text-ink-muted">Pipeline status</dt>
               <dd className="m-0 text-[11.5px] text-ink-soft">{alignmentLine}</dd>
+            </>
+          )}
+          {/*
+            Who is actually carrying each translation leg (Ben, QA e2j).
+
+            The panel named the coach and stopped, so on a translated submission
+            the two people doing the work were nowhere on it — you could see
+            that translation was happening and not who had it. Shown per leg,
+            because a submission can have two translators pointing opposite
+            ways and "the translator" would be ambiguous exactly when it
+            mattered.
+
+            Only rendered once a leg has someone: an empty row for a leg that
+            may never exist is noise on the eight submissions in ten that never
+            translate at all.
+          */}
+          {intakeTranslator && (
+            <>
+              <dt className="text-ink-muted">Translator, in</dt>
+              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+                {`${intakeTranslator.name} (${intakeTranslator.languages.join(", ") || "no direction set"})`}
+              </dd>
+            </>
+          )}
+          {responseTranslator && (
+            <>
+              <dt className="text-ink-muted">Translator, back</dt>
+              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+                {`${responseTranslator.name} (${responseTranslator.languages.join(", ") || "no direction set"})`}
+              </dd>
             </>
           )}
           <dt className="text-ink-muted">Sent to coach</dt>

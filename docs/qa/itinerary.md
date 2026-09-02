@@ -316,6 +316,10 @@ than assuming the fix held.
 | 5.9.30 | The flag out-ranks the outstanding line | So a stale one occupies the only place the row says what to do next. Check the row shows the real next action once the hint is gone |
 | 5.9.31 | The hint appears where it should | `assigned` through `intake_translating`, and `awaiting_approval` through `feedback_translating`. Silent at `intake_translated` and `sent_to_coach`: that leg is settled and the response leg's turn has not come |
 | 5.9.32 | "The customer didn't declare a language" obeys the same gate | Useful at the hand-off decision, noise on a delivered submission |
+| 5.9.33 | ⚠️ **"Completed" is never blank on a busy submission.** Open one sitting at `sent_to_intake_translator` | It cites the rung it reached, with the time. ⚠️ It read "Nothing yet." — true of that rung, and false-sounding on a submission already paid, assigned, translated and sent |
+| 5.9.34 | It still lists the rung's own steps once any are done | The fallback stands in only when the current rung has nothing completed on it |
+| 5.9.35 | ⚠️ **"This submission" names the translators.** Open a translated submission | A row per leg — "Translator, in" and "Translator, back" — each with their direction. ⚠️ The panel named only the coach, so the people doing the work were nowhere on it |
+| 5.9.36 | An untranslated submission shows no translator rows | Not an empty row. Most submissions never translate |
 | 5.10 | **The response leg, same matrix.** Repeat 5.9.1 and 5.9.3 against the coach's *feedback*, after they upload it | ⚠️ Same two outcomes. It is a second `passive` constant in the same file and fixing one does not fix the other |
 | 5.11 | What an operator is *told* when languages are missing | The row says which side is blank rather than only that something is. ⚠️ An **admin** grant is empty by design — read the coach card, not the person |
 

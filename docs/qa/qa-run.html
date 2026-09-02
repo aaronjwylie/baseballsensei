@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 44</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 45</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1495,6 +1495,26 @@ const PHASES = [
             "5.9.32",
             "\"The customer didn't declare a language\" obeys the same gate",
             "Useful at the hand-off decision, noise on a delivered submission"
+          ],
+          [
+            "5.9.33",
+            "⚠️ \"Completed\" is never blank on a busy submission. Open one sitting at sent_to_intake_translator",
+            "It cites the rung it reached, with the time. ⚠️ It read \"Nothing yet.\" — true of that rung, and false-sounding on a submission already paid, assigned, translated and sent"
+          ],
+          [
+            "5.9.34",
+            "It still lists the rung's own steps once any are done",
+            "The fallback stands in only when the current rung has nothing completed on it"
+          ],
+          [
+            "5.9.35",
+            "⚠️ \"This submission\" names the translators. Open a translated submission",
+            "A row per leg — \"Translator, in\" and \"Translator, back\" — each with their direction. ⚠️ The panel named only the coach, so the people doing the work were nowhere on it"
+          ],
+          [
+            "5.9.36",
+            "An untranslated submission shows no translator rows",
+            "Not an empty row. Most submissions never translate"
           ],
           [
             "5.10",

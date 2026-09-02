@@ -30,6 +30,7 @@ export function QueueRow({
   flag,
   rail,
   stage,
+  lastCompleted,
   control,
   folders,
   details,
@@ -50,6 +51,8 @@ export function QueueRow({
     needsTranslation: boolean;
   };
   stage: ChainState[];
+  /** The rung it reached, so `Completed` isn't blank on a busy submission. */
+  lastCompleted?: { label: string; at?: string };
   control?: ReactNode;
   folders: ReactNode;
   details: ReactNode;
@@ -118,7 +121,11 @@ export function QueueRow({
         <div className="bg-paper-alt px-4 pb-5">
           <div className="grid grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] gap-6 pt-4 max-[860px]:grid-cols-1">
             <div>
-              <StageChain stage={stage} control={control} />
+              <StageChain
+                stage={stage}
+                control={control}
+                lastCompleted={lastCompleted}
+              />
             </div>
             <div>
               <Label>Files: four folders</Label>

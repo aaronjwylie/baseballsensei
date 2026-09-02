@@ -2155,6 +2155,34 @@
       "expect": "All eleven call sites await the write now. Ten had been winning a race the eleventh lost inside an after() callback, which tears down the moment its promise resolves",
       "retired": false,
       "history": []
+    },
+    "5.9.33": {
+      "firstSeen": "2026-09-02T21:34:41.141Z",
+      "what": "⚠️ \"Completed\" is never blank on a busy submission. Open one sitting at sent_to_intake_translator",
+      "expect": "It cites the rung it reached, with the time. ⚠️ It read \"Nothing yet.\" — true of that rung, and false-sounding on a submission already paid, assigned, translated and sent",
+      "retired": false,
+      "history": []
+    },
+    "5.9.34": {
+      "firstSeen": "2026-09-02T21:34:41.141Z",
+      "what": "It still lists the rung's own steps once any are done",
+      "expect": "The fallback stands in only when the current rung has nothing completed on it",
+      "retired": false,
+      "history": []
+    },
+    "5.9.35": {
+      "firstSeen": "2026-09-02T21:34:41.141Z",
+      "what": "⚠️ \"This submission\" names the translators. Open a translated submission",
+      "expect": "A row per leg — \"Translator, in\" and \"Translator, back\" — each with their direction. ⚠️ The panel named only the coach, so the people doing the work were nowhere on it",
+      "retired": false,
+      "history": []
+    },
+    "5.9.36": {
+      "firstSeen": "2026-09-02T21:34:41.141Z",
+      "what": "An untranslated submission shows no translator rows",
+      "expect": "Not an empty row. Most submissions never translate",
+      "retired": false,
+      "history": []
     }
   }
 }
