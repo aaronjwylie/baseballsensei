@@ -39,7 +39,22 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
           : "relative bg-ink text-paper"
       }
     >
-      <Container className="flex h-[79px] items-center justify-between gap-6">
+      {/*
+        The floating header carries no fill, so it reads whatever the photo puts
+        behind it — and the hero's bright sky leaves white links and the wordmark
+        short of contrast on the left. This scrim is a legibility floor, not a
+        band: a soft top-down darkening, weighted left where the wordmark and
+        links sit, fading to clear on the right so the sky still shows and there
+        is no hard edge into the hero below. Interior pages take an ink fill
+        instead, so they don't need it.
+      */}
+      {transparent && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 z-0 h-32 bg-gradient-to-br from-ink/80 via-ink/30 to-transparent"
+        />
+      )}
+      <Container className="relative z-10 flex h-[79px] items-center justify-between gap-6">
         <div className="flex items-center gap-10 lg:gap-14">
           <Link href="/" aria-label="Home" className="shrink-0">
             <Logo />
