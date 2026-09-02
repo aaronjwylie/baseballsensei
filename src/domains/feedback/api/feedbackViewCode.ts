@@ -28,6 +28,7 @@ import { MAX_CODE_ATTEMPTS } from "@/shared/lib";
 import {
   findByCustomerEmail,
   isReleased,
+  filesAsSent,
   listFeedbackFiles,
   lookupPublicSubmissions,
   type PublicSubmission,
@@ -184,9 +185,14 @@ export async function listFeedbackForEmail(
   const groups: FeedbackGroup[] = [];
   for (const submission of submissions) {
     if (!isReleased(submission)) continue;
-    const files = (await listFeedbackFiles(submission.id)).filter(
-      (f) => !!f.fileUrl,
-    );
+    /* The set they were actually sent, not both response folders — a customer
+       given only the translation must not be handed the coach's original in a
+       language they may not read (Ben, QA e2j). */
+    const files = filesAsSent(
+      await listFeedbackFiles(submission.id),
+      "feedback",
+      submission.customerFileSet,
+    ).filter((f) => !!f.fileUrl);
     if (files.length === 0) continue;
     groups.push({
       playerName: submission.playerName || "Player",

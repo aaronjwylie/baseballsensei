@@ -88,6 +88,34 @@ export type FileSet = (typeof FILE_SETS)[number];
  * customer, and a fifth kind can't be added without this function being the
  * place that decides where it belongs.
  */
+/**
+ * Narrow a submission's files to **the set that was actually sent**.
+ *
+ * `coachFileSet` and `customerFileSet` record what we handed to a particular
+ * person on a particular day, and the two hand-off emails have always honoured
+ * them. Both portals did not: the coach's page listed every file on the
+ * submission and the customer's download listed both response folders, so an
+ * admin who chose "The translation" watched the recipient receive both (Ben,
+ * QA e2j).
+ *
+ * That is worse than untidy. It makes the curation decorative — the email says
+ * one thing and the portal another about the same act — and on the customer's
+ * side it hands someone the coach's untranslated original, in a language they
+ * may not read, which is the exact outcome translating exists to prevent.
+ *
+ * Null means "not sent yet, or sent before this was recorded", and falls back
+ * to the originals: the same fallback both send actions use, and the one set
+ * that always exists.
+ */
+export function filesAsSent<T extends { kind: FileKind }>(
+  files: readonly T[],
+  side: "intake" | "feedback",
+  fileSet: FileSet | null | undefined,
+): T[] {
+  const kinds = kindsForSet(side, fileSet ?? "original");
+  return files.filter((file) => kinds.includes(file.kind));
+}
+
 export function kindsForSet(
   side: "intake" | "feedback",
   set: FileSet,

@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 45,
-    "generatedAt": "2026-09-02T21:34:41.141Z",
-    "checks": 293,
-    "live": 293,
+    "build": 46,
+    "generatedAt": "2026-09-02T21:46:04.949Z",
+    "checks": 297,
+    "live": 297,
     "retired": 0,
     "edited": 18
   },
@@ -1086,6 +1086,26 @@
               "id": "5.9.36",
               "what": "An untranslated submission shows no translator rows",
               "expect": "Not an empty row. Most submissions never translate"
+            },
+            {
+              "id": "5.9.37",
+              "what": "⚠️ The coach sees only what you sent. Send \"The translation\" to a coach on a submission that has both folders",
+              "expect": "One file on their card, matching the email. ⚠️ The portal listed every file on the submission, so the curation was honoured in the email and ignored on the page — two answers to one act"
+            },
+            {
+              "id": "5.9.38",
+              "what": "⚠️ The customer sees only what you released. Approve with \"The translation\"",
+              "expect": "The download page and the ⑥ link both show the translation alone. ⚠️ Worse than the coach case: an untranslated original handed to someone who may not read it is what translating exists to prevent"
+            },
+            {
+              "id": "5.9.39",
+              "what": "Send \"Both\"",
+              "expect": "Both folders appear, on the card and on the download page"
+            },
+            {
+              "id": "5.9.40",
+              "what": "A submission sent before the set was recorded",
+              "expect": "Falls back to the originals — the same fallback both send actions use, and the one set that always exists"
             },
             {
               "id": "5.10",

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ButtonLink } from "@/shared/ui";
 import { FeedbackDownloadRow } from "@/domains/feedback";
 import {
+  filesAsSent,
   getSubmission,
   isReleased,
   listFeedbackFiles,
@@ -33,7 +34,11 @@ export default async function FeedbackPage({
   const submission = submissionId ? await getSubmission(submissionId) : null;
   const files =
     submission && isReleased(submission)
-      ? (await listFeedbackFiles(submission.id)).filter((f) => !!f.fileUrl)
+      ? filesAsSent(
+          await listFeedbackFiles(submission.id),
+          "feedback",
+          submission.customerFileSet,
+        ).filter((f) => !!f.fileUrl)
       : [];
 
   return (

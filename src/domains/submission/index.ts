@@ -59,6 +59,7 @@ export {
   type SubmissionFile,
   FILE_SETS,
   availableSets,
+  filesAsSent,
   kindsForSet,
   type FileSet,
 } from "./model/submissionFile";

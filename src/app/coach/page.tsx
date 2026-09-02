@@ -7,6 +7,7 @@ import { getCoachByOperatorId } from "@/domains/operator";
 import {
   findByCoach,
   listFeedbackFiles,
+  filesAsSent,
   listFilesForSubmissions,
   SubmissionFileList,
   type Submission,
@@ -94,7 +95,14 @@ export default async function CoachHomePage() {
             <ReviewCard
               key={s.id}
               submission={s}
-              files={filesBySubmission.get(s.id) ?? []}
+              /* Only what the admin chose to send them (Ben, QA e2j). The
+                 hand-off email has always been curated; this page was not, so
+                 "The translation" still put both folders on the card. */
+              files={filesAsSent(
+                filesBySubmission.get(s.id) ?? [],
+                "intake",
+                s.coachFileSet,
+              )}
               uploadMode={uploadMode}
               feedbackFiles={feedbackByOpen.get(s.id) ?? []}
             />
