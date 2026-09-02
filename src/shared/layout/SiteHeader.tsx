@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ButtonLink, Container } from "@/shared/ui";
 import { Logo } from "@/shared/layout/Logo";
@@ -9,11 +10,12 @@ import { navLinks } from "@/shared/layout/navLinks";
  * The site header — wordmark and section links left, the one call to action
  * right, on a 79px bar.
  *
- * **Two grounds, one bar.** On the landing page the design floats it over the
- * hero photograph with no fill of its own; everywhere else there is no
- * photograph to float over, so it takes an ink fill. The wordmark is white in
- * both cases, which is the whole reason the interior variant is dark rather
- * than paper — see `Logo`.
+ * **Three grounds, one bar.** The landing page gives the bar its own strip of
+ * sky (`skyBand`) so it reads as a band of its own above the hero photograph,
+ * not floating over it. `/contact` and the flow (`transparent`) still float over
+ * their own full-bleed photo. Everywhere else there is no photo, so the bar
+ * takes an ink fill. The wordmark is white in every case, which is the whole
+ * reason the non-paper variants are dark — see `Logo`.
  *
  * **Not sticky.** The page carries its CTA in the hero, the pricing card and
  * the closing band, so pinning the bar would spend a slice of every viewport to
@@ -30,7 +32,13 @@ import { navLinks } from "@/shared/layout/navLinks";
  * (The bar carries `relative` in both variants so that menu's panel — which is
  * absolutely positioned — anchors to the header rather than the page.)
  */
-export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
+export function SiteHeader({
+  transparent = false,
+  skyBand = false,
+}: {
+  transparent?: boolean;
+  skyBand?: boolean;
+}) {
   return (
     <header
       className={
@@ -40,13 +48,36 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
       }
     >
       {/*
+        The bar's own strip of sky, so it sits as a band above the hero rather
+        than over it (Aaron). It is a separate photograph from the hero's, cut
+        wide and short. The left gradient carries the wordmark and links —
+        `from-ink` is opaque there so white type is legible — and clears by the
+        midpoint so the clouds show on the right, under the call to action.
+      */}
+      {skyBand && (
+        <>
+          <Image
+            src="/images/nav-sky.webp"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-right"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-ink via-ink/70 to-transparent"
+          />
+        </>
+      )}
+      {/*
         The floating header carries no fill, so it reads whatever the photo puts
-        behind it — and the hero's bright sky leaves white links and the wordmark
-        short of contrast on the left. This scrim is a legibility floor, not a
-        band: a soft top-down darkening, weighted left where the wordmark and
-        links sit, fading to clear on the right so the sky still shows and there
-        is no hard edge into the hero below. Interior pages take an ink fill
-        instead, so they don't need it.
+        behind it — and a bright sky leaves white links and the wordmark short of
+        contrast on the left. This scrim is a legibility floor, not a band: a soft
+        top-down darkening, weighted left where the wordmark and links sit, fading
+        to clear on the right so the sky still shows and there is no hard edge into
+        the hero below. Interior pages take an ink fill instead, so they don't
+        need it.
       */}
       {transparent && (
         <div
