@@ -23,8 +23,9 @@ import { hero } from "../model/copy";
  * it Next defers the fetch and the hero lands after the fold has already been
  * painted empty.
  *
- * The header floats over this section (see `SiteChrome`), so the top padding
- * has to clear its 79px itself; there is no header box above to push it down.
+ * The header is its own sky band above this section now (see `SiteChrome`), not
+ * a bar floating over it, so this section starts below the header and the top
+ * padding is ordinary breathing room rather than clearance for an overlay.
  */
 export function Hero() {
   return (
@@ -39,7 +40,7 @@ export function Hero() {
       />
       <div className="absolute inset-0 bg-gradient-to-l from-ink via-ink/80 to-transparent lg:to-40%" />
 
-      <Container className="relative pb-20 pt-[140px] lg:pb-28 lg:pt-[190px]">
+      <Container className="relative pb-20 pt-20 lg:pb-28 lg:pt-28">
         <div className="ml-auto max-w-[520px]">
           <p className="flex items-center gap-2 font-display text-[11px] font-medium uppercase tracking-[0.08em] text-highlight">
             <span
