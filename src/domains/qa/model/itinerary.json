@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 49,
-    "generatedAt": "2026-09-03T20:55:36.539Z",
-    "checks": 307,
-    "live": 307,
+    "build": 50,
+    "generatedAt": "2026-09-03T21:19:20.366Z",
+    "checks": 311,
+    "live": 311,
     "retired": 0,
     "edited": 18
   },
@@ -1764,6 +1764,26 @@
               "id": "8.9.24",
               "what": "Each ready card carries the same detail as its history card",
               "expect": "Player, age, focus, their own notes, both dates. They render one shared component, so the two lists cannot describe one submission two ways"
+            },
+            {
+              "id": "8.9.25",
+              "what": "⚠️ A \"both\" card says which file is which. Open a card released with both folders",
+              "expect": "Two headed groups: \"From your coach\" and \"Translated for you\". ⚠️ It listed two links distinguished only by whatever the coach happened to name them"
+            },
+            {
+              "id": "8.9.26",
+              "what": "A single-folder card stays flat",
+              "expect": "No heading over a list that could not be anything else"
+            },
+            {
+              "id": "8.9.27",
+              "what": "The coach's own file comes first",
+              "expect": "Even when the translation was uploaded first — ordered by folder, not upload time"
+            },
+            {
+              "id": "8.9.28",
+              "what": "The labels never name a language",
+              "expect": "\"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one"
             },
             {
               "id": "8.10",

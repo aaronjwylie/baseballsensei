@@ -2281,6 +2281,34 @@
       "expect": "Player, age, focus, their own notes, both dates. They render one shared component, so the two lists cannot describe one submission two ways",
       "retired": false,
       "history": []
+    },
+    "8.9.25": {
+      "firstSeen": "2026-09-03T21:19:20.366Z",
+      "what": "⚠️ A \"both\" card says which file is which. Open a card released with both folders",
+      "expect": "Two headed groups: \"From your coach\" and \"Translated for you\". ⚠️ It listed two links distinguished only by whatever the coach happened to name them",
+      "retired": false,
+      "history": []
+    },
+    "8.9.26": {
+      "firstSeen": "2026-09-03T21:19:20.366Z",
+      "what": "A single-folder card stays flat",
+      "expect": "No heading over a list that could not be anything else",
+      "retired": false,
+      "history": []
+    },
+    "8.9.27": {
+      "firstSeen": "2026-09-03T21:19:20.366Z",
+      "what": "The coach's own file comes first",
+      "expect": "Even when the translation was uploaded first — ordered by folder, not upload time",
+      "retired": false,
+      "history": []
+    },
+    "8.9.28": {
+      "firstSeen": "2026-09-03T21:19:20.366Z",
+      "what": "The labels never name a language",
+      "expect": "\"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one",
+      "retired": false,
+      "history": []
     }
   }
 }

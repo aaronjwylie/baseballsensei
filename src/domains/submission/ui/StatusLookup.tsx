@@ -9,6 +9,7 @@ import { Button, Field, inputClass } from "@/shared/ui";
 // bundled for the browser.
 import { lookupSchema, type LookupInput } from "../model/submissionInput";
 import type { PublicSubmission } from "../model/publicSubmission";
+import type { FileKind } from "../model/submissionFile";
 import { StatusList } from "./StatusList";
 
 type Result =
@@ -42,7 +43,7 @@ type Result =
 */
 export interface DownloadGroup {
   submission: PublicSubmission;
-  files: { id: string; filename: string; sizeBytes: number }[];
+  files: { id: string; filename: string; sizeBytes: number; kind: FileKind }[];
 }
 
 /**

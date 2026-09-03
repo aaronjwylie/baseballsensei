@@ -32,6 +32,7 @@ import {
   listFeedbackFiles,
   lookupPublicSubmissions,
   toPublicSubmission,
+  type FileKind,
   type PublicSubmission,
 } from "@/domains/submission";
 import { sendFeedbackViewCode } from "./feedbackEmail";
@@ -75,7 +76,7 @@ export interface PendingFeedbackCode extends JWTPayload {
  */
 export interface FeedbackGroup {
   submission: PublicSubmission;
-  files: { id: string; filename: string; sizeBytes: number }[];
+  files: { id: string; filename: string; sizeBytes: number; kind: FileKind }[];
 }
 
 function generateCode(): string {
@@ -211,6 +212,9 @@ export async function listFeedbackForEmail(
         id: f.id,
         filename: f.filename,
         sizeBytes: f.sizeBytes,
+        // Which folder it came from, so the page can say which is which — the
+        // customer's side of the grouping the hand-off email already does.
+        kind: f.kind,
       })),
     });
   }

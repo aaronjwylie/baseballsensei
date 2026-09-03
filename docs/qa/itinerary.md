@@ -460,6 +460,10 @@ than assuming the fix held.
 | 8.9.22 | ⚠️ **And nothing of ours.** Inspect the payload behind `/status` | No coach, no internal notes, no Stripe id, no storage locator. The projection widened to the customer's own facts only, and the bar for adding a field is unchanged |
 | 8.9.23 | ⚠️ **A card per finished review.** Look up an email with several ready | One green card each, headed "Ready to download (n)". ⚠️ All of them sat inside a single green panel separated only by a player name, so seven reviews arrived as one block |
 | 8.9.24 | Each ready card carries the same detail as its history card | Player, age, focus, their own notes, both dates. They render one shared component, so the two lists cannot describe one submission two ways |
+| 8.9.25 | ⚠️ **A "both" card says which file is which.** Open a card released with both folders | Two headed groups: "From your coach" and "Translated for you". ⚠️ It listed two links distinguished only by whatever the coach happened to name them |
+| 8.9.26 | A single-folder card stays flat | No heading over a list that could not be anything else |
+| 8.9.27 | The coach's own file comes first | Even when the translation was uploaded first — ordered by folder, not upload time |
+| 8.9.28 | The labels never name a language | "From your coach" / "Translated for you". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |
