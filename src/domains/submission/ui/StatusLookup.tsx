@@ -72,7 +72,7 @@ export function StatusLookup({
    * client parent over there, so the function crosses a client-to-client
    * boundary rather than a server one.
    */
-  renderDownloads?: (groups: DownloadGroup[]) => ReactNode;
+  renderDownloads?: (groups: DownloadGroup[]) => Record<string, ReactNode>;
 } = {}) {
   const [result, setResult] = useState<Result>({ state: "idle" });
   const [code, setCode] = useState("");
@@ -280,9 +280,7 @@ export function StatusLookup({
           <StatusList
             submissions={result.submissions}
             email={result.email}
-            feedbackAccess={renderDownloads?.(result.groups)}
-            // What the panel above is already showing, so nothing is listed twice.
-            readyIds={result.groups.map((g) => g.submission.id)}
+            downloads={renderDownloads?.(result.groups)}
           />
         )}
       </div>

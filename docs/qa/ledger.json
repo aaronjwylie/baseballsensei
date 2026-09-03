@@ -2451,29 +2451,60 @@
     },
     "8.9.43": {
       "firstSeen": "2026-09-03T22:46:22.323Z",
-      "what": "⚠️ Each submission appears once. Look up an email where everything is finished",
-      "expect": "Only \"Ready to download (n)\". No second list repeating the same reviews under a heading of its own",
+      "what": "⚠️ One card per submission, and only one list. Look up an email with several finished",
+      "expect": "A single \"Your submissions (n)\". ⚠️ It was two sections — every finished review appeared twice, once with its files and no status, once with its status and no files. Neither card was the whole thing",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-03T23:00:18.599Z",
+          "what": "⚠️ Each submission appears once. Look up an email where everything is finished",
+          "expect": "Only \"Ready to download (n)\". No second list repeating the same reviews under a heading of its own"
+        }
+      ]
     },
     "8.9.44": {
       "firstSeen": "2026-09-03T22:46:22.323Z",
-      "what": "With some finished and some not",
-      "expect": "\"Ready to download\" then \"In progress\" below it, and no submission in both",
+      "what": "The files are inside the card",
+      "expect": "Not in a separate panel with a \"Download ↑\" jump. The card already says whose review it is",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-03T23:00:18.599Z",
+          "what": "With some finished and some not",
+          "expect": "\"Ready to download\" then \"In progress\" below it, and no submission in both"
+        }
+      ]
     },
     "8.9.45": {
       "firstSeen": "2026-09-03T22:46:22.323Z",
-      "what": "With nothing finished",
-      "expect": "One list, headed \"Your submissions\". \"In progress\" only means something when there is a Ready panel to be else of",
+      "what": "Ready ones come first",
+      "expect": "A parent whose review just landed does not scroll past submissions that need nothing from them",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-03T23:00:18.599Z",
+          "what": "With nothing finished",
+          "expect": "One list, headed \"Your submissions\". \"In progress\" only means something when there is a Ready panel to be else of"
+        }
+      ]
     },
     "8.9.46": {
       "firstSeen": "2026-09-03T22:46:22.323Z",
       "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
-      "expect": "Still listed, under In progress, reading \"No longer available\". ⚠️ It reads as having feedback but has no card above to duplicate — filtering on that flag instead of on what is actually shown would erase the only record it existed",
+      "expect": "Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has",
+      "retired": false,
+      "history": [
+        {
+          "at": "2026-09-03T23:00:18.599Z",
+          "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
+          "expect": "Still listed, under In progress, reading \"No longer available\". ⚠️ It reads as having feedback but has no card above to duplicate — filtering on that flag instead of on what is actually shown would erase the only record it existed"
+        }
+      ]
+    },
+    "8.9.47": {
+      "firstSeen": "2026-09-03T23:00:18.599Z",
+      "what": "Nothing finished",
+      "expect": "The same single list, in the server's order",
       "retired": false,
       "history": []
     }

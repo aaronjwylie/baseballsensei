@@ -6,7 +6,7 @@ import {
   verifyStatusToken,
 } from "@/domains/submission";
 import { StatusList } from "@/domains/submission";
-import { FeedbackDownloads, listFeedbackForEmail } from "@/domains/feedback";
+import { FeedbackFiles, listFeedbackForEmail } from "@/domains/feedback";
 import { getSettings } from "@/domains/settings";
 
 export const metadata: Metadata = {
@@ -88,9 +88,11 @@ export default async function StatusByTokenPage({
           <StatusList
             submissions={submissions}
             email={email}
-            feedbackAccess={<FeedbackDownloads groups={ready} />}
-            // What the panel above is already showing, so nothing is listed twice.
-            readyIds={ready.map((g) => g.submission.id)}
+            // Each submission's files, keyed by its id, so they render inside
+            // that submission's own card rather than in a panel beside the list.
+            downloads={Object.fromEntries(
+              ready.map((g) => [g.submission.id, <FeedbackFiles key={g.submission.id} group={g} />]),
+            )}
           />
         </div>
 

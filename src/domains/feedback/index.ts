@@ -39,6 +39,6 @@ export {
   removeFeedbackFileAction,
 } from "./api/feedbackActions";
 export { FeedbackUpload } from "./ui/FeedbackUpload";
-export { FeedbackDownloads } from "./ui/FeedbackDownloads";
+export { FeedbackFiles } from "./ui/FeedbackFiles";
 export { StatusPanel } from "./ui/StatusPanel";
 export { FeedbackDownloadRow } from "./ui/FeedbackDownloadRow";

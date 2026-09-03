@@ -2,7 +2,6 @@
 import type { ReactNode } from "react";
 
 import { ButtonLink } from "@/shared/ui";
-import { FEEDBACK_ANCHOR } from "@/shared/lib/anchors";
 import type { PublicSubmission } from "../model/publicSubmission";
 import { SubmissionSummary } from "./SubmissionSummary";
 
@@ -17,31 +16,30 @@ import { SubmissionSummary } from "./SubmissionSummary";
 export function StatusList({
   submissions,
   email,
-  feedbackAccess,
-  readyIds,
+  downloads,
 }: {
   submissions: PublicSubmission[];
   email: string;
   /**
-   * What to show once any submission has feedback waiting.
+   * The download rows for each submission that has any, keyed by its id.
    *
-   * **Passed in, not imported.** Rendering it here directly made
+   * **Passed in, not imported.** Rendering them here directly would make
    * `submission` depend on `feedback`, which already depends on `submission` —
    * a cycle the graph forbids (`_StructureLaw` §5.3) and nothing could see
    * until `check:structure` existed. Composition belongs to the layer above;
-   * this component says *where* it goes and `app/` says *what* it is.
-   */
-  feedbackAccess?: ReactNode;
-  /**
-   * Which submissions the panel above is already showing, so they are not
-   * listed a second time below it.
+   * this component says *where* they go and `app/` says *what* they are.
    *
-   * Ids rather than a count or a flag: the list below has to know *which*, and
-   * the composing layer is the only place that can see both halves — this
-   * component cannot look inside `feedbackAccess`, which is deliberately opaque
-   * to it.
+   * **A map rather than one node**, which is what collapsed the page from two
+   * lists to one (Ben, 2026-09-03). A single opaque panel could only be placed
+   * *beside* the list, so every finished review appeared twice — once in the
+   * panel with its download and once in the list with its status, each carrying
+   * half of what a reader wanted. Keyed by id, the files can go inside the card
+   * that already says whose review it is.
+   *
+   * Elements, not a render function: this crosses a server-to-client boundary
+   * on `/status/[token]`, and a function would not serialise.
    */
-  readyIds?: string[];
+  downloads?: Record<string, ReactNode>;
 }) {
   if (submissions.length === 0) {
     return (
@@ -59,69 +57,44 @@ export function StatusList({
     );
   }
 
-  const anythingReady = submissions.some((s) => s.hasFeedback);
-
   /*
-    **Each submission appears once** (Ben, 2026-09-03).
+    **One list, one card per submission** (Ben, 2026-09-03).
 
-    Every finished review was listed twice — as a card under Ready with its
-    download, and again below under a heading of its own. On an account where
-    everything is finished that is the same list printed twice, which is what it
-    looked like.
+    This was two sections — "Ready to download" and a full list below it — so a
+    finished review appeared twice: once with its files and no status, once with
+    its status and no files. Neither card was the whole thing, and on an account
+    where everything is finished the page was the same list printed twice.
 
-    Filtered by id rather than by `hasFeedback`, and the difference matters at
-    the end of the retention window: a released submission whose files have been
-    swept still reads as having feedback, but has no card under Ready to be a
-    duplicate *of*. Filtering on the flag would erase it from both lists and the
-    customer would lose the only record that it ever existed. `readyIds` is what
-    is actually on the page, so only what is genuinely shown twice is removed.
+    Ordered **ready first**, which is the one thing worth keeping from the split.
+    A parent whose review has just landed should not scroll past submissions that
+    need nothing from them to reach the one that does. Within each group the
+    server's order stands, which is newest first.
+
+    Not sorted by `hasFeedback` but by whether files are actually on the page: a
+    released submission whose files have been swept still reads as having
+    feedback, and belongs with the rest rather than at the top promising a
+    download it no longer has.
   */
-  const shown = new Set(readyIds ?? []);
-  const rest = submissions.filter((s) => !shown.has(s.id));
+  const hasFiles = (s: PublicSubmission) => !!downloads?.[s.id];
+  const ordered = [
+    ...submissions.filter(hasFiles),
+    ...submissions.filter((s) => !hasFiles(s)),
+  ];
 
   return (
     <>
-      {/*
-        **Ready first, history second** (Ben, 2026-09-03).
-
-        These sat the other way round, so a parent whose review had just landed
-        opened the page to a list of past submissions and had to scroll past
-        their own history to reach the thing the email had told them was
-        waiting. The page has one job on the day it matters, and that job was
-        below the fold.
-
-        The order is not "newest first" — it is *actionable first*. What follows
-        needs nothing from them.
-      */}
-      {anythingReady && feedbackAccess}
-
-      {rest.length > 0 && (
-        <>
-          {/*
-            "Your history" was wrong for what is left once the finished reviews
-            move up to Ready: these are the ones still being worked on, and
-            calling them history invites a customer to stop waiting for them.
-            It only says "everything else" when there is a Ready panel above to
-            be else *of*.
-          */}
-          <h3
-            className={`text-sm font-semibold uppercase tracking-wide text-ink-muted ${
-              anythingReady && feedbackAccess ? "mt-8" : ""
-            }`}
-          >
-            {anythingReady && feedbackAccess ? "In progress" : "Your submissions"}
-          </h3>
-          <ul className="mt-3 space-y-3">
-            {rest.map((submission) => (
-              <StatusRow
-                key={submission.id}
-                submission={submission}
-                hasDownloads={false}
-              />
-            ))}
-          </ul>
-        </>
-      )}
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
+        {`Your submissions (${ordered.length})`}
+      </h3>
+      <ul className="mt-3 space-y-3">
+        {ordered.map((submission) => (
+          <StatusRow
+            key={submission.id}
+            submission={submission}
+            downloads={downloads?.[submission.id]}
+          />
+        ))}
+      </ul>
     </>
   );
 }
@@ -221,36 +194,44 @@ const STATUS_META: Record<
  */
 function StatusRow({
   submission,
-  hasDownloads,
+  downloads,
 }: {
   submission: PublicSubmission;
-  /** Only link to a panel that is actually on the page. */
-  hasDownloads: boolean;
+  /** This submission's files, when it has any. Rendered inside its own card. */
+  downloads?: ReactNode;
 }) {
   const meta = STATUS_META[submission.status];
 
   return (
-    <li className="rounded-2xl border border-line bg-white p-5">
+    /*
+      A ready card is tinted, the rest are plain. Colour is what separated the
+      two lists, and it survives the merge as a property of the card rather than
+      of a section \u2014 which is the more honest place for it: readiness belongs to
+      a submission, not to a region of the page.
+    */
+    <li
+      className={`rounded-2xl border p-5 ${
+        downloads ? "border-emerald-200 bg-emerald-50/50" : "border-line bg-white"
+      }`}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <SubmissionSummary submission={submission} />
         </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <span
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${meta.className}`}
-          >
-            {meta.label}
-          </span>
-          {submission.hasFeedback && hasDownloads ? (
-            <a
-              href={`#${FEEDBACK_ANCHOR}`}
-              className="shrink-0 text-xs font-semibold text-accent underline underline-offset-2 hover:text-ink"
-            >
-              {"Download \u2191"}
-            </a>
-          ) : null}
-        </div>
+        <span
+          className={`inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-xs font-semibold ${meta.className}`}
+        >
+          {meta.label}
+        </span>
       </div>
+
+      {/*
+        The files, in the card that already says whose review this is. There was
+        a "Download \u2191" link here that jumped to a separate panel; the jump is
+        gone with the panel, and a link to somewhere else on the page was always
+        a worse answer than the thing itself.
+      */}
+      {downloads}
     </li>
   );
 }

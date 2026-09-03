@@ -1,7 +1,7 @@
 "use client";
 
 import { StatusLookup } from "@/domains/submission/ui/StatusLookup";
-import { FeedbackDownloads } from "./FeedbackDownloads";
+import { FeedbackFiles } from "./FeedbackFiles";
 
 /**
  * The whole `/status` page's interior: look yourself up, and download what is
@@ -19,7 +19,15 @@ import { FeedbackDownloads } from "./FeedbackDownloads";
 export function StatusPanel() {
   return (
     <StatusLookup
-      renderDownloads={(groups) => <FeedbackDownloads groups={groups} />}
+      // A node per submission, keyed by id, so each card carries its own files.
+      renderDownloads={(groups) =>
+        Object.fromEntries(
+          groups.map((g) => [
+            g.submission.id,
+            <FeedbackFiles key={g.submission.id} group={g} />,
+          ]),
+        )
+      }
     />
   );
 }
