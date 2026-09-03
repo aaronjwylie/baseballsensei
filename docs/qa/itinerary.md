@@ -450,6 +450,10 @@ than assuming the fix held.
 | 8.9.12 | The panel follows the shell's palette | Its greys are the shell's `PAPER_ALT` and `LINE`, not literals, so a palette change carries the code box with it |
 | 8.9.13 | ⚠️ **A collection writes its trail row, not just its email.** Collect as a customer, then read the trail | Both a `collected` rung **and** a ⑦ row. ⚠️ e2e sent and delivered ⑦ while writing no row — the record that proves a send happened was the one that vanished |
 | 8.9.14 | Every ①–⑪ send leaves a row | All eleven call sites `await` the write now. Ten had been winning a race the eleventh lost inside an `after()` callback, which tears down the moment its promise resolves |
+| 8.9.15 | ⚠️ **Ready before history.** Open `/status` with a released review waiting | The downloads are the first thing on the page; history sits under its own heading below. ⚠️ They were the other way round, so a parent whose review had just landed scrolled past their own past to reach it |
+| 8.9.16 | Nothing ready | No downloads block at all, and the list is headed "Your submissions" rather than "Your history" |
+| 8.9.17 | ⚠️ **The ⑥ link stays one submission.** Open it and look for past reviews | It shows that review only, and offers a link to `/status` for the rest. ⚠️ Widening it would widen the token — this is the link people forward, and one forward would hand over the family's whole history |
+| 8.9.18 | All three customer pages resize the same way | `/status`, `/status/[token]` and the ⑥ link share one shell. Dragging wider never narrows the column |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |

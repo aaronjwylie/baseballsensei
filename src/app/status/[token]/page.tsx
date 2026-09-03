@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Container } from "@/shared/ui";
+import { NarrowPage, pageTitleClass } from "@/shared/ui";
 import {
   lookupPublicSubmissions,
   verifyStatusToken,
@@ -38,9 +38,9 @@ export default async function StatusByTokenPage({
 
   if (!email) {
     return (
-      <section className="py-14 sm:py-20">
-        <Container className="max-w-xl text-center">
-          <h1 className="text-3xl font-medium tracking-tight text-ink">
+      <NarrowPage>
+        <div className="text-center">
+          <h1 className={pageTitleClass}>
             That link didn&rsquo;t work
           </h1>
           <p className="mt-4 text-ink-soft">
@@ -56,18 +56,17 @@ export default async function StatusByTokenPage({
               Check by email instead
             </Link>
           </p>
-        </Container>
-      </section>
+        </div>
+      </NarrowPage>
     );
   }
 
   const submissions = await lookupPublicSubmissions(email);
 
   return (
-    <section className="py-14 sm:py-20">
-      <Container className="max-w-xl">
+    <NarrowPage>
         <div className="text-center">
-          <h1 className="text-3xl font-medium tracking-tight text-ink sm:text-4xl">
+          <h1 className={pageTitleClass}>
             Your submissions
           </h1>
           <p className="mt-4 text-ink-soft">
@@ -87,7 +86,6 @@ export default async function StatusByTokenPage({
           This link is private to you — anyone you forward it to can see this
           page.
         </p>
-      </Container>
-    </section>
+    </NarrowPage>
   );
 }

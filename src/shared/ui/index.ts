@@ -3,6 +3,7 @@ export { ButtonLink } from "./ButtonLink";
 export { Container } from "./Container";
 export { Field, inputClass, selectClass } from "./Field";
 export { FileButton } from "./FileButton";
+export { NarrowPage, pageTitleClass } from "./NarrowPage";
 export { FieldSelect } from "./FieldSelect";
 export { LocalTime } from "./LocalTime";
 export { PasswordInput } from "./PasswordInput";

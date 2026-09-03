@@ -2211,6 +2211,34 @@
       "expect": "Falls back to the originals — the same fallback both send actions use, and the one set that always exists",
       "retired": false,
       "history": []
+    },
+    "8.9.15": {
+      "firstSeen": "2026-09-03T20:08:06.085Z",
+      "what": "⚠️ Ready before history. Open /status with a released review waiting",
+      "expect": "The downloads are the first thing on the page; history sits under its own heading below. ⚠️ They were the other way round, so a parent whose review had just landed scrolled past their own past to reach it",
+      "retired": false,
+      "history": []
+    },
+    "8.9.16": {
+      "firstSeen": "2026-09-03T20:08:06.085Z",
+      "what": "Nothing ready",
+      "expect": "No downloads block at all, and the list is headed \"Your submissions\" rather than \"Your history\"",
+      "retired": false,
+      "history": []
+    },
+    "8.9.17": {
+      "firstSeen": "2026-09-03T20:08:06.085Z",
+      "what": "⚠️ The ⑥ link stays one submission. Open it and look for past reviews",
+      "expect": "It shows that review only, and offers a link to /status for the rest. ⚠️ Widening it would widen the token — this is the link people forward, and one forward would hand over the family's whole history",
+      "retired": false,
+      "history": []
+    },
+    "8.9.18": {
+      "firstSeen": "2026-09-03T20:08:06.085Z",
+      "what": "All three customer pages resize the same way",
+      "expect": "/status, /status/[token] and the ⑥ link share one shell. Dragging wider never narrows the column",
+      "retired": false,
+      "history": []
     }
   }
 }

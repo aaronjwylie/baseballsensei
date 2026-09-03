@@ -47,19 +47,43 @@ export function StatusList({
     );
   }
 
+  const anythingReady = submissions.some((s) => s.hasFeedback);
+
   return (
     <>
-      <ul className="space-y-3">
-        {submissions.map((submission, index) => (
-          <StatusRow
-            key={index}
-            submission={submission}
-            hasDownloads={!!feedbackAccess}
-          />
-        ))}
-      </ul>
-      {submissions.some((s) => s.hasFeedback) && feedbackAccess && (
-        <div className="mt-6">{feedbackAccess}</div>
+      {/*
+        **Ready first, history second** (Ben, 2026-09-03).
+
+        These sat the other way round, so a parent whose review had just landed
+        opened the page to a list of past submissions and had to scroll past
+        their own history to reach the thing the email had told them was
+        waiting. The page has one job on the day it matters, and that job was
+        below the fold.
+
+        The order is not "newest first" — it is *actionable first*. Everything
+        under History is finished and needs nothing from them.
+      */}
+      {anythingReady && feedbackAccess}
+
+      {submissions.length > 0 && (
+        <>
+          <h3
+            className={`text-sm font-semibold uppercase tracking-wide text-ink-muted ${
+              anythingReady && feedbackAccess ? "mt-8" : ""
+            }`}
+          >
+            {anythingReady ? "Your history" : "Your submissions"}
+          </h3>
+          <ul className="mt-3 space-y-3">
+            {submissions.map((submission, index) => (
+              <StatusRow
+                key={index}
+                submission={submission}
+                hasDownloads={!!feedbackAccess}
+              />
+            ))}
+          </ul>
+        </>
       )}
     </>
   );
@@ -179,7 +203,7 @@ function StatusRow({
             href={`#${FEEDBACK_ANCHOR}`}
             className="shrink-0 text-xs font-semibold text-accent underline underline-offset-2 hover:text-ink"
           >
-            Download ↓
+            {"Download ↑"}
           </a>
         ) : null}
       </div>

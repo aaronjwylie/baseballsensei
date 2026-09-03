@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ButtonLink } from "@/shared/ui";
+import Link from "next/link";
+import { ButtonLink, NarrowPage, pageTitleClass } from "@/shared/ui";
 import { FeedbackDownloadRow } from "@/domains/feedback";
 import {
   filesAsSent,
@@ -42,22 +43,7 @@ export default async function FeedbackPage({
       : [];
 
   return (
-    /*
-      Fluid rather than stepped (Ben, 2026-08-31).
-
-      This page used the site `Container`, whose padding steps at 640px and
-      1024px because it is built for a 1400px layout. Capped at `max-w-xl` those
-      steps invert: the box stops growing at 576px but the padding keeps
-      stepping *inward*, so dragging the window wider made the text column
-      narrower — 536 to 512 to 456 — twice, visibly, in the wrong direction.
-
-      A narrow card wants constant padding and one cap. The vertical rhythm and
-      the heading are `clamp()` for the same reason: they now interpolate across
-      the whole range instead of snapping at a width that has nothing to do with
-      this page.
-    */
-    <section className="py-[clamp(3.5rem,2.5rem+3vw,5rem)]">
-      <div className="mx-auto w-full max-w-xl px-5">
+    <NarrowPage>
         {files.length === 0 ? (
           <div className="rounded-2xl border border-line bg-white p-8 text-center">
             <h1 className="text-2xl font-bold tracking-tight text-ink">
@@ -74,7 +60,7 @@ export default async function FeedbackPage({
         ) : (
           <>
             <div className="text-center">
-              <h1 className="text-[clamp(1.875rem,1.5rem+1.6vw,2.25rem)] font-bold tracking-tight text-ink">
+              <h1 className={pageTitleClass}>
                 Your feedback is ready 🎬
               </h1>
               <p className="mt-4 text-ink-muted">
@@ -97,9 +83,35 @@ export default async function FeedbackPage({
                 />
               ))}
             </ul>
+
+            {/*
+              This page deliberately shows **one** submission (Ben, 2026-09-03).
+
+              The link's token carries `sub: submissionId` — it grants that
+              review, not the address. `/status` grants everything sent from an
+              email address, which is why it asks for a code first.
+
+              Widening this page to the full history would widen the token with
+              it, and this is the link people forward: to the other parent, to a
+              coach, into a group chat. One forward would then hand over every
+              review the family has ever had. The sibling `/status/[token]` page
+              carries the warning that says so out loud.
+
+              So the narrow grant stays narrow and the page stops being a dead
+              end instead — the wider view is one link away, behind its own gate.
+            */}
+            <p className="mt-10 text-center text-sm text-ink-muted">
+              {"Looking for an earlier review? "}
+              <Link
+                href="/status"
+                className="font-medium text-accent underline underline-offset-2 hover:text-ink"
+              >
+                See all your submissions
+              </Link>
+              {" — we'll email you a code."}
+            </p>
           </>
         )}
-      </div>
-    </section>
+    </NarrowPage>
   );
 }

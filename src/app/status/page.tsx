@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Container } from "@/shared/ui";
+import { NarrowPage, pageTitleClass } from "@/shared/ui";
 import { StatusPanel } from "@/domains/feedback";
 
 export const metadata: Metadata = {
@@ -10,10 +10,9 @@ export const metadata: Metadata = {
 
 export default function StatusPage() {
   return (
-    <section className="py-14 sm:py-20">
-      <Container className="max-w-xl">
+    <NarrowPage>
         <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+          <h1 className={pageTitleClass}>
             Check your submissions
           </h1>
           <p className="mt-4 text-ink-muted">
@@ -25,7 +24,6 @@ export default function StatusPage() {
         <div className="mt-10">
           <StatusPanel />
         </div>
-      </Container>
-    </section>
+    </NarrowPage>
   );
 }

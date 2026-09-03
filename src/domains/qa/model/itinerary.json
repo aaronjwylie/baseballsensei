@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 46,
-    "generatedAt": "2026-09-02T21:46:04.949Z",
-    "checks": 297,
-    "live": 297,
+    "build": 47,
+    "generatedAt": "2026-09-03T20:08:06.085Z",
+    "checks": 301,
+    "live": 301,
     "retired": 0,
     "edited": 18
   },
@@ -1714,6 +1714,26 @@
               "id": "8.9.14",
               "what": "Every ①–⑪ send leaves a row",
               "expect": "All eleven call sites await the write now. Ten had been winning a race the eleventh lost inside an after() callback, which tears down the moment its promise resolves"
+            },
+            {
+              "id": "8.9.15",
+              "what": "⚠️ Ready before history. Open /status with a released review waiting",
+              "expect": "The downloads are the first thing on the page; history sits under its own heading below. ⚠️ They were the other way round, so a parent whose review had just landed scrolled past their own past to reach it"
+            },
+            {
+              "id": "8.9.16",
+              "what": "Nothing ready",
+              "expect": "No downloads block at all, and the list is headed \"Your submissions\" rather than \"Your history\""
+            },
+            {
+              "id": "8.9.17",
+              "what": "⚠️ The ⑥ link stays one submission. Open it and look for past reviews",
+              "expect": "It shows that review only, and offers a link to /status for the rest. ⚠️ Widening it would widen the token — this is the link people forward, and one forward would hand over the family's whole history"
+            },
+            {
+              "id": "8.9.18",
+              "what": "All three customer pages resize the same way",
+              "expect": "/status, /status/[token] and the ⑥ link share one shell. Dragging wider never narrows the column"
             },
             {
               "id": "8.10",

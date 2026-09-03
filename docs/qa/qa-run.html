@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 46</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 47</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -2068,6 +2068,26 @@ const PHASES = [
             "8.9.14",
             "Every ①–⑪ send leaves a row",
             "All eleven call sites await the write now. Ten had been winning a race the eleventh lost inside an after() callback, which tears down the moment its promise resolves"
+          ],
+          [
+            "8.9.15",
+            "⚠️ Ready before history. Open /status with a released review waiting",
+            "The downloads are the first thing on the page; history sits under its own heading below. ⚠️ They were the other way round, so a parent whose review had just landed scrolled past their own past to reach it"
+          ],
+          [
+            "8.9.16",
+            "Nothing ready",
+            "No downloads block at all, and the list is headed \"Your submissions\" rather than \"Your history\""
+          ],
+          [
+            "8.9.17",
+            "⚠️ The ⑥ link stays one submission. Open it and look for past reviews",
+            "It shows that review only, and offers a link to /status for the rest. ⚠️ Widening it would widen the token — this is the link people forward, and one forward would hand over the family's whole history"
+          ],
+          [
+            "8.9.18",
+            "All three customer pages resize the same way",
+            "/status, /status/[token] and the ⑥ link share one shell. Dragging wider never narrows the column"
           ],
           [
             "8.10",
