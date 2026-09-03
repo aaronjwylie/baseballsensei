@@ -1579,9 +1579,20 @@
     "5.9.8": {
       "firstSeen": "2026-08-31T01:31:26.679Z",
       "what": "Customer english · coach English (case and trailing space)",
-      "expect": "Skipped — matching is case-insensitive and trimmed",
-      "retired": false,
-      "history": []
+      "expect": "Retired 2026-09-03 — unreachable, not wrong. Both sides are radio groups now, so a stray space or a mistyped case cannot be entered by anyone. The rule still matters, because a migration or a seed could reintroduce one, so the assertion moved to npm run simulate — which now names the trailing space this row did. Retired because the input path went, not the rule; if free text ever returns, so does this",
+      "retired": true,
+      "history": [
+        {
+          "at": "2026-09-03T23:13:39.450Z",
+          "what": "Customer english · coach English (case and trailing space)",
+          "expect": "Skipped — matching is case-insensitive and trimmed"
+        },
+        {
+          "at": "2026-09-03T23:14:09.403Z",
+          "what": "~~Customer english · coach English (case and trailing space)~~ Retired 2026-09-03 — no longer reachable. Both sides are radio groups now, so a mistyped case or a stray space cannot be entered. The rule itself still holds and is checked where it lives: npm run simulate asserts [\"english \"] against [\"English\"] skips",
+          "expect": "Nothing to click. Retired because the input path went, not because the rule did — if free text ever returns, this row returns with it"
+        }
+      ]
     },
     "5.9.9": {
       "firstSeen": "2026-08-31T03:14:29.195Z",

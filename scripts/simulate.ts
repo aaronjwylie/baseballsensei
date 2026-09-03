@@ -733,7 +733,15 @@ function checkLanguageRule() {
     [["English", "Japanese"], ["English", "Japanese"], false, "bilingual both sides"],
     [["English"], [], null, "coach hasn't declared — unknown, not no"],
     [[], ["English"], null, "customer hasn't declared — unknown, not no"],
-    [["english"], ["English"], false, "case and spacing don't make a mismatch"],
+    /*
+      QA 5.9.8 lives here now. It was a manual check until 2026-09-03, when it
+      was retired for being unreachable: both sides are radio groups, so nobody
+      can type a stray space. The *rule* still matters — a hand-written
+      migration or a seed could reintroduce one — so the assertion moves to the
+      place that can still make it, with the space it actually names.
+    */
+    [["english "], ["English"], false, "case and spacing don't make a mismatch"],
+    [["English"], [" japanese"], true, "and spacing doesn't hide a real mismatch"],
   ];
   for (const [customer, coach, want, what] of cases) {
     check(needsTranslation(customer, coach) === want, `${String(want).padEnd(5)} — ${what}`);
