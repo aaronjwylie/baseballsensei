@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { ButtonLink } from "@/shared/ui";
 import { FEEDBACK_ANCHOR } from "@/shared/lib/anchors";
 import type { PublicSubmission } from "../model/publicSubmission";
+import { SubmissionSummary } from "./SubmissionSummary";
 
 /**
  * A customer's submissions, rendered.
@@ -191,26 +192,12 @@ function StatusRow({
   hasDownloads: boolean;
 }) {
   const meta = STATUS_META[submission.status];
-  const sent = formatDate(submission.submittedAt);
-  const back = formatDate(submission.completedAt);
 
   return (
     <li className="rounded-2xl border border-line bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="font-semibold text-ink">
-            {submission.playerName}
-            {submission.playerAge ? (
-              <span className="font-normal text-ink-muted">
-                {`, age ${submission.playerAge}`}
-              </span>
-            ) : null}
-          </div>
-          {submission.focus ? (
-            <div className="mt-0.5 text-sm text-ink-muted">
-              {submission.focus}
-            </div>
-          ) : null}
+        <div className="min-w-0 flex-1">
+          <SubmissionSummary submission={submission} />
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <span
@@ -228,42 +215,6 @@ function StatusRow({
           ) : null}
         </div>
       </div>
-
-      {/* Their own words, quoted back. Clamped rather than truncated: a long
-          note stays readable to the line, and the card stays a card. */}
-      {submission.customerNotes ? (
-        <p className="mt-3 border-l-2 border-line pl-3 text-sm leading-snug text-ink-soft">
-          {submission.customerNotes}
-        </p>
-      ) : null}
-
-      {(sent || back) && (
-        <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-muted">
-          {sent && (
-            <div className="flex gap-1.5">
-              <dt>Sent</dt>
-              <dd className="m-0 font-medium text-ink-soft">{sent}</dd>
-            </div>
-          )}
-          {back && (
-            <div className="flex gap-1.5">
-              <dt>Feedback ready</dt>
-              <dd className="m-0 font-medium text-ink-soft">{back}</dd>
-            </div>
-          )}
-        </dl>
-      )}
     </li>
   );
-}
-
-function formatDate(iso?: string): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
 }

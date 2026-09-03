@@ -31,13 +31,17 @@ type Result =
 /*
   The shape of `FeedbackGroup`, declared rather than imported.
 
+  Only the file half is structural now: `PublicSubmission` lives in this slice,
+  so it can be named outright, and the security-vetted projection is the same
+  object on both sides of the boundary rather than two descriptions of it.
+
   `domains/feedback` imports this slice, so importing it back would close a
   cycle the structure check refuses — and the rendering genuinely belongs over
   there, which is why it arrives as `renderDownloads` instead. This lookup only
   needs to carry the value across, so it describes it rather than owning it.
 */
 export interface DownloadGroup {
-  playerName: string;
+  submission: PublicSubmission;
   files: { id: string; filename: string; sizeBytes: number }[];
 }
 

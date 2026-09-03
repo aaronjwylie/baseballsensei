@@ -1,6 +1,9 @@
 "use client";
 
 import { FEEDBACK_ANCHOR } from "@/shared/lib/anchors";
+// Direct, not the barrel: this is a "use client" file and the barrel re-exports
+// Postgres-backed code that cannot ship to the browser (CLAUDE.md §12).
+import { SubmissionSummary } from "@/domains/submission/ui/SubmissionSummary";
 import { FeedbackDownloadRow } from "./FeedbackDownloadRow";
 import type { FeedbackGroup } from "../api/feedbackViewCode";
 
@@ -32,18 +35,37 @@ export function FeedbackDownloads({ groups }: { groups: FeedbackGroup[] }) {
   if (groups.length === 0) return null;
 
   return (
-    <div
-      id={FEEDBACK_ANCHOR}
-      className="scroll-mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6"
-    >
-      <h3 className="font-semibold text-ink">Your feedback</h3>
-      <div className="mt-4 space-y-4">
+    <div id={FEEDBACK_ANCHOR} className="scroll-mt-6">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
+        {groups.length === 1 ? "Ready to download" : `Ready to download (${groups.length})`}
+      </h3>
+
+      {/*
+        **A card each, not seven rows in one card** (Ben, 2026-09-03).
+
+        Every review used to sit inside a single green panel separated by a
+        player name, so a customer with seven finished reviews got one block and
+        no way to tell which was which — the same failure the history list had,
+        one panel over.
+
+        The green stays on each card rather than around the set. It is what
+        marks these as *ready*, and a single wrapper made it a background the
+        eye stops seeing instead of a property of each thing in it.
+
+        `SubmissionSummary` is the same component the history card uses, so the
+        two lists cannot drift into describing one submission two ways again.
+      */}
+      <ul className="mt-3 space-y-3">
         {groups.map((group, i) => (
-          <div key={i}>
-            <div className="text-sm font-medium text-ink">
-              {group.playerName}
-            </div>
-            <ul className="mt-2 space-y-2">
+          <li
+            key={i}
+            className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5"
+          >
+            <SubmissionSummary
+              submission={group.submission}
+              dateLabel="Sent"
+            />
+            <ul className="mt-4 space-y-2">
               {group.files.map((file) => (
                 <FeedbackDownloadRow
                   key={file.id}
@@ -53,9 +75,9 @@ export function FeedbackDownloads({ groups }: { groups: FeedbackGroup[] }) {
                 />
               ))}
             </ul>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 48,
-    "generatedAt": "2026-09-03T20:32:30.877Z",
-    "checks": 305,
-    "live": 305,
+    "build": 49,
+    "generatedAt": "2026-09-03T20:55:36.539Z",
+    "checks": 307,
+    "live": 307,
     "retired": 0,
     "edited": 18
   },
@@ -1754,6 +1754,16 @@
               "id": "8.9.22",
               "what": "⚠️ And nothing of ours. Inspect the payload behind /status",
               "expect": "No coach, no internal notes, no Stripe id, no storage locator. The projection widened to the customer's own facts only, and the bar for adding a field is unchanged"
+            },
+            {
+              "id": "8.9.23",
+              "what": "⚠️ A card per finished review. Look up an email with several ready",
+              "expect": "One green card each, headed \"Ready to download (n)\". ⚠️ All of them sat inside a single green panel separated only by a player name, so seven reviews arrived as one block"
+            },
+            {
+              "id": "8.9.24",
+              "what": "Each ready card carries the same detail as its history card",
+              "expect": "Player, age, focus, their own notes, both dates. They render one shared component, so the two lists cannot describe one submission two ways"
             },
             {
               "id": "8.10",

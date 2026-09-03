@@ -31,6 +31,7 @@ import {
   filesAsSent,
   listFeedbackFiles,
   lookupPublicSubmissions,
+  toPublicSubmission,
   type PublicSubmission,
 } from "@/domains/submission";
 import { sendFeedbackViewCode } from "./feedbackEmail";
@@ -61,9 +62,19 @@ export interface PendingFeedbackCode extends JWTPayload {
   attempts: number;
 }
 
-/** One customer's feedback, grouped by player — only ever returned post-verify. */
+/**
+ * One finished review, with the files to download it — only ever returned
+ * post-verify.
+ *
+ * It carried a bare `playerName` until 2026-09-03, which was all the panel had
+ * to tell seven reviews apart (Ben). It now carries the whole
+ * `PublicSubmission`, so the download card can describe itself exactly as the
+ * history card does — and, more to the point, so there is **one** projection
+ * deciding what a customer may see rather than this file quietly maintaining a
+ * second, narrower opinion that nobody would think to audit.
+ */
 export interface FeedbackGroup {
-  playerName: string;
+  submission: PublicSubmission;
   files: { id: string; filename: string; sizeBytes: number }[];
 }
 
@@ -195,7 +206,7 @@ export async function listFeedbackForEmail(
     ).filter((f) => !!f.fileUrl);
     if (files.length === 0) continue;
     groups.push({
-      playerName: submission.playerName || "Player",
+      submission: toPublicSubmission(submission),
       files: files.map((f) => ({
         id: f.id,
         filename: f.filename,

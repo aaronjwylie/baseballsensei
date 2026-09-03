@@ -2267,6 +2267,20 @@
       "expect": "No coach, no internal notes, no Stripe id, no storage locator. The projection widened to the customer's own facts only, and the bar for adding a field is unchanged",
       "retired": false,
       "history": []
+    },
+    "8.9.23": {
+      "firstSeen": "2026-09-03T20:55:36.539Z",
+      "what": "⚠️ A card per finished review. Look up an email with several ready",
+      "expect": "One green card each, headed \"Ready to download (n)\". ⚠️ All of them sat inside a single green panel separated only by a player name, so seven reviews arrived as one block",
+      "retired": false,
+      "history": []
+    },
+    "8.9.24": {
+      "firstSeen": "2026-09-03T20:55:36.539Z",
+      "what": "Each ready card carries the same detail as its history card",
+      "expect": "Player, age, focus, their own notes, both dates. They render one shared component, so the two lists cannot describe one submission two ways",
+      "retired": false,
+      "history": []
     }
   }
 }
