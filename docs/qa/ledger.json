@@ -2448,6 +2448,34 @@
       "expect": "30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards",
       "retired": false,
       "history": []
+    },
+    "8.9.43": {
+      "firstSeen": "2026-09-03T22:46:22.323Z",
+      "what": "⚠️ Each submission appears once. Look up an email where everything is finished",
+      "expect": "Only \"Ready to download (n)\". No second list repeating the same reviews under a heading of its own",
+      "retired": false,
+      "history": []
+    },
+    "8.9.44": {
+      "firstSeen": "2026-09-03T22:46:22.323Z",
+      "what": "With some finished and some not",
+      "expect": "\"Ready to download\" then \"In progress\" below it, and no submission in both",
+      "retired": false,
+      "history": []
+    },
+    "8.9.45": {
+      "firstSeen": "2026-09-03T22:46:22.323Z",
+      "what": "With nothing finished",
+      "expect": "One list, headed \"Your submissions\". \"In progress\" only means something when there is a Ready panel to be else of",
+      "retired": false,
+      "history": []
+    },
+    "8.9.46": {
+      "firstSeen": "2026-09-03T22:46:22.323Z",
+      "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
+      "expect": "Still listed, under In progress, reading \"No longer available\". ⚠️ It reads as having feedback but has no card above to duplicate — filtering on that flag instead of on what is actually shown would erase the only record it existed",
+      "retired": false,
+      "history": []
     }
   }
 }

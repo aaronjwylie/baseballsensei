@@ -18,6 +18,7 @@ export function StatusList({
   submissions,
   email,
   feedbackAccess,
+  readyIds,
 }: {
   submissions: PublicSubmission[];
   email: string;
@@ -31,6 +32,16 @@ export function StatusList({
    * this component says *where* it goes and `app/` says *what* it is.
    */
   feedbackAccess?: ReactNode;
+  /**
+   * Which submissions the panel above is already showing, so they are not
+   * listed a second time below it.
+   *
+   * Ids rather than a count or a flag: the list below has to know *which*, and
+   * the composing layer is the only place that can see both halves — this
+   * component cannot look inside `feedbackAccess`, which is deliberately opaque
+   * to it.
+   */
+  readyIds?: string[];
 }) {
   if (submissions.length === 0) {
     return (
@@ -50,6 +61,24 @@ export function StatusList({
 
   const anythingReady = submissions.some((s) => s.hasFeedback);
 
+  /*
+    **Each submission appears once** (Ben, 2026-09-03).
+
+    Every finished review was listed twice — as a card under Ready with its
+    download, and again below under a heading of its own. On an account where
+    everything is finished that is the same list printed twice, which is what it
+    looked like.
+
+    Filtered by id rather than by `hasFeedback`, and the difference matters at
+    the end of the retention window: a released submission whose files have been
+    swept still reads as having feedback, but has no card under Ready to be a
+    duplicate *of*. Filtering on the flag would erase it from both lists and the
+    customer would lose the only record that it ever existed. `readyIds` is what
+    is actually on the page, so only what is genuinely shown twice is removed.
+  */
+  const shown = new Set(readyIds ?? []);
+  const rest = submissions.filter((s) => !shown.has(s.id));
+
   return (
     <>
       {/*
@@ -61,26 +90,33 @@ export function StatusList({
         waiting. The page has one job on the day it matters, and that job was
         below the fold.
 
-        The order is not "newest first" — it is *actionable first*. Everything
-        under History is finished and needs nothing from them.
+        The order is not "newest first" — it is *actionable first*. What follows
+        needs nothing from them.
       */}
       {anythingReady && feedbackAccess}
 
-      {submissions.length > 0 && (
+      {rest.length > 0 && (
         <>
+          {/*
+            "Your history" was wrong for what is left once the finished reviews
+            move up to Ready: these are the ones still being worked on, and
+            calling them history invites a customer to stop waiting for them.
+            It only says "everything else" when there is a Ready panel above to
+            be else *of*.
+          */}
           <h3
             className={`text-sm font-semibold uppercase tracking-wide text-ink-muted ${
               anythingReady && feedbackAccess ? "mt-8" : ""
             }`}
           >
-            {anythingReady ? "Your history" : "Your submissions"}
+            {anythingReady && feedbackAccess ? "In progress" : "Your submissions"}
           </h3>
           <ul className="mt-3 space-y-3">
-            {submissions.map((submission, index) => (
+            {rest.map((submission) => (
               <StatusRow
-                key={index}
+                key={submission.id}
                 submission={submission}
-                hasDownloads={!!feedbackAccess}
+                hasDownloads={false}
               />
             ))}
           </ul>

@@ -281,6 +281,8 @@ export function StatusLookup({
             submissions={result.submissions}
             email={result.email}
             feedbackAccess={renderDownloads?.(result.groups)}
+            // What the panel above is already showing, so nothing is listed twice.
+            readyIds={result.groups.map((g) => g.submission.id)}
           />
         )}
       </div>

@@ -38,6 +38,15 @@ import {
 } from "./submission";
 
 export interface PublicSubmission {
+  /**
+   * The submission's own id, so two lists of the customer's submissions can
+   * tell they are describing the same one (Ben, 2026-09-03).
+   *
+   * It unlocks nothing on its own: `/api/feedback/[id]` takes **file** ids, and
+   * `/api/files/[id]` is operator-only. The customer already proved the inbox
+   * to see this at all, and what they get is a handle on their own row.
+   */
+  id: string;
   playerName: string;
   playerAge?: number;
   focus?: string;
@@ -78,6 +87,7 @@ export function toPublicSubmission(
       ? (deletionDueAt(submission, retention.collectedDays, retention.deliveredDays) ??
         undefined)
       : undefined,
+    id: submission.id,
     playerName: submission.playerName || "Player",
     playerAge: submission.playerAge,
     focus: submission.focus,

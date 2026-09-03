@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 54,
-    "generatedAt": "2026-09-03T22:42:18.743Z",
-    "checks": 330,
-    "live": 330,
+    "build": 55,
+    "generatedAt": "2026-09-03T22:46:22.323Z",
+    "checks": 334,
+    "live": 334,
     "retired": 0,
     "edited": 19
   },
@@ -1886,6 +1886,26 @@
               "id": "8.9.42",
               "what": "The number is the later of the two clocks",
               "expect": "30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards"
+            },
+            {
+              "id": "8.9.43",
+              "what": "⚠️ Each submission appears once. Look up an email where everything is finished",
+              "expect": "Only \"Ready to download (n)\". No second list repeating the same reviews under a heading of its own"
+            },
+            {
+              "id": "8.9.44",
+              "what": "With some finished and some not",
+              "expect": "\"Ready to download\" then \"In progress\" below it, and no submission in both"
+            },
+            {
+              "id": "8.9.45",
+              "what": "With nothing finished",
+              "expect": "One list, headed \"Your submissions\". \"In progress\" only means something when there is a Ready panel to be else of"
+            },
+            {
+              "id": "8.9.46",
+              "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
+              "expect": "Still listed, under In progress, reading \"No longer available\". ⚠️ It reads as having feedback but has no card above to duplicate — filtering on that flag instead of on what is actually shown would erase the only record it existed"
             },
             {
               "id": "8.10",

@@ -69,6 +69,9 @@ export default async function StatusByTokenPage({
     collectedDays: settings.retainCollectedDays,
     deliveredDays: settings.retainDeliveredDays,
   });
+  // Read once and used twice — as the panel's contents and as the list of what
+  // that panel is already showing, so the two cannot disagree.
+  const ready = await listFeedbackForEmail(email);
 
   return (
     <NarrowPage>
@@ -85,7 +88,9 @@ export default async function StatusByTokenPage({
           <StatusList
             submissions={submissions}
             email={email}
-            feedbackAccess={<FeedbackDownloads groups={await listFeedbackForEmail(email)} />}
+            feedbackAccess={<FeedbackDownloads groups={ready} />}
+            // What the panel above is already showing, so nothing is listed twice.
+            readyIds={ready.map((g) => g.submission.id)}
           />
         </div>
 

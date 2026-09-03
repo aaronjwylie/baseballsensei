@@ -483,6 +483,10 @@ than assuming the fix held.
 | 8.9.40 | ⚠️ **The customer's card carries the deadline.** Look up a delivered submission on `/status` | A last line: "Files deleted in N days". ⚠️ They are told at ⑥ and again at ⑨; this is the same promise on the page they actually return to |
 | 8.9.41 | And it disappears once the files are gone | A countdown after the fact is shown too late — the struck-through filenames say it better |
 | 8.9.42 | The number is the later of the two clocks | 30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards |
+| 8.9.43 | ⚠️ **Each submission appears once.** Look up an email where everything is finished | Only "Ready to download (n)". No second list repeating the same reviews under a heading of its own |
+| 8.9.44 | With some finished and some not | "Ready to download" then **"In progress"** below it, and no submission in both |
+| 8.9.45 | With nothing finished | One list, headed "Your submissions". "In progress" only means something when there is a Ready panel to be else of |
+| 8.9.46 | ⚠️ **A released submission whose files were swept.** Age one past the retention window | Still listed, under In progress, reading "No longer available". ⚠️ It reads as having feedback but has no card above to duplicate — filtering on that flag instead of on what is actually shown would erase the only record it existed |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |
