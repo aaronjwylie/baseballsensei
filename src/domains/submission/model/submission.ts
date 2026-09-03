@@ -328,6 +328,9 @@ const HAS_RESPONSE_AT_STATUS: Record<SubmissionStatus, boolean> = {
   purged: true,
 };
 
+/** Which side of the pipeline a rung's translation decision belongs to. */
+export type TranslationLegSide = "intake" | "feedback" | null;
+
 export function hasResponse(submission: Pick<Submission, "status">): boolean {
   return HAS_RESPONSE_AT_STATUS[submission.status];
 }
@@ -353,35 +356,48 @@ export function hasResponse(submission: Pick<Submission, "status">): boolean {
  * not arisen, so a hint about either would be describing the past or the
  * future rather than the work.
  */
-const TRANSLATION_OPEN_AT_STATUS: Record<SubmissionStatus, boolean> = {
-  draft: false,
-  awaiting_payment: false,
+const TRANSLATION_LEG_AT_STATUS: Record<SubmissionStatus, TranslationLegSide> = {
+  draft: null,
+  awaiting_payment: null,
   // No coach yet, so there is nothing to compare a language against.
-  new: false,
-  assigned: true,
-  intake_translator_assigned: true,
-  sent_to_intake_translator: true,
-  intake_translating: true,
+  new: null,
+  assigned: "intake",
+  intake_translator_assigned: "intake",
+  sent_to_intake_translator: "intake",
+  intake_translating: "intake",
   // The intake leg is home. The response leg's turn has not come.
-  intake_translated: false,
-  sent_to_coach: false,
-  in_review: false,
-  awaiting_approval: true,
-  feedback_translator_assigned: true,
-  sent_to_feedback_translator: true,
-  feedback_translating: true,
-  feedback_translated: false,
-  complete: false,
-  collected: false,
-  resolved: false,
-  purge_imminent: false,
-  purged: false,
+  intake_translated: null,
+  sent_to_coach: null,
+  in_review: null,
+  awaiting_approval: "feedback",
+  feedback_translator_assigned: "feedback",
+  sent_to_feedback_translator: "feedback",
+  feedback_translating: "feedback",
+  feedback_translated: null,
+  complete: null,
+  collected: null,
+  resolved: null,
+  purge_imminent: null,
+  purged: null,
 };
 
-export function awaitsTranslationDecision(
+/**
+ * **Which** translation leg is open, not merely whether one is.
+ *
+ * It answered a boolean until 2026-09-03, and the caller then had to pick a
+ * direction for itself — which it did once, for the intake leg, and reused at
+ * both rungs. So a submission sitting at `awaiting_approval` was warned
+ * "translate the client files first" on the strength of the *intake*
+ * comparison, describing a leg it had already passed (Ben, QA b2j).
+ *
+ * The two legs point opposite ways and disagree constantly: a bilingual party
+ * gates exactly one of them. Handing back the side removes the caller's
+ * opportunity to guess.
+ */
+export function openTranslationLeg(
   submission: Pick<Submission, "status">,
-): boolean {
-  return TRANSLATION_OPEN_AT_STATUS[submission.status];
+): TranslationLegSide {
+  return TRANSLATION_LEG_AT_STATUS[submission.status];
 }
 
 /**

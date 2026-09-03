@@ -324,6 +324,10 @@ than assuming the fix held.
 | 5.9.38 | ⚠️ **The customer sees only what you released.** Approve with "The translation" | The download page and the ⑥ link both show the translation alone. ⚠️ Worse than the coach case: an untranslated original handed to someone who may not read it is what translating exists to prevent |
 | 5.9.39 | Send "Both" | Both folders appear, on the card and on the download page |
 | 5.9.40 | A submission sent before the set was recorded | Falls back to the originals — the same fallback both send actions use, and the one set that always exists |
+| 5.9.41 | ⚠️ **No "then pick a translator" on a leg that skips.** Reach `awaiting_approval` on a submission whose response leg needs nothing | Nothing about translators under Next. ⚠️ Every aligned submission carried "then Pick a translator, if needed" — advertising a step it would never take, on the majority of submissions |
+| 5.9.42 | The line still appears when the leg *does* gate | Hidden means skipped, not removed. Run 5.9.1 and confirm it is offered |
+| 5.9.43 | ⚠️ **The amber flag reads the leg it is on.** Customer `Both` · coach `Japanese`, at `awaiting_approval` | Silent. ⚠️ It said "translate the client files first" because the *intake* leg had needed it — describing finished work while sitting on a return leg that needed none |
+| 5.9.44 | And it speaks about the right side when it does fire | Intake rungs name the client's files; response rungs name the response |
 | 5.10 | **The response leg, same matrix.** Repeat 5.9.1 and 5.9.3 against the coach's *feedback*, after they upload it | ⚠️ Same two outcomes. It is a second `passive` constant in the same file and fixing one does not fix the other |
 | 5.11 | What an operator is *told* when languages are missing | The row says which side is blank rather than only that something is. ⚠️ An **admin** grant is empty by design — read the coach card, not the person |
 

@@ -11,7 +11,7 @@ import {
   type SubmissionStatus,
   isReleased,
   numberedRungLabel,
-  awaitsTranslationDecision,
+  openTranslationLeg,
   availableSets,
   listFoldersForSubmissions,
   type FileKind,
@@ -369,11 +369,30 @@ function SubmissionRow({
     translating is called for, the rung says whether it is still anyone's
     problem.
   */
+  /*
+    The leg this rung is actually on, and the comparison that belongs to it.
+
+    `wantsTranslation` above is the **intake** question — customer to coach —
+    and the hint used it at both rungs. So a submission at `awaiting_approval`
+    was told "translate the client files first" because its *intake* leg had
+    needed translating, describing work it had already finished, on a return
+    leg that needed nothing (Ben, QA b2j). The two legs point opposite ways and
+    a bilingual party gates exactly one of them, so borrowing one answer for
+    both is wrong about half the time by construction.
+  */
+  const openLeg = openTranslationLeg(submission);
+  const legNeedsTranslation =
+    openLeg === "feedback"
+      ? needsTranslation(assignedCoach?.languages, submission.languages)
+      : wantsTranslation;
+
   const translationHint =
-    !assignedCoach || !awaitsTranslationDecision(submission)
+    !assignedCoach || !openLeg
       ? null
-      : wantsTranslation === true
-        ? `Translate the client files first. ${assignedCoach.name} may not read the language they're in.`
+      : legNeedsTranslation === true
+        ? openLeg === "feedback"
+          ? `Translate the response first. ${submission.playerName ? "The customer" : "They"} may not read the language it's in.`
+          : `Translate the client files first. ${assignedCoach.name} may not read the language they're in.`
         : (submission.languages?.length ?? 0) === 0
           ? "The customer didn't declare a language."
           : null;

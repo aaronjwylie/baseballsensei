@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 50</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 51</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1535,6 +1535,26 @@ const PHASES = [
             "5.9.40",
             "A submission sent before the set was recorded",
             "Falls back to the originals — the same fallback both send actions use, and the one set that always exists"
+          ],
+          [
+            "5.9.41",
+            "⚠️ No \"then pick a translator\" on a leg that skips. Reach awaiting_approval on a submission whose response leg needs nothing",
+            "Nothing about translators under Next. ⚠️ Every aligned submission carried \"then Pick a translator, if needed\" — advertising a step it would never take, on the majority of submissions"
+          ],
+          [
+            "5.9.42",
+            "The line still appears when the leg does gate",
+            "Hidden means skipped, not removed. Run 5.9.1 and confirm it is offered"
+          ],
+          [
+            "5.9.43",
+            "⚠️ The amber flag reads the leg it is on. Customer Both · coach Japanese, at awaiting_approval",
+            "Silent. ⚠️ It said \"translate the client files first\" because the intake leg had needed it — describing finished work while sitting on a return leg that needed none"
+          ],
+          [
+            "5.9.44",
+            "And it speaks about the right side when it does fire",
+            "Intake rungs name the client's files; response rungs name the response"
           ],
           [
             "5.10",

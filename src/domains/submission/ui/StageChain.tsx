@@ -50,7 +50,18 @@ export function StageChain({
     showed only the first would make the rung look like one step of work when
     it's two.
   */
-  const later = stage.filter((line) => !line.met && !line.now);
+  /*
+    Skipped lines render nowhere (Ben, QA b2j, 2026-09-03).
+
+    This was `!line.met && !line.now`, which is every line that has not
+    happened — including the ones that never will. So a submission whose
+    languages line up, which is most of them, carried "then Pick a translator,
+    if needed" under Next, describing a step it was never going to take.
+
+    "If needed" was the tell: the panel was hedging because it did not know,
+    while the chain beside it knew perfectly well and had already decided.
+  */
+  const later = stage.filter((line) => !line.met && !line.now && !line.skipped);
   /*
     Where the control goes. Usually the outstanding line; when nothing is
     outstanding it's the last line anyone can press, which is what keeps a rung

@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 50,
-    "generatedAt": "2026-09-03T21:19:20.366Z",
-    "checks": 311,
-    "live": 311,
+    "build": 51,
+    "generatedAt": "2026-09-03T21:45:34.324Z",
+    "checks": 315,
+    "live": 315,
     "retired": 0,
     "edited": 18
   },
@@ -1106,6 +1106,26 @@
               "id": "5.9.40",
               "what": "A submission sent before the set was recorded",
               "expect": "Falls back to the originals — the same fallback both send actions use, and the one set that always exists"
+            },
+            {
+              "id": "5.9.41",
+              "what": "⚠️ No \"then pick a translator\" on a leg that skips. Reach awaiting_approval on a submission whose response leg needs nothing",
+              "expect": "Nothing about translators under Next. ⚠️ Every aligned submission carried \"then Pick a translator, if needed\" — advertising a step it would never take, on the majority of submissions"
+            },
+            {
+              "id": "5.9.42",
+              "what": "The line still appears when the leg does gate",
+              "expect": "Hidden means skipped, not removed. Run 5.9.1 and confirm it is offered"
+            },
+            {
+              "id": "5.9.43",
+              "what": "⚠️ The amber flag reads the leg it is on. Customer Both · coach Japanese, at awaiting_approval",
+              "expect": "Silent. ⚠️ It said \"translate the client files first\" because the intake leg had needed it — describing finished work while sitting on a return leg that needed none"
+            },
+            {
+              "id": "5.9.44",
+              "what": "And it speaks about the right side when it does fire",
+              "expect": "Intake rungs name the client's files; response rungs name the response"
             },
             {
               "id": "5.10",

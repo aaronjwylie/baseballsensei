@@ -2309,6 +2309,34 @@
       "expect": "\"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one",
       "retired": false,
       "history": []
+    },
+    "5.9.41": {
+      "firstSeen": "2026-09-03T21:45:34.324Z",
+      "what": "⚠️ No \"then pick a translator\" on a leg that skips. Reach awaiting_approval on a submission whose response leg needs nothing",
+      "expect": "Nothing about translators under Next. ⚠️ Every aligned submission carried \"then Pick a translator, if needed\" — advertising a step it would never take, on the majority of submissions",
+      "retired": false,
+      "history": []
+    },
+    "5.9.42": {
+      "firstSeen": "2026-09-03T21:45:34.324Z",
+      "what": "The line still appears when the leg does gate",
+      "expect": "Hidden means skipped, not removed. Run 5.9.1 and confirm it is offered",
+      "retired": false,
+      "history": []
+    },
+    "5.9.43": {
+      "firstSeen": "2026-09-03T21:45:34.324Z",
+      "what": "⚠️ The amber flag reads the leg it is on. Customer Both · coach Japanese, at awaiting_approval",
+      "expect": "Silent. ⚠️ It said \"translate the client files first\" because the intake leg had needed it — describing finished work while sitting on a return leg that needed none",
+      "retired": false,
+      "history": []
+    },
+    "5.9.44": {
+      "firstSeen": "2026-09-03T21:45:34.324Z",
+      "what": "And it speaks about the right side when it does fire",
+      "expect": "Intake rungs name the client's files; response rungs name the response",
+      "retired": false,
+      "history": []
     }
   }
 }

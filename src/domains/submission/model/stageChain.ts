@@ -122,6 +122,26 @@ export interface ChainLine {
    * aside for most, blocks for some", so those lines answer it per submission.
    */
   passive?: boolean | ((submission: Submission, facts: ProgressFacts) => boolean);
+  /**
+   * **This line does not apply to this submission at all** — as against
+   * `passive`, which means "real, but nobody here presses it".
+   *
+   * The two were one field until 2026-09-03, and conflating them put "then Pick
+   * a translator, if needed" in the *upcoming* list of every submission that
+   * skips translation — advertising a step that was never going to happen, on
+   * the majority of submissions (Ben, QA b2j).
+   *
+   * The difference is what the reader should do with the line. A passive line
+   * is coming: the receipt will be sent, the coach will download. A skipped
+   * line is not coming, and a list of what happens next has no business naming
+   * it. So passive lines still render under "then" and skipped ones render
+   * nowhere.
+   *
+   * That the submission *could* have needed translating is not lost with it —
+   * the detail panel's pipeline-status line says which way the decision went,
+   * which is the right place for a road not taken.
+   */
+  skipped?: (submission: Submission, facts: ProgressFacts) => boolean;
   /** The control that satisfies it, if a person can. */
   act?: ChainAction;
   /**
@@ -314,7 +334,7 @@ export const STAGE_CHAIN: Record<SubmissionStatus, ChainLine[]> = {
         `!== true` keeps the null case (one side undeclared) as skip, never a gate
         on a question nobody answered.
       */
-      passive: (s, f) => needsTranslation(s.languages, f.coachLanguages) !== true,
+      skipped: (s, f) => needsTranslation(s.languages, f.coachLanguages) !== true,
       toldOnFail: ["Admin/portal: “That did not go through — try again.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Translating"], met: (_s, f) => f.files.intake_translation > 0,
     },
     { what: "Handed to the coach", next: "Hand to the coach", from: "③", act: "handoff", records: [...sendRecords("③ hand-off → coach")], failures: [...sendFailures("③ hand-off → coach")], toldOnFail: ["Admin/portal: “This has already gone to a coach. Reload to see where it is.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Sent"], met: sent("③ hand-off → coach") },
@@ -376,7 +396,7 @@ export const STAGE_CHAIN: Record<SubmissionStatus, ChainLine[]> = {
       // source and the customer the target — the reverse of the intake gate. A
       // bilingual coach writing for a monolingual customer is the case this
       // catches; the intake gate would miss it.
-      passive: (s, f) => needsTranslation(f.coachLanguages, s.languages) !== true,
+      skipped: (s, f) => needsTranslation(f.coachLanguages, s.languages) !== true,
       toldOnFail: ["Admin/portal: “That did not go through — try again.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Translating"], met: (_s, f) => f.files.feedback_translation > 0,
     },
     { what: "Approved and sent", next: "Approve and send", from: "feedbackEmailedAt", act: "approve", records: [...sendRecords("⑥ feedback ready → customer")], failures: [...sendFailures("⑥ feedback ready → customer"), "Refused — there is no response file to send"], toldOnFail: ["Admin/portal: “There is no response file to send yet.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Delivered"], met: (s) => !!s.feedbackEmailedAt },
@@ -461,6 +481,8 @@ export interface ChainState {
   met: boolean;
   /** The one line the submission is actually waiting on. */
   now: boolean;
+  /** Does not apply to this submission — render it nowhere. */
+  skipped: boolean;
   /**
    * The line whose control is offered — **not always the same as `now`.**
    *
@@ -501,11 +523,16 @@ export function describeStage(
       ? line.passive(submission, facts)
       : !!line.passive,
   );
-  const now = lines.findIndex((_line, i) => !met[i] && !passive[i]);
+  const skipped = lines.map((line) =>
+    line.skipped ? line.skipped(submission, facts) : false,
+  );
+  // A line nobody presses and a line that will never happen are both unable to
+  // be the outstanding one, for different reasons.
+  const now = lines.findIndex((_line, i) => !met[i] && !passive[i] && !skipped[i]);
 
   // Nothing outstanding: fall back to the last line anyone can press, so a
   // reset can't strand the rung with its work done and its status behind.
-  const actionable = (i: number) => !!lines[i].act && !passive[i];
+  const actionable = (i: number) => !!lines[i].act && !passive[i] && !skipped[i];
   let control = now >= 0 && actionable(now) ? now : -1;
   if (control < 0 && now < 0) {
     for (let i = lines.length - 1; i >= 0; i -= 1) {
@@ -522,6 +549,7 @@ export function describeStage(
     act: line.act,
     met: met[i],
     now: i === now,
+    skipped: skipped[i],
     holdsControl: i === control,
   }));
 }
