@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 51,
-    "generatedAt": "2026-09-03T21:45:34.324Z",
-    "checks": 315,
-    "live": 315,
+    "build": 52,
+    "generatedAt": "2026-09-03T22:07:32.033Z",
+    "checks": 318,
+    "live": 318,
     "retired": 0,
     "edited": 18
   },
@@ -1804,6 +1804,21 @@
               "id": "8.9.28",
               "what": "The labels never name a language",
               "expect": "\"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one"
+            },
+            {
+              "id": "8.9.29",
+              "what": "⚠️ An unpaid submission can be removed. Find one at draft or awaiting_payment and open the override",
+              "expect": "Delete is offered. ⚠️ The whole panel was withheld before payment, so a stalled scratch pad sat in the queue with no controls and the only thing that would clear it was a nightly sweep"
+            },
+            {
+              "id": "8.9.30",
+              "what": "Only delete is offered there",
+              "expect": "No reset, archive or purge, and a line saying why. Reset refuses pre-payment rungs anyway, archive files finished work, and purging one folder of a row about to go whole is the long way round"
+            },
+            {
+              "id": "8.9.31",
+              "what": "A paid submission is unchanged",
+              "expect": "All four controls, exactly as before"
             },
             {
               "id": "8.10",

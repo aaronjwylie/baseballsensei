@@ -791,17 +791,24 @@ function SubmissionRow({
         </dl>
       }
       events={events}
+      /*
+        Shown on every submission now, not only paid ones (Ben, 2026-09-03).
+
+        An unpaid row that stalls used to have no controls at all — visible in
+        the queue, and removable only by waiting for the nightly sweep. The
+        panel itself decides which controls apply; before payment that is
+        delete alone.
+      */
       override={
-        isPaid(submission) ? (
-          <OperatorOverride
-            submissionId={submission.id}
-            status={submission.status}
-            archiveAction={archiveSubmissionAction}
-            purgeAction={purgeFolderAction}
-            resetAction={resetStatusAction}
-            deleteAction={deleteSubmissionAction}
-          />
-        ) : null
+        <OperatorOverride
+          submissionId={submission.id}
+          status={submission.status}
+          paid={isPaid(submission)}
+          archiveAction={archiveSubmissionAction}
+          purgeAction={purgeFolderAction}
+          resetAction={resetStatusAction}
+          deleteAction={deleteSubmissionAction}
+        />
       }
     />
   );

@@ -30,6 +30,7 @@ import { STAGE_CHAIN } from "@/domains/submission/model/stageChain";
 export function OperatorOverride({
   submissionId,
   status,
+  paid = true,
   archiveAction,
   purgeAction,
   resetAction,
@@ -37,6 +38,22 @@ export function OperatorOverride({
 }: {
   submissionId: string;
   status: SubmissionStatus;
+  /**
+   * Unpaid submissions get **delete, and nothing else** (Ben, 2026-09-03).
+   *
+   * The whole panel was withheld before payment, so a scratch pad that stalled
+   * had no controls at all: the admin could see it sitting in the queue and had
+   * no way to remove it, and the only thing that would was a nightly sweep they
+   * had to wait for.
+   *
+   * The other three genuinely do not apply, which is why they are hidden rather
+   * than shown disabled. Reset refuses pre-payment rungs by its own guard, since
+   * the sweep deletes anything sitting there. Archive files finished work out of
+   * the queue, and an unpaid scratch pad is not finished work. Purging one
+   * folder of a submission that is about to be deleted whole is the long way
+   * round.
+   */
+  paid?: boolean;
   archiveAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   purgeAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   resetAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
@@ -143,7 +160,9 @@ export function OperatorOverride({
         </button>
       </div>
 
-      {canReset && (
+      {/* Reset, archive and purge are all paid-only — see `paid` above for why
+          each of the three has nothing to say about a scratch pad. */}
+      {paid && canReset && (
         <form
           className="space-y-2 rounded-lg border border-amber-200 bg-amber-50/50 p-3"
           action={resetSubmit}
@@ -227,6 +246,8 @@ export function OperatorOverride({
         </form>
       )}
 
+      {paid && (
+      <>
       {/*
         Archive — out of the queue, not gone. Available at any rung now (QA 5.6):
         the things that can never reach `complete` — a duplicate, a test entry, a
@@ -309,6 +330,16 @@ export function OperatorOverride({
           was sent.
         </span>
       </form>
+      </>
+      )}
+
+      {!paid && (
+        <p className="text-xs text-ink-muted">
+          Nothing has been paid for yet, so there is nothing to reset, archive or
+          keep. The nightly sweep removes it once it has sat unpaid for the
+          retention window — this is the same thing, now.
+        </p>
+      )}
 
       {/*
         More final than the purge above, so it sits below it and behind a

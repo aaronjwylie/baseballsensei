@@ -2337,6 +2337,27 @@
       "expect": "Intake rungs name the client's files; response rungs name the response",
       "retired": false,
       "history": []
+    },
+    "8.9.29": {
+      "firstSeen": "2026-09-03T22:07:32.033Z",
+      "what": "⚠️ An unpaid submission can be removed. Find one at draft or awaiting_payment and open the override",
+      "expect": "Delete is offered. ⚠️ The whole panel was withheld before payment, so a stalled scratch pad sat in the queue with no controls and the only thing that would clear it was a nightly sweep",
+      "retired": false,
+      "history": []
+    },
+    "8.9.30": {
+      "firstSeen": "2026-09-03T22:07:32.033Z",
+      "what": "Only delete is offered there",
+      "expect": "No reset, archive or purge, and a line saying why. Reset refuses pre-payment rungs anyway, archive files finished work, and purging one folder of a row about to go whole is the long way round",
+      "retired": false,
+      "history": []
+    },
+    "8.9.31": {
+      "firstSeen": "2026-09-03T22:07:32.033Z",
+      "what": "A paid submission is unchanged",
+      "expect": "All four controls, exactly as before",
+      "retired": false,
+      "history": []
     }
   }
 }
