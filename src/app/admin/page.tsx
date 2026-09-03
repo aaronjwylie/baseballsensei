@@ -38,7 +38,6 @@ import {
   archiveSubmissionAction,
   completeSubmissionAction,
   deleteSubmissionAction,
-  purgeFolderAction,
   resetStatusAction,
   resolveSubmissionAction,
   removeFileAction,
@@ -805,7 +804,6 @@ function SubmissionRow({
           status={submission.status}
           paid={isPaid(submission)}
           archiveAction={archiveSubmissionAction}
-          purgeAction={purgeFolderAction}
           resetAction={resetStatusAction}
           deleteAction={deleteSubmissionAction}
         />

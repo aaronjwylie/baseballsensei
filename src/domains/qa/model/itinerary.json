@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 52,
-    "generatedAt": "2026-09-03T22:07:32.033Z",
-    "checks": 318,
-    "live": 318,
+    "build": 53,
+    "generatedAt": "2026-09-03T22:24:20.214Z",
+    "checks": 322,
+    "live": 322,
     "retired": 0,
-    "edited": 18
+    "edited": 19
   },
   "phases": [
     {
@@ -791,9 +791,21 @@
             },
             {
               "id": "5.8",
-              "what": "Purge a folder",
-              "expect": "Files gone; the rows survive; /api/files/[id] answers 410, not 404",
-              "flag": "flag"
+              "what": "A file whose bytes are gone. The manual \"Purge folder\" control was retired on 2026-09-03, so reach this through the retention sweep instead — or clear one fileUrl directly",
+              "expect": "The row survives and /api/files/[id] answers 410, not 404. The control went; this invariant did not. It is the difference between purging (bytes go, record stays, so the portal can still say what was sent) and removing (row goes too), and the nightly sweep still draws it",
+              "flag": "flag",
+              "history": [
+                {
+                  "at": "2026-09-03T22:24:20.214Z",
+                  "what": "Purge a folder",
+                  "expect": "Files gone; the rows survive; /api/files/[id] answers 410, not 404"
+                }
+              ]
+            },
+            {
+              "id": "5.8.1",
+              "what": "Remove a file from a folder instead",
+              "expect": "The row goes with the bytes, and the file vanishes from the folder entirely. That is the other half of the same distinction"
             },
             {
               "id": "5.9",
@@ -1804,6 +1816,21 @@
               "id": "8.9.28",
               "what": "The labels never name a language",
               "expect": "\"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one"
+            },
+            {
+              "id": "8.9.32",
+              "what": "⚠️ Override reads like its neighbours. Expand a row",
+              "expect": "\"This submission\", \"Trail\" and \"Override\" all carry the same small-caps label and a › that rotates. ⚠️ Override had its own \"Override…\" link and a \"close\", so the third panel of three announced itself as a different kind of control"
+            },
+            {
+              "id": "8.9.33",
+              "what": "It still opens and its forms still work",
+              "expect": "It is a native <details> now, so it survives without hydration and cannot desync from what is on screen"
+            },
+            {
+              "id": "8.9.34",
+              "what": "⚠️ No \"Purge folder\" control",
+              "expect": "Retired — the folders take a per-file Remove. ⚠️ Check the Server Action is gone too, not just the button: an exported action with no UI is still a public endpoint"
             },
             {
               "id": "8.9.29",

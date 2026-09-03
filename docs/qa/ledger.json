@@ -774,10 +774,16 @@
     },
     "5.8": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
-      "what": "Purge a folder",
-      "expect": "Files gone; the rows survive; /api/files/[id] answers 410, not 404",
+      "what": "A file whose bytes are gone. The manual \"Purge folder\" control was retired on 2026-09-03, so reach this through the retention sweep instead — or clear one fileUrl directly",
+      "expect": "The row survives and /api/files/[id] answers 410, not 404. The control went; this invariant did not. It is the difference between purging (bytes go, record stays, so the portal can still say what was sent) and removing (row goes too), and the nightly sweep still draws it",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-03T22:24:20.214Z",
+          "what": "Purge a folder",
+          "expect": "Files gone; the rows survive; /api/files/[id] answers 410, not 404"
+        }
+      ]
     },
     "5.9": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -2356,6 +2362,34 @@
       "firstSeen": "2026-09-03T22:07:32.033Z",
       "what": "A paid submission is unchanged",
       "expect": "All four controls, exactly as before",
+      "retired": false,
+      "history": []
+    },
+    "5.8.1": {
+      "firstSeen": "2026-09-03T22:24:20.214Z",
+      "what": "Remove a file from a folder instead",
+      "expect": "The row goes with the bytes, and the file vanishes from the folder entirely. That is the other half of the same distinction",
+      "retired": false,
+      "history": []
+    },
+    "8.9.32": {
+      "firstSeen": "2026-09-03T22:24:20.214Z",
+      "what": "⚠️ Override reads like its neighbours. Expand a row",
+      "expect": "\"This submission\", \"Trail\" and \"Override\" all carry the same small-caps label and a › that rotates. ⚠️ Override had its own \"Override…\" link and a \"close\", so the third panel of three announced itself as a different kind of control",
+      "retired": false,
+      "history": []
+    },
+    "8.9.33": {
+      "firstSeen": "2026-09-03T22:24:20.214Z",
+      "what": "It still opens and its forms still work",
+      "expect": "It is a native <details> now, so it survives without hydration and cannot desync from what is on screen",
+      "retired": false,
+      "history": []
+    },
+    "8.9.34": {
+      "firstSeen": "2026-09-03T22:24:20.214Z",
+      "what": "⚠️ No \"Purge folder\" control",
+      "expect": "Retired — the folders take a per-file Remove. ⚠️ Check the Server Action is gone too, not just the button: an exported action with no UI is still a public endpoint",
       "retired": false,
       "history": []
     }

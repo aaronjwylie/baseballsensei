@@ -10,6 +10,7 @@ import {
   type SubmissionStatus,
 } from "@/domains/submission/model/submission";
 import { STAGE_CHAIN } from "@/domains/submission/model/stageChain";
+import { Disclosure } from "./Disclosure";
 
 /**
  * The operator override — put a submission back, or delete a folder now.
@@ -32,7 +33,6 @@ export function OperatorOverride({
   status,
   paid = true,
   archiveAction,
-  purgeAction,
   resetAction,
   deleteAction,
 }: {
@@ -55,12 +55,10 @@ export function OperatorOverride({
    */
   paid?: boolean;
   archiveAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
-  purgeAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   resetAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   deleteAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   // Type-to-confirm for the outright delete — the button stays dead until it
   // reads exactly DELETE, so it can't be the thing a stray click lands on.
   const [confirm, setConfirm] = useState("");
@@ -99,14 +97,6 @@ export function OperatorOverride({
   // can still download.
   const canReset = status !== "purged";
 
-  const [purge, purgeSubmit, purging] = useActionState<ActionResult, FormData>(
-    purgeAction,
-    undefined,
-  );
-
-  useEffect(() => {
-    if (succeeded(purge)) router.refresh();
-  }, [purge, router]);
 
   const [del, delSubmit, deleting] = useActionState<ActionResult, FormData>(
     deleteAction,
@@ -119,18 +109,6 @@ export function OperatorOverride({
   }, [del, router]);
 
   const unchanged = target === status;
-
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="text-[11px] text-ink-muted underline underline-offset-2 hover:text-ink"
-      >
-        Override…
-      </button>
-    );
-  }
 
   /*
     One size for every control in the override — selects, inputs and buttons
@@ -145,20 +123,22 @@ export function OperatorOverride({
   const control = "h-8 rounded-md border px-2 text-xs";
   const controlButton = `${control} inline-flex items-center justify-center font-semibold`;
 
+  /*
+    The same disclosure the other two sections use (Ben, 2026-09-03).
+
+    This had its own toggle — an "Override…" link that swapped for a heading and
+    a "close" link — so the third panel in a row of three announced itself
+    differently from its neighbours and read as a different kind of control
+    rather than the third of a set.
+
+    `Disclosure`'s own comment said this one hand-rolled its state "because it
+    also owns forms and pending flags". That was never the reason it had to:
+    `open` was only ever driving the toggle, and `<details>` holds forms
+    perfectly well. Losing it takes a `useState` with it.
+  */
   return (
-    <div className="space-y-3">
-      <div className="flex items-baseline justify-between">
-        <h4 className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
-          Override
-        </h4>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="text-[11px] text-ink-muted underline underline-offset-2"
-        >
-          close
-        </button>
-      </div>
+    <Disclosure label="Override">
+      <div className="space-y-3">
 
       {/* Reset, archive and purge are all paid-only — see `paid` above for why
           each of the three has nothing to say about a scratch pad. */}
@@ -299,37 +279,20 @@ export function OperatorOverride({
         )}
       </form>
 
-      <form
-        className="flex flex-wrap items-center gap-2 rounded-lg border border-rose-300 bg-rose-50/60 p-3"
-        action={purgeSubmit}
-      >
-        <input type="hidden" name="submissionId" value={submissionId} />
-        <label className="text-xs text-rose-800">
-          Delete now:
-          <select
-            name="kind"
-            defaultValue="intake"
-            className={`${control} ml-1.5 border-rose-200 bg-white`}
-          >
-            <option value="intake">Client</option>
-            <option value="intake_translation">Client (translated)</option>
-            <option value="feedback">Coach</option>
-            <option value="feedback_translation">Coach (translated)</option>
-          </select>
-        </label>
-        <button
-          type="submit"
-          disabled={purging}
-          className={`${controlButton} border-rose-400 text-rose-700 hover:bg-rose-100 disabled:opacity-50`}
-        >
-          Purge folder
-        </button>
-        {/* Said out loud, because this is the one control with no way back. */}
-        <span className="text-xs text-rose-700">
-          The bytes go. The file record stays, so the portal can still say what
-          was sent.
-        </span>
-      </form>
+      {/*
+        "Purge folder" lived here until 2026-09-03. The folders take a per-file
+        Remove now, so clearing one is a few clicks in the place you are already
+        looking at the files, rather than a dropdown in a panel that names them
+        again (Ben).
+
+        Worth recording what went with it, since the two are not the same act: a
+        purge dropped the bytes and **kept the file rows**, so the portal could
+        still say what had been sent, while Remove deletes the row too. Nothing
+        else offers drop-the-bytes-keep-the-record on demand — only the nightly
+        retention sweep does, which is where it genuinely belongs. If an admin
+        ever needs it by hand again, it is a control, not a capability that has
+        to be rebuilt.
+      */}
       </>
       )}
 
@@ -375,6 +338,7 @@ export function OperatorOverride({
         </div>
         {failed(del) && <p className="text-xs text-rose-700">{del.error}</p>}
       </form>
-    </div>
+      </div>
+    </Disclosure>
   );
 }

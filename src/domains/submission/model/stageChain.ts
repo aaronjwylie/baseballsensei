@@ -449,7 +449,19 @@ export const STAGE_CHAIN: Record<SubmissionStatus, ChainLine[]> = {
   ],
   resolved: [
     { what: "Thank-you sent", next: "Send the thank-you", from: "⑧", passive: true, records: [...sendRecords("⑧ thank you → customer")], failures: [...sendFailures("⑧ thank you → customer")], toldOnFail: ["Admin/portal: “That did not go through — try again.” *(not built)*"], toldOnSuccess: ["Customer/email: ⑧ thank you, carrying the deletion date"], met: sent("⑧ thank you → customer") },
-    { what: "Deletion warning due", next: "Warning falls due", from: "deletionWarnedAt", act: "waitCron", failures: ["The sweep didn't run — CRON_SECRET unset, and it refuses rather than run unguarded"], toldOnFail: ["Admin/portal: “The nightly sweep has not run since {date}.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Deleting"], met: (s) => !!s.deletionWarnedAt },
+    /*
+      "Deletion warning due" / "Warning falls due" until 2026-09-03, which said
+      nothing to anyone who did not already know the retention design (Ben).
+      "Falls due" is accountancy, and the line is not an instruction at all —
+      nobody presses it, a clock reaches a point and the sweep acts.
+
+      So the future reading now says what is being waited on rather than naming
+      a due date, and the past reading names the point that was reached. It stays
+      distinct from `purge_imminent`'s "Warning sent" on purpose: this line is met
+      by the *stamp*, that one by the *email*, and ⑨ is stamped even when the send
+      fails — so the two genuinely can disagree and must not read as one thing.
+    */
+    { what: "Warning point reached", next: "Waiting on the retention clock", from: "deletionWarnedAt", act: "waitCron", failures: ["The sweep didn't run — CRON_SECRET unset, and it refuses rather than run unguarded"], toldOnFail: ["Admin/portal: “The nightly sweep has not run since {date}.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Deleting"], met: (s) => !!s.deletionWarnedAt },
   ],
   purge_imminent: [
     { what: "Warning sent", next: "Send the warning", from: "⑨", passive: true, records: [...sendRecords("⑨ deletion warning → customer")], failures: [...sendFailures("⑨ deletion warning → customer"), "Stamped even when the send failed — retrying nightly would turn one miss into seven"], toldOnFail: ["Admin/portal: “The deletion warning to {customer} did not send. They have no notice, and it will not retry.” *(not built)*"], toldOnSuccess: ["Customer/email: ⑨ the deletion warning, a week out"], met: sent("⑨ deletion warning → customer") },

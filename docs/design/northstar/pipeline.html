@@ -922,7 +922,7 @@ const S = [
     trigger:"“Mark resolved” — <b>deliberately manual</b> <span class='td'>not built</span>",
     ops:[{t:"Stamp the submission resolved"},
          {t:"Send a thank-you and an invitation to come back", note:"while they still have their files"}],
-    done:"<b>Done</b> when the deletion warning falls due" },
+    done:"<b>Done</b> when the retention clock reaches the warning point" },
   { n:17, status:"purge_imminent", name:"Deleting", who:"the sweep", from:"resolved", to:"purge_imminent",
     retention:"unchanged — nothing is deleted yet", email:"⑨ deletion warning → customer", emailGap:true, triggerGap:true, warn:true,
     before:["Deletion is a week away, and the customer has been told"],

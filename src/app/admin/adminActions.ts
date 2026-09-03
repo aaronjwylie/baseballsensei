@@ -13,7 +13,6 @@ import { numberedRungLabel,
   FILE_SETS,
   SUBMISSION_STATUSES,
   addSubmissionFile,
-  clearFileLocator,
   deleteSubmission,
   listFilesByKinds,
   recordSubmissionEvent,
@@ -219,9 +218,10 @@ export async function uploadToFolderAction(
 /**
  * Remove one file from a folder. Admin-only.
  *
- * The single-file counterpart to `purgeFolderAction`, and it differs from it in
- * what it leaves behind — deliberately, because they answer different
- * questions.
+ * Removing is not purging, and the difference is what each leaves behind.
+ * `purgeFolderAction` used to sit beside this and was retired on 2026-09-03
+ * once the folders took a per-file Remove; the distinction it drew is worth
+ * keeping, because the retention sweep still draws it.
  *
  * A **purge** keeps the row and drops the bytes, so the folder can still say
  * what was there and `/api/files/[id]` answers 410 rather than 404. That is
@@ -266,60 +266,6 @@ export async function removeFileAction(
   return { ok: true };
 }
 
-/**
- * Phase 5 — the operator override. Purge a folder now, without waiting for a clock.
- *
- * The pipeline runs forward on its own; this is the handle for when it
- * shouldn't. A wrong file, something that should never have been sent, a
- * customer asking to be forgotten — none of those can wait thirty days, and none
- * of them is worth a bespoke feature each.
- *
- * **Deliberately blunt, and deliberately loud.** The bytes go and the records
- * stay, exactly as the scheduled sweep leaves them, so the portal can still say
- * what was there. Every purge writes an event, because a submission that lost
- * its files with no explanation is worse than one that still has them.
- */
-export async function purgeFolderAction(
-  _prev: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
-  await requireRole("admin");
-  const id = String(formData.get("submissionId") ?? "");
-  const rawKind = String(formData.get("kind") ?? "");
-  if (!id) return { error: "No submission. Reload and try again." };
-  if (!FILE_KINDS.includes(rawKind as FileKind)) {
-    return { error: `“${rawKind}” is not one of the four folders.` };
-  }
-  const kind = rawKind as FileKind;
-
-  const submission = await getSubmission(id);
-  if (!submission) return;
-
-  const files = await listFilesByKinds(id, [kind]);
-  let removed = 0;
-  for (const file of files) {
-    if (!file.fileUrl) continue;
-    try {
-      await storage.remove(file.fileUrl);
-      await clearFileLocator(file.id);
-      removed += 1;
-    } catch (err) {
-      // One bad locator must not strand the rest of the folder.
-      console.error(`[admin] purging ${file.id} failed:`, err);
-    }
-  }
-  if (removed === 0) {
-    return { error: "Nothing to delete: that folder is already empty." };
-  }
-
-  await noteSubmissionAction(
-    id,
-    submission.status,
-    `purged ${removed} file${removed === 1 ? "" : "s"} from ${kind}`,
-  );
-  revalidatePath("/admin");
-  return { ok: true };
-}
 
 /**
  * Phase 5 — the last override: delete a submission outright.

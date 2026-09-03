@@ -269,7 +269,8 @@ than assuming the fix held.
 | 5.5 | **Notify the coach** | Coach gets an email; status moves to `sent_to_coach` |
 | 5.6 | Archive a submission | Leaves the active queue |
 | 5.7 | **Reset a status** to an earlier rung | Recorded in the trail **with your name and a reason** |
-| 5.8 | **Purge a folder** | ⚠️ Files gone; the *rows* survive; `/api/files/[id]` answers **410**, not 404|
+| 5.8 | **A file whose bytes are gone.** The manual "Purge folder" control was retired on 2026-09-03, so reach this through the retention sweep instead — or clear one `fileUrl` directly | ⚠️ **The row survives and `/api/files/[id]` answers 410, not 404.** The control went; this invariant did not. It is the difference between *purging* (bytes go, record stays, so the portal can still say what was sent) and *removing* (row goes too), and the nightly sweep still draws it |
+| 5.8.1 | Remove a file from a folder instead | The row goes with the bytes, and the file vanishes from the folder entirely. That is the other half of the same distinction |
 | 5.9 | **Linguistic alignment — the whole matrix**, as ruled by Ben 2026-08-31. Three outcomes, not two: **skip** when the target reads everything the source does; **translate** when they share nothing; **translate with the hand-over still offered** when they share a language but the source also reads one the target doesn't — the files *might* be in the shared one, and only the admin can say. Either side blank is "cannot tell", which skips silently. **Identical on the way back**, with coach as source and customer as target. It is **not** "translate when the coach isn't English" — that derived nothing for a Japanese parent sending to a Japanese coach. 5.9.1–5.9.5.2 are the nine rows |
 | 5.9.1 | Customer `English` · coach `Japanese` | ⚠️ **Translation is offered** — the next action is "Pick a translator", **not** "Hand to the coach" |
 | 5.9.2 | Customer `Japanese` · coach `English` | ⚠️ Identical outcome to 5.9.1. The rule is symmetric; neither language is the platform's default |
@@ -468,6 +469,9 @@ than assuming the fix held.
 | 8.9.26 | A single-folder card stays flat | No heading over a list that could not be anything else |
 | 8.9.27 | The coach's own file comes first | Even when the translation was uploaded first — ordered by folder, not upload time |
 | 8.9.28 | The labels never name a language | "From your coach" / "Translated for you". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one |
+| 8.9.32 | ⚠️ **Override reads like its neighbours.** Expand a row | "This submission", "Trail" and "Override" all carry the same small-caps label and a `›` that rotates. ⚠️ Override had its own "Override…" link and a "close", so the third panel of three announced itself as a different kind of control |
+| 8.9.33 | It still opens and its forms still work | It is a native `<details>` now, so it survives without hydration and cannot desync from what is on screen |
+| 8.9.34 | ⚠️ **No "Purge folder" control** | Retired — the folders take a per-file Remove. ⚠️ Check the Server Action is gone too, not just the button: an exported action with no UI is still a public endpoint |
 | 8.9.29 | ⚠️ **An unpaid submission can be removed.** Find one at `draft` or `awaiting_payment` and open the override | Delete is offered. ⚠️ The whole panel was withheld before payment, so a stalled scratch pad sat in the queue with no controls and the only thing that would clear it was a nightly sweep |
 | 8.9.30 | Only delete is offered there | No reset, archive or purge, and a line saying why. Reset refuses pre-payment rungs anyway, archive files *finished* work, and purging one folder of a row about to go whole is the long way round |
 | 8.9.31 | A paid submission is unchanged | All four controls, exactly as before |
