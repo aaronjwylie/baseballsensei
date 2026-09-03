@@ -20,6 +20,8 @@ export {
   type TranslationLegSide,
   isPaid,
   isReleased,
+  deletionDueAt,
+  daysUntil,
   isWithCoach,
   type AppWrittenStatus,
   type Focus,

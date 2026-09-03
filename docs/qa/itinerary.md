@@ -475,6 +475,14 @@ than assuming the fix held.
 | 8.9.29 | ⚠️ **An unpaid submission can be removed.** Find one at `draft` or `awaiting_payment` and open the override | Delete is offered. ⚠️ The whole panel was withheld before payment, so a stalled scratch pad sat in the queue with no controls and the only thing that would clear it was a nightly sweep |
 | 8.9.30 | Only delete is offered there | No reset, archive or purge, and a line saying why. Reset refuses pre-payment rungs anyway, archive files *finished* work, and purging one folder of a row about to go whole is the long way round |
 | 8.9.31 | A paid submission is unchanged | All four controls, exactly as before |
+| 8.9.35 | ⚠️ **The pipeline line fits its column.** Open a translated submission's detail panel | One line: `Translate · client English → Japanese`. ⚠️ It was a sentence and a half that wrapped to three lines and buried the part that varies. Aligned reads `Aligned — coach handles it directly` |
+| 8.9.36 | It is set like every other value there | `font-mono`. It was the one row in the body face, so it read as prose rather than a field |
+| 8.9.37 | ⚠️ **The end-of-ladder wait counts down.** Open a `resolved` submission | "12 days to deletion", not "waiting on the retention clock" |
+| 8.9.38 | ⚠️ **An overdue sweep says so.** A submission past its deletion date | "overdue by Nd — is the sweep running?" rather than "0 days". Clamping is how a stopped cron stays unnoticed |
+| 8.9.39 | Before anything is delivered | "no deletion date yet" — neither clock has started, so there is nothing to count |
+| 8.9.40 | ⚠️ **The customer's card carries the deadline.** Look up a delivered submission on `/status` | A last line: "Files deleted in N days". ⚠️ They are told at ⑥ and again at ⑨; this is the same promise on the page they actually return to |
+| 8.9.41 | And it disappears once the files are gone | A countdown after the fact is shown too late — the struck-through filenames say it better |
+| 8.9.42 | The number is the later of the two clocks | 30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |

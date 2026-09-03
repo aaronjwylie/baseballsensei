@@ -23,9 +23,12 @@ import {
   whoseCourt,
   needsTranslation,
   requiredDirection,
-  describeDirection,
+  deletionDueAt,
+  daysUntil,
+  type Direction,
   RUNG_LABEL,
 } from "@/domains/submission";
+import { getSettings } from "@/domains/settings";
 import { listCoaches, listTranslators, notifyCoachAction, sendForTranslationAction, AssignCoachSelect, AssignTranslatorSelect, type OperatorProfile } from "@/domains/operator";
 import { requireRole } from "@/domains/account";
 import { RowActionForm } from "./RowActionForm";
@@ -149,10 +152,14 @@ export default async function AdminHomePage({
 }) {
   await requireRole("admin");
   const { status } = await searchParams;
-  const [all, coaches, translators] = await Promise.all([
+  // Settings joins the batch rather than being read per row: the two retention
+  // windows are the operator's, not the submission's, so one read serves every
+  // countdown on the page.
+  const [all, coaches, translators, settings] = await Promise.all([
     listSubmissions(),
     listCoaches(),
     listTranslators(),
+    getSettings(),
   ]);
 
   const initialKey = TABS.some((t) => t.key === status) ? status! : "all";
@@ -208,6 +215,10 @@ export default async function AdminHomePage({
         progress={progressBySubmission.get(s.id)}
         events={eventsBySubmission.get(s.id) ?? []}
         coaches={coaches}
+        retention={{
+          collectedDays: settings.retainCollectedDays,
+          deliveredDays: settings.retainDeliveredDays,
+        }}
       />
     ),
   }));
@@ -240,6 +251,7 @@ function SubmissionRow({
   events,
   coaches,
   translators,
+  retention,
 }: {
   submission: Submission;
   files: SubmissionFile[];
@@ -253,6 +265,8 @@ function SubmissionRow({
   events: SubmissionEvent[];
   coaches: OperatorProfile[];
   translators: OperatorProfile[];
+  /** The operator's two retention windows, read once for the page. */
+  retention: { collectedDays: number; deliveredDays: number };
 }) {
   const assignedCoachId = progress?.assignees.feedback;
   const assignedCoach = coaches.find((c) => c.id === assignedCoachId);
@@ -305,20 +319,40 @@ function SubmissionRow({
     notice a coach's grant was never filled in. Derived from the same directions
     the gate and picker use, never a second comparison.
   */
+  /*
+    Trimmed to fit the column it sits in (Ben, 2026-09-03). It read
+    "Linguistic non-alignment. Route through translator (English to Japanese for
+    the client files)." — a sentence and a half in a list of one-line values,
+    wrapping to three lines and burying the only part that varies. The arrow
+    carries "to", "client"/"response" carries which leg, and the conclusion is
+    the first word rather than the last.
+  */
+  /*
+    When the sweep will take the files, read forwards off the same two clocks it
+    reads backwards. Null until something has been delivered, which is honest:
+    before that there is no date, and a countdown would be inventing one.
+  */
+  const deleteAfter = deletionDueAt(
+    submission,
+    retention.collectedDays,
+    retention.deliveredDays,
+  );
+
+  const arrow = (d: Direction) => `${d.from} → ${d.to}`;
   const alignmentLine = !assignedCoach
     ? null
     : (submission.languages?.length ?? 0) === 0
-      ? "The customer didn't declare a language. Translation can't be assessed."
+      ? "Can't tell — no customer language"
       : assignedCoach.languages.length === 0
-        ? "The coach has no languages recorded. Translation can't be assessed."
+        ? "Can't tell — no coach language"
         : intakeDirection || responseDirection
-          ? `Linguistic non-alignment. Route through translator (${[
-              intakeDirection && `${describeDirection(intakeDirection)} for the client files`,
-              responseDirection && `${describeDirection(responseDirection)} for the response`,
+          ? `Translate · ${[
+              intakeDirection && `client ${arrow(intakeDirection)}`,
+              responseDirection && `response ${arrow(responseDirection)}`,
             ]
               .filter(Boolean)
-              .join(", ")}).`
-          : "Linguistic alignment. The coach handles this directly.";
+              .join(" · ")}`
+          : "Aligned — coach handles it directly";
 
   /*
     The gate fired, but the two DO share a language — the bilingual-source case,
@@ -409,6 +443,9 @@ function SubmissionRow({
     // The one fact the translation stages gate on (QA 5.9) — already in hand
     // from the coach resolved above for the hint. Empty when none is assigned.
     coachLanguages: assignedCoach?.languages ?? [],
+    // The end-of-ladder waits count down rather than saying "waiting", so they
+    // need the date the sweep is counting to (Ben, 2026-09-03).
+    daysToDeletion: daysUntil(deleteAfter),
   });
 
   /*
@@ -748,7 +785,12 @@ function SubmissionRow({
           {alignmentLine && (
             <>
               <dt className="text-ink-muted">Pipeline status</dt>
-              <dd className="m-0 text-[11.5px] text-ink-soft">{alignmentLine}</dd>
+              {/* `font-mono` like every other value in this list — it was the
+                  one row set in the body face, which made it read as prose
+                  rather than as a field (Ben, 2026-09-03). */}
+              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+                {alignmentLine}
+              </dd>
             </>
           )}
           {/*

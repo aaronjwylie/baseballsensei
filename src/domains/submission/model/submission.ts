@@ -437,6 +437,48 @@ const RELEASED_AT_STATUS: Record<SubmissionStatus, boolean> = {
   purged: true,
 };
 
+/**
+ * When this submission's files are deleted — the date the sweep is counting to.
+ *
+ * **The later of the two clocks**, which is the rule the sweep already applies:
+ * a submission is purged once it is both `retainCollectedDays` past collection
+ * *and* `retainDeliveredDays` past delivery. Taking the later of the two is the
+ * same statement read forwards, and reading it forwards is what lets a page say
+ * "14 days" instead of "waiting on the retention clock" (Ben, 2026-09-03).
+ *
+ * Null when neither clock has started — nothing has been delivered, so there is
+ * no date to name and a countdown would be inventing one.
+ *
+ * Pure, so both the operator's panel and the customer's own page can say the
+ * same number rather than each doing this arithmetic slightly differently.
+ */
+export function deletionDueAt(
+  submission: Pick<Submission, "collectedAt" | "completedAt">,
+  retainCollectedDays: number,
+  retainDeliveredDays: number,
+): string | null {
+  const day = 86_400_000;
+  const dates: number[] = [];
+  if (submission.collectedAt) {
+    dates.push(new Date(submission.collectedAt).getTime() + retainCollectedDays * day);
+  }
+  if (submission.completedAt) {
+    dates.push(new Date(submission.completedAt).getTime() + retainDeliveredDays * day);
+  }
+  if (dates.length === 0) return null;
+  return new Date(Math.max(...dates)).toISOString();
+}
+
+/**
+ * Whole days from now until that date. Negative means the sweep is overdue,
+ * which is worth showing rather than clamping — a backlog is a fact about the
+ * cron, and hiding it behind "0 days" is how a stopped sweep stays unnoticed.
+ */
+export function daysUntil(iso: string | null): number | null {
+  if (!iso) return null;
+  return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
+}
+
 export function isReleased(submission: Pick<Submission, "status">): boolean {
   return RELEASED_AT_STATUS[submission.status];
 }

@@ -7,6 +7,7 @@ import {
 } from "@/domains/submission";
 import { StatusList } from "@/domains/submission";
 import { FeedbackDownloads, listFeedbackForEmail } from "@/domains/feedback";
+import { getSettings } from "@/domains/settings";
 
 export const metadata: Metadata = {
   title: "Your submissions",
@@ -61,7 +62,13 @@ export default async function StatusByTokenPage({
     );
   }
 
-  const submissions = await lookupPublicSubmissions(email);
+  // The retention windows travel with the list so each card can count down to
+  // its own deletion date, rather than naming a date the reader has to subtract.
+  const settings = await getSettings();
+  const submissions = await lookupPublicSubmissions(email, {
+    collectedDays: settings.retainCollectedDays,
+    deliveredDays: settings.retainDeliveredDays,
+  });
 
   return (
     <NarrowPage>

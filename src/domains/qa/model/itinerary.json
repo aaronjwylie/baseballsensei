@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 53,
-    "generatedAt": "2026-09-03T22:24:20.214Z",
-    "checks": 322,
-    "live": 322,
+    "build": 54,
+    "generatedAt": "2026-09-03T22:42:18.743Z",
+    "checks": 330,
+    "live": 330,
     "retired": 0,
     "edited": 19
   },
@@ -1846,6 +1846,46 @@
               "id": "8.9.31",
               "what": "A paid submission is unchanged",
               "expect": "All four controls, exactly as before"
+            },
+            {
+              "id": "8.9.35",
+              "what": "⚠️ The pipeline line fits its column. Open a translated submission's detail panel",
+              "expect": "One line: Translate · client English → Japanese. ⚠️ It was a sentence and a half that wrapped to three lines and buried the part that varies. Aligned reads Aligned — coach handles it directly"
+            },
+            {
+              "id": "8.9.36",
+              "what": "It is set like every other value there",
+              "expect": "font-mono. It was the one row in the body face, so it read as prose rather than a field"
+            },
+            {
+              "id": "8.9.37",
+              "what": "⚠️ The end-of-ladder wait counts down. Open a resolved submission",
+              "expect": "\"12 days to deletion\", not \"waiting on the retention clock\""
+            },
+            {
+              "id": "8.9.38",
+              "what": "⚠️ An overdue sweep says so. A submission past its deletion date",
+              "expect": "\"overdue by Nd — is the sweep running?\" rather than \"0 days\". Clamping is how a stopped cron stays unnoticed"
+            },
+            {
+              "id": "8.9.39",
+              "what": "Before anything is delivered",
+              "expect": "\"no deletion date yet\" — neither clock has started, so there is nothing to count"
+            },
+            {
+              "id": "8.9.40",
+              "what": "⚠️ The customer's card carries the deadline. Look up a delivered submission on /status",
+              "expect": "A last line: \"Files deleted in N days\". ⚠️ They are told at ⑥ and again at ⑨; this is the same promise on the page they actually return to"
+            },
+            {
+              "id": "8.9.41",
+              "what": "And it disappears once the files are gone",
+              "expect": "A countdown after the fact is shown too late — the struck-through filenames say it better"
+            },
+            {
+              "id": "8.9.42",
+              "what": "The number is the later of the two clocks",
+              "expect": "30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards"
             },
             {
               "id": "8.10",

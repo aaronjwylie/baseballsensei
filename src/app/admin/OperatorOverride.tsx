@@ -184,11 +184,22 @@ export function OperatorOverride({
                 className={`${control} ml-1.5 border-line bg-white`}
               >
                 <option value="">the start of the step</option>
-                {STAGE_CHAIN[target].map((line) => (
-                  <option key={line.what} value={line.next}>
-                    {line.next}
-                  </option>
-                ))}
+                {/*
+                  `next` can be a function now — the end-of-ladder waits count
+                  down, and a countdown has no meaning without a submission to
+                  count for. This list is a menu of rungs, not a reading of one,
+                  so those fall back to `what`, which names the same line and is
+                  always a plain string.
+                */}
+                {STAGE_CHAIN[target].map((line) => {
+                  const label =
+                    typeof line.next === "string" ? line.next : line.what;
+                  return (
+                    <option key={line.what} value={label}>
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
             </label>
 

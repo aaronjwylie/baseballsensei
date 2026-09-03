@@ -35,6 +35,7 @@ import {
   type FileKind,
   type PublicSubmission,
 } from "@/domains/submission";
+import { getSettings } from "@/domains/settings";
 import { sendFeedbackViewCode } from "./feedbackEmail";
 
 export const FEEDBACK_CODE_COOKIE = "bs_fbcode";
@@ -181,9 +182,27 @@ export async function verifyFeedbackViewCode(
     return null;
   }
 
+  const retention = await retentionWindows();
   return {
-    submissions: await lookupPublicSubmissions(email),
+    submissions: await lookupPublicSubmissions(email, retention),
     groups: await listFeedbackForEmail(email),
+  };
+}
+
+/**
+ * The operator's two retention windows, in the shape the projection wants.
+ *
+ * Read here rather than threaded down from a page, because every caller that
+ * builds a customer's view needs the same two numbers and none of them has any
+ * other reason to know about settings. They are the operator's, so a default
+ * baked in anywhere would be a second answer to a question the operator has
+ * already answered once.
+ */
+async function retentionWindows() {
+  const settings = await getSettings();
+  return {
+    collectedDays: settings.retainCollectedDays,
+    deliveredDays: settings.retainDeliveredDays,
   };
 }
 
@@ -193,6 +212,7 @@ export async function listFeedbackForEmail(
   emailRaw: string,
 ): Promise<FeedbackGroup[]> {
   const email = emailRaw.trim().toLowerCase();
+  const retention = await retentionWindows();
   const submissions = await findByCustomerEmail(email);
   const groups: FeedbackGroup[] = [];
   for (const submission of submissions) {
@@ -207,7 +227,7 @@ export async function listFeedbackForEmail(
     ).filter((f) => !!f.fileUrl);
     if (files.length === 0) continue;
     groups.push({
-      submission: toPublicSubmission(submission),
+      submission: toPublicSubmission(submission, retention),
       files: files.map((f) => ({
         id: f.id,
         filename: f.filename,

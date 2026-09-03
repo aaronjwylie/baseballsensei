@@ -30,7 +30,12 @@
  * **Adding a field here is still a security decision**, not a convenience one.
  * The bar moved; it did not disappear. Ask whose fact it is before adding it.
  */
-import { isReleased, type Submission, type SubmissionStatus } from "./submission";
+import {
+  deletionDueAt,
+  isReleased,
+  type Submission,
+  type SubmissionStatus,
+} from "./submission";
 
 export interface PublicSubmission {
   playerName: string;
@@ -43,14 +48,36 @@ export interface PublicSubmission {
   /** When the review was released to them, so a card can date itself. */
   completedAt?: string;
   /**
+   * When their files are deleted.
+   *
+   * Squarely the customer's own fact, and one they are already told twice: ⑥
+   * carries the retention window at delivery and ⑨ warns a week out. Saying it
+   * on the page they actually return to is the same promise in the place they
+   * look for it (Ben, 2026-09-03) — and the deadline is only useful in advance,
+   * so a page that shows it after the fact has shown it too late.
+   */
+  deleteAfter?: string;
+  /**
    * Whether the review is finished. The customer downloads it from the link in
    * their email — never from here — so this is a flag, not a location.
    */
   hasFeedback: boolean;
 }
 
-export function toPublicSubmission(submission: Submission): PublicSubmission {
+export function toPublicSubmission(
+  submission: Submission,
+  /**
+   * The operator's retention windows. Optional because most callers only want
+   * the status, and a card that omits the deadline is better than one that
+   * guesses at it from defaults the operator may have changed.
+   */
+  retention?: { collectedDays: number; deliveredDays: number },
+): PublicSubmission {
   return {
+    deleteAfter: retention
+      ? (deletionDueAt(submission, retention.collectedDays, retention.deliveredDays) ??
+        undefined)
+      : undefined,
     playerName: submission.playerName || "Player",
     playerAge: submission.playerAge,
     focus: submission.focus,

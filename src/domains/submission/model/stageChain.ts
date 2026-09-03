@@ -51,6 +51,15 @@ export interface ProgressFacts {
    * returns `null` and the stage stays passive rather than falsely gating.
    */
   coachLanguages: readonly string[];
+  /**
+   * Whole days until the sweep deletes the files, or null when no clock has
+   * started.
+   *
+   * On the facts rather than the submission because it is not the submission's:
+   * it is the submission's dates read against the operator's retention
+   * settings, and only the two waiting lines at the end of the ladder ask it.
+   */
+  daysToDeletion?: number | null;
 }
 
 /**
@@ -91,8 +100,14 @@ export interface ChainLine {
    * length: "Payment cleared" against "Clear payment". A greyed-out past-tense
    * line still reads as something that occurred, and a full sentence beside a
    * column of clipped ones reads as a different kind of entry altogether.
+   *
+   * **A function when the line has to count.** The two rungs at the end of the
+   * ladder are waits, and "waiting on the retention clock" tells an operator
+   * nothing they can act on — the useful reading is how long is left (Ben,
+   * 2026-09-03). Everything else is a constant, and should stay one: a line
+   * that could vary is a line whose wording has to be traced.
    */
-  next: string;
+  next: string | ((submission: Submission, facts: ProgressFacts) => string);
   /** How we know — the field, the file, or the event. Shown small. */
   from: string;
   /** Why it matters, where that isn't obvious. */
@@ -270,6 +285,23 @@ const WRONG_CODE = Array.from(
   { length: 5 },
   (_, i) => `code rejected — wrong code — ${i + 1} of 5 attempts spent`,
 );
+
+/**
+ * "12 days to deletion", or the honest thing when there is no number.
+ *
+ * Both end-of-ladder lines are waits on the same clock, so they read it the
+ * same way. `null` means no clock has started, which is a different statement
+ * from "0 days" and has to look different; a negative count means the sweep is
+ * behind, and saying so is the point — a stopped cron that reads "0 days to
+ * deletion" forever is indistinguishable from one that is merely due.
+ */
+const countdown = (what: string) => (_s: Submission, f: ProgressFacts) => {
+  const left = f.daysToDeletion;
+  if (left === null || left === undefined) return `${what}: no deletion date yet`;
+  if (left < 0) return `${what} overdue by ${Math.abs(left)}d — is the sweep running?`;
+  if (left === 0) return `${what}: deletion due today`;
+  return `${left} ${left === 1 ? "day" : "days"} to deletion`;
+};
 
 const sent = (label: string) => (_s: Submission, f: ProgressFacts) =>
   f.emails.get(label) === true;
@@ -461,7 +493,7 @@ export const STAGE_CHAIN: Record<SubmissionStatus, ChainLine[]> = {
       by the *stamp*, that one by the *email*, and ⑨ is stamped even when the send
       fails — so the two genuinely can disagree and must not read as one thing.
     */
-    { what: "Warning point reached", next: "Waiting on the retention clock", from: "deletionWarnedAt", act: "waitCron", failures: ["The sweep didn't run — CRON_SECRET unset, and it refuses rather than run unguarded"], toldOnFail: ["Admin/portal: “The nightly sweep has not run since {date}.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Deleting"], met: (s) => !!s.deletionWarnedAt },
+    { what: "Warning point reached", next: countdown("Warning"), from: "deletionWarnedAt", act: "waitCron", failures: ["The sweep didn't run — CRON_SECRET unset, and it refuses rather than run unguarded"], toldOnFail: ["Admin/portal: “The nightly sweep has not run since {date}.” *(not built)*"], toldOnSuccess: ["Admin/portal: the row moves to Deleting"], met: (s) => !!s.deletionWarnedAt },
   ],
   purge_imminent: [
     { what: "Warning sent", next: "Send the warning", from: "⑨", passive: true, records: [...sendRecords("⑨ deletion warning → customer")], failures: [...sendFailures("⑨ deletion warning → customer"), "Stamped even when the send failed — retrying nightly would turn one miss into seven"], toldOnFail: ["Admin/portal: “The deletion warning to {customer} did not send. They have no notice, and it will not retry.” *(not built)*"], toldOnSuccess: ["Customer/email: ⑨ the deletion warning, a week out"], met: sent("⑨ deletion warning → customer") },
@@ -555,7 +587,8 @@ export function describeStage(
 
   return lines.map((line, i) => ({
     what: line.what,
-    next: line.next,
+    next:
+      typeof line.next === "function" ? line.next(submission, facts) : line.next,
     from: line.from,
     why: line.why,
     act: line.act,

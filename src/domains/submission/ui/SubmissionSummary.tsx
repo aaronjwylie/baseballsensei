@@ -1,6 +1,7 @@
 "use client";
 
 import type { PublicSubmission } from "../model/publicSubmission";
+import { daysUntil } from "../model/submission";
 
 /**
  * How a submission describes itself to the customer who sent it.
@@ -30,6 +31,7 @@ export function SubmissionSummary({
 }) {
   const sent = formatDate(submission.submittedAt);
   const back = formatDate(submission.completedAt);
+  const left = daysUntil(submission.deleteAfter ?? null);
 
   return (
     <>
@@ -65,6 +67,24 @@ export function SubmissionSummary({
             <div className="flex gap-1.5">
               <dt>Feedback ready</dt>
               <dd className="m-0 font-medium text-ink-soft">{back}</dd>
+            </div>
+          )}
+          {/*
+            The deadline, last and in days (Ben, 2026-09-03).
+
+            A date tells a parent nothing without arithmetic; "14 days left" is
+            the same fact in the form they can act on. It sits last because it
+            is the only line that is about the future, and it only appears while
+            there is still time — a countdown shown after the files are gone is
+            a countdown shown too late, and the struck-through filenames say
+            that better.
+          */}
+          {left !== null && left >= 0 && (
+            <div className="flex gap-1.5">
+              <dt>Files deleted in</dt>
+              <dd className="m-0 font-medium text-ink-soft">
+                {`${left} ${left === 1 ? "day" : "days"}`}
+              </dd>
             </div>
           )}
         </dl>
