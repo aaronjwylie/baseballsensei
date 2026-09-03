@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 47</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 48</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -2088,6 +2088,26 @@ const PHASES = [
             "8.9.18",
             "All three customer pages resize the same way",
             "/status, /status/[token] and the ⑥ link share one shell. Dragging wider never narrows the column"
+          ],
+          [
+            "8.9.19",
+            "⚠️ No code form once you are in. Look yourself up on /status and reach the list",
+            "\"Email me a code\" is gone, replaced by \"Use a different email\". ⚠️ It rendered unconditionally, offering to mail a code to someone already reading the page it unlocked — and codes are single-use, so it would have been a second one"
+          ],
+          [
+            "8.9.20",
+            "The escape still works",
+            "\"Use a different email\" returns to the form and clears the old code"
+          ],
+          [
+            "8.9.21",
+            "⚠️ Each card identifies its own submission. Look up an email with several",
+            "Player and age, focus, the customer's own notes, sent date and feedback-ready date. ⚠️ It was a name, a focus and a date, so two reviews of the same child were indistinguishable"
+          ],
+          [
+            "8.9.22",
+            "⚠️ And nothing of ours. Inspect the payload behind /status",
+            "No coach, no internal notes, no Stripe id, no storage locator. The projection widened to the customer's own facts only, and the bar for adding a field is unchanged"
           ],
           [
             "8.10",

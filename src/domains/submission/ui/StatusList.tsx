@@ -165,6 +165,23 @@ const STATUS_META: Record<
   },
 };
 
+/**
+ * One submission, as a card the customer can identify (Ben, 2026-09-03).
+ *
+ * It was a name, a focus, a date and a pill on one line — which is legible on a
+ * page with one submission and useless on a page with five, where every row
+ * says "Hitting" and the only thing separating two reviews of the same child is
+ * a date. A customer looking for "the one where I asked about his back elbow"
+ * had nothing to look for.
+ *
+ * So the card carries the things that tell one apart: who it was for and how
+ * old they were, what it was about, when it was sent, when it came back, and
+ * their own words. The notes are the strongest of those and were the ones
+ * missing — nobody remembers a date, everybody remembers what they asked.
+ *
+ * It does **not** name the coach. That is ours, not theirs, and the projection
+ * this reads leaves it out on purpose whoever is asking.
+ */
 function StatusRow({
   submission,
   hasDownloads,
@@ -174,39 +191,68 @@ function StatusRow({
   hasDownloads: boolean;
 }) {
   const meta = STATUS_META[submission.status];
+  const sent = formatDate(submission.submittedAt);
+  const back = formatDate(submission.completedAt);
+
   return (
-    <li className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white p-5">
-      <div>
-        <div className="font-semibold text-ink">{submission.playerName}</div>
-        <div className="mt-0.5 text-sm text-ink-muted">
-          {submission.focus ? `${submission.focus} · ` : ""}
-          {formatDate(submission.submittedAt)}
+    <li className="rounded-2xl border border-line bg-white p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-semibold text-ink">
+            {submission.playerName}
+            {submission.playerAge ? (
+              <span className="font-normal text-ink-muted">
+                {`, age ${submission.playerAge}`}
+              </span>
+            ) : null}
+          </div>
+          {submission.focus ? (
+            <div className="mt-0.5 text-sm text-ink-muted">
+              {submission.focus}
+            </div>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-3">
+          <span
+            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${meta.className}`}
+          >
+            {meta.label}
+          </span>
+          {submission.hasFeedback && hasDownloads ? (
+            <a
+              href={`#${FEEDBACK_ANCHOR}`}
+              className="shrink-0 text-xs font-semibold text-accent underline underline-offset-2 hover:text-ink"
+            >
+              {"Download \u2191"}
+            </a>
+          ) : null}
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        <span
-          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${meta.className}`}
-        >
-          {meta.label}
-        </span>
-        {/*
-          A card whose feedback is ready leads to it (Ben, 2026-08-31). The
-          downloads were on the same page all along, below the stack, and
-          nothing on the card said so — a customer who saw "Feedback ready"
-          went back to their email for the link instead of scrolling.
 
-          An in-page anchor rather than a route: everything is already here,
-          and `scroll-mt` on the target keeps the heading off the top edge.
-        */}
-        {submission.hasFeedback && hasDownloads ? (
-          <a
-            href={`#${FEEDBACK_ANCHOR}`}
-            className="shrink-0 text-xs font-semibold text-accent underline underline-offset-2 hover:text-ink"
-          >
-            {"Download ↑"}
-          </a>
-        ) : null}
-      </div>
+      {/* Their own words, quoted back. Clamped rather than truncated: a long
+          note stays readable to the line, and the card stays a card. */}
+      {submission.customerNotes ? (
+        <p className="mt-3 border-l-2 border-line pl-3 text-sm leading-snug text-ink-soft">
+          {submission.customerNotes}
+        </p>
+      ) : null}
+
+      {(sent || back) && (
+        <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-muted">
+          {sent && (
+            <div className="flex gap-1.5">
+              <dt>Sent</dt>
+              <dd className="m-0 font-medium text-ink-soft">{sent}</dd>
+            </div>
+          )}
+          {back && (
+            <div className="flex gap-1.5">
+              <dt>Feedback ready</dt>
+              <dd className="m-0 font-medium text-ink-soft">{back}</dd>
+            </div>
+          )}
+        </dl>
+      )}
     </li>
   );
 }

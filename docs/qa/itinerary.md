@@ -454,6 +454,10 @@ than assuming the fix held.
 | 8.9.16 | Nothing ready | No downloads block at all, and the list is headed "Your submissions" rather than "Your history" |
 | 8.9.17 | ⚠️ **The ⑥ link stays one submission.** Open it and look for past reviews | It shows that review only, and offers a link to `/status` for the rest. ⚠️ Widening it would widen the token — this is the link people forward, and one forward would hand over the family's whole history |
 | 8.9.18 | All three customer pages resize the same way | `/status`, `/status/[token]` and the ⑥ link share one shell. Dragging wider never narrows the column |
+| 8.9.19 | ⚠️ **No code form once you are in.** Look yourself up on `/status` and reach the list | "Email me a code" is gone, replaced by "Use a different email". ⚠️ It rendered unconditionally, offering to mail a code to someone already reading the page it unlocked — and codes are single-use, so it would have been a *second* one |
+| 8.9.20 | The escape still works | "Use a different email" returns to the form and clears the old code |
+| 8.9.21 | ⚠️ **Each card identifies its own submission.** Look up an email with several | Player and age, focus, the customer's own notes, sent date and feedback-ready date. ⚠️ It was a name, a focus and a date, so two reviews of the same child were indistinguishable |
+| 8.9.22 | ⚠️ **And nothing of ours.** Inspect the payload behind `/status` | No coach, no internal notes, no Stripe id, no storage locator. The projection widened to the customer's own facts only, and the bar for adding a field is unchanged |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |

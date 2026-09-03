@@ -2239,6 +2239,34 @@
       "expect": "/status, /status/[token] and the ⑥ link share one shell. Dragging wider never narrows the column",
       "retired": false,
       "history": []
+    },
+    "8.9.19": {
+      "firstSeen": "2026-09-03T20:32:30.877Z",
+      "what": "⚠️ No code form once you are in. Look yourself up on /status and reach the list",
+      "expect": "\"Email me a code\" is gone, replaced by \"Use a different email\". ⚠️ It rendered unconditionally, offering to mail a code to someone already reading the page it unlocked — and codes are single-use, so it would have been a second one",
+      "retired": false,
+      "history": []
+    },
+    "8.9.20": {
+      "firstSeen": "2026-09-03T20:32:30.877Z",
+      "what": "The escape still works",
+      "expect": "\"Use a different email\" returns to the form and clears the old code",
+      "retired": false,
+      "history": []
+    },
+    "8.9.21": {
+      "firstSeen": "2026-09-03T20:32:30.877Z",
+      "what": "⚠️ Each card identifies its own submission. Look up an email with several",
+      "expect": "Player and age, focus, the customer's own notes, sent date and feedback-ready date. ⚠️ It was a name, a focus and a date, so two reviews of the same child were indistinguishable",
+      "retired": false,
+      "history": []
+    },
+    "8.9.22": {
+      "firstSeen": "2026-09-03T20:32:30.877Z",
+      "what": "⚠️ And nothing of ours. Inspect the payload behind /status",
+      "expect": "No coach, no internal notes, no Stripe id, no storage locator. The projection widened to the customer's own facts only, and the bar for adding a field is unchanged",
+      "retired": false,
+      "history": []
     }
   }
 }

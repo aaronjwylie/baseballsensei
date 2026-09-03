@@ -160,6 +160,34 @@ export function StatusLookup({
 
   return (
     <div>
+      {/*
+        The form goes away once they are in (Ben, 2026-09-03).
+
+        It rendered unconditionally, so "Email me a code" sat above the page it
+        had just unlocked — offering to send a code to someone already reading
+        the thing the code was for. Worse than clutter: codes are single-use, so
+        the most prominent control on the page was one that would mail them a
+        second code they had no use for.
+
+        Replaced by a quiet way to look up a different address, which is the
+        only reason anyone would still want the form here.
+      */}
+      {result.state === "loaded" ? (
+        <p className="text-sm text-ink-muted">
+          {`Showing everything sent from ${result.email}. `}
+          <button
+            type="button"
+            onClick={() => {
+              setResult({ state: "idle" });
+              setCode("");
+              setCodeError(null);
+            }}
+            className="font-medium text-accent underline underline-offset-2 hover:text-ink"
+          >
+            Use a different email
+          </button>
+        </p>
+      ) : (
       <form
         onSubmit={onSubmit}
         className="flex flex-col gap-3 rounded-2xl border border-line bg-white p-6 sm:flex-row sm:items-start"
@@ -184,6 +212,7 @@ export function StatusLookup({
           {isSubmitting ? "Sending…" : "Email me a code"}
         </Button>
       </form>
+      )}
 
       <div className="mt-6">
         {result.state === "error" && (
