@@ -426,9 +426,24 @@ function SubmissionRow({
         ? openLeg === "feedback"
           ? `Translate the response first. ${submission.playerName ? "The customer" : "They"} may not read the language it's in.`
           : `Translate the client files first. ${assignedCoach.name} may not read the language they're in.`
-        : (submission.languages?.length ?? 0) === 0
+        : /*
+             Name the side that is blank, not merely that something is (QA
+             5.11). The panel's own line has always said which; the flag only
+             knew about the customer, and fell through to silence when it was
+             the coach — so the likelier of the two was the one that showed
+             nothing.
+
+             Likelier because of where each comes from: a customer's language is
+             a radio group at step 1 with no empty state to reach, while a
+             coach's is typed in by an admin, and recording them is still an
+             open job. The unreachable case was handled and the reachable one
+             was not.
+           */
+          (submission.languages?.length ?? 0) === 0
           ? "The customer didn't declare a language."
-          : null;
+          : assignedCoach.languages.length === 0
+            ? `No languages recorded for ${assignedCoach.name}. Translation can't be assessed.`
+            : null;
 
   const stage = describeStage(submission, {
     files: {
