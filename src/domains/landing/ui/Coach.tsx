@@ -27,9 +27,9 @@ export function Coach() {
       <Container className="grid items-center gap-12 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:gap-24">
         <div>
           <div className="relative">
-            <div className="relative aspect-[319/297] w-full overflow-hidden">
+            <div className="relative aspect-[268/330] w-full overflow-hidden">
               <Image
-                src="/images/concept-panel.webp"
+                src="/images/concept-panel-portrait.webp"
                 alt={`${coach.name}, head coach`}
                 fill
                 sizes="(min-width: 1024px) 380px, 100vw"
@@ -37,18 +37,22 @@ export function Coach() {
               />
             </div>
 
-            <div className="absolute -bottom-8 right-6 h-[120px] w-[120px] overflow-hidden rounded-full ring-4 ring-highlight lg:h-[150px] lg:w-[150px]">
+            {/* The round headshot straddles the bottom-right corner of the
+                pitcher shot — half over it, half below — so the two photographs
+                read as one stacked portrait. */}
+            <div className="absolute -bottom-10 -right-2 h-[140px] w-[140px] overflow-hidden rounded-full ring-4 ring-highlight lg:h-[168px] lg:w-[168px]">
               <Image
                 src="/images/concept-round.webp"
                 alt=""
                 fill
-                sizes="150px"
+                sizes="168px"
                 className="object-cover"
               />
             </div>
           </div>
 
-          <div className="mt-12">
+          {/* Cleared below the overhanging circle, and centred under it. */}
+          <div className="mt-20 text-center lg:mt-24">
             <p className="font-display text-[18px] font-semibold uppercase tracking-[-0.01em] text-ink">
               {coach.name}
             </p>
@@ -61,7 +65,12 @@ export function Coach() {
             {coach.eyebrow}
           </p>
 
-          <SectionHeading tone="onLight" title={coach.title} className="mt-3" />
+          <SectionHeading
+            tone="onLight"
+            title={coach.title}
+            stack
+            className="mt-3"
+          />
 
           <p className="mt-5 max-w-[560px] text-[15px] leading-[1.5] text-ink-soft">
             {coach.bio}
@@ -71,12 +80,12 @@ export function Coach() {
             {coach.stats.map((stat) => (
               <div
                 key={stat.value}
-                className="border-2 border-accent px-4 py-2.5 text-center"
+                className="rounded-md border-2 border-accent px-5 py-2.5"
               >
-                <dt className="text-[12px] font-semibold uppercase tracking-[0.04em] text-accent">
+                <dt className="text-[13px] font-bold uppercase tracking-[0.04em] text-ink">
                   {stat.value}
                 </dt>
-                <dd className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-accent">
+                <dd className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-accent">
                   {stat.label}
                 </dd>
               </div>
