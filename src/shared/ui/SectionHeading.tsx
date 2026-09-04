@@ -24,12 +24,15 @@ export function SectionHeading({
   title,
   tone,
   align = "left",
+  stack = false,
   className = "",
   as: Tag = "h2",
 }: {
   title: SplitHeading;
   tone: "onDark" | "onLight";
   align?: "left" | "center";
+  /** Break the highlight onto its own line instead of flowing inline. */
+  stack?: boolean;
   className?: string;
   as?: "h1" | "h2";
 }) {
@@ -39,8 +42,13 @@ export function SectionHeading({
         tone === "onDark" ? "text-paper" : "text-ink"
       } ${align === "center" ? "text-center" : ""} ${className}`}
     >
-      {title.lead}{" "}
-      <span className={tone === "onDark" ? "text-highlight" : "text-accent"}>
+      {title.lead}
+      {stack ? null : " "}
+      <span
+        className={`${tone === "onDark" ? "text-highlight" : "text-accent"}${
+          stack ? " block" : ""
+        }`}
+      >
         {title.highlight}
       </span>
     </Tag>
