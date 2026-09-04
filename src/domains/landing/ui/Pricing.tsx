@@ -6,7 +6,14 @@ import { getSettings } from "@/domains/settings";
 import { pricing } from "../model/copy";
 
 /**
- * What it costs — a price block over a full-bleed photograph.
+ * What it costs — a price card floating over the concept photograph.
+ *
+ * **The image is the point, so it is not flattened.** The photo is the coach
+ * watching a swing on the screen; an earlier version dropped a flat `bg-ink/70`
+ * over the whole thing and cropped it to a thin band, which hid the very
+ * composition it exists to show. Now the band is tall enough to hold the coach
+ * on the left and the batter on the screen, and the price sits in its own dark
+ * card floating on the right rather than as bare text on a dimmed photo.
  *
  * **The number is read, not written.** The design draws "80$" and it is
  * currently right, but the price is a `settings` row the admin edits at
@@ -29,28 +36,35 @@ export async function Pricing() {
   return (
     <section
       id="pricing"
-      className="relative isolate scroll-mt-8 overflow-hidden bg-ink py-20 lg:py-28"
+      className="relative isolate scroll-mt-8 overflow-hidden bg-ink"
     >
       <Image
         src="/images/concept-band.webp"
-        alt=""
+        alt="A coach watching a batter's swing on screen"
         fill
         sizes="100vw"
-        className="object-cover"
+        className="object-cover object-[center_22%]"
       />
-      <div className="absolute inset-0 bg-ink/70" />
+      {/* A whisper of darkening, not the old flat veil: the photo is already
+          moody, and the card carries its own ground, so this only steadies the
+          edges rather than hiding the coach and the swing. */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-ink/10 to-ink/45" />
 
-      <Container className="relative">
-        <div className="ml-auto max-w-[380px] text-center lg:text-left">
-          <p className="font-display text-[64px] font-normal leading-none tracking-[-0.02em] text-highlight lg:text-[88px]">
+      <Container className="relative flex min-h-[520px] items-center py-16 sm:min-h-[600px] lg:min-h-[680px] lg:py-24">
+        {/* The floating card. Frosted and ringed so it reads as a panel resting
+            over the photograph, not a hole cut out of it. */}
+        <div className="ml-auto w-full max-w-[400px] rounded-2xl bg-ink/80 p-8 text-center shadow-2xl ring-1 ring-white/10 backdrop-blur-md lg:p-10 lg:text-left">
+          <p className="font-display text-[64px] font-normal leading-none tracking-[-0.02em] text-highlight lg:text-[80px]">
             {formatPrice(settings.priceCents)}
           </p>
-          <p className="mt-2 text-[15px] text-paper">{pricing.unit}</p>
+          <p className="mt-2 text-[15px] font-medium text-highlight">
+            {pricing.unit}
+          </p>
 
           <ul className="mt-8 flex flex-col gap-3 text-left">
             {pricing.included.map((item) => (
-              <li key={item} className="flex items-start gap-3">
-                <span aria-hidden className="mt-0.5 text-highlight">
+              <li key={item} className="flex items-center gap-3">
+                <span aria-hidden className="text-highlight">
                   ✓
                 </span>
                 <span className="text-[15px] text-paper">{item}</span>
@@ -58,11 +72,15 @@ export async function Pricing() {
             ))}
           </ul>
 
-          <ButtonLink href="/start" variant="primary" className="mt-8">
+          <ButtonLink
+            href="/start"
+            variant="primary"
+            className="mt-8 w-full justify-center"
+          >
             {pricing.cta} <span aria-hidden>→</span>
           </ButtonLink>
 
-          <p className="mt-5 text-[13px] text-paper">
+          <p className="mt-5 text-center text-[13px] text-paper/80">
             {pricing.contactPrompt}{" "}
             <Link
               href="/contact"
