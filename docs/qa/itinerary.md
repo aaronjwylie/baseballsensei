@@ -488,6 +488,8 @@ than assuming the fix held.
 | 8.9.45 | Ready ones come first | A parent whose review just landed does not scroll past submissions that need nothing from them |
 | 8.9.46 | ⚠️ **A released submission whose files were swept.** Age one past the retention window | Listed once, reading "No longer available", and **not** sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has |
 | 8.9.47 | Nothing finished | The same single list, in the server's order |
+| 8.9.49 | ⚠️ **Storage matches the database.** Audit the Blob store against every locator the DB holds — `submission_file.file_url` **and** `operator_role_grant.image_url` | ⚠️ **No dangling rows** — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault |
+| 8.9.50 | ⚠️ **Replacing a coach photo drops the old object.** Upload a photo, replace it, then audit | One object for that coach, not two. ⚠️ The removal was `void`ed with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |

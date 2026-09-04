@@ -168,7 +168,28 @@ export async function saveRoleAction(
   const newImageUrl = await savePhoto(operatorId, formData);
   const priorImageUrl = priorGrants.find((g) => g.role === role)?.imageUrl;
   if ((newImageUrl || removeImage) && priorImageUrl) {
-    void storage.remove(priorImageUrl).catch(() => {});
+    /*
+      Awaited, and its failure logged (Ben, 2026-09-03).
+
+      This was `void storage.remove(...).catch(() => {})` — fired and forgotten
+      with the error swallowed whole. Two things wrong with that in a Server
+      Action: the invocation can end before the removal lands, and a removal
+      that genuinely failed left no trace anywhere.
+      An audit of the Blob store found exactly one orphaned coach photo, which
+      is the shape that produces.
+      Awaiting costs one round trip on a form nobody submits in a hurry. The
+      catch stays, because a failed cleanup must not fail the save — the grant
+      is the thing being edited, and a stray object is a rounding error against
+      losing the edit — but it now says so out loud.
+    */
+    try {
+      await storage.remove(priorImageUrl);
+    } catch (err) {
+      console.error(
+        `[operator] could not remove the previous photo ${priorImageUrl}:`,
+        err,
+      );
+    }
   }
   const imageUpdate: { imageUrl?: string | null } = newImageUrl
     ? { imageUrl: newImageUrl }

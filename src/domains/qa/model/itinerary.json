@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 58,
-    "generatedAt": "2026-09-03T23:14:09.403Z",
-    "checks": 335,
-    "live": 334,
+    "build": 59,
+    "generatedAt": "2026-09-04T00:38:36.466Z",
+    "checks": 337,
+    "live": 336,
     "retired": 1,
     "edited": 24
   },
@@ -1952,6 +1952,17 @@
               "id": "8.9.47",
               "what": "Nothing finished",
               "expect": "The same single list, in the server's order"
+            },
+            {
+              "id": "8.9.49",
+              "what": "⚠️ Storage matches the database. Audit the Blob store against every locator the DB holds — submission_file.file_url and operator_role_grant.image_url",
+              "expect": "No dangling rows — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault",
+              "flag": "flag"
+            },
+            {
+              "id": "8.9.50",
+              "what": "⚠️ Replacing a coach photo drops the old object. Upload a photo, replace it, then audit",
+              "expect": "One object for that coach, not two. ⚠️ The removal was voided with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape"
             },
             {
               "id": "8.10",

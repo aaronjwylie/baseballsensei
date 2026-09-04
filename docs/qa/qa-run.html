@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 58</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 59</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -2258,6 +2258,17 @@ const PHASES = [
             "8.9.47",
             "Nothing finished",
             "The same single list, in the server's order"
+          ],
+          [
+            "8.9.49",
+            "⚠️ Storage matches the database. Audit the Blob store against every locator the DB holds — submission_file.file_url and operator_role_grant.image_url",
+            "No dangling rows — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault",
+            "flag"
+          ],
+          [
+            "8.9.50",
+            "⚠️ Replacing a coach photo drops the old object. Upload a photo, replace it, then audit",
+            "One object for that coach, not two. ⚠️ The removal was voided with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape"
           ],
           [
             "8.10",
