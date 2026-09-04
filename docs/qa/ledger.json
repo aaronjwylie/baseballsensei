@@ -2154,10 +2154,16 @@
     },
     "5.9.0.2": {
       "firstSeen": "2026-09-02T21:02:22.175Z",
-      "what": "One vocabulary on all three surfaces",
-      "expect": "Step 1, the coach's card, and the admin panel all say understands — not \"reads\" on one and \"should your feedback be in\" on another. Both halves of an intersection have to be spelled the same",
+      "what": "One vocabulary on four surfaces",
+      "expect": "Step 1, the coach's card, the add-a-coach form, and the admin panel all say understands — not \"reads\" on one and \"should your feedback be in\" on another. Both halves of an intersection have to be spelled the same. ⚠️ It said \"three\" until 2026-09-03: the add form was missed because the role cards had taken over editing, so the wording never came up while looking at a coach who already existed",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-04T00:45:58.162Z",
+          "what": "One vocabulary on all three surfaces",
+          "expect": "Step 1, the coach's card, and the admin panel all say understands — not \"reads\" on one and \"should your feedback be in\" on another. Both halves of an intersection have to be spelled the same"
+        }
+      ]
     },
     "8.9.13": {
       "firstSeen": "2026-09-02T21:22:29.333Z",

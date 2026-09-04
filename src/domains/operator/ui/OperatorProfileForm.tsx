@@ -187,9 +187,14 @@ export function OperatorProfileForm({
         role, so exactly one of these renders.
       */}
       {holds("coach") ? (
+        /* "understands", like every other surface that asks this. The add form
+           was missed when the vocabulary was settled on 2026-08-31, because the
+           role cards had taken over *editing* and this one only handles
+           *creation* — so it never came up while looking at a coach who already
+           existed (Ben, QA 5.9.0.2). */
         <Field
           label="Languages"
-          hint="What this coach reads. A submission is translated when it shares none with the customer."
+          hint="What this coach understands. A submission is translated when it shares none with the customer."
         >
           <select
             name="languages"
