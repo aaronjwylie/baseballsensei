@@ -28,7 +28,6 @@ import { directionsOf } from "../model/operatorProfile";
 import { sendAssignmentEmail } from "./handoffEmail";
 import {
   createProfiledOperatorAction,
-  updateProfiledOperatorAction,
   type OperatorProfileFormState,
 } from "./operatorProfileActions";
 
@@ -254,9 +253,3 @@ export async function createTranslatorAction(
   return createProfiledOperatorAction("translator", prev, formData);
 }
 
-export async function updateTranslatorAction(
-  prev: OperatorProfileFormState,
-  formData: FormData,
-): Promise<OperatorProfileFormState> {
-  return updateProfiledOperatorAction("translator", prev, formData);
-}

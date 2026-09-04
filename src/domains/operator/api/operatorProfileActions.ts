@@ -25,7 +25,6 @@ import { FOCUS_OPTIONS, type Focus } from "@/domains/submission";
 import {
   LANGUAGE_CHOICES,
   languagesForChoice,
-  readLanguageChoice,
   type LanguageChoice,
 } from "@/domains/submission";
 import {
@@ -37,7 +36,6 @@ import {
   createProfiledOperator,
   updateProfiledOperator,
   deleteOperator,
-  getByRole,
 } from "./operatorProfileApi";
 import { isEligibleAdmin, otherActiveAdminExists } from "./operatorRoleApi";
 import { ROLES, type Role } from "../model/operatorRoleEnum";
@@ -157,80 +155,6 @@ export async function createProfiledOperatorAction(
   return { ok: true };
 }
 
-export async function updateProfiledOperatorAction(
-  role: Role,
-  _prev: OperatorProfileFormState,
-  formData: FormData,
-): Promise<OperatorProfileFormState> {
-  await requireRole("admin");
-
-  const id = String(formData.get("operatorId") ?? formData.get("coachId") ?? "");
-  const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const specialties = formData.getAll("specialties").map(String).filter(isFocus);
-  const languages = languagesForChoice(
-    readLanguageChoice(formData.get("languages"), DEFAULT_LANGUAGE_CHOICE),
-  );
-  // The edit form has no "active" toggle, so an absent field must mean "leave it
-  // as it is", not "deactivate". Reading it as `=== "on"` set isActive=false on
-  // every save — which, now that login enforces `operator.isActive`, silently
-  // locked operators out. Only touch it when the form actually carries it.
-  const activeField = formData.get("isActive");
-  const password = String(formData.get("password") ?? "");
-  const bio = String(formData.get("bio") ?? "").trim();
-
-  if (!id || !name) return { error: "A name is required." };
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { error: "Enter a valid email address." };
-  }
-  if (password && password.length < 8) {
-    return { error: "A new password must be at least 8 characters (or leave it blank)." };
-  }
-
-  // Deactivating an account blocks its login (loginApi enforces `isActive`), so
-  // deactivating the only eligible admin is a lockout by another door. Refuse it
-  // for the same reason `saveRoleAction` refuses stripping the admin grant.
-  if (
-    activeField !== null &&
-    activeField !== "on" &&
-    (await isEligibleAdmin(id)) &&
-    !(await otherActiveAdminExists(id))
-  ) {
-    return {
-      error:
-        "This is the only active admin. You can't deactivate them. Grant admin to someone else first.",
-    };
-  }
-
-  // A new photo replaces the old one; the old object is removed so it does not
-  // orphan in storage.
-  let imageUrl: string | undefined;
-  try {
-    const url = await savePhoto(id, formData);
-    if (url) {
-      imageUrl = url;
-      const existing = await getByRole(id, role);
-      if (existing?.imageUrl) void storage.remove(existing.imageUrl).catch(() => {});
-    }
-  } catch (err) {
-    console.error(`[${role} edit] photo failed:`, err);
-    return { error: "Could not save the photo. Please try again." };
-  }
-
-  try {
-    await updateProfiledOperator(id, role, {
-      name, email, specialties, languages, bio,
-      ...(activeField !== null ? { isActive: activeField === "on" } : {}),
-      ...(password ? { password } : {}),
-      ...(imageUrl ? { imageUrl } : {}),
-    });
-  } catch {
-    return { error: `Could not update the ${role}. Is that email already in use?` };
-  }
-
-  revalidateOperatorPages();
-  return { ok: true };
-}
 
 /**
  * Change who someone is — name, email, password. **No role involved.**

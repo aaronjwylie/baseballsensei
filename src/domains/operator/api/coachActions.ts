@@ -30,7 +30,6 @@ import { listAssignable } from "./operatorProfileApi";
 import { sendAssignmentEmail } from "./handoffEmail";
 import {
   createProfiledOperatorAction,
-  updateProfiledOperatorAction,
   type OperatorProfileFormState,
 } from "./operatorProfileActions";
 
@@ -47,12 +46,6 @@ export async function createCoachAction(
   return createProfiledOperatorAction("coach", prev, formData);
 }
 
-export async function updateCoachAction(
-  prev: OperatorProfileFormState,
-  formData: FormData,
-): Promise<OperatorProfileFormState> {
-  return updateProfiledOperatorAction("coach", prev, formData);
-}
 
 export async function assignCoachAction(
   _prev: ActionResult,

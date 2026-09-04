@@ -40,11 +40,9 @@ export {
   assignTranslatorAction,
   createTranslatorAction,
   sendForTranslationAction,
-  updateTranslatorAction,
 } from "./api/translatorActions";
 export {
   createProfiledOperatorAction,
-  updateProfiledOperatorAction,
   updateOperatorIdentityAction,
   type OperatorProfileFormState,
 } from "./api/operatorProfileActions";
@@ -58,7 +56,6 @@ export {
 } from "./api/operatorProfileApi";
 export {
   createCoachAction,
-  updateCoachAction,
   assignCoachAction,
   notifyCoachAction,
 } from "./api/coachActions";
