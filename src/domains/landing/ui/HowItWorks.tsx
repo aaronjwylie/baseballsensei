@@ -22,7 +22,7 @@ export function HowItWorks() {
 
         <ol className="mt-16 grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
           {method.steps.map((step, index) => (
-            <li key={step.title} className="relative bg-paper pb-8">
+            <li key={step.title} className="relative rounded-2xl bg-paper pb-8">
               <span
                 aria-hidden
                 className="absolute -top-4 left-1/2 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full bg-highlight text-[15px] font-bold text-accent ring-4 ring-accent"
@@ -30,17 +30,21 @@ export function HowItWorks() {
                 {index + 1}
               </span>
 
-              <div className="relative aspect-[306/291] w-full overflow-hidden">
-                <Image
-                  src={step.image}
-                  alt=""
-                  fill
-                  sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
-                  className="object-cover"
-                />
+              {/* The white card padding frames the photo — a white outline with
+                  slightly rounded corners, matching the design. */}
+              <div className="px-2 pt-2">
+                <div className="relative aspect-[306/291] w-full overflow-hidden rounded-xl">
+                  <Image
+                    src={step.image}
+                    alt=""
+                    fill
+                    sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                </div>
               </div>
 
-              <div className="px-6 pt-6 text-center">
+              <div className="px-6 pt-5 text-center">
                 <h3 className="font-display text-[22px] font-medium uppercase leading-[1.1] tracking-[-0.01em] text-accent lg:text-[26px]">
                   {step.title}
                 </h3>

@@ -10,17 +10,16 @@
   rule on every anchor, which would have made ordinary prose links press.
 */
 /**
- * Square, not rounded. Audrey's `button-submit-arrow-blue`, `button-stroke-blue`
- * and `button-stroke-lime` sets all draw a 2px border at zero radius, and they
- * are the only buttons she designed — the 4px-radius input in the file is a
- * stock Untitled-UI component (Inter, #475467 hints) dropped in for layout, not
- * part of her system, so it does not get a vote on the brand's control shape.
+ * Rounded corners (`rounded-lg`), on Aaron's later call — the whole site's
+ * controls, forms and cards moved to a soft radius, and square buttons were the
+ * one thing still reading as a different system. The original set drew the
+ * borders at zero radius; the radius is the deliberate override.
  *
  * The label is Oswald 600 at 14px, uppercase, tracked 2% — taken from the
  * component sets, where every variant shares that one spec.
  */
 const BASE =
-  "inline-flex items-center justify-center gap-2 border-2 font-display text-[14px] font-semibold uppercase leading-[21px] tracking-[0.02em] transition-colors active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:translate-y-0";
+  "inline-flex items-center justify-center gap-2 rounded-lg border-2 font-display text-[14px] font-semibold uppercase leading-[21px] tracking-[0.02em] transition-colors active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:translate-y-0";
 
 const SIZES = {
   md: "px-6 py-2",

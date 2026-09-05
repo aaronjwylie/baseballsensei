@@ -32,7 +32,7 @@ export function Faq() {
             <details
               key={faq.q}
               open={index === 0}
-              className="group bg-ink px-5 py-4"
+              className="group rounded-xl bg-ink px-5 py-4"
             >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] text-paper [&::-webkit-details-marker]:hidden lg:text-[18px]">
                 {faq.q}
