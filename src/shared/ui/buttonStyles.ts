@@ -43,6 +43,13 @@ const SIZES = {
 const VARIANTS = {
   primary:
     "border-accent bg-accent text-paper hover:border-highlight hover:bg-highlight hover:text-accent focus-visible:ring-accent",
+  /* `primary`, but the label is lime rather than white — the "Get coach feedback"
+     CTA (Aaron). Same blue fill and same hover swap to a lime fill with blue text,
+     so the hover still reads; only the resting label colour differs. A variant
+     rather than a `text-highlight` className because Tailwind orders the two
+     colour utilities itself, so an appended class can't be relied on to win. */
+  primaryLime:
+    "border-accent bg-accent text-highlight hover:border-highlight hover:bg-highlight hover:text-accent focus-visible:ring-accent",
   outline:
     "border-accent bg-transparent text-accent hover:border-highlight hover:bg-highlight hover:text-accent focus-visible:ring-accent",
   onLime:

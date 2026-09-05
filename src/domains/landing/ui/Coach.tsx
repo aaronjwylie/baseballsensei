@@ -59,7 +59,7 @@ export function Coach() {
 
             {/* Centred under the circle, not the pitcher shot: same width and
                 same right overhang as the circle, so their centres line up. */}
-            <div className="ml-auto -mr-2 mt-16 w-[140px] whitespace-nowrap text-center lg:mt-20 lg:w-[168px]">
+            <div className="ml-auto -mr-2 mt-10 w-[140px] whitespace-nowrap text-center lg:mt-12 lg:w-[168px]">
               <p className="font-display text-[18px] font-semibold uppercase tracking-[-0.01em] text-ink">
                 {coach.name}
               </p>

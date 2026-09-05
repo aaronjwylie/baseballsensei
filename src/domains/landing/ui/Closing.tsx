@@ -18,7 +18,12 @@ export function Closing() {
   return (
     <section className="bg-paper-alt pt-20 lg:pt-28">
       <Container>
-        <SectionHeading tone="onLight" align="center" title={closing.title} />
+        <SectionHeading
+          tone="onLight"
+          align="center"
+          stack
+          title={closing.title}
+        />
 
         <p className="mx-auto mt-5 max-w-[560px] text-center text-[15px] leading-[1.5] text-ink-soft">
           {closing.body}

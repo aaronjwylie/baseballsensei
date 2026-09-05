@@ -59,7 +59,7 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <ButtonLink href="/start" variant="primary">
+            <ButtonLink href="/start" variant="primaryLime">
               {hero.primaryCta} <span aria-hidden>→</span>
             </ButtonLink>
             <AnchorScrollButton href="#how-it-works" variant="onDark">

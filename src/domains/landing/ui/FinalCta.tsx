@@ -23,7 +23,7 @@ export function FinalCta() {
 
       <Container className="relative flex flex-col items-center gap-7 text-center">
         <SectionHeading tone="onDark" align="center" title={finalCta.title} />
-        <ButtonLink href="/start" variant="primary">
+        <ButtonLink href="/start" variant="primaryLime">
           {finalCta.cta} <span aria-hidden>→</span>
         </ButtonLink>
       </Container>
