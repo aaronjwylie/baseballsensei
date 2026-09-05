@@ -63,6 +63,7 @@ export {
   FILE_SETS,
   availableSets,
   filesAsSent,
+  FILE_SET_LABEL,
   kindsForSet,
   type FileSet,
 } from "./model/submissionFile";

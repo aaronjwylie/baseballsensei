@@ -116,6 +116,35 @@ export function filesAsSent<T extends { kind: FileKind }>(
   return files.filter((file) => kinds.includes(file.kind));
 }
 
+/**
+ * What a file set is called, per side — the words an operator actually chose.
+ *
+ * **One home, because two surfaces say it.** The send radio picks a set and the
+ * detail panel reports what was picked, and they were saying it differently:
+ * the radio "The client's originals", the panel the raw enum `original`. The
+ * same drift the folder hints and the send radio had before them, one screen
+ * over (Ben, 2026-09-04).
+ *
+ * Per side, because "the originals" means the customer's at step 8 and the
+ * coach's at step 13 — and never a language, since nothing records what
+ * language a file is in.
+ */
+export const FILE_SET_LABEL: Record<
+  "intake" | "feedback",
+  Record<FileSet, string>
+> = {
+  intake: {
+    original: "The client's originals",
+    translation: "The translation",
+    both: "Both",
+  },
+  feedback: {
+    original: "The coach's response",
+    translation: "The translation",
+    both: "Both",
+  },
+};
+
 export function kindsForSet(
   side: "intake" | "feedback",
   set: FileSet,

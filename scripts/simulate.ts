@@ -248,29 +248,34 @@ async function walk(label: string, translating: boolean) {
 
     await updateSubmission(s.id, { status: "sent_to_intake_translator" });
     await rung(s.id, "sent_to_intake_translator", "translator");
+    /*
+      The bystander goes first, before the rung is earned by anyone.
+
+      It used to go last, which meant rewinding the status to
+      `sent_to_intake_translator` and earning `intake_translating` a second
+      time — so the walk's own trail carried two rungs twice, and the two
+      assertions at the end that no rung repeats were failing on the test
+      rather than on the code (Ben, 2026-09-04).
+
+      Asked in this order it needs no rewind, and it asks the stronger
+      question: not "can a bystander re-earn a rung someone already earned"
+      but "can a bystander earn it at all".
+    */
+    const bystander = await ensureTranslator(`${label} Bystander Translator`);
+    check(
+      (await markTranslatorCollected(s.id, bystander.id)) === null,
+      "   another translator's download earns nothing",
+    );
     // The rung is earned by the translator opening the files, exactly as
     // `in_review` is earned by the coach — not by the admin declaring it.
     check(
       (await markTranslatorCollected(s.id, intakeTranslator.id))?.status ===
         "intake_translating",
-      "   the translator's download earns intake_translating",
+      "   the assigned translator's download earns intake_translating",
     );
     check(
       (await markTranslatorCollected(s.id, intakeTranslator.id)) === null,
       "   a re-download changes nothing",
-    );
-    // Another translator opening the same file must not close a hand-off they
-    // are not part of — the guard the coach's side always had (Ben, 2026-08-31).
-    const bystander = await ensureTranslator(`${label} Bystander Translator`);
-    await updateSubmission(s.id, { status: "sent_to_intake_translator" });
-    check(
-      (await markTranslatorCollected(s.id, bystander.id)) === null,
-      "   another translator's download earns nothing",
-    );
-    check(
-      (await markTranslatorCollected(s.id, intakeTranslator.id))?.status ===
-        "intake_translating",
-      "   and the assigned translator still earns it",
     );
     await rung(s.id, "intake_translating", "translator");
     await addSubmissionFile(
@@ -296,7 +301,10 @@ async function walk(label: string, translating: boolean) {
   await rung(s.id, "in_review", "coach");
 
   // ── rung 9: awaiting_approval ────────────────────────────────────────
-  check((await sendFeedbackForApproval(s.id)) === null, "   can't deliver with no response file");
+  check(
+    (await sendFeedbackForApproval(s.id)) === "no-files",
+    "   can't deliver with no response file — and says that's why",
+  );
   await addSubmissionFile(
     { submissionId: s.id, filename: "review.mp4", contentType: "video/mp4", sizeBytes: 88_000_000, fileUrl: `sim/${s.id}/review.mp4` },
     "feedback",

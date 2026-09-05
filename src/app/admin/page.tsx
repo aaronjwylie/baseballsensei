@@ -27,6 +27,7 @@ import {
   daysUntil,
   type Direction,
   RUNG_LABEL,
+  FILE_SET_LABEL,
 } from "@/domains/submission";
 import { getSettings } from "@/domains/settings";
 import { listCoaches, listTranslators, notifyCoachAction, sendForTranslationAction, AssignCoachSelect, AssignTranslatorSelect, type OperatorProfile } from "@/domains/operator";
@@ -838,10 +839,29 @@ function SubmissionRow({
               </dd>
             </>
           )}
-          <dt className="text-ink-muted">Sent to coach</dt>
-          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">{submission.coachFileSet ?? "—"}</dd>
-          <dt className="text-ink-muted">Sent to customer</dt>
-          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">{submission.customerFileSet ?? "—"}</dd>
+          {/*
+            Past tense, and the operator's own words (Ben, 2026-09-04).
+
+            "Sent to customer: original" read as a claim about *now* — which a
+            reset makes visibly wrong, since a reset moves the status and
+            deliberately clears none of this. It is history; it should say so.
+
+            And `original` was the raw enum, while the radio that set it says
+            "The client's originals". One value, two vocabularies, on two
+            screens an operator moves between.
+          */}
+          <dt className="text-ink-muted">Coach was sent</dt>
+          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+            {submission.coachFileSet
+              ? FILE_SET_LABEL.intake[submission.coachFileSet]
+              : "—"}
+          </dd>
+          <dt className="text-ink-muted">Customer was sent</dt>
+          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+            {submission.customerFileSet
+              ? FILE_SET_LABEL.feedback[submission.customerFileSet]
+              : "—"}
+          </dd>
           <dt className="text-ink-muted">Collected</dt>
           <dd className="m-0 font-mono text-[11.5px] text-ink-soft"><LocalTime iso={submission.collectedAt} /></dd>
         </dl>

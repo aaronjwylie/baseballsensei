@@ -3,7 +3,10 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { failed, succeeded, type ActionResult } from "@/shared/lib/actionResult";
-import type { FileSet } from "@/domains/submission/model/submissionFile";
+import {
+  FILE_SET_LABEL,
+  type FileSet,
+} from "@/domains/submission/model/submissionFile";
 
 /**
  * What each set *is* — never what language it is in.
@@ -24,18 +27,6 @@ import type { FileSet } from "@/domains/submission/model/submissionFile";
  * because it is the folder the file is in. Per side, because "the originals"
  * means the customer's at step 8 and the coach's at step 13.
  */
-const LABELS: Record<"intake" | "feedback", Record<FileSet, string>> = {
-  intake: {
-    original: "The client's originals",
-    translation: "The translation",
-    both: "Both",
-  },
-  feedback: {
-    original: "The coach's response",
-    translation: "The translation",
-    both: "Both",
-  },
-};
 
 /**
  * A send button that first asks *which language set* to send.
@@ -115,7 +106,7 @@ export function SendWithFileSet({
                 onChange={() => setFileSet(option)}
                 className="h-3.5 w-3.5"
               />
-              {LABELS[side][option]}
+              {FILE_SET_LABEL[side][option]}
             </label>
           ))}
         </fieldset>
