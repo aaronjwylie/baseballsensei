@@ -68,6 +68,8 @@ export {
   type FileSet,
 } from "./model/submissionFile";
 
+export { hasReached, undoneByReset } from "./model/submissionReset";
+
 export {
   toPublicSubmission,
   type PublicSubmission,

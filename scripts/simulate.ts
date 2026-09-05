@@ -51,6 +51,7 @@ import {
   markCustomerCollected,
   markSubmissionSentToCoach,
   needsTranslation,
+  undoneByReset,
   updateSubmission,
   whoseCourt,
   type Submission,
@@ -719,6 +720,59 @@ async function grantedAt(operatorId: string, role: string) {
  * three ways this rule can be written wrong while still passing a happy path.
  */
 function checkLanguageRule() {
+  console.log("\n━━ what a reset undoes ━━");
+  {
+    // A reset lands on a rung; everything earned beyond it stops being true.
+    // The trail keeps all of it — this is only about what the panel may claim.
+    const toNew = undoneByReset("new");
+    check(
+      toNew.patch.collectedAt === null &&
+        toNew.patch.completedAt === null &&
+        toNew.patch.customerFileSet === null &&
+        toNew.patch.coachFileSet === null,
+      "   back to New drops every downstream fact",
+    );
+    check(
+      toNew.release.includes("feedback") &&
+        toNew.release.includes("intake_translation") &&
+        toNew.release.includes("feedback_translation"),
+      "   and releases the coach and both translators",
+    );
+
+    const toCoach = undoneByReset("sent_to_coach");
+    check(
+      toCoach.patch.collectedAt === null && toCoach.patch.customerFileSet === null,
+      "   back to the coach drops the delivery",
+    );
+    check(
+      !("coachFileSet" in toCoach.patch),
+      "   but keeps what the coach was sent — that rung is where it lands",
+    );
+    check(
+      !toCoach.release.includes("feedback") &&
+        !toCoach.release.includes("intake_translation"),
+      "   keeps the coach and the intake translator",
+    );
+    check(
+      toCoach.release.includes("feedback_translation"),
+      "   and releases the return translator, whose leg is now ahead of it",
+    );
+
+    // The rule reads the same in both directions: a rung it lands ON is kept,
+    // which is what makes it a rung-per-fact table rather than a list per
+    // destination.
+    const toCollected = undoneByReset("collected");
+    check(
+      !("collectedAt" in toCollected.patch) && !("completedAt" in toCollected.patch),
+      "   a reset to Collected keeps the collection that names it",
+    );
+    check(
+      undoneByReset("purged").release.length === 0 &&
+        Object.keys(undoneByReset("purged").patch).length === 0,
+      "   the last rung undoes nothing",
+    );
+  }
+
   console.log("\n━━ the intersection rule ━━");
   const cases: [string[], string[], boolean | null, string][] = [
     [["English"], ["English"], false, "same single language"],

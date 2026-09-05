@@ -24,6 +24,9 @@ import { numberedRungLabel,
   isReleased,
   unarchiveSubmission,
   updateSubmission,
+  undoneByReset,
+  assigneeFor,
+  unassignOperator,
   type FileKind,
   type FileSet,
   type SubmissionStatus,
@@ -384,14 +387,30 @@ export async function resetStatusAction(
     };
   }
 
+  /*
+    A reset moves the rung *and* drops what the rung no longer supports.
+
+    It used to move only the status, so a submission sent back to the coach went
+    on reporting the set the customer was sent, when they collected it, and the
+    translator on a leg it was no longer running — every line present-tense, on a
+    panel that answers where the submission is now (Ben, 2026-09-04). The history
+    is not lost: the trail holds every rung, every hand-off and every collection,
+    which is the half of the question it exists to answer.
+  */
+  const { patch, release } = undoneByReset(status);
   await updateSubmission(
     id,
-    { status },
+    { ...patch, status },
     [
       substep ? `reset — resume at “${substep}”` : "reset",
       reason || "by an admin",
     ].join(": "),
   );
+  // After the status, so a failure here leaves the rung moved and the assignment
+  // standing — visible and fixable — rather than work owed by nobody.
+  for (const produces of release) {
+    if (await assigneeFor(id, produces)) await unassignOperator(id, produces);
+  }
   revalidatePath("/admin");
   return { ok: true };
 }

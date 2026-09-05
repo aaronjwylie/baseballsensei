@@ -823,7 +823,7 @@ function SubmissionRow({
             may never exist is noise on the eight submissions in ten that never
             translate at all.
           */}
-          {intakeTranslator && (
+          {intakeTranslator && intakeDirection && (
             <>
               <dt className="text-ink-muted">Translator, in</dt>
               <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
@@ -831,7 +831,7 @@ function SubmissionRow({
               </dd>
             </>
           )}
-          {responseTranslator && (
+          {responseTranslator && responseDirection && (
             <>
               <dt className="text-ink-muted">Translator, back</dt>
               <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
@@ -850,20 +850,30 @@ function SubmissionRow({
             "The client's originals". One value, two vocabularies, on two
             screens an operator moves between.
           */}
-          <dt className="text-ink-muted">Coach was sent</dt>
-          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
-            {submission.coachFileSet
-              ? FILE_SET_LABEL.intake[submission.coachFileSet]
-              : "—"}
-          </dd>
-          <dt className="text-ink-muted">Customer was sent</dt>
-          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
-            {submission.customerFileSet
-              ? FILE_SET_LABEL.feedback[submission.customerFileSet]
-              : "—"}
-          </dd>
-          <dt className="text-ink-muted">Collected</dt>
-          <dd className="m-0 font-mono text-[11.5px] text-ink-soft"><LocalTime iso={submission.collectedAt} /></dd>
+          {submission.coachFileSet && (
+            <>
+              <dt className="text-ink-muted">Coach was sent</dt>
+              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+                {FILE_SET_LABEL.intake[submission.coachFileSet]}
+              </dd>
+            </>
+          )}
+          {submission.customerFileSet && (
+            <>
+              <dt className="text-ink-muted">Customer was sent</dt>
+              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+                {FILE_SET_LABEL.feedback[submission.customerFileSet]}
+              </dd>
+            </>
+          )}
+          {submission.collectedAt && (
+            <>
+              <dt className="text-ink-muted">Collected</dt>
+              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+                <LocalTime iso={submission.collectedAt} />
+              </dd>
+            </>
+          )}
         </dl>
       }
       events={events}
