@@ -183,7 +183,13 @@ export function PlayerInfoForm({
         </p>
       )}
 
-      <Button type="submit" size="lg" disabled={busy} className="w-full">
+      <Button
+        type="submit"
+        variant="primaryLime"
+        size="lg"
+        disabled={busy}
+        className="w-full"
+      >
         {busy ? pendingLabel : submitLabel}
       </Button>
     </form>
