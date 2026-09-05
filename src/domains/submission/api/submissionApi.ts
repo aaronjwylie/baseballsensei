@@ -58,7 +58,7 @@ function toUpdateValues(
   if (patch.playerAge !== undefined) v.playerAge = patch.playerAge;
   if (patch.focus !== undefined) v.focus = patch.focus;
   if (patch.customerNotes !== undefined) v.customerNotes = patch.customerNotes;
-  if (patch.languages !== undefined) v.languages = patch.languages;
+  if (patch.languages != null) v.languages = patch.languages;
   if (patch.internalNotes !== undefined) v.internalNotes = patch.internalNotes;
   if (patch.status !== undefined) v.status = patch.status;
   if (patch.stripePaymentId !== undefined) v.stripePaymentId = patch.stripePaymentId;
@@ -66,16 +66,26 @@ function toUpdateValues(
   if (patch.feedbackUrl !== undefined) v.feedbackUrl = patch.feedbackUrl;
   if (patch.coachFileSet !== undefined) v.coachFileSet = patch.coachFileSet;
   if (patch.customerFileSet !== undefined) v.customerFileSet = patch.customerFileSet;
-  if (patch.emailVerifiedAt !== undefined) v.emailVerifiedAt = new Date(patch.emailVerifiedAt);
-  if (patch.paidAt !== undefined) v.paidAt = new Date(patch.paidAt);
-  if (patch.completedAt !== undefined) v.completedAt = new Date(patch.completedAt);
-  if (patch.filesPurgedAt !== undefined) v.filesPurgedAt = new Date(patch.filesPurgedAt);
+  /*
+    `null` clears the column; a string sets it.
+
+    Every line below used to be a bare `new Date(patch.x)`, which meant the
+    mapper could not write a NULL to a timestamp at all — `new Date(null)` is
+    epoch zero, so clearing a collection stamped it 1970-01-01 and the panel
+    duly reported "Collected — Dec 31, 16:00" (Ben, 2026-09-04). Nothing had
+    ever tried to clear one until reset did.
+  */
+  const stamp = (value: string | null) => (value === null ? null : new Date(value));
+  if (patch.emailVerifiedAt !== undefined) v.emailVerifiedAt = stamp(patch.emailVerifiedAt);
+  if (patch.paidAt !== undefined) v.paidAt = stamp(patch.paidAt);
+  if (patch.completedAt !== undefined) v.completedAt = stamp(patch.completedAt);
+  if (patch.filesPurgedAt !== undefined) v.filesPurgedAt = stamp(patch.filesPurgedAt);
   if (patch.feedbackEmailedAt !== undefined) {
-    v.feedbackEmailedAt = new Date(patch.feedbackEmailedAt);
+    v.feedbackEmailedAt = stamp(patch.feedbackEmailedAt);
   }
-  if (patch.collectedAt !== undefined) v.collectedAt = new Date(patch.collectedAt);
+  if (patch.collectedAt !== undefined) v.collectedAt = stamp(patch.collectedAt);
   if (patch.deletionWarnedAt !== undefined) {
-    v.deletionWarnedAt = new Date(patch.deletionWarnedAt);
+    v.deletionWarnedAt = stamp(patch.deletionWarnedAt);
   }
   return v;
 }

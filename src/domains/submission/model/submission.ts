@@ -660,7 +660,24 @@ export interface NewSubmission {
 }
 
 /** Fields the app may update on an existing submission. */
-export type SubmissionPatch = Partial<Omit<Submission, "id" | "submittedAt">>;
+/**
+ * A change to a submission — and, for a field that can be absent, `null` to
+ * clear it.
+ *
+ * The distinction `undefined` alone could not draw: leave it alone versus unset
+ * it. Reset needs the second, and without it `undoneByReset` had to cast, which
+ * is exactly how a `new Date(null)` reached the database and stamped five
+ * columns with 1970-01-01 (Ben, 2026-09-04).
+ *
+ * `null` is allowed precisely where the field is already optional — which is
+ * where the column is nullable — so this stays true as the model grows rather
+ * than being a list someone has to remember to extend.
+ */
+export type SubmissionPatch = Partial<{
+  [K in keyof Omit<Submission, "id" | "submittedAt">]: undefined extends Submission[K]
+    ? Submission[K] | null
+    : Submission[K];
+}>;
 
 /**
  * What both language questions offer: one of the two, or both.

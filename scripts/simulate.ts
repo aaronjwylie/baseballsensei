@@ -719,7 +719,7 @@ async function grantedAt(operatorId: string, role: string) {
  * cases that separate *overlap* from *equality* and *unknown* from *no* — the
  * three ways this rule can be written wrong while still passing a happy path.
  */
-function checkLanguageRule() {
+async function checkResetRule() {
   console.log("\n━━ what a reset undoes ━━");
   {
     // A reset lands on a rung; everything earned beyond it stops being true.
@@ -766,6 +766,42 @@ function checkLanguageRule() {
       !("collectedAt" in toCollected.patch) && !("completedAt" in toCollected.patch),
       "   a reset to Collected keeps the collection that names it",
     );
+    /*
+      The pure rule is only half of it: the patch has to survive the mapper.
+
+      It did not. Every timestamp went through `new Date(patch.x)`, and
+      `new Date(null)` is epoch zero — so clearing a collection *stamped* it,
+      and the panel reported "Collected — Dec 31, 16:00". The rule above passed
+      the whole time, because it never wrote anything (Ben, 2026-09-04).
+    */
+    const r = await createSubmission({
+      customerEmail: "reset-roundtrip@example.com",
+      playerName: "Reset Roundtrip",
+      playerAge: 11,
+      focus: "Hitting",
+      customerNotes: "",
+      languages: ["English"],
+    });
+    await updateSubmission(r.id, {
+      status: "collected",
+      collectedAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+      customerFileSet: "original",
+    });
+    check(
+      !!(await at(r.id)).collectedAt && !!(await at(r.id)).customerFileSet,
+      "   a collection can be stamped",
+    );
+    await updateSubmission(r.id, { ...undoneByReset("in_review").patch });
+    const cleared = await at(r.id);
+    check(
+      cleared.collectedAt === undefined &&
+        cleared.completedAt === undefined &&
+        cleared.customerFileSet === undefined,
+      "   and cleared to absent — not to 1970",
+    );
+    await deleteSubmission(r.id);
+
     check(
       undoneByReset("purged").release.length === 0 &&
         Object.keys(undoneByReset("purged").patch).length === 0,
@@ -773,6 +809,9 @@ function checkLanguageRule() {
     );
   }
 
+}
+
+function checkLanguageRule() {
   console.log("\n━━ the intersection rule ━━");
   const cases: [string[], string[], boolean | null, string][] = [
     [["English"], ["English"], false, "same single language"],
@@ -903,6 +942,7 @@ async function loginWorks() {
 async function main() {
   console.log("Simulating the whole ladder — both paths, real domain functions.");
   checkLanguageRule();
+  await checkResetRule();
   await walk("English-reading coach — skips translation", false);
   await walk("Japanese-only coach — full translation path", true);
   await sessionShape();

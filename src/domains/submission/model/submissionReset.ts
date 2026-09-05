@@ -79,11 +79,16 @@ export function undoneByReset(to: SubmissionStatus): {
   release: FileKind[];
 } {
   const patch: SubmissionPatch = {};
-  for (const [fact, rung] of Object.entries(FACT_EARNED_AT)) {
+  const facts = Object.entries(FACT_EARNED_AT) as [
+    keyof typeof FACT_EARNED_AT,
+    SubmissionStatus,
+  ][];
+  for (const [fact, rung] of facts) {
     if (!hasReached(to, rung)) {
-      // Every one of these columns is nullable — a null is the absence the
-      // panel reads, not a placeholder for it.
-      (patch as Record<string, null>)[fact] = null;
+      // No cast: `SubmissionPatch` allows null exactly where the column is
+      // nullable. The cast this used to need is what let a `new Date(null)`
+      // through the mapper and stamped five columns 1970-01-01.
+      patch[fact] = null;
     }
   }
 
