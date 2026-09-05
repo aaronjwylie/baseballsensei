@@ -93,7 +93,7 @@ export default async function StartPage({
             <ButtonLink href="/status" variant="onDark">
               Check your status
             </ButtonLink>
-            <ButtonLink href="/start" variant="primary">
+            <ButtonLink href="/start" variant="primaryLime">
               Send another
             </ButtonLink>
           </div>

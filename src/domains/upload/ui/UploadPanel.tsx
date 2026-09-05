@@ -300,6 +300,7 @@ export function UploadPanel({
 
       <Button
         type="button"
+        variant="primaryLime"
         size="lg"
         className="w-full"
         disabled={doneCount === 0 || busy}

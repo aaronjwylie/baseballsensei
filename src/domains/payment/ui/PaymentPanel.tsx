@@ -187,6 +187,7 @@ function PaymentFields({
 
       <Button
         type="submit"
+        variant="primaryLime"
         size="lg"
         disabled={busy || !stripe || !elements}
         className="w-full"
