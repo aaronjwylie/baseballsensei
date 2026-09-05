@@ -87,7 +87,7 @@ export function SiteHeader({
           <div className="hidden min-[880px]:block">
             <ButtonLink
               href="/start"
-              variant="primary"
+              variant="primaryLime"
               className="shrink-0 whitespace-nowrap"
             >
               Get coach feedback

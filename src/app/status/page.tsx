@@ -16,7 +16,7 @@ export default function StatusPage() {
             Check your submissions
           </h1>
           <p className="mt-4 text-ink-muted">
-            Enter the email you used at checkout. No password — your email is
+            Enter the email you used at checkout. No password: your email is
             your identity.
           </p>
         </div>

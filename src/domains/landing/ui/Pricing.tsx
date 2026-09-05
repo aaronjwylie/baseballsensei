@@ -53,7 +53,7 @@ export async function Pricing() {
       <Container className="relative flex min-h-[520px] items-center py-16 sm:min-h-[600px] lg:min-h-[680px] lg:py-24">
         {/* The floating card. Frosted and ringed so it reads as a panel resting
             over the photograph, not a hole cut out of it. */}
-        <div className="ml-auto w-full max-w-[400px] rounded-2xl bg-ink/80 p-8 text-center shadow-2xl ring-1 ring-white/10 backdrop-blur-md lg:p-10 lg:text-left">
+        <div className="ml-auto w-full max-w-[320px] rounded-2xl bg-ink/55 p-8 text-center shadow-2xl ring-1 ring-white/10 lg:p-10">
           <p className="font-display text-[64px] font-normal leading-none tracking-[-0.02em] text-highlight lg:text-[80px]">
             {formatPrice(settings.priceCents)}
           </p>
@@ -72,23 +72,23 @@ export async function Pricing() {
             ))}
           </ul>
 
-          <ButtonLink
-            href="/start"
-            variant="primary"
-            className="mt-8 w-full justify-center"
-          >
-            {pricing.cta} <span aria-hidden>→</span>
-          </ButtonLink>
+          {/* Button and the contact line as one inline column, so the line
+              centres under the button rather than across the whole card. */}
+          <div className="mt-8 inline-flex flex-col items-center">
+            <ButtonLink href="/start" variant="primaryLime">
+              {pricing.cta} <span aria-hidden>→</span>
+            </ButtonLink>
 
-          <p className="mt-5 text-center text-[13px] text-paper/80">
-            {pricing.contactPrompt}{" "}
-            <Link
-              href="/contact"
-              className="text-highlight underline underline-offset-4 hover:opacity-80"
-            >
-              {pricing.contactLink}
-            </Link>
-          </p>
+            <p className="mt-5 text-[13px] text-paper/80">
+              {pricing.contactPrompt}{" "}
+              <Link
+                href="/contact"
+                className="text-highlight underline underline-offset-4 hover:opacity-80"
+              >
+                {pricing.contactLink}
+              </Link>
+            </p>
+          </div>
         </div>
       </Container>
     </section>

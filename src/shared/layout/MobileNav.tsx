@@ -99,7 +99,7 @@ export function MobileNav() {
             <div className="border-t border-white/10 p-4 min-[880px]:hidden">
               <ButtonLink
                 href="/start"
-                variant="primary"
+                variant="primaryLime"
                 onClick={() => setOpen(false)}
                 className="w-full"
               >
