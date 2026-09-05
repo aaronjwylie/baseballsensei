@@ -17,7 +17,7 @@ export function FinalCta() {
         alt=""
         fill
         sizes="100vw"
-        className="object-cover"
+        className="object-cover object-[center_77%]"
       />
       <div className="absolute inset-0 bg-ink/65" />
 

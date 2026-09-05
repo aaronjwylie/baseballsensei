@@ -24,7 +24,10 @@ export type { SplitHeading } from "@/shared/ui";
 
 export const hero = {
   eyebrow: "Professional Baseball Coaching",
-  title: { lead: "Train like", highlight: "Japan's best players" },
+  // Three parts, not the usual lead/highlight split: only "Japan's" is picked
+  // out in lime (and carries the squiggle), and "Best players" drops to its own
+  // line — so the hero renders this by hand rather than through SectionHeading.
+  title: { lead: "Train like", accent: "Japan's", tail: "Best players" },
   body: `Upload your swing or pitching mechanics. Receive precision analysis from a progression coach from Japan within ${site.turnaround}.`,
   primaryCta: "Get coach feedback",
   secondaryCta: "How it works",

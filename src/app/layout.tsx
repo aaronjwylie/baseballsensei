@@ -118,7 +118,6 @@ export default function RootLayout({
         <SiteChrome
           header={<SiteHeader />}
           overlayHeader={<SiteHeader transparent />}
-          homeHeader={<SiteHeader gradientBar />}
           footer={<SiteFooter />}
         >
           <main className="flex flex-1 flex-col">{children}</main>

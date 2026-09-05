@@ -9,15 +9,11 @@ import { navLinks } from "@/shared/layout/navLinks";
  * The site header — wordmark and section links left, the one call to action
  * right, on a 79px bar.
  *
- * **Three grounds, one bar.** The landing page wears a solid bar of its own
- * above the hero (`gradientBar`) — a dark bar that sweeps from ink on the left
- * to the brand's deep navy on the right, so it reads as a distinct bar rather
- * than a second photo stacked on the hero (an earlier sky-image band put two
- * skies edge to edge and looked like a mistake). `/contact` and the flow
- * (`transparent`) still float over their own full-bleed photo. Everywhere else
- * there is no photo, so the bar takes a flat ink fill. The wordmark is white in
- * every case, which is the whole reason the non-paper variants are dark — see
- * `Logo`.
+ * **Two grounds, one bar.** The landing page, `/contact` and the flow float the
+ * bar over their full-bleed photo (`transparent`), so the image runs to the top
+ * of the screen with no bar above it. Everywhere else there is no photo, so the
+ * bar takes a flat ink fill. The wordmark is white in both cases, which is the
+ * whole reason the interior variant is dark — see `Logo`.
  *
  * **Not sticky.** The page carries its CTA in the hero, the pricing card and
  * the closing band, so pinning the bar would spend a slice of every viewport to
@@ -63,7 +59,7 @@ export function SiteHeader({
       {transparent && (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 z-0 h-32 bg-gradient-to-br from-ink/80 via-ink/30 to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 z-0 h-20 bg-gradient-to-b from-ink/85 via-ink/45 to-transparent"
         />
       )}
       <Container className="relative z-10 flex h-[79px] items-center justify-between gap-6">

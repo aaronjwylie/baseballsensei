@@ -25,9 +25,12 @@ export function Closing() {
         </p>
       </Container>
 
-      <ul className="mt-14 grid grid-cols-2 gap-2 px-2 pb-2 sm:grid-cols-4">
+      <ul className="mt-14 grid grid-cols-2 gap-4 px-4 pb-2 sm:grid-cols-4 lg:gap-6 lg:px-6">
         {closing.gallery.map((src) => (
-          <li key={src} className="relative aspect-[3/4] overflow-hidden">
+          <li
+            key={src}
+            className="relative aspect-[3/4] overflow-hidden rounded-[28px]"
+          >
             <Image
               src={src}
               alt=""
