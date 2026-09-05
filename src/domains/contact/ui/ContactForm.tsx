@@ -154,7 +154,7 @@ export function ContactForm({
       )}
 
       <div className="flex justify-center">
-        <Button type="submit" variant="primary" disabled={isSubmitting}>
+        <Button type="submit" variant="primaryLime" disabled={isSubmitting}>
           {isSubmitting ? "Sending…" : "Send message"}{" "}
           <span aria-hidden>→</span>
         </Button>
