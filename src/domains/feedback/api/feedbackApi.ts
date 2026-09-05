@@ -73,11 +73,24 @@ export async function recordFeedbackFile(
  * Coach hands their breakdown to the admin. Requires at least one feedback file, so a
  * stray click can't park an empty review for approval. No customer email here.
  */
+/**
+ * Why a hand-back was refused, so the caller can say which (Ben, QA 6.6).
+ *
+ * It returned `null` for both reasons and the action reported only the first,
+ * so a coach with two files sitting on the wrong rung was told to "attach at
+ * least one file before sending" — an instruction they had already followed,
+ * about a problem they did not have.
+ *
+ * One message for two causes is only safe when the causes cannot be told apart.
+ * These can.
+ */
+export type HandBackRefusal = "no-files" | "not-in-review";
+
 export async function sendFeedbackForApproval(
   submissionId: string,
-): Promise<Submission | null> {
+): Promise<Submission | HandBackRefusal> {
   const files = await listFeedbackFiles(submissionId);
-  if (files.length === 0) return null;
+  if (files.length === 0) return "no-files";
 
   /*
     Only a submission actually in review can be delivered.
@@ -88,7 +101,7 @@ export async function sendFeedbackForApproval(
     Unreachable by clicking, which is exactly why it was worth closing.
   */
   const current = await getSubmission(submissionId);
-  if (!current || current.status !== "in_review") return null;
+  if (!current || current.status !== "in_review") return "not-in-review";
 
   const updated = await updateSubmission(submissionId, {
     status: "awaiting_approval",

@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 60</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 61</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1806,6 +1806,21 @@ const PHASES = [
             "6.8",
             "Admin approves and completes",
             "Status complete; customer emailed"
+          ],
+          [
+            "6.6.1",
+            "⚠️ The size limit holds for a coach, not just a customer. Set the limit to 10 MB and upload a larger feedback file",
+            "Refused. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob — the client token's maximumSizeInBytes is not the enforcement it looks like, and only the customer's complete route re-checked"
+          ],
+          [
+            "6.6.2",
+            "The same on the translator's upload",
+            "Refused. It mirrored the coach's route, missing guard included"
+          ],
+          [
+            "6.6.3",
+            "⚠️ Hand back from the wrong rung. Upload feedback, have the admin reset the submission, then Send for approval",
+            "It names the rung, not the files. ⚠️ It said \"Attach at least one file before sending\" to a coach who had attached two — one message served both refusals"
           ],
           [
             "6.9",

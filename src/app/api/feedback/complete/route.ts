@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/domains/account";
+import { getSettings, maxFileSizeBytes } from "@/domains/settings";
 import { getSubmission, isAssignedTo } from "@/domains/submission";
 import { recordFeedbackFile } from "@/domains/feedback";
 import { isUnderOurStore } from "@/domains/upload";
@@ -49,6 +50,32 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "That upload isn't a feedback file." },
       { status: 400 },
+    );
+  }
+
+
+  /*
+    Size, checked here and not only in the token (Ben, QA 6.6, 2026-09-04).
+
+    A 21 MB feedback file was accepted against a 10 MB limit, and the object
+    really did land in Blob — so `maximumSizeInBytes` on the client token is not
+    the enforcement it looks like. The customer's `/api/upload/complete` has
+    always re-checked with `checkFile`; the two operator paths never did, which
+    is why the limit held for a parent and not for a coach.
+
+    It is the *record* this protects, not the bytes: by the time `complete` is
+    called the object exists, so a refusal here leaves it orphaned rather than
+    preventing it. That is the same trade the customer path makes, and the
+    reason a limit that matters needs enforcing before the upload as well.
+
+    `sizeBytes` is the browser's claim, so this stops honest oversize rather
+    than a liar. Honest oversize is the case that actually happens.
+  */
+  const settings = await getSettings();
+  if (parsed.data.sizeBytes > maxFileSizeBytes(settings)) {
+    return NextResponse.json(
+      { error: `Files must be under ${settings.maxFileSizeMb} MB.` },
+      { status: 413 },
     );
   }
 

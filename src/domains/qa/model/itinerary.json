@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 60,
-    "generatedAt": "2026-09-04T00:45:58.162Z",
-    "checks": 337,
-    "live": 336,
+    "build": 61,
+    "generatedAt": "2026-09-05T00:02:20.654Z",
+    "checks": 340,
+    "live": 339,
     "retired": 1,
     "edited": 25
   },
@@ -1437,6 +1437,21 @@
               "id": "6.8",
               "what": "Admin approves and completes",
               "expect": "Status complete; customer emailed"
+            },
+            {
+              "id": "6.6.1",
+              "what": "⚠️ The size limit holds for a coach, not just a customer. Set the limit to 10 MB and upload a larger feedback file",
+              "expect": "Refused. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob — the client token's maximumSizeInBytes is not the enforcement it looks like, and only the customer's complete route re-checked"
+            },
+            {
+              "id": "6.6.2",
+              "what": "The same on the translator's upload",
+              "expect": "Refused. It mirrored the coach's route, missing guard included"
+            },
+            {
+              "id": "6.6.3",
+              "what": "⚠️ Hand back from the wrong rung. Upload feedback, have the admin reset the submission, then Send for approval",
+              "expect": "It names the rung, not the files. ⚠️ It said \"Attach at least one file before sending\" to a coach who had attached two — one message served both refusals"
             },
             {
               "id": "6.9",

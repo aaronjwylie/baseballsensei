@@ -30,8 +30,17 @@ export async function sendFeedbackForApprovalAction(
   }
 
   const result = await sendFeedbackForApproval(submissionId);
-  if (!result) {
+  if (result === "no-files") {
     return { ok: false, error: "Attach at least one file before sending." };
+  }
+  if (result === "not-in-review") {
+    // Names the rung rather than the files. A coach who has uploaded and is
+    // being told to upload has no way to work out what is actually wrong.
+    return {
+      ok: false,
+      error:
+        "This isn't with you at the moment — it may have been sent back or already delivered. Reload to see where it is.",
+    };
   }
 
   revalidatePath("/coach");

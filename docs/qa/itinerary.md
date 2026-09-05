@@ -385,6 +385,9 @@ than assuming the fix held.
 
 ---
 
+| 6.6.1 | ⚠️ **The size limit holds for a coach, not just a customer.** Set the limit to 10 MB and upload a larger feedback file | Refused. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob — the client token's `maximumSizeInBytes` is not the enforcement it looks like, and only the customer's `complete` route re-checked |
+| 6.6.2 | The same on the translator's upload | Refused. It mirrored the coach's route, missing guard included |
+| 6.6.3 | ⚠️ **Hand back from the wrong rung.** Upload feedback, have the admin reset the submission, then Send for approval | It names the rung, not the files. ⚠️ It said "Attach at least one file before sending" to a coach who had attached two — one message served both refusals |
 | 6.9 | ⚠️ **Remove an uploaded feedback file.** Upload two, remove one | That file only. The coach had no undo at all until 2026-08-31 — a wrong take could only be sent alongside the right one and explained by email |
 | 6.10 | Remove the last file, then Send for approval | Refused. An empty send parks a submission awaiting approval of nothing |
 | 6.11 | ⚠️ **Remove after sending** (stale tab) | Refused. Past `awaiting_approval` the file is what the admin is reviewing |

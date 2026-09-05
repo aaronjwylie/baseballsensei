@@ -2538,6 +2538,27 @@
       "expect": "One object for that coach, not two. ⚠️ The removal was voided with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape",
       "retired": false,
       "history": []
+    },
+    "6.6.1": {
+      "firstSeen": "2026-09-05T00:02:20.654Z",
+      "what": "⚠️ The size limit holds for a coach, not just a customer. Set the limit to 10 MB and upload a larger feedback file",
+      "expect": "Refused. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob — the client token's maximumSizeInBytes is not the enforcement it looks like, and only the customer's complete route re-checked",
+      "retired": false,
+      "history": []
+    },
+    "6.6.2": {
+      "firstSeen": "2026-09-05T00:02:20.654Z",
+      "what": "The same on the translator's upload",
+      "expect": "Refused. It mirrored the coach's route, missing guard included",
+      "retired": false,
+      "history": []
+    },
+    "6.6.3": {
+      "firstSeen": "2026-09-05T00:02:20.654Z",
+      "what": "⚠️ Hand back from the wrong rung. Upload feedback, have the admin reset the submission, then Send for approval",
+      "expect": "It names the rung, not the files. ⚠️ It said \"Attach at least one file before sending\" to a coach who had attached two — one message served both refusals",
+      "retired": false,
+      "history": []
     }
   }
 }
