@@ -164,6 +164,7 @@ export function VerifyPanel({
 
       <Button
         type="submit"
+        variant="primaryLime"
         size="lg"
         disabled={!ready || busy || locked}
         className="w-full"
