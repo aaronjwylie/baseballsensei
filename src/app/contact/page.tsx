@@ -72,7 +72,7 @@ export default function ContactPage() {
             If you&rsquo;re ready to get feedback on your game, you can skip the
             contact form and send your materials directly to a coach.
           </p>
-          <ButtonLink href="/start" variant="primary">
+          <ButtonLink href="/start" variant="primaryLime">
             Get coach feedback <span aria-hidden>→</span>
           </ButtonLink>
         </Container>
