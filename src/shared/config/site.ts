@@ -44,14 +44,14 @@ export const site = {
    * tightening or relaxing it is one edit, not a hunt.
    */
   /*
-    72, not 48. Audrey's signed-off design promises "within 72 hours" in the
-    hero, the ticker and the pricing list; this value had said 48. It is read by
-    the confirmation email and the status page as well as the landing copy, so
-    the two could not both stay — a customer told 48 here and 72 there is a
-    complaint either way. Changed 2026-08-15 to match the design; if 48 was the
-    real commitment, change it here and the design has to follow.
+    "1 week", the current commitment (Aaron, 2026-09-05) — down from the design's
+    "72 hours". This one value is read by the hero, the ticker, the pricing list,
+    the FAQ, the confirmation email and the status page, so the promise of speed
+    can't disagree with itself: change it here and every surface follows. The
+    ticker shortens it with a `.replace(" hours", "h")` that is now a no-op, left
+    in so it kicks back in if the value ever returns to an "N hours" form.
   */
-  turnaround: "72 hours",
+  turnaround: "1 week",
 } as const;
 
 /**
