@@ -10,8 +10,11 @@ import {
   filesAsSent,
   listFilesForSubmissions,
   listEventsForSubmissions,
+  listFoldersForSubmissions,
   reachedAt,
-  isFeedback,
+  SubmissionFolders,
+  describeFolders,
+  type FileKind,
   SubmissionFileList,
   type Submission,
   type SubmissionFile,
@@ -26,6 +29,14 @@ import { getSettings } from "@/domains/settings";
 export const metadata: Metadata = {
   title: "Coach portal",
   robots: { index: false },
+};
+
+/** The shape `listFoldersForSubmissions` returns, for a submission it didn't. */
+const EMPTY_FOLDERS: Record<FileKind, SubmissionFile[]> = {
+  intake: [],
+  intake_translation: [],
+  feedback: [],
+  feedback_translation: [],
 };
 
 export default async function CoachHomePage() {
@@ -67,6 +78,9 @@ export default async function CoachHomePage() {
   // The trail is the only place that knows *when* a hand-back happened — one
   // query for the finished set, not one per card.
   const eventsBySubmission = await listEventsForSubmissions(done.map((s) => s.id));
+  // All four folders, so a finished card agrees with the admin's panel about
+  // what this submission actually holds.
+  const foldersBySubmission = await listFoldersForSubmissions(done.map((s) => s.id));
 
   // A linked coach with nothing on their desk gets the calm centered panel, not a
   // page of empty "(0)" headings bunched under the bar (Ben, QA 4.6). The
@@ -137,7 +151,16 @@ export default async function CoachHomePage() {
             */}
             <ul className="mt-3 space-y-3">
               {done.map((s) => {
-                const sent = (filesBySubmission.get(s.id) ?? []).filter(isFeedback);
+                /*
+                  Every folder, from the folders query — not the intake-only
+                  one this used to filter for feedback files, which is why the
+                  card said "0 files" for a coach who had just handed two back
+                  (Ben, 2026-09-07). `listFilesForSubmissions` returns
+                  INTAKE_KINDS only, so `isFeedback` could never match a row in
+                  it. A filter that cannot match is the quietest kind of bug:
+                  the page rendered, said something definite, and was wrong.
+                */
+                const folders = foldersBySubmission.get(s.id) ?? EMPTY_FOLDERS;
                 const handedBack = reachedAt(
                   eventsBySubmission.get(s.id),
                   "awaiting_approval",
@@ -170,14 +193,11 @@ export default async function CoachHomePage() {
                       ) : (
                         "Handed back"
                       )}
-                      {` · ${sent.length} file${sent.length === 1 ? "" : "s"}`}
+                      {` · ${describeFolders(folders)}`}
                     </p>
 
                     <div className="mt-3 border-t border-line pt-3">
-                      <SubmissionFileList
-                        files={sent}
-                        emptyLabel="No files on this submission."
-                      />
+                      <SubmissionFolders folders={folders} />
                     </div>
                   </li>
                 );

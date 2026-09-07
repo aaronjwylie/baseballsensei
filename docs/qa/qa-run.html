@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 65</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 66</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1870,12 +1870,17 @@ const PHASES = [
           [
             "6.15",
             "The Submitted card is a receipt. Hand back, then read the card under Submitted",
-            "The player and focus, the hand-back date, and every file that went with its size — links, since /api/files/[id] checks the assignment. A swept file still appears, greyed and marked deleted"
+            "The player and focus, the hand-back date, and all four folders with every file and its size — the same list the admin's panel shows for that submission. ⚠️ It said \"0 files · No files on this submission\" for every finished submission: the page loaded listFilesForSubmissions, which returns intake kinds only, then filtered it for feedback files. A filter that cannot match is the quietest kind of bug — the page rendered and stated something definite"
+          ],
+          [
+            "6.15.1",
+            "After the retention sweep. Read a finished card whose files have been purged",
+            "Every file still listed, struck through and marked deleted, and the count line says \"n files, deleted after the retention window\" rather than a bare count"
           ],
           [
             "6.16",
             "The same on the translator's Handed back list",
-            "The leg's own title and date. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one"
+            "The leg's own title and date, and all four folders — what they were given beside what they sent. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one"
           ]
         ]
       }

@@ -145,6 +145,22 @@ export const FILE_SET_LABEL: Record<
   },
 };
 
+/**
+ * What each of the four folders is called — one vocabulary, four surfaces.
+ *
+ * The admin's folder boxes had these inline. The coach's and translator's
+ * finished cards needed the same words (Ben, 2026-09-07: the portals should be
+ * "consistent with what is on the blob, and what is present in the four folders
+ * on the admin panel"), and two lists of four strings is how "Client" becomes
+ * "Customer" on one screen and not the other.
+ */
+export const FOLDER_LABEL: Record<FileKind, string> = {
+  intake: "Client",
+  intake_translation: "Client (translated)",
+  feedback: "Coach",
+  feedback_translation: "Coach (translated)",
+};
+
 export function kindsForSet(
   side: "intake" | "feedback",
   set: FileSet,

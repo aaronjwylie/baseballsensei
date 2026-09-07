@@ -9,6 +9,9 @@ import {
   type SubmissionFile,
 } from "@/domains/submission/model/submissionFile";
 import { formatFileSize } from "@/shared/lib";
+// The labels live with the kinds, so the portals' finished cards and these
+// boxes cannot disagree about what a folder is called.
+import { FOLDER_LABEL } from "@/domains/submission/model/submissionFile";
 import {
   refuseFile,
   uploadFile,
@@ -47,16 +50,16 @@ const FOLDERS: {
   label: string;
   hint: string;
 }[] = [
-  { kind: "intake", label: "Client", hint: "What the customer sent" },
+  { kind: "intake", label: FOLDER_LABEL.intake, hint: "What the customer sent" },
   {
     kind: "intake_translation",
-    label: "Client (translated)",
+    label: FOLDER_LABEL.intake_translation,
     hint: "The client's files, translated for the coach",
   },
-  { kind: "feedback", label: "Coach", hint: "What the coach wrote back" },
+  { kind: "feedback", label: FOLDER_LABEL.feedback, hint: "What the coach wrote back" },
   {
     kind: "feedback_translation",
-    label: "Coach (translated)",
+    label: FOLDER_LABEL.feedback_translation,
     hint: "The coach's response, translated for the client",
   },
 ];

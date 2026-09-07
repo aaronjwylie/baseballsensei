@@ -6,8 +6,13 @@ import { requireRole } from "@/domains/account";
 import { getOperatorProfile } from "@/domains/operator";
 import {
   SubmissionFileList,
+  SubmissionFolders,
+  describeFolders,
   listEventsForSubmissions,
+  listFoldersForSubmissions,
   reachedAt,
+  type FileKind,
+  type SubmissionFile,
 } from "@/domains/submission";
 import {
   findLegsForTranslator,
@@ -36,6 +41,14 @@ export const metadata: Metadata = {
  * twice, weeks apart, pointing in opposite directions. Only one of the two can
  * be open at a time, because a submission sits on one rung.
  */
+/** The shape `listFoldersForSubmissions` returns, for a submission it didn't. */
+const EMPTY_FOLDERS: Record<FileKind, SubmissionFile[]> = {
+  intake: [],
+  intake_translation: [],
+  feedback: [],
+  feedback_translation: [],
+};
+
 export default async function TranslatorHomePage() {
   const session = await requireRole("translator");
   const profile = await getOperatorProfile(session.operatorId);
@@ -54,6 +67,10 @@ export default async function TranslatorHomePage() {
   // The trail is the only place that knows *when* a leg was handed back — one
   // query for the finished set, not one per card.
   const eventsBySubmission = await listEventsForSubmissions(
+    done.map((l) => l.submission.id),
+  );
+  // All four folders, so a finished card agrees with the admin's panel.
+  const foldersBySubmission = await listFoldersForSubmissions(
     done.map((l) => l.submission.id),
   );
 
@@ -135,17 +152,25 @@ export default async function TranslatorHomePage() {
                     </span>
                   </div>
 
+                  {/*
+                    Every folder, not just the one this leg produced (Ben,
+                    2026-09-07). A translator handing back the intake leg wants
+                    to see what they were given beside what they sent, and the
+                    admin's panel shows four folders for the same submission —
+                    a portal that shows one of them disagrees with it.
+                  */}
                   {handedBack && (
                     <p className="mt-1 text-xs text-ink-muted">
                       {"Handed back "}
                       <LocalTime iso={handedBack} />
+                      {` · ${describeFolders(foldersBySubmission.get(leg.submission.id) ?? EMPTY_FOLDERS)}`}
                     </p>
                   )}
 
                   <div className="mt-3 border-t border-line pt-3">
-                    <SubmissionFileList
-                      files={leg.produced}
-                      emptyLabel="No files on this leg."
+                    <SubmissionFolders
+                      folders={foldersBySubmission.get(leg.submission.id) ?? EMPTY_FOLDERS}
+                      emptyLabel="No files on this submission."
                     />
                   </div>
                 </li>

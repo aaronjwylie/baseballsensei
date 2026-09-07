@@ -63,6 +63,7 @@ export {
   availableSets,
   filesAsSent,
   FILE_SET_LABEL,
+  FOLDER_LABEL,
   kindsForSet,
   type FileSet,
 } from "./model/submissionFile";
@@ -171,6 +172,10 @@ export { StatusList } from "./ui/StatusList";
 
 export { StatusLookup } from "./ui/StatusLookup";
 export { SubmissionFileList } from "./ui/SubmissionFileList";
+export {
+  SubmissionFolders,
+  describeFolders,
+} from "./ui/SubmissionFolders";
 
 export {
   assignOperator,

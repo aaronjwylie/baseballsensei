@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 65,
-    "generatedAt": "2026-09-07T15:01:38.604Z",
-    "checks": 345,
-    "live": 344,
+    "build": 66,
+    "generatedAt": "2026-09-07T17:45:21.391Z",
+    "checks": 346,
+    "live": 345,
     "retired": 1,
-    "edited": 45
+    "edited": 47
   },
   "phases": [
     {
@@ -1578,12 +1578,31 @@
             {
               "id": "6.15",
               "what": "The Submitted card is a receipt. Hand back, then read the card under Submitted",
-              "expect": "The player and focus, the hand-back date, and every file that went with its size — links, since /api/files/[id] checks the assignment. A swept file still appears, greyed and marked deleted"
+              "expect": "The player and focus, the hand-back date, and all four folders with every file and its size — the same list the admin's panel shows for that submission. ⚠️ It said \"0 files · No files on this submission\" for every finished submission: the page loaded listFilesForSubmissions, which returns intake kinds only, then filtered it for feedback files. A filter that cannot match is the quietest kind of bug — the page rendered and stated something definite",
+              "history": [
+                {
+                  "at": "2026-09-07T17:45:21.391Z",
+                  "what": "The Submitted card is a receipt. Hand back, then read the card under Submitted",
+                  "expect": "The player and focus, the hand-back date, and every file that went with its size — links, since /api/files/[id] checks the assignment. A swept file still appears, greyed and marked deleted"
+                }
+              ]
+            },
+            {
+              "id": "6.15.1",
+              "what": "After the retention sweep. Read a finished card whose files have been purged",
+              "expect": "Every file still listed, struck through and marked deleted, and the count line says \"n files, deleted after the retention window\" rather than a bare count"
             },
             {
               "id": "6.16",
               "what": "The same on the translator's Handed back list",
-              "expect": "The leg's own title and date. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one"
+              "expect": "The leg's own title and date, and all four folders — what they were given beside what they sent. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one",
+              "history": [
+                {
+                  "at": "2026-09-07T17:45:21.391Z",
+                  "what": "The same on the translator's Handed back list",
+                  "expect": "The leg's own title and date. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one"
+                }
+              ]
             }
           ]
         }
