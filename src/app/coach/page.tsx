@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Container } from "@/shared/ui";
+import { Container, LocalTime } from "@/shared/ui";
 import { PortalEmptyState } from "../_portal/PortalEmptyState";
 import { storage } from "@/shared/storage";
 import { requireRole } from "@/domains/account";
@@ -9,6 +9,9 @@ import {
   listFeedbackFiles,
   filesAsSent,
   listFilesForSubmissions,
+  listEventsForSubmissions,
+  reachedAt,
+  isFeedback,
   SubmissionFileList,
   type Submission,
   type SubmissionFile,
@@ -60,6 +63,10 @@ export default async function CoachHomePage() {
   const done = submissions.filter(
     hasResponse,
   );
+
+  // The trail is the only place that knows *when* a hand-back happened — one
+  // query for the finished set, not one per card.
+  const eventsBySubmission = await listEventsForSubmissions(done.map((s) => s.id));
 
   // A linked coach with nothing on their desk gets the calm centered panel, not a
   // page of empty "(0)" headings bunched under the bar (Ben, QA 4.6). The
@@ -119,23 +126,62 @@ export default async function CoachHomePage() {
             <h2 className="mt-10 text-sm font-semibold uppercase tracking-wide text-ink-muted">
               Submitted ({done.length})
             </h2>
+            {/*
+              A receipt, not a one-liner (Ben, 2026-09-06).
+
+              This said the player's name and a status and nothing else, so a
+              coach who wanted to check what they had actually sent — or when —
+              had nowhere to look. The files are the work; leaving them off the
+              only card that survives the hand-back made the portal forget the
+              job the moment it was done.
+            */}
             <ul className="mt-3 space-y-3">
-              {done.map((s) => (
-                <li
-                  key={s.id}
-                  className="flex items-center justify-between rounded-2xl border border-line bg-white p-5 text-sm"
-                >
-                  <span className="font-medium text-ink">
-                    {s.playerName}
-                    {s.focus ? <span className="text-ink-muted"> · {s.focus}</span> : null}
-                  </span>
-                  {isReleased(s) ? (
-                    <span className="font-semibold text-emerald-600">Delivered ✓</span>
-                  ) : (
-                    <span className="font-semibold text-purple-600">Awaiting review</span>
-                  )}
-                </li>
-              ))}
+              {done.map((s) => {
+                const sent = (filesBySubmission.get(s.id) ?? []).filter(isFeedback);
+                const handedBack = reachedAt(
+                  eventsBySubmission.get(s.id),
+                  "awaiting_approval",
+                );
+                return (
+                  <li
+                    key={s.id}
+                    className="rounded-2xl border border-line bg-white p-5 text-sm"
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span className="font-medium text-ink">
+                        {s.playerName}
+                        {s.focus ? (
+                          <span className="text-ink-muted">{` · ${s.focus}`}</span>
+                        ) : null}
+                      </span>
+                      {isReleased(s) ? (
+                        <span className="font-semibold text-emerald-600">Delivered ✓</span>
+                      ) : (
+                        <span className="font-semibold text-purple-600">Awaiting review</span>
+                      )}
+                    </div>
+
+                    <p className="mt-1 text-xs text-ink-muted">
+                      {handedBack ? (
+                        <>
+                          {"Handed back "}
+                          <LocalTime iso={handedBack} />
+                        </>
+                      ) : (
+                        "Handed back"
+                      )}
+                      {` · ${sent.length} file${sent.length === 1 ? "" : "s"}`}
+                    </p>
+
+                    <div className="mt-3 border-t border-line pt-3">
+                      <SubmissionFileList
+                        files={sent}
+                        emptyLabel="No files on this submission."
+                      />
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </>
         )}

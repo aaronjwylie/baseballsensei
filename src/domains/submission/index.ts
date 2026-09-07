@@ -139,6 +139,7 @@ export {
   listProgressFacts,
   listSubmissionEvents,
   listEventsForSubmissions,
+  reachedAt,
   noteEmailSent,
   noteVerification,
   recordSubmissionEvent,

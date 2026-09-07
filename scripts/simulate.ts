@@ -38,6 +38,8 @@ import {
   isWithCoach,
   listAllSubmissionFiles,
   listSubmissionEvents,
+  recordSubmissionEvent,
+  reachedAt,
   markCoachCollected,
   markTranslatorCollected,
   assignSubmissionTranslator,
@@ -442,6 +444,27 @@ async function walk(label: string, translating: boolean) {
     : SUBMISSION_STATUSES.length - TRANSLATION_RUNGS.length;
   check(rungs.length === expected, `   ${rungs.length} rungs recorded (expected ${expected})`);
   check(new Set(rungs).size === rungs.length, "   no rung recorded twice");
+
+  /*
+    `reachedAt` — what the two portals date a hand-back from.
+
+    It takes the LAST occurrence, which only differs from the first once a rung
+    can be reached twice. So the check is worth having precisely here, where the
+    trail is already whole: reach `awaiting_approval` a second time and the
+    answer must move.
+  */
+  const firstHandBack = reachedAt(events, "awaiting_approval");
+  check(!!firstHandBack, "   reachedAt finds the hand-back on the trail");
+  check(
+    reachedAt(events, "draft") === events[0]?.at,
+    "   and reads the rung it was asked for, not the newest one",
+  );
+  await recordSubmissionEvent(s.id, "awaiting_approval", "simulated re-hand-back");
+  const again = reachedAt(await listSubmissionEvents(s.id), "awaiting_approval");
+  check(
+    !!again && !!firstHandBack && again > firstHandBack,
+    "   and a second visit to a rung moves it, so a redone hand-back dates right",
+  );
   console.log(`   trail: ${rungs.join(" → ")}`);
   console.log(`   emails: ${mails.length ? mails.map((m) => m.label).join(", ") : "none — RESEND_API_KEY unset locally"}`);
 

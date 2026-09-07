@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import { Container } from "@/shared/ui";
+import { Container, LocalTime } from "@/shared/ui";
 import { PortalEmptyState } from "../_portal/PortalEmptyState";
 import { storage } from "@/shared/storage";
 import { requireRole } from "@/domains/account";
 import { getOperatorProfile } from "@/domains/operator";
-import { SubmissionFileList } from "@/domains/submission";
+import {
+  SubmissionFileList,
+  listEventsForSubmissions,
+  reachedAt,
+} from "@/domains/submission";
 import {
   findLegsForTranslator,
   TranslationUpload,
@@ -46,6 +50,12 @@ export default async function TranslatorHomePage() {
 
   const open = legs.filter((l) => l.open);
   const done = legs.filter((l) => !l.open);
+
+  // The trail is the only place that knows *when* a leg was handed back — one
+  // query for the finished set, not one per card.
+  const eventsBySubmission = await listEventsForSubmissions(
+    done.map((l) => l.submission.id),
+  );
 
   const heading = profile ? `${profile.name}'s translations` : "Your translations";
 
@@ -94,21 +104,53 @@ export default async function TranslatorHomePage() {
           <h2 className="mt-10 text-sm font-semibold uppercase tracking-wide text-ink-muted">
             {`Handed back (${done.length})`}
           </h2>
+          {/*
+            A receipt, not a one-liner — the same change the coach's finished
+            list got, for the same reason (Ben, 2026-09-06). A translator who
+            wanted to check which files they had handed back, or when, had
+            nowhere to look once the card left the top of the page.
+
+            The leg's own `done` rung is what dates it: a translator may hold
+            both legs of one submission, and "handed back" means two different
+            moments depending on which.
+          */}
           <ul className="mt-3 space-y-3">
-            {done.map((leg) => (
-              <li
-                key={`${leg.submission.id}-${leg.leg.produces}`}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-white p-5 text-sm"
-              >
-                <span className="font-medium text-ink">
-                  {leg.submission.playerName}
-                  <span className="text-ink-muted">{` · ${leg.leg.title}`}</span>
-                </span>
-                <span className="font-semibold text-emerald-600">
-                  {`${leg.produced.length} file${leg.produced.length === 1 ? "" : "s"} delivered ✓`}
-                </span>
-              </li>
-            ))}
+            {done.map((leg) => {
+              const handedBack = reachedAt(
+                eventsBySubmission.get(leg.submission.id),
+                leg.leg.done,
+              );
+              return (
+                <li
+                  key={`${leg.submission.id}-${leg.leg.produces}`}
+                  className="rounded-2xl border border-line bg-white p-5 text-sm"
+                >
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="font-medium text-ink">
+                      {leg.submission.playerName}
+                      <span className="text-ink-muted">{` · ${leg.leg.title}`}</span>
+                    </span>
+                    <span className="font-semibold text-emerald-600">
+                      {`${leg.produced.length} file${leg.produced.length === 1 ? "" : "s"} delivered ✓`}
+                    </span>
+                  </div>
+
+                  {handedBack && (
+                    <p className="mt-1 text-xs text-ink-muted">
+                      {"Handed back "}
+                      <LocalTime iso={handedBack} />
+                    </p>
+                  )}
+
+                  <div className="mt-3 border-t border-line pt-3">
+                    <SubmissionFileList
+                      files={leg.produced}
+                      emptyLabel="No files on this leg."
+                    />
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </>
       )}

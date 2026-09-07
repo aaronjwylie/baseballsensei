@@ -531,3 +531,28 @@ export async function listEventsForSubmissions(
   }
   return grouped;
 }
+
+/**
+ * When a submission last reached a rung — read off the trail, which is the only
+ * place that knows.
+ *
+ * **The last occurrence, not the first.** A submission can reach the same rung
+ * twice once an admin can reset one, and what a portal wants to say is "handed
+ * back on the 4th", meaning the hand-back that stands. The first would name a
+ * hand-back that was walked back and redone.
+ *
+ * Undefined when it never got there — a caller showing a date is asking about a
+ * rung it believes was reached, and a missing one is worth rendering as nothing
+ * rather than as a guess.
+ */
+export function reachedAt(
+  events: SubmissionEvent[] | undefined,
+  status: SubmissionStatus,
+): string | undefined {
+  if (!events) return undefined;
+  for (let i = events.length - 1; i >= 0; i -= 1) {
+    const event = events[i]!;
+    if (event.kind === "status" && event.status === status) return event.at;
+  }
+  return undefined;
+}
