@@ -93,7 +93,7 @@ beforeAll(async () => {
       filename: "mine.mp4",
       contentType: "video/mp4",
       sizeBytes: 1024,
-      fileUrl: null,
+      fileUrl: `qa/${stamp}/placeholder`,
     },
     "feedback",
   );
@@ -105,7 +105,7 @@ beforeAll(async () => {
       filename: "theirs.mp4",
       contentType: "video/mp4",
       sizeBytes: 1024,
-      fileUrl: null,
+      fileUrl: `qa/${stamp}/placeholder`,
     },
     "feedback",
   );
@@ -117,7 +117,7 @@ beforeAll(async () => {
       filename: "the-customer-clip.mp4",
       contentType: "video/mp4",
       sizeBytes: 1024,
-      fileUrl: null,
+      fileUrl: `qa/${stamp}/placeholder`,
     },
     "intake",
   );
@@ -151,7 +151,7 @@ describe("the removes a coach's portal will never ask for", () => {
         filename: "sent.mp4",
         contentType: "video/mp4",
         sizeBytes: 1024,
-        fileUrl: null,
+        fileUrl: `qa/${stamp}/placeholder`,
       },
       "feedback",
     );
