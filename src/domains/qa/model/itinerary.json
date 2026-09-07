@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 64,
-    "generatedAt": "2026-09-07T02:35:24.286Z",
+    "build": 65,
+    "generatedAt": "2026-09-07T15:01:38.604Z",
     "checks": 345,
     "live": 344,
     "retired": 1,
-    "edited": 36
+    "edited": 45
   },
   "phases": [
     {
@@ -1601,12 +1601,17 @@
             {
               "id": "7.1",
               "what": "Sees assigned translations only",
-              "expect": "Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real",
+              "expect": "Covered by tests/integration/translatorGuards.test.ts. Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real",
               "history": [
                 {
                   "at": "2026-08-31T23:05:17.276Z",
                   "what": "Sees assigned translations only",
                   "expect": ""
+                },
+                {
+                  "at": "2026-09-07T15:01:38.604Z",
+                  "what": "Sees assigned translations only",
+                  "expect": "Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real"
                 }
               ]
             },
@@ -1630,12 +1635,26 @@
             {
               "id": "7.2.2",
               "what": "⚠️ Someone else's leg. As a translator assigned to a different submission, open a file you can reach",
-              "expect": "No rung moves. Being a translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not"
+              "expect": "Covered by tests/integration/translatorGuards.test.ts. No rung moves. Being a translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not",
+              "history": [
+                {
+                  "at": "2026-09-07T15:01:38.604Z",
+                  "what": "⚠️ Someone else's leg. As a translator assigned to a different submission, open a file you can reach",
+                  "expect": "No rung moves. Being a translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not"
+                }
+              ]
             },
             {
               "id": "7.2.3",
               "what": "Download the same file twice",
-              "expect": "The second changes nothing. The rung has already moved, so there is no rung to move"
+              "expect": "Covered by tests/integration/translatorGuards.test.ts. The second changes nothing. The rung has already moved, so there is no rung to move",
+              "history": [
+                {
+                  "at": "2026-09-07T15:01:38.604Z",
+                  "what": "Download the same file twice",
+                  "expect": "The second changes nothing. The rung has already moved, so there is no rung to move"
+                }
+              ]
             },
             {
               "id": "7.3",
@@ -1676,17 +1695,38 @@
             {
               "id": "7.3.3",
               "what": "Remove the last file, then try to hand back",
-              "expect": "Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on"
+              "expect": "Covered by tests/integration/translatorGuards.test.ts. Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on",
+              "history": [
+                {
+                  "at": "2026-09-07T15:01:38.604Z",
+                  "what": "Remove the last file, then try to hand back",
+                  "expect": "Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on"
+                }
+              ]
             },
             {
               "id": "7.3.4",
               "what": "⚠️ Remove after handing back (stale tab, or as another translator)",
-              "expect": "Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder"
+              "expect": "Covered by tests/integration/translatorGuards.test.ts. Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder",
+              "history": [
+                {
+                  "at": "2026-09-07T15:01:38.604Z",
+                  "what": "⚠️ Remove after handing back (stale tab, or as another translator)",
+                  "expect": "Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder"
+                }
+              ]
             },
             {
               "id": "7.3.5",
               "what": "⚠️ Remove someone else's file. Post a remove for a file on a leg that isn't yours",
-              "expect": "Refused. And a remove aimed at an intake or feedback file is refused whoever asks — a translator must not be able to destroy the material they were given"
+              "expect": "Covered by tests/integration/translatorGuards.test.ts. Refused. And a remove aimed at an intake or feedback file is refused whoever asks — a translator must not be able to destroy the material they were given",
+              "history": [
+                {
+                  "at": "2026-09-07T15:01:38.604Z",
+                  "what": "⚠️ Remove someone else's file. Post a remove for a file on a leg that isn't yours",
+                  "expect": "Refused. And a remove aimed at an intake or feedback file is refused whoever asks — a translator must not be able to destroy the material they were given"
+                }
+              ]
             },
             {
               "id": "7.4",
@@ -1718,22 +1758,50 @@
             {
               "id": "7.8",
               "what": "Hand back with no file uploaded",
-              "expect": "Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on"
+              "expect": "Covered by tests/integration/translatorGuards.test.ts. Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on",
+              "history": [
+                {
+                  "at": "2026-09-07T15:01:38.604Z",
+                  "what": "Hand back with no file uploaded",
+                  "expect": "Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on"
+                }
+              ]
             },
             {
               "id": "7.9",
               "what": "Hand back twice (two tabs, submit both)",
-              "expect": "The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI"
+              "expect": "Covered by tests/integration/translatorGuards.test.ts. The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI",
+              "history": [
+                {
+                  "at": "2026-09-07T15:01:38.604Z",
+                  "what": "Hand back twice (two tabs, submit both)",
+                  "expect": "The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI"
+                }
+              ]
             },
             {
               "id": "7.10",
               "what": "⚠️ Another translator's leg. As translator A, post a hand-back for a leg assigned to translator B",
-              "expect": "Refused. Role is not ownership — being a translator must not close any leg"
+              "expect": "Covered by tests/integration/translatorGuards.test.ts. Refused. Role is not ownership — being a translator must not close any leg",
+              "history": [
+                {
+                  "at": "2026-09-07T15:01:38.604Z",
+                  "what": "⚠️ Another translator's leg. As translator A, post a hand-back for a leg assigned to translator B",
+                  "expect": "Refused. Role is not ownership — being a translator must not close any leg"
+                }
+              ]
             },
             {
               "id": "7.11",
               "what": "⚠️ The other folder. Holding only the intake leg, upload to feedback_translation",
-              "expect": "Refused by the upload routes. Ownership is per leg, not per submission"
+              "expect": "Covered by tests/integration/translatorGuards.test.ts. Refused by the upload routes. Ownership is per leg, not per submission",
+              "history": [
+                {
+                  "at": "2026-09-07T15:01:38.604Z",
+                  "what": "⚠️ The other folder. Holding only the intake leg, upload to feedback_translation",
+                  "expect": "Refused by the upload routes. Ownership is per leg, not per submission"
+                }
+              ]
             },
             {
               "id": "7.12",

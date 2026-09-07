@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 64</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 65</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1893,7 +1893,7 @@ const PHASES = [
           [
             "7.1",
             "Sees assigned translations only",
-            "Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real"
+            "Covered by tests/integration/translatorGuards.test.ts. Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real"
           ],
           [
             "7.2",
@@ -1908,12 +1908,12 @@ const PHASES = [
           [
             "7.2.2",
             "⚠️ Someone else's leg. As a translator assigned to a different submission, open a file you can reach",
-            "No rung moves. Being a translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not"
+            "Covered by tests/integration/translatorGuards.test.ts. No rung moves. Being a translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not"
           ],
           [
             "7.2.3",
             "Download the same file twice",
-            "The second changes nothing. The rung has already moved, so there is no rung to move"
+            "Covered by tests/integration/translatorGuards.test.ts. The second changes nothing. The rung has already moved, so there is no rung to move"
           ],
           [
             "7.3",
@@ -1933,17 +1933,17 @@ const PHASES = [
           [
             "7.3.3",
             "Remove the last file, then try to hand back",
-            "Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on"
           ],
           [
             "7.3.4",
             "⚠️ Remove after handing back (stale tab, or as another translator)",
-            "Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder"
           ],
           [
             "7.3.5",
             "⚠️ Remove someone else's file. Post a remove for a file on a leg that isn't yours",
-            "Refused. And a remove aimed at an intake or feedback file is refused whoever asks — a translator must not be able to destroy the material they were given"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused. And a remove aimed at an intake or feedback file is refused whoever asks — a translator must not be able to destroy the material they were given"
           ],
           [
             "7.4",
@@ -1968,22 +1968,22 @@ const PHASES = [
           [
             "7.8",
             "Hand back with no file uploaded",
-            "Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on"
           ],
           [
             "7.9",
             "Hand back twice (two tabs, submit both)",
-            "The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI"
+            "Covered by tests/integration/translatorGuards.test.ts. The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI"
           ],
           [
             "7.10",
             "⚠️ Another translator's leg. As translator A, post a hand-back for a leg assigned to translator B",
-            "Refused. Role is not ownership — being a translator must not close any leg"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused. Role is not ownership — being a translator must not close any leg"
           ],
           [
             "7.11",
             "⚠️ The other folder. Holding only the intake leg, upload to feedback_translation",
-            "Refused by the upload routes. Ownership is per leg, not per submission"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused by the upload routes. Ownership is per leg, not per submission"
           ],
           [
             "7.12",

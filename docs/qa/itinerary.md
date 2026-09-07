@@ -404,27 +404,27 @@ than assuming the fix held.
 
 | # | Check | Expected |
 | --- | --- | --- |
-| 7.1 | Sees assigned translations only | Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real |
+| 7.1 | Sees assigned translations only | **Covered by `tests/integration/translatorGuards.test.ts`.** Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real |
 | 7.2 | Download the intake files | Earns `intake_translating`. Observed from the download, never declared — there is no "I've started" button |
 | 7.2.1 | ⚠️ **In production, not just dev.** Same download on the live site, then reload the admin queue | Still flips. Prod redirects to Blob and returns instantly, so the stamp runs in `after()` rather than a floating promise — a fire-and-forget here worked in dev and raced the response in prod |
-| 7.2.2 | ⚠️ **Someone else's leg.** As a translator assigned to a *different* submission, open a file you can reach | No rung moves. Being *a* translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not |
-| 7.2.3 | Download the same file twice | The second changes nothing. The rung has already moved, so there is no rung to move |
+| 7.2.2 | ⚠️ **Someone else's leg.** As a translator assigned to a *different* submission, open a file you can reach | **Covered by `tests/integration/translatorGuards.test.ts`.** No rung moves. Being *a* translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not |
+| 7.2.3 | Download the same file twice | **Covered by `tests/integration/translatorGuards.test.ts`.** The second changes nothing. The rung has already moved, so there is no rung to move |
 | 7.3 | Upload the translation | Lands in the `intake_translation` folder. ⚠️ The status does **not** move on upload — uploading and handing back are two acts, as they are for the coach |
 | 7.3.1 | ⚠️ **The "Choose files" button responds to the mouse.** Hover it | Colour change and a pointer cursor, and **no "No file selected"** beside it — the panel lists uploads directly above, so that readout contradicted the page. Same control on the coach's page |
 | 7.3.1a | Reach it by **keyboard** — tab to it and press Enter or Space | The picker opens and the button shows a focus ring. The real input is visually hidden, not `display:none`, so it stays in the tab order |
 | 7.3.1b | Neither button wraps to two lines | Narrow the window. ⚠️ "Hand back" broke across two lines and doubled the button's height when the file input was greedy for width |
 | 7.3.2 | **Remove an uploaded translation.** Upload two, remove one (the coach's mirror is 6.9) | It goes from the list and from storage. No confirm step — the file is still on their machine, so a mistaken click costs one re-upload |
-| 7.3.3 | Remove the last file, then try to hand back | Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on |
-| 7.3.4 | ⚠️ **Remove after handing back** (stale tab, or as another translator) | Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder |
-| 7.3.5 | ⚠️ **Remove someone else's file.** Post a remove for a file on a leg that isn't yours | Refused. And a remove aimed at an `intake` or `feedback` file is refused whoever asks — a translator must not be able to destroy the material they were given |
+| 7.3.3 | Remove the last file, then try to hand back | **Covered by `tests/integration/translatorGuards.test.ts`.** Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on |
+| 7.3.4 | ⚠️ **Remove after handing back** (stale tab, or as another translator) | **Covered by `tests/integration/translatorGuards.test.ts`.** Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder |
+| 7.3.5 | ⚠️ **Remove someone else's file.** Post a remove for a file on a leg that isn't yours | **Covered by `tests/integration/translatorGuards.test.ts`.** Refused. And a remove aimed at an `intake` or `feedback` file is refused whoever asks — a translator must not be able to destroy the material they were given |
 | 7.4 | Hand back | `intake_translated`; the admin can now hand it to the coach |
 | 7.5 | Repeat for the **feedback** direction | `feedback_translating` → `feedback_translated` |
 | 7.6 | ⚠️ **Both legs, one translator.** Assign the same person both legs of one submission | **Two cards**, not one — they are separate jobs in opposite directions. Only the leg matching the current rung is under "To translate"; the other waits its turn |
 | 7.7 | Each card names its direction | The direction sits **above** the player's name. With both legs held, the name alone cannot tell them apart |
-| 7.8 | Hand back with **no file uploaded** | Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on |
-| 7.9 | Hand back **twice** (two tabs, submit both) | The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI |
-| 7.10 | ⚠️ **Another translator's leg.** As translator A, post a hand-back for a leg assigned to translator B | Refused. Role is not ownership — being *a* translator must not close *any* leg |
-| 7.11 | ⚠️ **The other folder.** Holding only the intake leg, upload to `feedback_translation` | Refused by the upload routes. Ownership is per leg, not per submission |
+| 7.8 | Hand back with **no file uploaded** | **Covered by `tests/integration/translatorGuards.test.ts`.** Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on |
+| 7.9 | Hand back **twice** (two tabs, submit both) | **Covered by `tests/integration/translatorGuards.test.ts`.** The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI |
+| 7.10 | ⚠️ **Another translator's leg.** As translator A, post a hand-back for a leg assigned to translator B | **Covered by `tests/integration/translatorGuards.test.ts`.** Refused. Role is not ownership — being *a* translator must not close *any* leg |
+| 7.11 | ⚠️ **The other folder.** Holding only the intake leg, upload to `feedback_translation` | **Covered by `tests/integration/translatorGuards.test.ts`.** Refused by the upload routes. Ownership is per leg, not per submission |
 | 7.12 | A translator with nothing assigned | The calm centred panel, not a page of empty "(0)" headings |
 | 7.13 | A leg whose files the retention sweep has cleared | "Files deleted" rather than an empty list or a broken link |
 | 7.14 | Handed-back legs stay visible | Under "Handed back", with the file count they delivered |

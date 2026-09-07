@@ -59,7 +59,12 @@ import {
   type Submission,
   type SubmissionStatus,
 } from "@/domains/submission";
-import { approveAndComplete, resolveSubmission, sendFeedbackForApproval } from "@/domains/feedback";
+import {
+  approveAndComplete,
+  resolveSubmission,
+  sendFeedbackForApproval,
+  noteCustomerCollected,
+} from "@/domains/feedback";
 import { runRetentionSweep } from "@/domains/upload";
 import { getSettings } from "@/domains/settings";
 import { isOperatorSession } from "@/domains/account/model/session";
@@ -363,10 +368,30 @@ async function walk(label: string, translating: boolean) {
   check((await at(s.id)).status === "complete", `   not swept before collection (${early.resolvedPurged} purged)`);
 
   // ── rung 13: collected ───────────────────────────────────────────────
-  const collected = await markCustomerCollected(s.id);
-  check(collected?.status === "collected", "   the customer's download starts the clock");
-  check(!!collected?.collectedAt, "   collectedAt is stamped");
+  /*
+    Through `noteCustomerCollected`, which is what the download route calls —
+    not `markCustomerCollected` underneath it (QA 8.9.13).
+
+    The rung and the ⑦ row are two different writes, and e2e once sent and
+    delivered ⑦ while writing no row at all. Walking the inner function proved
+    the rung and could not have caught that.
+  */
+  await noteCustomerCollected(s.id);
+  const collected = await at(s.id);
+  check(collected.status === "collected", "   the customer's download starts the clock");
+  check(!!collected.collectedAt, "   collectedAt is stamped");
+  const collectMail = (await listSubmissionEvents(s.id)).filter(
+    (e) => e.kind === "email" && e.label?.startsWith("⑦"),
+  );
+  check(collectMail.length === 1, "   and the ⑦ send leaves exactly one row");
   check((await markCustomerCollected(s.id)) === null, "   a re-download can't restart it");
+  await noteCustomerCollected(s.id);
+  check(
+    (await listSubmissionEvents(s.id)).filter(
+      (e) => e.kind === "email" && e.label?.startsWith("⑦"),
+    ).length === 1,
+    "   nor send a second ⑦",
+  );
   await rung(s.id, "collected", "admin");
 
   // ── rung 14: resolved ────────────────────────────────────────────────
