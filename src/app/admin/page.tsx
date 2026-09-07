@@ -209,6 +209,7 @@ export default async function AdminHomePage({
     node: (
       <SubmissionRow
         submission={s}
+        maxFileSizeMb={settings.maxFileSizeMb}
         translators={translators}
         files={filesBySubmission.get(s.id) ?? []}
         feedbackFiles={feedbackBySubmission.get(s.id) ?? []}
@@ -253,11 +254,14 @@ function SubmissionRow({
   coaches,
   translators,
   retention,
+  maxFileSizeMb,
 }: {
   submission: Submission;
   files: SubmissionFile[];
   feedbackFiles: SubmissionFile[];
   folders?: Record<FileKind, SubmissionFile[]>;
+  /** The upload limit, so a folder box can refuse before it posts. */
+  maxFileSizeMb: number;
   progress?: {
     reached: Set<SubmissionStatus>;
     emails: Map<string, boolean>;
@@ -746,6 +750,7 @@ function SubmissionRow({
           <FileFolders
             submissionId={submission.id}
             folders={folderMap}
+            maxFileSizeMb={maxFileSizeMb}
             uploadAction={uploadToFolderAction}
             removeAction={removeFileAction}
           />

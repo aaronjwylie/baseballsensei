@@ -7,9 +7,20 @@ import {
 } from "@/domains/submission/model/submission";
 
 describe("needsTranslation — intersect the two sets, empty means translate", () => {
-  it("overlap of any size means no translation", () => {
-    expect(needsTranslation(["English", "Japanese"], ["English"])).toBe(false);
+  it("a shared language is enough only when the source has nothing else", () => {
     expect(needsTranslation(["Japanese"], ["Japanese"])).toBe(false);
+    expect(needsTranslation(["English"], ["English", "Japanese"])).toBe(false);
+  });
+
+  /*
+    A bilingual customer against a monolingual coach DOES need translating, even
+    though the two overlap: the customer may well have written in the language
+    the coach can't read. The rule was a plain intersection until QA 5.9 walked
+    the matrix and found this corner returning "no translation needed" for a
+    submission nobody could read (Ben, 2026-09-02).
+  */
+  it("a bilingual source against a monolingual target still needs it", () => {
+    expect(needsTranslation(["English", "Japanese"], ["English"])).toBe(true);
   });
 
   it("disjoint sets need translation", () => {

@@ -11,6 +11,7 @@ import {
   type TranslatorLeg,
 } from "@/domains/translation";
 import type { UploadMode } from "@/shared/upload";
+import { getSettings } from "@/domains/settings";
 
 export const metadata: Metadata = {
   title: "Translator portal",
@@ -39,6 +40,9 @@ export default async function TranslatorHomePage() {
   // Prod uploads straight to Blob; dev proxies to disk. The same seam the
   // customer flow and the coach's page read.
   const uploadMode: UploadMode = storage.supportsDirectUpload ? "blob" : "proxy";
+  // The same limit the customer's panel enforces, so an operator is refused
+  // in the browser rather than after the upload (Ben, QA 6.6.1).
+  const settings = await getSettings();
 
   const open = legs.filter((l) => l.open);
   const done = legs.filter((l) => !l.open);
@@ -80,6 +84,7 @@ export default async function TranslatorHomePage() {
             key={`${leg.submission.id}-${leg.leg.produces}`}
             work={leg}
             uploadMode={uploadMode}
+            maxFileSizeMb={settings.maxFileSizeMb}
           />
         ))}
       </ul>
@@ -126,9 +131,11 @@ export default async function TranslatorHomePage() {
 function TranslationCard({
   work,
   uploadMode,
+  maxFileSizeMb,
 }: {
   work: TranslatorLeg;
   uploadMode: UploadMode;
+  maxFileSizeMb: number;
 }) {
   const { submission, leg, source, produced } = work;
   return (
@@ -165,6 +172,7 @@ function TranslationCard({
           submissionId={submission.id}
           produces={leg.produces}
           uploadMode={uploadMode}
+          maxFileSizeMb={maxFileSizeMb}
           existingFiles={produced.map((f) => ({
             id: f.id,
             filename: f.filename,

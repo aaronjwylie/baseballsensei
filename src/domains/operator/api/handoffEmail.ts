@@ -20,11 +20,11 @@ import { site } from "@/shared/config/site";
 import { env } from "@/shared/config/env";
 import {
   FILE_KINDS,
-  formatFileSize,
   type FileKind,
   type Submission,
   type SubmissionFile,
 } from "@/domains/submission";
+import { formatFileSize } from "@/shared/lib";
 
 /**
  * What each folder holds, in the recipient's terms.

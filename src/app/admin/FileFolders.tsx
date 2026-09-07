@@ -1,14 +1,15 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { failed, succeeded, type ActionResult } from "@/shared/lib/actionResult";
 import { FileButton } from "@/shared/ui";
 import {
-  formatFileSize,
   type FileKind,
   type SubmissionFile,
 } from "@/domains/submission/model/submissionFile";
+import { formatFileSize } from "@/shared/lib";
+import { refuseFile } from "@/shared/upload";
 
 /**
  * The four folders, as the admin sees them.
@@ -59,11 +60,13 @@ export function FileFolders({
   submissionId,
   folders,
   uploadAction,
+  maxFileSizeMb,
   removeAction,
 }: {
   submissionId: string;
   folders: Record<FileKind, SubmissionFile[]>;
   uploadAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
+  maxFileSizeMb: number;
   removeAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
 }) {
   return (
@@ -73,6 +76,7 @@ export function FileFolders({
           key={folder.kind}
           submissionId={submissionId}
           files={folders[folder.kind] ?? []}
+          maxFileSizeMb={maxFileSizeMb}
           uploadAction={uploadAction}
           removeAction={removeAction}
           {...folder}
@@ -109,6 +113,7 @@ function Folder({
   label,
   hint,
   files,
+  maxFileSizeMb,
   uploadAction,
   removeAction,
 }: {
@@ -117,6 +122,7 @@ function Folder({
   label: string;
   hint: string;
   files: SubmissionFile[];
+  maxFileSizeMb: number;
   uploadAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   removeAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
 }) {
@@ -129,6 +135,8 @@ function Folder({
     ActionResult,
     FormData
   >(removeAction, undefined);
+  /** A refusal raised in the browser, before the form is ever posted. */
+  const [preflight, setPreflight] = useState<string | null>(null);
 
   useEffect(() => {
     if (succeeded(state) || succeeded(removeState)) router.refresh();
@@ -235,11 +243,35 @@ function Folder({
             multiple
             size="sm"
             disabled={busy}
-            onSelect={(event) => event.currentTarget.form?.requestSubmit()}
+            onSelect={(event) => {
+              /*
+                Refused here, before the form posts (Ben, QA 6.6.1).
+
+                This surface failed worse than the other three: the upload goes
+                through a Server Action, so an oversize file blew the request
+                body limit and Next answered with its own "this page couldn't
+                load" — our error never ran, and the admin lost the page they
+                were working on. Checking first means the request is never made.
+              */
+              const chosen = Array.from(event.currentTarget.files ?? []);
+              const refusal = chosen
+                .map((file) => refuseFile(file, maxFileSizeMb))
+                .find(Boolean);
+              if (refusal) {
+                setPreflight(refusal);
+                event.currentTarget.value = "";
+                return;
+              }
+              setPreflight(null);
+              event.currentTarget.form?.requestSubmit();
+            }}
           />
         </form>
       </div>
 
+      {preflight && (
+        <p className="mt-1 text-[13px] text-rose-700">{preflight}</p>
+      )}
       {failed(state) && (
         <p className="mt-1 text-[13px] text-rose-700">{state.error}</p>
       )}

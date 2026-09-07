@@ -18,6 +18,7 @@ import {
 } from "@/domains/submission";
 import { FeedbackUpload } from "@/domains/feedback";
 import type { UploadMode } from "@/shared/upload";
+import { getSettings } from "@/domains/settings";
 
 export const metadata: Metadata = {
   title: "Coach portal",
@@ -36,6 +37,9 @@ export default async function CoachHomePage() {
   // Prod uploads straight to Blob; dev proxies to disk. Same seam the customer
   // flow reads.
   const uploadMode: UploadMode = storage.supportsDirectUpload ? "blob" : "proxy";
+  // The same limit the customer's panel enforces, so an operator is refused
+  // in the browser rather than after the upload (Ben, QA 6.6.1).
+  const settings = await getSettings();
 
   // A coach's work is "open" until they hand it to the admin; once sent it's awaiting
   // approval (or delivered), and out of their hands.
@@ -104,6 +108,7 @@ export default async function CoachHomePage() {
                 s.coachFileSet,
               )}
               uploadMode={uploadMode}
+              maxFileSizeMb={settings.maxFileSizeMb}
               feedbackFiles={feedbackByOpen.get(s.id) ?? []}
             />
           ))}
@@ -148,11 +153,13 @@ function ReviewCard({
   submission,
   files,
   uploadMode,
+  maxFileSizeMb,
   feedbackFiles,
 }: {
   submission: Submission;
   files: SubmissionFile[];
   uploadMode: UploadMode;
+  maxFileSizeMb: number;
   feedbackFiles: SubmissionFile[];
 }) {
   return (
@@ -182,6 +189,7 @@ function ReviewCard({
         <FeedbackUpload
           submissionId={submission.id}
           uploadMode={uploadMode}
+          maxFileSizeMb={maxFileSizeMb}
           existingFiles={feedbackFiles.map((f) => ({
             id: f.id,
             filename: f.filename,

@@ -53,7 +53,6 @@ export {
   FILE_KINDS,
   INTAKE_KINDS,
   FEEDBACK_KINDS,
-  formatFileSize,
   isAvailable,
   isIntake,
   isFeedback,

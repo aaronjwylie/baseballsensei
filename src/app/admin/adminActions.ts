@@ -32,7 +32,8 @@ import { numberedRungLabel,
   type SubmissionStatus,
 } from "@/domains/submission";
 import { approveAndComplete, resolveSubmission } from "@/domains/feedback";
-import { getSettings } from "@/domains/settings";
+import { getSettings, maxFileSizeBytes } from "@/domains/settings";
+import { formatFileSize } from "@/shared/lib";
 import { storage, folderFileKey } from "@/shared/storage";
 
 export async function archiveSubmissionAction(
@@ -154,6 +155,22 @@ export async function uploadToFolderAction(
     .getAll("files")
     .filter((entry): entry is File => entry instanceof File && entry.size > 0);
   if (files.length === 0) return { error: "Choose at least one file." };
+
+  /*
+    The limit, server-side (Ben, QA 6.6.1).
+
+    The folder boxes now refuse an oversize file in the browser, which is what
+    an admin actually experiences — but a browser is never where a limit lives,
+    and this action had no check at all. It is the only upload path that never
+    had one, because it predates the routes that do.
+  */
+  const settings = await getSettings();
+  const tooBig = files.find((f) => f.size > maxFileSizeBytes(settings));
+  if (tooBig) {
+    return {
+      error: `“${tooBig.name}” is ${formatFileSize(tooBig.size)}. The limit is ${settings.maxFileSizeMb} MB.`,
+    };
+  }
 
   for (const file of files) {
     const bytes = new Uint8Array(await file.arrayBuffer());

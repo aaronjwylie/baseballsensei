@@ -10,7 +10,8 @@
  */
 import { emailShell, escapeHtml, sendEmail } from "@/shared/email";
 import { site } from "@/shared/config/site";
-import { formatFileSize, type SubmissionFile } from "@/domains/submission";
+import { type SubmissionFile } from "@/domains/submission";
+import { formatFileSize } from "@/shared/lib";
 
 export interface ReceiptDetails {
   playerName: string;

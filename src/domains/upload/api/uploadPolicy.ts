@@ -18,7 +18,7 @@
 import { countSubmissionFiles, getSubmission, readFlowSession, isPaid } from "@/domains/submission";
 import type { Submission } from "@/domains/submission";
 import { getSettings, maxFileSizeBytes, type PlatformSettings } from "@/domains/settings";
-import { isAllowedFilename } from "../model/fileTypes";
+import { isAllowedFilename } from "@/shared/upload";
 
 export interface UploadPermit {
   submission: Submission;

@@ -10,11 +10,12 @@ import {
 } from "@/shared/upload";
 // A client component imports the slice's client-safe model directly, not the
 // barrel — the barrel re-exports Postgres code that can't reach the browser.
-import { formatFileSize } from "@/domains/submission/model/submissionFile";
 import {
   removeFeedbackFileAction,
   sendFeedbackForApprovalAction,
 } from "../api/feedbackActions";
+import { formatFileSize } from "@/shared/lib";
+import { refuseFile } from "@/shared/upload";
 
 /** What the coach has attached so far — the same shape the routes echo back. */
 interface FeedbackFile {
@@ -35,10 +36,13 @@ interface FeedbackFile {
 export function FeedbackUpload({
   submissionId,
   uploadMode,
+  maxFileSizeMb,
   existingFiles,
 }: {
   submissionId: string;
   uploadMode: UploadMode;
+  /** The operator's limit — the same setting the customer's panel reads. */
+  maxFileSizeMb: number;
   existingFiles: FeedbackFile[];
 }) {
   const router = useRouter();
@@ -68,6 +72,17 @@ export function FeedbackUpload({
     setError(null);
     try {
       for (const file of chosen) {
+        /*
+          Refused before a byte moves — the customer's rule, on the operator's
+          side. This uploaded first and reported the server's refusal afterwards,
+          so a coach watched a 21 MB progress bar finish before being told the
+          limit was 10 (Ben, QA 6.6.1).
+        */
+        const refusal = refuseFile(file, maxFileSizeMb);
+        if (refusal) {
+          setError(refusal);
+          break;
+        }
         setProgress({ name: file.name, pct: 0 });
         const uploaded = await uploadFile({
           mode: uploadMode,

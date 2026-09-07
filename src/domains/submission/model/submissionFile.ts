@@ -218,19 +218,3 @@ export function isAvailable(file: SubmissionFile): boolean {
   return !!file.fileUrl;
 }
 
-/**
- * Human-readable size. Binary units, one decimal past a kilobyte — "48.3 MB"
- * reads better next to an upload limit expressed in whole megabytes than
- * "50642944 bytes" does.
- */
-export function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  const units = ["KB", "MB", "GB"];
-  let value = bytes / 1024;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit += 1;
-  }
-  return `${value.toFixed(value < 10 ? 1 : 0)} ${units[unit]}`;
-}

@@ -3,7 +3,7 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { env } from "@/shared/config/env";
 import { getSession } from "@/domains/account";
 import { getSubmission, isAssignedTo } from "@/domains/submission";
-import { ALLOWED_MIME_TYPES, isAllowedFilename } from "@/domains/upload";
+import { ALLOWED_MIME_TYPES, isAllowedFilename } from "@/shared/upload";
 import { getSettings, maxFileSizeBytes } from "@/domains/settings";
 
 /**

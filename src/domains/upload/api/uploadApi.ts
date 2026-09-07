@@ -19,7 +19,7 @@ import {
   addSubmissionFile,
   type SubmissionFile,
 } from "@/domains/submission";
-import { resolveContentType } from "../model/fileTypes";
+import { resolveContentType } from "@/shared/upload";
 
 /** What registering a direct upload can come to. */
 export type RegisterResult =
