@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 61,
-    "generatedAt": "2026-09-05T00:02:20.654Z",
-    "checks": 340,
-    "live": 339,
+    "build": 62,
+    "generatedAt": "2026-09-07T02:12:25.605Z",
+    "checks": 344,
+    "live": 343,
     "retired": 1,
-    "edited": 25
+    "edited": 29
   },
   "phases": [
     {
@@ -1441,12 +1441,36 @@
             {
               "id": "6.6.1",
               "what": "⚠️ The size limit holds for a coach, not just a customer. Set the limit to 10 MB and upload a larger feedback file",
-              "expect": "Refused. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob — the client token's maximumSizeInBytes is not the enforcement it looks like, and only the customer's complete route re-checked"
+              "expect": "Refused before the upload starts, naming the file's size and the limit — the customer's wording, from the customer's rule. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob: the client token's maximumSizeInBytes is not the enforcement it looks like, and only the customer's complete route re-checked",
+              "history": [
+                {
+                  "at": "2026-09-07T02:12:25.605Z",
+                  "what": "⚠️ The size limit holds for a coach, not just a customer. Set the limit to 10 MB and upload a larger feedback file",
+                  "expect": "Refused. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob — the client token's maximumSizeInBytes is not the enforcement it looks like, and only the customer's complete route re-checked"
+                }
+              ]
             },
             {
               "id": "6.6.2",
               "what": "The same on the translator's upload",
-              "expect": "Refused. It mirrored the coach's route, missing guard included"
+              "expect": "Refused, the same way. It mirrored the coach's route, missing guard included",
+              "history": [
+                {
+                  "at": "2026-09-07T02:12:25.605Z",
+                  "what": "The same on the translator's upload",
+                  "expect": "Refused. It mirrored the coach's route, missing guard included"
+                }
+              ]
+            },
+            {
+              "id": "6.6.4",
+              "what": "⚠️ The same in an admin folder box. Upload an oversize file into any of the four",
+              "expect": "Refused in the browser. ⚠️ Until 2026-09-06 this posted to a Server Action, blew the request body limit, and Next answered with its own \"this page couldn't load\" — the admin lost the page and never saw our error"
+            },
+            {
+              "id": "6.6.5",
+              "what": "⚠️ A file between 4.5 MB and the limit, in an admin folder box",
+              "expect": "Known gap. Vercel caps a serverless request body near 4.5 MB, so a file that is legal by the setting still fails here. The other three surfaces upload straight to Blob and are unaffected; this one needs the same treatment"
             },
             {
               "id": "6.6.3",
@@ -1465,13 +1489,27 @@
             },
             {
               "id": "6.11",
-              "what": "⚠️ Remove after sending (stale tab)",
-              "expect": "Refused. Past awaiting_approval the file is what the admin is reviewing"
+              "what": "⚠️ Remove after sending (stale tab). Not clickable — run npx vitest run tests/integration/coachRemoveGuards.test.ts with DATABASE_URL set",
+              "expect": "Refused: \"already gone to the admin\". Past awaiting_approval the file is what the admin is reviewing. ⚠️ There is deliberately no button: after a hand-back the card moves under Submitted and stops listing files, so the guard is only reachable by posting the action directly — which is exactly what a stale tab does",
+              "history": [
+                {
+                  "at": "2026-09-07T02:12:25.605Z",
+                  "what": "⚠️ Remove after sending (stale tab)",
+                  "expect": "Refused. Past awaiting_approval the file is what the admin is reviewing"
+                }
+              ]
             },
             {
               "id": "6.12",
-              "what": "⚠️ Remove someone else's, or the customer's. Post a remove for another coach's file, then for an intake file",
-              "expect": "Both refused. A coach must not be able to destroy the material they were given"
+              "what": "⚠️ Remove someone else's, or the customer's. Post a remove for another coach's file, then for an intake file. Same test file as 6.11",
+              "expect": "Both refused, for different reasons: \"isn't your submission\" and \"can't be removed here\". A coach must not be able to destroy the material they were given, and being a coach is not being this coach",
+              "history": [
+                {
+                  "at": "2026-09-07T02:12:25.605Z",
+                  "what": "⚠️ Remove someone else's, or the customer's. Post a remove for another coach's file, then for an intake file",
+                  "expect": "Both refused. A coach must not be able to destroy the material they were given"
+                }
+              ]
             },
             {
               "id": "6.13",
@@ -1482,6 +1520,16 @@
               "id": "6.14",
               "what": "Upload and Send sit apart",
               "expect": "Upload left, Send for approval right. During an upload only the Upload button reads busy, so the send never looks pressed when it hasn't been"
+            },
+            {
+              "id": "6.15",
+              "what": "The Submitted card is a receipt. Hand back, then read the card under Submitted",
+              "expect": "The player and focus, the hand-back date, and every file that went with its size — links, since /api/files/[id] checks the assignment. A swept file still appears, greyed and marked deleted"
+            },
+            {
+              "id": "6.16",
+              "what": "The same on the translator's Handed back list",
+              "expect": "The leg's own title and date. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one"
             }
           ]
         }

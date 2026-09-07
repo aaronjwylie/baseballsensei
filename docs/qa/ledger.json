@@ -1888,17 +1888,29 @@
     },
     "6.11": {
       "firstSeen": "2026-08-31T23:52:00.678Z",
-      "what": "⚠️ Remove after sending (stale tab)",
-      "expect": "Refused. Past awaiting_approval the file is what the admin is reviewing",
+      "what": "⚠️ Remove after sending (stale tab). Not clickable — run npx vitest run tests/integration/coachRemoveGuards.test.ts with DATABASE_URL set",
+      "expect": "Refused: \"already gone to the admin\". Past awaiting_approval the file is what the admin is reviewing. ⚠️ There is deliberately no button: after a hand-back the card moves under Submitted and stops listing files, so the guard is only reachable by posting the action directly — which is exactly what a stale tab does",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-07T02:12:25.605Z",
+          "what": "⚠️ Remove after sending (stale tab)",
+          "expect": "Refused. Past awaiting_approval the file is what the admin is reviewing"
+        }
+      ]
     },
     "6.12": {
       "firstSeen": "2026-08-31T23:52:00.678Z",
-      "what": "⚠️ Remove someone else's, or the customer's. Post a remove for another coach's file, then for an intake file",
-      "expect": "Both refused. A coach must not be able to destroy the material they were given",
+      "what": "⚠️ Remove someone else's, or the customer's. Post a remove for another coach's file, then for an intake file. Same test file as 6.11",
+      "expect": "Both refused, for different reasons: \"isn't your submission\" and \"can't be removed here\". A coach must not be able to destroy the material they were given, and being a coach is not being this coach",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-07T02:12:25.605Z",
+          "what": "⚠️ Remove someone else's, or the customer's. Post a remove for another coach's file, then for an intake file",
+          "expect": "Both refused. A coach must not be able to destroy the material they were given"
+        }
+      ]
     },
     "6.13": {
       "firstSeen": "2026-08-31T23:52:00.678Z",
@@ -2542,21 +2554,61 @@
     "6.6.1": {
       "firstSeen": "2026-09-05T00:02:20.654Z",
       "what": "⚠️ The size limit holds for a coach, not just a customer. Set the limit to 10 MB and upload a larger feedback file",
-      "expect": "Refused. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob — the client token's maximumSizeInBytes is not the enforcement it looks like, and only the customer's complete route re-checked",
+      "expect": "Refused before the upload starts, naming the file's size and the limit — the customer's wording, from the customer's rule. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob: the client token's maximumSizeInBytes is not the enforcement it looks like, and only the customer's complete route re-checked",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-07T02:12:25.605Z",
+          "what": "⚠️ The size limit holds for a coach, not just a customer. Set the limit to 10 MB and upload a larger feedback file",
+          "expect": "Refused. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob — the client token's maximumSizeInBytes is not the enforcement it looks like, and only the customer's complete route re-checked"
+        }
+      ]
     },
     "6.6.2": {
       "firstSeen": "2026-09-05T00:02:20.654Z",
       "what": "The same on the translator's upload",
-      "expect": "Refused. It mirrored the coach's route, missing guard included",
+      "expect": "Refused, the same way. It mirrored the coach's route, missing guard included",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-07T02:12:25.605Z",
+          "what": "The same on the translator's upload",
+          "expect": "Refused. It mirrored the coach's route, missing guard included"
+        }
+      ]
     },
     "6.6.3": {
       "firstSeen": "2026-09-05T00:02:20.654Z",
       "what": "⚠️ Hand back from the wrong rung. Upload feedback, have the admin reset the submission, then Send for approval",
       "expect": "It names the rung, not the files. ⚠️ It said \"Attach at least one file before sending\" to a coach who had attached two — one message served both refusals",
+      "retired": false,
+      "history": []
+    },
+    "6.6.4": {
+      "firstSeen": "2026-09-07T02:12:25.605Z",
+      "what": "⚠️ The same in an admin folder box. Upload an oversize file into any of the four",
+      "expect": "Refused in the browser. ⚠️ Until 2026-09-06 this posted to a Server Action, blew the request body limit, and Next answered with its own \"this page couldn't load\" — the admin lost the page and never saw our error",
+      "retired": false,
+      "history": []
+    },
+    "6.6.5": {
+      "firstSeen": "2026-09-07T02:12:25.605Z",
+      "what": "⚠️ A file between 4.5 MB and the limit, in an admin folder box",
+      "expect": "Known gap. Vercel caps a serverless request body near 4.5 MB, so a file that is legal by the setting still fails here. The other three surfaces upload straight to Blob and are unaffected; this one needs the same treatment",
+      "retired": false,
+      "history": []
+    },
+    "6.15": {
+      "firstSeen": "2026-09-07T02:12:25.605Z",
+      "what": "The Submitted card is a receipt. Hand back, then read the card under Submitted",
+      "expect": "The player and focus, the hand-back date, and every file that went with its size — links, since /api/files/[id] checks the assignment. A swept file still appears, greyed and marked deleted",
+      "retired": false,
+      "history": []
+    },
+    "6.16": {
+      "firstSeen": "2026-09-07T02:12:25.605Z",
+      "what": "The same on the translator's Handed back list",
+      "expect": "The leg's own title and date. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one",
       "retired": false,
       "history": []
     }

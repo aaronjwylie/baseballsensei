@@ -385,15 +385,19 @@ than assuming the fix held.
 
 ---
 
-| 6.6.1 | ⚠️ **The size limit holds for a coach, not just a customer.** Set the limit to 10 MB and upload a larger feedback file | Refused. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob — the client token's `maximumSizeInBytes` is not the enforcement it looks like, and only the customer's `complete` route re-checked |
-| 6.6.2 | The same on the translator's upload | Refused. It mirrored the coach's route, missing guard included |
+| 6.6.1 | ⚠️ **The size limit holds for a coach, not just a customer.** Set the limit to 10 MB and upload a larger feedback file | Refused **before the upload starts**, naming the file's size and the limit — the customer's wording, from the customer's rule. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob: the client token's `maximumSizeInBytes` is not the enforcement it looks like, and only the customer's `complete` route re-checked |
+| 6.6.2 | The same on the translator's upload | Refused, the same way. It mirrored the coach's route, missing guard included |
+| 6.6.4 | ⚠️ **The same in an admin folder box.** Upload an oversize file into any of the four | Refused in the browser. ⚠️ Until 2026-09-06 this posted to a Server Action, blew the request body limit, and Next answered with its own "this page couldn't load" — the admin lost the page and never saw our error |
+| 6.6.5 | ⚠️ **A file between 4.5 MB and the limit, in an admin folder box** | **Known gap.** Vercel caps a serverless request body near 4.5 MB, so a file that is legal by the setting still fails here. The other three surfaces upload straight to Blob and are unaffected; this one needs the same treatment |
 | 6.6.3 | ⚠️ **Hand back from the wrong rung.** Upload feedback, have the admin reset the submission, then Send for approval | It names the rung, not the files. ⚠️ It said "Attach at least one file before sending" to a coach who had attached two — one message served both refusals |
 | 6.9 | ⚠️ **Remove an uploaded feedback file.** Upload two, remove one | That file only. The coach had no undo at all until 2026-08-31 — a wrong take could only be sent alongside the right one and explained by email |
 | 6.10 | Remove the last file, then Send for approval | Refused. An empty send parks a submission awaiting approval of nothing |
-| 6.11 | ⚠️ **Remove after sending** (stale tab) | Refused. Past `awaiting_approval` the file is what the admin is reviewing |
-| 6.12 | ⚠️ **Remove someone else's, or the customer's.** Post a remove for another coach's file, then for an `intake` file | Both refused. A coach must not be able to destroy the material they were given |
+| 6.11 | ⚠️ **Remove after sending** (stale tab). **Not clickable — run `npx vitest run tests/integration/coachRemoveGuards.test.ts` with `DATABASE_URL` set** | Refused: "already gone to the admin". Past `awaiting_approval` the file is what the admin is reviewing. ⚠️ There is deliberately no button: after a hand-back the card moves under Submitted and stops listing files, so the guard is only reachable by posting the action directly — which is exactly what a stale tab does |
+| 6.12 | ⚠️ **Remove someone else's, or the customer's.** Post a remove for another coach's file, then for an `intake` file. **Same test file as 6.11** | Both refused, for different reasons: "isn't your submission" and "can't be removed here". A coach must not be able to destroy the material they were given, and being a coach is not being *this* coach |
 | 6.13 | The panel says what the button does | A line under it: the admin reviews it and releases it to the customer. ⚠️ The translator's card carried this from the start and the coach's did not |
 | 6.14 | Upload and Send sit apart | Upload left, Send for approval right. During an upload only the Upload button reads busy, so the send never looks pressed when it hasn't been |
+| 6.15 | **The Submitted card is a receipt.** Hand back, then read the card under Submitted | The player and focus, the hand-back date, and every file that went with its size — links, since `/api/files/[id]` checks the assignment. A swept file still appears, greyed and marked deleted |
+| 6.16 | The same on the translator's Handed back list | The leg's own title and date. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's `done` rung and not a shared one |
 
 ## Phase 7 · Translator portal (`/translator`)
 
