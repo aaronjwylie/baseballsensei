@@ -952,17 +952,29 @@
     },
     "6.1": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
-      "what": "Sees only their assigned submissions",
+      "what": "Sees only their assigned submissions. Covered by tests/integration/coachRemoveGuards.test.ts",
       "expect": "",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-07T02:21:59.504Z",
+          "what": "Sees only their assigned submissions",
+          "expect": ""
+        }
+      ]
     },
     "6.2": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
-      "what": "Cannot reach another coach's submission by URL",
+      "what": "Cannot reach another coach's submission by URL. Covered by the same test — the page lists findByCoach and the file route asks isAssignedToSubmission, and the test breaks if either stops scoping",
       "expect": "Refused",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-07T02:21:59.504Z",
+          "what": "Cannot reach another coach's submission by URL",
+          "expect": "Refused"
+        }
+      ]
     },
     "6.3": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -1874,17 +1886,29 @@
     },
     "6.9": {
       "firstSeen": "2026-08-31T23:52:00.678Z",
-      "what": "⚠️ Remove an uploaded feedback file. Upload two, remove one",
+      "what": "⚠️ Remove an uploaded feedback file. Upload two, remove one. Covered by the same test",
       "expect": "That file only. The coach had no undo at all until 2026-08-31 — a wrong take could only be sent alongside the right one and explained by email",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-07T02:21:59.504Z",
+          "what": "⚠️ Remove an uploaded feedback file. Upload two, remove one",
+          "expect": "That file only. The coach had no undo at all until 2026-08-31 — a wrong take could only be sent alongside the right one and explained by email"
+        }
+      ]
     },
     "6.10": {
       "firstSeen": "2026-08-31T23:52:00.678Z",
-      "what": "Remove the last file, then Send for approval",
+      "what": "Remove the last file, then Send for approval. Covered by the same test",
       "expect": "Refused. An empty send parks a submission awaiting approval of nothing",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-07T02:21:59.504Z",
+          "what": "Remove the last file, then Send for approval",
+          "expect": "Refused. An empty send parks a submission awaiting approval of nothing"
+        }
+      ]
     },
     "6.11": {
       "firstSeen": "2026-08-31T23:52:00.678Z",
@@ -1914,10 +1938,16 @@
     },
     "6.13": {
       "firstSeen": "2026-08-31T23:52:00.678Z",
-      "what": "The panel says what the button does",
+      "what": "The panel says what the button does. The coach's is a fixed line in FeedbackUpload; the translator's is the leg's own handBackHint",
       "expect": "A line under it: the admin reviews it and releases it to the customer. ⚠️ The translator's card carried this from the start and the coach's did not",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-07T02:21:59.504Z",
+          "what": "The panel says what the button does",
+          "expect": "A line under it: the admin reviews it and releases it to the customer. ⚠️ The translator's card carried this from the start and the coach's did not"
+        }
+      ]
     },
     "6.14": {
       "firstSeen": "2026-08-31T23:52:00.678Z",
@@ -2579,10 +2609,16 @@
     },
     "6.6.3": {
       "firstSeen": "2026-09-05T00:02:20.654Z",
-      "what": "⚠️ Hand back from the wrong rung. Upload feedback, have the admin reset the submission, then Send for approval",
+      "what": "⚠️ Hand back from the wrong rung. Covered by the same test. Upload feedback, have the admin reset the submission, then Send for approval",
       "expect": "It names the rung, not the files. ⚠️ It said \"Attach at least one file before sending\" to a coach who had attached two — one message served both refusals",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-07T02:21:59.504Z",
+          "what": "⚠️ Hand back from the wrong rung. Upload feedback, have the admin reset the submission, then Send for approval",
+          "expect": "It names the rung, not the files. ⚠️ It said \"Attach at least one file before sending\" to a coach who had attached two — one message served both refusals"
+        }
+      ]
     },
     "6.6.4": {
       "firstSeen": "2026-09-07T02:12:25.605Z",

@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 62</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 63</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1768,12 +1768,12 @@ const PHASES = [
         "checks": [
           [
             "6.1",
-            "Sees only their assigned submissions",
+            "Sees only their assigned submissions. Covered by tests/integration/coachRemoveGuards.test.ts",
             ""
           ],
           [
             "6.2",
-            "Cannot reach another coach's submission by URL",
+            "Cannot reach another coach's submission by URL. Covered by the same test — the page lists findByCoach and the file route asks isAssignedToSubmission, and the test breaks if either stops scoping",
             "Refused",
             "flag"
           ],
@@ -1829,17 +1829,17 @@ const PHASES = [
           ],
           [
             "6.6.3",
-            "⚠️ Hand back from the wrong rung. Upload feedback, have the admin reset the submission, then Send for approval",
+            "⚠️ Hand back from the wrong rung. Covered by the same test. Upload feedback, have the admin reset the submission, then Send for approval",
             "It names the rung, not the files. ⚠️ It said \"Attach at least one file before sending\" to a coach who had attached two — one message served both refusals"
           ],
           [
             "6.9",
-            "⚠️ Remove an uploaded feedback file. Upload two, remove one",
+            "⚠️ Remove an uploaded feedback file. Upload two, remove one. Covered by the same test",
             "That file only. The coach had no undo at all until 2026-08-31 — a wrong take could only be sent alongside the right one and explained by email"
           ],
           [
             "6.10",
-            "Remove the last file, then Send for approval",
+            "Remove the last file, then Send for approval. Covered by the same test",
             "Refused. An empty send parks a submission awaiting approval of nothing"
           ],
           [
@@ -1854,7 +1854,7 @@ const PHASES = [
           ],
           [
             "6.13",
-            "The panel says what the button does",
+            "The panel says what the button does. The coach's is a fixed line in FeedbackUpload; the translator's is the leg's own handBackHint",
             "A line under it: the admin reviews it and releases it to the customer. ⚠️ The translator's card carried this from the start and the coach's did not"
           ],
           [
