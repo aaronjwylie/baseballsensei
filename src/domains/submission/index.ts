@@ -133,6 +133,7 @@ export {
   listAllSubmissionFiles,
 } from "./api/submissionFileApi";
 
+export { saveFolderFile, recordFolderFile } from "./api/folderApi";
 export { signStatusToken, verifyStatusToken } from "./api/statusToken";
 
 export {

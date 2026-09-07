@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 63</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 64</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1825,7 +1825,12 @@ const PHASES = [
           [
             "6.6.5",
             "⚠️ A file between 4.5 MB and the limit, in an admin folder box",
-            "Known gap. Vercel caps a serverless request body near 4.5 MB, so a file that is legal by the setting still fails here. The other three surfaces upload straight to Blob and are unaffected; this one needs the same treatment"
+            "Uploads. ⚠️ Until 2026-09-06 the folder boxes posted to a Server Action, so the bytes came through us and Vercel's ~4.5 MB body cap refused a file the setting allowed — the last upload path still routed through the server. Verified locally at 6 MB accepted, 12 MB refused against a 10 MB limit"
+          ],
+          [
+            "6.6.6",
+            "⚠️ The dev proxy enforces the limit too. With STORAGE_DIR set, upload an oversize file on each operator surface",
+            "Refused, same message. ⚠️ Only the complete routes checked, so the limit that held in production was absent locally — the worst place for it to differ, since local is where a limit gets tested. The customer's dev route always checked"
           ],
           [
             "6.6.3",

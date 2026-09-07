@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 63,
-    "generatedAt": "2026-09-07T02:21:59.504Z",
-    "checks": 344,
-    "live": 343,
+    "build": 64,
+    "generatedAt": "2026-09-07T02:35:24.286Z",
+    "checks": 345,
+    "live": 344,
     "retired": 1,
-    "edited": 35
+    "edited": 36
   },
   "phases": [
     {
@@ -1484,7 +1484,19 @@
             {
               "id": "6.6.5",
               "what": "⚠️ A file between 4.5 MB and the limit, in an admin folder box",
-              "expect": "Known gap. Vercel caps a serverless request body near 4.5 MB, so a file that is legal by the setting still fails here. The other three surfaces upload straight to Blob and are unaffected; this one needs the same treatment"
+              "expect": "Uploads. ⚠️ Until 2026-09-06 the folder boxes posted to a Server Action, so the bytes came through us and Vercel's ~4.5 MB body cap refused a file the setting allowed — the last upload path still routed through the server. Verified locally at 6 MB accepted, 12 MB refused against a 10 MB limit",
+              "history": [
+                {
+                  "at": "2026-09-07T02:35:24.286Z",
+                  "what": "⚠️ A file between 4.5 MB and the limit, in an admin folder box",
+                  "expect": "Known gap. Vercel caps a serverless request body near 4.5 MB, so a file that is legal by the setting still fails here. The other three surfaces upload straight to Blob and are unaffected; this one needs the same treatment"
+                }
+              ]
+            },
+            {
+              "id": "6.6.6",
+              "what": "⚠️ The dev proxy enforces the limit too. With STORAGE_DIR set, upload an oversize file on each operator surface",
+              "expect": "Refused, same message. ⚠️ Only the complete routes checked, so the limit that held in production was absent locally — the worst place for it to differ, since local is where a limit gets tested. The customer's dev route always checked"
             },
             {
               "id": "6.6.3",

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/domains/account";
 import { getSubmission, isAssignedTo } from "@/domains/submission";
 import { saveFeedbackFile } from "@/domains/feedback";
+import { getSettings, maxFileSizeBytes } from "@/domains/settings";
 
 /**
  * The **development** feedback path: the bytes come through us onto local disk,
@@ -36,6 +37,21 @@ export async function POST(request: Request) {
     const bytes = new Uint8Array(await request.arrayBuffer());
     if (bytes.byteLength === 0) {
       return NextResponse.json({ error: "The file was empty." }, { status: 400 });
+    }
+    /*
+      The limit, on the dev path too (Ben, QA 6.6.1, 2026-09-06).
+
+      The `complete` routes check it and these did not, so the same limit that
+      held in production was absent locally — which is the worst place for it to
+      differ, since local is where a limit gets tested. The customer's dev route
+      has always checked, through `authorizeUpload`.
+    */
+    const settings = await getSettings();
+    if (bytes.byteLength > maxFileSizeBytes(settings)) {
+      return NextResponse.json(
+        { error: `Files must be under ${settings.maxFileSizeMb} MB.` },
+        { status: 413 },
+      );
     }
     const contentType =
       request.headers.get("content-type") || "application/octet-stream";

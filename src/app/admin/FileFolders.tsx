@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { failed, succeeded, type ActionResult } from "@/shared/lib/actionResult";
 import { FileButton } from "@/shared/ui";
@@ -9,7 +9,12 @@ import {
   type SubmissionFile,
 } from "@/domains/submission/model/submissionFile";
 import { formatFileSize } from "@/shared/lib";
-import { refuseFile } from "@/shared/upload";
+import {
+  refuseFile,
+  uploadFile,
+  type UploadEndpoints,
+  type UploadMode,
+} from "@/shared/upload";
 
 /**
  * The four folders, as the admin sees them.
@@ -59,14 +64,14 @@ const FOLDERS: {
 export function FileFolders({
   submissionId,
   folders,
-  uploadAction,
   maxFileSizeMb,
+  uploadMode,
   removeAction,
 }: {
   submissionId: string;
   folders: Record<FileKind, SubmissionFile[]>;
-  uploadAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   maxFileSizeMb: number;
+  uploadMode: UploadMode;
   removeAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
 }) {
   return (
@@ -77,7 +82,7 @@ export function FileFolders({
           submissionId={submissionId}
           files={folders[folder.kind] ?? []}
           maxFileSizeMb={maxFileSizeMb}
-          uploadAction={uploadAction}
+          uploadMode={uploadMode}
           removeAction={removeAction}
           {...folder}
         />
@@ -114,7 +119,7 @@ function Folder({
   hint,
   files,
   maxFileSizeMb,
-  uploadAction,
+  uploadMode,
   removeAction,
 }: {
   submissionId: string;
@@ -123,24 +128,71 @@ function Folder({
   hint: string;
   files: SubmissionFile[];
   maxFileSizeMb: number;
-  uploadAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
+  uploadMode: UploadMode;
   removeAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
 }) {
   const router = useRouter();
-  const [state, submit, busy] = useActionState<ActionResult, FormData>(
-    uploadAction,
-    undefined,
-  );
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<{ pct: number } | null>(null);
   const [removeState, removeSubmit, removing] = useActionState<
     ActionResult,
     FormData
   >(removeAction, undefined);
-  /** A refusal raised in the browser, before the form is ever posted. */
+  /** A refusal raised in the browser, before a byte moves. */
   const [preflight, setPreflight] = useState<string | null>(null);
 
+  /*
+    Straight to storage, like the other three surfaces (Ben, QA 6.6.5).
+
+    This posted to a Server Action until 2026-09-06, so the bytes came through
+    us — and a serverless request body is capped near 4.5 MB on Vercel. An admin
+    could not attach a real video at all, and an oversize one blew the limit and
+    got Next's own error page instead of ours. It was the last upload path still
+    routed through the server.
+  */
+  const endpoints: UploadEndpoints = {
+    blobToken: "/api/folder/blob",
+    complete: "/api/folder/complete",
+    // The dev proxy is told the submission and the folder; blob mode reads both
+    // off the pathname instead.
+    proxy: `/api/folder/upload?submission=${encodeURIComponent(submissionId)}&kind=${encodeURIComponent(kind)}`,
+  };
+
+  async function onSelect(event: ChangeEvent<HTMLInputElement>) {
+    const chosen = Array.from(event.target.files ?? []);
+    event.target.value = ""; // allow re-picking the same file after a failure
+    if (chosen.length === 0) return;
+
+    setPreflight(null);
+    setBusy(true);
+    try {
+      for (const file of chosen) {
+        const refusal = refuseFile(file, maxFileSizeMb);
+        if (refusal) {
+          setPreflight(refusal);
+          break;
+        }
+        setProgress({ pct: 0 });
+        await uploadFile({
+          mode: uploadMode,
+          folder: `submissions/${submissionId}/${kind}`,
+          file,
+          endpoints,
+          onProgress: (pct) => setProgress({ pct }),
+        });
+      }
+      router.refresh();
+    } catch (err) {
+      setPreflight(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setBusy(false);
+      setProgress(null);
+    }
+  }
+
   useEffect(() => {
-    if (succeeded(state) || succeeded(removeState)) router.refresh();
-  }, [state, removeState, router]);
+    if (succeeded(removeState)) router.refresh();
+  }, [removeState, router]);
 
   // Swept files keep their row but lose their bytes, so they're listed and not
   // fetchable — counting them would promise a download that 410s.
@@ -234,46 +286,26 @@ function Folder({
           anyone reads. So the button opens the picker and the choice submits
           the form.
         */}
-        <form action={submit} className="contents">
-          <input type="hidden" name="submissionId" value={submissionId} />
-          <input type="hidden" name="kind" value={kind} />
-          <FileButton
-            label={busy ? "Uploading…" : "Upload"}
-            name="files"
-            multiple
-            size="sm"
-            disabled={busy}
-            onSelect={(event) => {
-              /*
-                Refused here, before the form posts (Ben, QA 6.6.1).
+        {/*
+          One button, not two. This was a file input and a separate Upload
+          button, so choosing a file left it sitting there until you found the
+          second control — and the native input announced "No file selected"
+          beside it the whole time (Ben, 2026-08-31).
 
-                This surface failed worse than the other three: the upload goes
-                through a Server Action, so an oversize file blew the request
-                body limit and Next answered with its own "this page couldn't
-                load" — our error never ran, and the admin lost the page they
-                were working on. Checking first means the request is never made.
-              */
-              const chosen = Array.from(event.currentTarget.files ?? []);
-              const refusal = chosen
-                .map((file) => refuseFile(file, maxFileSizeMb))
-                .find(Boolean);
-              if (refusal) {
-                setPreflight(refusal);
-                event.currentTarget.value = "";
-                return;
-              }
-              setPreflight(null);
-              event.currentTarget.form?.requestSubmit();
-            }}
-          />
-        </form>
-      </div>
+          Picking the files *is* the confirmation: the browser's own picker
+          already has a Cancel, and it is the only dialogue in the sequence
+          anyone reads.
+        */}
+        <FileButton
+          label={progress ? `${progress.pct}%` : busy ? "Uploading…" : "Upload"}
+          multiple
+          size="sm"
+          disabled={busy}
+          onSelect={onSelect}
+        />      </div>
 
       {preflight && (
         <p className="mt-1 text-[13px] text-rose-700">{preflight}</p>
-      )}
-      {failed(state) && (
-        <p className="mt-1 text-[13px] text-rose-700">{state.error}</p>
       )}
       {failed(removeState) && (
         <p className="mt-1 text-[13px] text-rose-700">{removeState.error}</p>

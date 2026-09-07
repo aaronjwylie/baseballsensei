@@ -45,9 +45,10 @@ import {
   resetStatusAction,
   resolveSubmissionAction,
   removeFileAction,
-  uploadToFolderAction,
   unarchiveSubmissionAction,
 } from "./adminActions";
+import { storage } from "@/shared/storage";
+import type { UploadMode } from "@/shared/upload";
 
 export const metadata: Metadata = {
   title: "Admin: Submissions",
@@ -156,6 +157,10 @@ export default async function AdminHomePage({
   // Settings joins the batch rather than being read per row: the two retention
   // windows are the operator's, not the submission's, so one read serves every
   // countdown on the page.
+  // Prod uploads straight to Blob; dev proxies to disk. The same seam the
+  // customer flow and both operator portals read.
+  const uploadMode: UploadMode = storage.supportsDirectUpload ? "blob" : "proxy";
+
   const [all, coaches, translators, settings] = await Promise.all([
     listSubmissions(),
     listCoaches(),
@@ -210,6 +215,7 @@ export default async function AdminHomePage({
       <SubmissionRow
         submission={s}
         maxFileSizeMb={settings.maxFileSizeMb}
+        uploadMode={uploadMode}
         translators={translators}
         files={filesBySubmission.get(s.id) ?? []}
         feedbackFiles={feedbackBySubmission.get(s.id) ?? []}
@@ -255,13 +261,16 @@ function SubmissionRow({
   translators,
   retention,
   maxFileSizeMb,
+  uploadMode,
 }: {
   submission: Submission;
   files: SubmissionFile[];
   feedbackFiles: SubmissionFile[];
   folders?: Record<FileKind, SubmissionFile[]>;
-  /** The upload limit, so a folder box can refuse before it posts. */
+  /** The upload limit, so a folder box can refuse before a byte moves. */
   maxFileSizeMb: number;
+  /** Direct-to-Blob in prod, proxied to disk in dev. */
+  uploadMode: UploadMode;
   progress?: {
     reached: Set<SubmissionStatus>;
     emails: Map<string, boolean>;
@@ -751,7 +760,7 @@ function SubmissionRow({
             submissionId={submission.id}
             folders={folderMap}
             maxFileSizeMb={maxFileSizeMb}
-            uploadAction={uploadToFolderAction}
+            uploadMode={uploadMode}
             removeAction={removeFileAction}
           />
         ) : (
