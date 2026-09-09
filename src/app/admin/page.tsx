@@ -3,7 +3,7 @@ import { Container, LocalTime, pillClass } from "@/shared/ui";
 import { FLOW_WINDOW_MINUTES } from "@/shared/lib";
 import {
   listFeedbackFilesForSubmissions,
-  listFilesForSubmissions,
+  listIntakeFilesForSubmissions,
   listSubmissions,
   SubmissionFileList,
   type Submission,
@@ -191,7 +191,7 @@ export default async function AdminHomePage({
     eventsBySubmission,
     feedbackBySubmission,
   ] = await Promise.all([
-    listFilesForSubmissions(ids),
+    listIntakeFilesForSubmissions(ids),
     listFoldersForSubmissions(ids),
     listProgressFacts(ids),
     listEventsForSubmissions(ids),

@@ -100,7 +100,7 @@ export async function addIntakeFileWithinLimit(
 }
 
 /** One submission's intake files — originals and translations — oldest first. */
-export async function listSubmissionFiles(
+export async function listIntakeFiles(
   submissionId: string,
 ): Promise<SubmissionFile[]> {
   const rows = await db
@@ -137,7 +137,7 @@ export async function listFeedbackFiles(
  * Intake files for several submissions at once — the portal's read. One query
  * for a whole page; the caller groups by `submissionId`.
  */
-export async function listFilesForSubmissions(
+export async function listIntakeFilesForSubmissions(
   submissionIds: string[],
 ): Promise<Map<string, SubmissionFile[]>> {
   const grouped = new Map<string, SubmissionFile[]>();
@@ -300,7 +300,7 @@ export async function listAllSubmissionFiles(
  *
  * The settled rule is that **everything is swept together** — the coach's
  * response included — which is only safe because the clock cannot start until
- * the customer has collected. The narrower `clearFileLocators` remains for the
+ * the customer has collected. The narrower `clearIntakeFileLocators` remains for the
  * abandoned path, where only intake exists anyway.
  */
 export async function clearAllFileLocators(
@@ -349,9 +349,10 @@ export async function countSubmissionFiles(
  * Forget the bytes, keep the record — the retention sweep, once the storage
  * object is gone.
  *
- * ⚠️ Intake only, for now. Phase 6 widens this to every kind.
+ * Intake only — the name says so, and `clearAllFileLocators` is the one the
+ * retention sweep uses.
  */
-export async function clearFileLocators(submissionId: string): Promise<void> {
+export async function clearIntakeFileLocators(submissionId: string): Promise<void> {
   await db
     .update(submissionFileTable)
     .set({ fileUrl: null })
@@ -366,7 +367,7 @@ export async function clearFileLocators(submissionId: string): Promise<void> {
 /**
  * Forget one file's bytes, keeping its record — the operator's manual purge.
  *
- * The single-file counterpart to `clearFileLocators`. Same shape deliberately:
+ * The single-file counterpart to `clearIntakeFileLocators`. Same shape deliberately:
  * a purged file is a row with no locator, whether a person or a schedule did it,
  * so `/api/files/[id]` answers 410 either way and nothing downstream has to know
  * which.

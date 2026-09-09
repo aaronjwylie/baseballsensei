@@ -31,7 +31,8 @@
     "qa:build": "node scripts/qa-build.mjs && node scripts/qa-selfpublish-check.mjs",
     "qa:check": "node scripts/qa-build.mjs --check",
     "qa:trail": "node scripts/qa-trail.mjs",
-    "qa:notes": "node scripts/qa-notes.mjs"
+    "qa:notes": "node scripts/qa-notes.mjs",
+    "audit:storage": "tsx --tsconfig tsconfig.simulate.json scripts/audit-storage.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",

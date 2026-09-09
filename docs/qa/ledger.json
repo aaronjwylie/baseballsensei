@@ -1127,9 +1127,15 @@
     "9.1": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "Hit /api/cron/sweep with the CRON_SECRET",
-      "expect": "Warns first, then purges per the windows",
+      "expect": "Covered by tests/integration/retentionSweep.test.ts — real bytes on disk, clocks moved rather than waited on. Warns first, then purges per the windows",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "Hit /api/cron/sweep with the CRON_SECRET",
+          "expect": "Warns first, then purges per the windows"
+        }
+      ]
     },
     "9.2": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -1141,16 +1147,28 @@
     "9.3": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "A swept submission's file",
-      "expect": "/api/files/[id] → 410 Gone",
+      "expect": "Covered by tests/integration/retentionSweep.test.ts — real bytes on disk, clocks moved rather than waited on. /api/files/[id] → 410 Gone",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "A swept submission's file",
+          "expect": "/api/files/[id] → 410 Gone"
+        }
+      ]
     },
     "9.4": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "Deletion-warning email",
-      "expect": "Sent once, and stamped even if the send failed",
+      "expect": "Covered by tests/integration/retentionSweep.test.ts — real bytes on disk, clocks moved rather than waited on. Sent once, and stamped even if the send failed",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "Deletion-warning email",
+          "expect": "Sent once, and stamped even if the send failed"
+        }
+      ]
     },
     "9.5": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -1750,16 +1768,28 @@
     "7.13": {
       "firstSeen": "2026-08-31T23:05:17.276Z",
       "what": "A leg whose files the retention sweep has cleared",
-      "expect": "\"Files deleted\" rather than an empty list or a broken link",
+      "expect": "Covered by tests/integration/translatorGuards.test.ts. \"Files deleted\" rather than an empty list or a broken link",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "A leg whose files the retention sweep has cleared",
+          "expect": "\"Files deleted\" rather than an empty list or a broken link"
+        }
+      ]
     },
     "7.14": {
       "firstSeen": "2026-08-31T23:05:17.276Z",
       "what": "Handed-back legs stay visible",
-      "expect": "Under \"Handed back\", with the file count they delivered",
+      "expect": "Covered by tests/integration/translatorGuards.test.ts. Under \"Handed back\", with the file count they delivered",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "Handed-back legs stay visible",
+          "expect": "Under \"Handed back\", with the file count they delivered"
+        }
+      ]
     },
     "7.15": {
       "firstSeen": "2026-08-31T23:05:17.276Z",
@@ -2409,30 +2439,54 @@
     "8.9.25": {
       "firstSeen": "2026-09-03T21:19:20.366Z",
       "what": "⚠️ A \"both\" card says which file is which. Open a card released with both folders",
-      "expect": "Two headed groups: \"From your coach\" and \"Translated for you\". ⚠️ It listed two links distinguished only by whatever the coach happened to name them",
+      "expect": "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. Two headed groups: \"From your coach\" and \"Translated for you\". ⚠️ It listed two links distinguished only by whatever the coach happened to name them",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "⚠️ A \"both\" card says which file is which. Open a card released with both folders",
+          "expect": "Two headed groups: \"From your coach\" and \"Translated for you\". ⚠️ It listed two links distinguished only by whatever the coach happened to name them"
+        }
+      ]
     },
     "8.9.26": {
       "firstSeen": "2026-09-03T21:19:20.366Z",
       "what": "A single-folder card stays flat",
-      "expect": "No heading over a list that could not be anything else",
+      "expect": "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. No heading over a list that could not be anything else",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "A single-folder card stays flat",
+          "expect": "No heading over a list that could not be anything else"
+        }
+      ]
     },
     "8.9.27": {
       "firstSeen": "2026-09-03T21:19:20.366Z",
       "what": "The coach's own file comes first",
-      "expect": "Even when the translation was uploaded first — ordered by folder, not upload time",
+      "expect": "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. Even when the translation was uploaded first — ordered by folder, not upload time",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "The coach's own file comes first",
+          "expect": "Even when the translation was uploaded first — ordered by folder, not upload time"
+        }
+      ]
     },
     "8.9.28": {
       "firstSeen": "2026-09-03T21:19:20.366Z",
       "what": "The labels never name a language",
-      "expect": "\"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one",
+      "expect": "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. \"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "The labels never name a language",
+          "expect": "\"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one"
+        }
+      ]
     },
     "5.9.41": {
       "firstSeen": "2026-09-03T21:45:34.324Z",
@@ -2528,23 +2582,41 @@
     "8.9.37": {
       "firstSeen": "2026-09-03T22:42:18.743Z",
       "what": "⚠️ The end-of-ladder wait counts down. Open a resolved submission",
-      "expect": "\"12 days to deletion\", not \"waiting on the retention clock\"",
+      "expect": "Covered by tests/unit/deletionClock.test.ts. \"12 days to deletion\", not \"waiting on the retention clock\"",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "⚠️ The end-of-ladder wait counts down. Open a resolved submission",
+          "expect": "\"12 days to deletion\", not \"waiting on the retention clock\""
+        }
+      ]
     },
     "8.9.38": {
       "firstSeen": "2026-09-03T22:42:18.743Z",
       "what": "⚠️ An overdue sweep says so. A submission past its deletion date",
-      "expect": "\"overdue by Nd — is the sweep running?\" rather than \"0 days\". Clamping is how a stopped cron stays unnoticed",
+      "expect": "Covered by tests/unit/deletionClock.test.ts. \"overdue by Nd — is the sweep running?\" rather than \"0 days\". Clamping is how a stopped cron stays unnoticed",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "⚠️ An overdue sweep says so. A submission past its deletion date",
+          "expect": "\"overdue by Nd — is the sweep running?\" rather than \"0 days\". Clamping is how a stopped cron stays unnoticed"
+        }
+      ]
     },
     "8.9.39": {
       "firstSeen": "2026-09-03T22:42:18.743Z",
       "what": "Before anything is delivered",
-      "expect": "\"no deletion date yet\" — neither clock has started, so there is nothing to count",
+      "expect": "Covered by tests/unit/deletionClock.test.ts. \"no deletion date yet\" — neither clock has started, so there is nothing to count",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "Before anything is delivered",
+          "expect": "\"no deletion date yet\" — neither clock has started, so there is nothing to count"
+        }
+      ]
     },
     "8.9.40": {
       "firstSeen": "2026-09-03T22:42:18.743Z",
@@ -2563,9 +2635,15 @@
     "8.9.42": {
       "firstSeen": "2026-09-03T22:42:18.743Z",
       "what": "The number is the later of the two clocks",
-      "expect": "30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards",
+      "expect": "Covered by tests/unit/deletionClock.test.ts. 30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "The number is the later of the two clocks",
+          "expect": "30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards"
+        }
+      ]
     },
     "8.9.43": {
       "firstSeen": "2026-09-03T22:46:22.323Z",
@@ -2629,16 +2707,28 @@
     "8.9.49": {
       "firstSeen": "2026-09-04T00:38:36.466Z",
       "what": "⚠️ Storage matches the database. Audit the Blob store against every locator the DB holds — submission_file.file_url and operator_role_grant.image_url",
-      "expect": "No dangling rows — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault",
+      "expect": "Run npm run audit:storage (add -- --fix to clear orphans). ⚠️ No dangling rows — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "⚠️ Storage matches the database. Audit the Blob store against every locator the DB holds — submission_file.file_url and operator_role_grant.image_url",
+          "expect": "No dangling rows — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault"
+        }
+      ]
     },
     "8.9.50": {
       "firstSeen": "2026-09-04T00:38:36.466Z",
       "what": "⚠️ Replacing a coach photo drops the old object. Upload a photo, replace it, then audit",
-      "expect": "One object for that coach, not two. ⚠️ The removal was voided with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape",
+      "expect": "Same script. One object for that coach, not two. ⚠️ The removal was voided with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "⚠️ Replacing a coach photo drops the old object. Upload a photo, replace it, then audit",
+          "expect": "One object for that coach, not two. ⚠️ The removal was voided with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape"
+        }
+      ]
     },
     "6.6.1": {
       "firstSeen": "2026-09-05T00:02:20.654Z",
@@ -2735,9 +2825,15 @@
     "6.15.1": {
       "firstSeen": "2026-09-07T17:45:21.391Z",
       "what": "After the retention sweep. Read a finished card whose files have been purged",
-      "expect": "Every file still listed, struck through and marked deleted, and the count line says \"n files, deleted after the retention window\" rather than a bare count",
+      "expect": "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. Every file still listed, struck through and marked deleted, and the count line says \"n files, deleted after the retention window\" rather than a bare count",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T02:57:07.284Z",
+          "what": "After the retention sweep. Read a finished card whose files have been purged",
+          "expect": "Every file still listed, struck through and marked deleted, and the count line says \"n files, deleted after the retention window\" rather than a bare count"
+        }
+      ]
     }
   }
 }

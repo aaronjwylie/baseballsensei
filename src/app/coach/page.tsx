@@ -8,7 +8,7 @@ import {
   findByCoach,
   listFeedbackFiles,
   filesAsSent,
-  listFilesForSubmissions,
+  listIntakeFilesForSubmissions,
   listEventsForSubmissions,
   listFoldersForSubmissions,
   reachedAt,
@@ -44,7 +44,7 @@ export default async function CoachHomePage() {
   const coach = await getCoachByOperatorId(session.operatorId);
   const submissions = coach ? await findByCoach(coach.id) : [];
   // One query for the page rather than one per card.
-  const filesBySubmission = await listFilesForSubmissions(
+  const filesBySubmission = await listIntakeFilesForSubmissions(
     submissions.map((s) => s.id),
   );
 
@@ -155,7 +155,7 @@ export default async function CoachHomePage() {
                   Every folder, from the folders query — not the intake-only
                   one this used to filter for feedback files, which is why the
                   card said "0 files" for a coach who had just handed two back
-                  (Ben, 2026-09-07). `listFilesForSubmissions` returns
+                  (Ben, 2026-09-07). `listIntakeFilesForSubmissions` returns
                   INTAKE_KINDS only, so `isFeedback` could never match a row in
                   it. A filter that cannot match is the quietest kind of bug:
                   the page rendered, said something definite, and was wrong.

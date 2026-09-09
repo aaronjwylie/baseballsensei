@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 66</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 67</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1875,7 +1875,7 @@ const PHASES = [
           [
             "6.15.1",
             "After the retention sweep. Read a finished card whose files have been purged",
-            "Every file still listed, struck through and marked deleted, and the count line says \"n files, deleted after the retention window\" rather than a bare count"
+            "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. Every file still listed, struck through and marked deleted, and the count line says \"n files, deleted after the retention window\" rather than a bare count"
           ],
           [
             "6.16",
@@ -1998,12 +1998,12 @@ const PHASES = [
           [
             "7.13",
             "A leg whose files the retention sweep has cleared",
-            "\"Files deleted\" rather than an empty list or a broken link"
+            "Covered by tests/integration/translatorGuards.test.ts. \"Files deleted\" rather than an empty list or a broken link"
           ],
           [
             "7.14",
             "Handed-back legs stay visible",
-            "Under \"Handed back\", with the file count they delivered"
+            "Covered by tests/integration/translatorGuards.test.ts. Under \"Handed back\", with the file count they delivered"
           ],
           [
             "7.15",
@@ -2192,22 +2192,22 @@ const PHASES = [
           [
             "8.9.25",
             "⚠️ A \"both\" card says which file is which. Open a card released with both folders",
-            "Two headed groups: \"From your coach\" and \"Translated for you\". ⚠️ It listed two links distinguished only by whatever the coach happened to name them"
+            "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. Two headed groups: \"From your coach\" and \"Translated for you\". ⚠️ It listed two links distinguished only by whatever the coach happened to name them"
           ],
           [
             "8.9.26",
             "A single-folder card stays flat",
-            "No heading over a list that could not be anything else"
+            "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. No heading over a list that could not be anything else"
           ],
           [
             "8.9.27",
             "The coach's own file comes first",
-            "Even when the translation was uploaded first — ordered by folder, not upload time"
+            "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. Even when the translation was uploaded first — ordered by folder, not upload time"
           ],
           [
             "8.9.28",
             "The labels never name a language",
-            "\"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one"
+            "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. \"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one"
           ],
           [
             "8.9.32",
@@ -2252,17 +2252,17 @@ const PHASES = [
           [
             "8.9.37",
             "⚠️ The end-of-ladder wait counts down. Open a resolved submission",
-            "\"12 days to deletion\", not \"waiting on the retention clock\""
+            "Covered by tests/unit/deletionClock.test.ts. \"12 days to deletion\", not \"waiting on the retention clock\""
           ],
           [
             "8.9.38",
             "⚠️ An overdue sweep says so. A submission past its deletion date",
-            "\"overdue by Nd — is the sweep running?\" rather than \"0 days\". Clamping is how a stopped cron stays unnoticed"
+            "Covered by tests/unit/deletionClock.test.ts. \"overdue by Nd — is the sweep running?\" rather than \"0 days\". Clamping is how a stopped cron stays unnoticed"
           ],
           [
             "8.9.39",
             "Before anything is delivered",
-            "\"no deletion date yet\" — neither clock has started, so there is nothing to count"
+            "Covered by tests/unit/deletionClock.test.ts. \"no deletion date yet\" — neither clock has started, so there is nothing to count"
           ],
           [
             "8.9.40",
@@ -2277,7 +2277,7 @@ const PHASES = [
           [
             "8.9.42",
             "The number is the later of the two clocks",
-            "30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards"
+            "Covered by tests/unit/deletionClock.test.ts. 30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards"
           ],
           [
             "8.9.43",
@@ -2307,13 +2307,12 @@ const PHASES = [
           [
             "8.9.49",
             "⚠️ Storage matches the database. Audit the Blob store against every locator the DB holds — submission_file.file_url and operator_role_grant.image_url",
-            "No dangling rows — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault",
-            "flag"
+            "Run npm run audit:storage (add -- --fix to clear orphans). ⚠️ No dangling rows — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault"
           ],
           [
             "8.9.50",
             "⚠️ Replacing a coach photo drops the old object. Upload a photo, replace it, then audit",
-            "One object for that coach, not two. ⚠️ The removal was voided with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape"
+            "Same script. One object for that coach, not two. ⚠️ The removal was voided with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape"
           ],
           [
             "8.10",
@@ -2346,7 +2345,7 @@ const PHASES = [
           [
             "9.1",
             "Hit /api/cron/sweep with the CRON_SECRET",
-            "Warns first, then purges per the windows"
+            "Covered by tests/integration/retentionSweep.test.ts — real bytes on disk, clocks moved rather than waited on. Warns first, then purges per the windows"
           ],
           [
             "9.2",
@@ -2356,12 +2355,12 @@ const PHASES = [
           [
             "9.3",
             "A swept submission's file",
-            "/api/files/[id] → 410 Gone"
+            "Covered by tests/integration/retentionSweep.test.ts — real bytes on disk, clocks moved rather than waited on. /api/files/[id] → 410 Gone"
           ],
           [
             "9.4",
             "Deletion-warning email",
-            "Sent once, and stamped even if the send failed"
+            "Covered by tests/integration/retentionSweep.test.ts — real bytes on disk, clocks moved rather than waited on. Sent once, and stamped even if the send failed"
           ],
           [
             "9.5",

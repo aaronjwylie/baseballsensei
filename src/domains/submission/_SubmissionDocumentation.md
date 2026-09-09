@@ -1803,7 +1803,7 @@ nothing to notice. `isReleased` is the fix, and the general rule it carries:
   018). `findByCoach` inner-joins on `produces = 'feedback'`; `releaseAndRequeue`
   clears the rows and returns the freed leg to its queue. See §2d.
 - ✅ **`submissionFileTable`** — one row per uploaded file, replacing the single `videoUrl`.
-  `listFilesForSubmissions` fetches a whole portal page in one query rather than one per row.
+  `listIntakeFilesForSubmissions` fetches a whole portal page in one query rather than one per row.
 - ✅ **The flow cookie** (`api/flowSession.ts`) — a signed, httpOnly capability naming the
   one submission a browser started. It is what the upload gate checks now that payment no
   longer comes first. **Ten minutes, sliding**: every action re-issues it, so the clock

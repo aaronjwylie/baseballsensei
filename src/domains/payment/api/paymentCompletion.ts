@@ -17,7 +17,7 @@ import {
   declineEmailedFor,
   getSubmission,
   isPaid,
-  listSubmissionFiles,
+  listIntakeFiles,
   noteEmailSent,
   signStatusToken,
   updateSubmission,
@@ -51,7 +51,7 @@ export async function completePayment({
     the receipt still goes out; the emails themselves are best-effort already
     (ADR 004) and never throw.
   */
-  const files = await listSubmissionFiles(submission.id).catch((err) => {
+  const files = await listIntakeFiles(submission.id).catch((err) => {
     console.error("[payment] listing files for the receipt failed:", err);
     return [];
   });

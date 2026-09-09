@@ -42,6 +42,7 @@ const { handBackTranslationAction, removeTranslationFileAction } = await import(
   "@/domains/translation/api/translationActions"
 );
 const { inArray } = await import("drizzle-orm");
+const { storage } = await import("@/shared/storage");
 /*
   The dev upload route itself, not the action beside it. 7.11 says "refused by
   the upload routes", and the remove action is a different guard — testing that
@@ -175,16 +176,39 @@ describe("7.3.x/7.8–7.11 — uploading, removing and handing back", () => {
     expect(failed(result) ? result.error : "").toContain("the folder is empty");
   });
 
-  it("7.3.2 removes one of two and leaves the other", async () => {
+  /*
+    7.3.2 says "from the list **and from storage**", so the file here is a real
+    object rather than a fixture with an invented locator. A row-only test would
+    have passed while the bytes stayed behind — which is the half of a delete
+    that actually matters once a customer's video is involved.
+  */
+  it("7.3.2 removes one of two, from the list and from storage", async () => {
     const keep = await addFile(mineId, "intake_translation", "keep-JA.mp4");
-    const drop = await addFile(mineId, "intake_translation", "drop-JA.mp4");
 
-    expect(succeeded((await removeTranslationFileAction(drop.id)))).toBe(true);
+    const key = `submissions/${mineId}/intake_translation/drop-${stamp}.txt`;
+    const fileUrl = await storage.save(key, new TextEncoder().encode("bytes"), "text/plain");
+    await expect(storage.open(fileUrl)).resolves.toBeTruthy();
+    const drop = await addSubmissionFile(
+      {
+        submissionId: mineId,
+        filename: "drop-JA.txt",
+        contentType: "text/plain",
+        sizeBytes: 5,
+        fileUrl,
+      },
+      "intake_translation",
+    );
+
+    expect(succeeded(await removeTranslationFileAction(drop.id))).toBe(true);
 
     const left = (await listFilesByKinds(mineId, ["intake_translation"])).map(
       (f) => f.id,
     );
     expect(left).toEqual([keep.id]);
+    // `open` is the seam's own reader; a removed object must fail it. Asking
+    // through the interface rather than the filesystem keeps this true for the
+    // Blob driver as well as local disk.
+    await expect(storage.open(fileUrl)).rejects.toBeTruthy();
   });
 
   /*
@@ -310,6 +334,13 @@ describe("7.13 — a leg the retention sweep has cleared", () => {
     const leg = (await findLegsForTranslator(alice)).find(
       (l) => l.submission.id === swept,
     );
+    /*
+      7.14 — a handed-back leg is still returned, marked closed. The page splits
+      on `open`, so a leg that vanished from the query would vanish from the
+      portal, and a translator would lose the record of work they did.
+    */
+    expect(leg).toBeTruthy();
+    expect(leg?.open).toBe(false);
     expect(leg?.produced).toHaveLength(1);
     expect(leg?.produced[0]?.fileUrl).toBeFalsy();
     expect(leg?.produced[0]?.filename).toBe("gone-JA.mp4");

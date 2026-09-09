@@ -398,7 +398,7 @@ than assuming the fix held.
 | 6.13 | The panel says what the button does. The coach's is a fixed line in `FeedbackUpload`; the translator's is the leg's own `handBackHint` | A line under it: the admin reviews it and releases it to the customer. ⚠️ The translator's card carried this from the start and the coach's did not |
 | 6.14 | Upload and Send sit apart | Upload left, Send for approval right. During an upload only the Upload button reads busy, so the send never looks pressed when it hasn't been |
 | 6.15 | **The Submitted card is a receipt.** Hand back, then read the card under Submitted | The player and focus, the hand-back date, and **all four folders** with every file and its size — the same list the admin's panel shows for that submission. ⚠️ It said "0 files · No files on this submission" for every finished submission: the page loaded `listFilesForSubmissions`, which returns intake kinds only, then filtered it for feedback files. A filter that cannot match is the quietest kind of bug — the page rendered and stated something definite |
-| 6.15.1 | **After the retention sweep.** Read a finished card whose files have been purged | Every file still listed, struck through and marked deleted, and the count line says "n files, deleted after the retention window" rather than a bare count |
+| 6.15.1 | **After the retention sweep.** Read a finished card whose files have been purged | **Covered by `tests/unit/renderedLists.test.ts`** — the markup, not the layout. Every file still listed, struck through and marked deleted, and the count line says "n files, deleted after the retention window" rather than a bare count |
 | 6.16 | The same on the translator's Handed back list | The leg's own title and date, and all four folders — what they were given beside what they sent. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's `done` rung and not a shared one |
 
 ## Phase 7 · Translator portal (`/translator`)
@@ -427,8 +427,8 @@ than assuming the fix held.
 | 7.10 | ⚠️ **Another translator's leg.** As translator A, post a hand-back for a leg assigned to translator B | **Covered by `tests/integration/translatorGuards.test.ts`.** Refused. Role is not ownership — being *a* translator must not close *any* leg |
 | 7.11 | ⚠️ **The other folder.** Holding only the intake leg, upload to `feedback_translation` | **Covered by `tests/integration/translatorGuards.test.ts`.** Refused by the upload routes. Ownership is per leg, not per submission |
 | 7.12 | A translator with nothing assigned | The calm centred panel, not a page of empty "(0)" headings |
-| 7.13 | A leg whose files the retention sweep has cleared | "Files deleted" rather than an empty list or a broken link |
-| 7.14 | Handed-back legs stay visible | Under "Handed back", with the file count they delivered |
+| 7.13 | A leg whose files the retention sweep has cleared | **Covered by `tests/integration/translatorGuards.test.ts`.** "Files deleted" rather than an empty list or a broken link |
+| 7.14 | Handed-back legs stay visible | **Covered by `tests/integration/translatorGuards.test.ts`.** Under "Handed back", with the file count they delivered |
 | 7.15 | Upload a **large** file (over ~5 MB) as a translator | Succeeds. Prod goes straight to Blob; a route-proxied upload would hit the ~4.5 MB serverless body cap |
 
 ---
@@ -474,10 +474,10 @@ than assuming the fix held.
 | 8.9.22 | ⚠️ **And nothing of ours.** Inspect the payload behind `/status` | No coach, no internal notes, no Stripe id, no storage locator. The projection widened to the customer's own facts only, and the bar for adding a field is unchanged |
 | 8.9.23 | ⚠️ **A card per finished review.** Look up an email with several ready | One green card each, headed "Ready to download (n)". ⚠️ All of them sat inside a single green panel separated only by a player name, so seven reviews arrived as one block |
 | 8.9.24 | Each ready card carries the same detail as its history card | Player, age, focus, their own notes, both dates. They render one shared component, so the two lists cannot describe one submission two ways |
-| 8.9.25 | ⚠️ **A "both" card says which file is which.** Open a card released with both folders | Two headed groups: "From your coach" and "Translated for you". ⚠️ It listed two links distinguished only by whatever the coach happened to name them |
-| 8.9.26 | A single-folder card stays flat | No heading over a list that could not be anything else |
-| 8.9.27 | The coach's own file comes first | Even when the translation was uploaded first — ordered by folder, not upload time |
-| 8.9.28 | The labels never name a language | "From your coach" / "Translated for you". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one |
+| 8.9.25 | ⚠️ **A "both" card says which file is which.** Open a card released with both folders | **Covered by `tests/unit/renderedLists.test.ts`** — the markup, not the layout. Two headed groups: "From your coach" and "Translated for you". ⚠️ It listed two links distinguished only by whatever the coach happened to name them |
+| 8.9.26 | A single-folder card stays flat | **Covered by `tests/unit/renderedLists.test.ts`** — the markup, not the layout. No heading over a list that could not be anything else |
+| 8.9.27 | The coach's own file comes first | **Covered by `tests/unit/renderedLists.test.ts`** — the markup, not the layout. Even when the translation was uploaded first — ordered by folder, not upload time |
+| 8.9.28 | The labels never name a language | **Covered by `tests/unit/renderedLists.test.ts`** — the markup, not the layout. "From your coach" / "Translated for you". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one |
 | 8.9.32 | ⚠️ **Override reads like its neighbours.** Expand a row | "This submission", "Trail" and "Override" all carry the same small-caps label and a `›` that rotates. ⚠️ Override had its own "Override…" link and a "close", so the third panel of three announced itself as a different kind of control |
 | 8.9.33 | It still opens and its forms still work | It is a native `<details>` now, so it survives without hydration and cannot desync from what is on screen |
 | 8.9.34 | ⚠️ **No "Purge folder" control** | Retired — the folders take a per-file Remove. ⚠️ Check the Server Action is gone too, not just the button: an exported action with no UI is still a public endpoint |
@@ -486,19 +486,19 @@ than assuming the fix held.
 | 8.9.31 | A paid submission is unchanged | All four controls, exactly as before |
 | 8.9.35 | ⚠️ **The pipeline line fits its column.** Open a translated submission's detail panel | One line: `Translate · client English → Japanese`. ⚠️ It was a sentence and a half that wrapped to three lines and buried the part that varies. Aligned reads `Aligned — coach handles it directly` |
 | 8.9.36 | It is set like every other value there | `font-mono`. It was the one row in the body face, so it read as prose rather than a field |
-| 8.9.37 | ⚠️ **The end-of-ladder wait counts down.** Open a `resolved` submission | "12 days to deletion", not "waiting on the retention clock" |
-| 8.9.38 | ⚠️ **An overdue sweep says so.** A submission past its deletion date | "overdue by Nd — is the sweep running?" rather than "0 days". Clamping is how a stopped cron stays unnoticed |
-| 8.9.39 | Before anything is delivered | "no deletion date yet" — neither clock has started, so there is nothing to count |
+| 8.9.37 | ⚠️ **The end-of-ladder wait counts down.** Open a `resolved` submission | **Covered by `tests/unit/deletionClock.test.ts`.** "12 days to deletion", not "waiting on the retention clock" |
+| 8.9.38 | ⚠️ **An overdue sweep says so.** A submission past its deletion date | **Covered by `tests/unit/deletionClock.test.ts`.** "overdue by Nd — is the sweep running?" rather than "0 days". Clamping is how a stopped cron stays unnoticed |
+| 8.9.39 | Before anything is delivered | **Covered by `tests/unit/deletionClock.test.ts`.** "no deletion date yet" — neither clock has started, so there is nothing to count |
 | 8.9.40 | ⚠️ **The customer's card carries the deadline.** Look up a delivered submission on `/status` | A last line: "Files deleted in N days". ⚠️ They are told at ⑥ and again at ⑨; this is the same promise on the page they actually return to |
 | 8.9.41 | And it disappears once the files are gone | A countdown after the fact is shown too late — the struck-through filenames say it better |
-| 8.9.42 | The number is the later of the two clocks | 30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards |
+| 8.9.42 | The number is the later of the two clocks | **Covered by `tests/unit/deletionClock.test.ts`.** 30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards |
 | 8.9.43 | ⚠️ **One card per submission, and only one list.** Look up an email with several finished | A single "Your submissions (n)". ⚠️ It was two sections — every finished review appeared twice, once with its files and no status, once with its status and no files. Neither card was the whole thing |
 | 8.9.44 | The files are inside the card | Not in a separate panel with a "Download ↑" jump. The card already says whose review it is |
 | 8.9.45 | Ready ones come first | A parent whose review just landed does not scroll past submissions that need nothing from them |
 | 8.9.46 | ⚠️ **A released submission whose files were swept.** Age one past the retention window | Listed once, reading "No longer available", and **not** sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has |
 | 8.9.47 | Nothing finished | The same single list, in the server's order |
-| 8.9.49 | ⚠️ **Storage matches the database.** Audit the Blob store against every locator the DB holds — `submission_file.file_url` **and** `operator_role_grant.image_url` | ⚠️ **No dangling rows** — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault |
-| 8.9.50 | ⚠️ **Replacing a coach photo drops the old object.** Upload a photo, replace it, then audit | One object for that coach, not two. ⚠️ The removal was `void`ed with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape |
+| 8.9.49 | ⚠️ **Storage matches the database.** Audit the Blob store against every locator the DB holds — `submission_file.file_url` **and** `operator_role_grant.image_url` | **Run `npm run audit:storage`** (add `-- --fix` to clear orphans). ⚠️ **No dangling rows** — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault |
+| 8.9.50 | ⚠️ **Replacing a coach photo drops the old object.** Upload a photo, replace it, then audit | **Same script.** One object for that coach, not two. ⚠️ The removal was `void`ed with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape |
 | 8.10 | ⚠️ **Rungs 5 and 12 say "Chosen", not "Sent".** Assign a translator and stop before sending | The rail reads `5 · Chosen`, and only `6 · Sent` once the email goes. ⚠️ Both read "Sent" until 2026-08-31, so the rail asserted a send at the exact rung where nothing had been sent |
 | 8.11 | The reset-status dropdown agrees | Same words, same numbers. It reads the one label map |
 | 8.12 | ⚠️ **Screen-reader step count.** Inspect the rail's `aria-label` | "Step n of 20". It said "of 16" from the day translation added four rungs, and a screen reader was the only place that showed |
@@ -510,10 +510,10 @@ working and bounce silent. A single check would have gone green on the delivery 
 
 | # | Check | Expected |
 | --- | --- | --- |
-| 9.1 | Hit `/api/cron/sweep` with the `CRON_SECRET` | Warns first, then purges per the windows |
+| 9.1 | Hit `/api/cron/sweep` with the `CRON_SECRET` | **Covered by `tests/integration/retentionSweep.test.ts`** — real bytes on disk, clocks moved rather than waited on. Warns first, then purges per the windows |
 | 9.2 | Without the secret | Refused — and with `CRON_SECRET` unset the sweep **refuses to run at all** |
-| 9.3 | A swept submission's file | `/api/files/[id]` → **410 Gone** |
-| 9.4 | Deletion-warning email | Sent once, and stamped even if the send failed |
+| 9.3 | A swept submission's file | **Covered by `tests/integration/retentionSweep.test.ts`** — real bytes on disk, clocks moved rather than waited on. `/api/files/[id]` → **410 Gone** |
+| 9.4 | Deletion-warning email | **Covered by `tests/integration/retentionSweep.test.ts`** — real bytes on disk, clocks moved rather than waited on. Sent once, and stamped even if the send failed |
 | 9.5 | Resend webhook — **delivery** | `delivered` appears in the trail within a few seconds of a send |
 | 9.5.1 | Resend webhook — **bounce** | `bounced` appears in the trail within a minute of a send to `bounced@resend.dev` (Resend's simulator; a dead domain is accepted and never bounces, which is why earlier dead-domain tests saw nothing). `email.bounced` is already subscribed on the endpoint — verified via the Resend API. 2.2.5 depends on this |
 | 9.6 | Resend webhook with a bad signature | Rejected |
