@@ -72,6 +72,31 @@ describe("the admin copy", () => {
   });
 });
 
+/**
+ * The guarantee the whole design leans on — QA 1.2.19.
+ *
+ * The notify toggle promises "untick to stop your own copies; the shared inbox
+ * still receives everything". That second clause is what makes opting out safe:
+ * an admin who mutes is not cut out of the record, only out of the pinging. It
+ * holds because `site.email` is appended to `listAdminEmails()` unconditionally,
+ * after the notify filter rather than through it.
+ */
+describe("every admin muted", () => {
+  it("1.2.19 still reaches the shared inbox, and nobody else", async () => {
+    vi.doMock("@/domains/operator", () => ({
+      listAdminEmails: async () => ["contact@baseball-sensei.com"],
+    }));
+    vi.resetModules();
+    const mod = await import("@/domains/contact/api/contactEmail");
+    sent.length = 0;
+    await mod.sendContactMessage(input);
+    expect(sent[0]!.to).toBe("contact@baseball-sensei.com");
+    expect(sent[0]!.bcc).toEqual([]);
+    // The record is complete even when nobody is pinged.
+    expect(sent[0]!.replyTo).toContain("contact@baseball-sensei.com");
+  });
+});
+
 describe("the writer's receipt", () => {
   it("goes to them alone and names nobody else", async () => {
     await sendContactReceipt(input);

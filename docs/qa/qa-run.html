@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 70</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 71</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -787,8 +787,13 @@ const PHASES = [
           ],
           [
             "1.2.17",
-            "⚠️ contact@ delivers to the people who read it",
-            "Send to contact@ alone and every admin receives it. ⚠️ On 2026-09-09 it reached nobody — a mailbox with no members. Workspace configuration, not code"
+            "⚠️ contact@ is readable by every admin",
+            "Each admin can open the shared inbox and see the whole correspondence. Delegated access, not a delivery group — a group would push mail to admins who muted notifications, which is the one thing the toggle promises it will not do. Workspace configuration, not code"
+          ],
+          [
+            "1.2.19",
+            "Muting does not cut an admin out of the record. Untick notify on every admin, then submit the form",
+            "contact@ still receives it; nobody is bcc'd. site.email is appended after the notify filter, never through it"
           ],
           [
             "1.2.18",

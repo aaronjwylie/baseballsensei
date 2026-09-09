@@ -246,12 +246,38 @@ gap and neither belongs in code:
    in `From` rather than their own. Bcc protects the recipient list; only
    send-as protects the sender.
 
-**The honest boundary:** with (1) in place the notify toggle governs what this
-app sends and not what Google redistributes. Making it authoritative over the
-whole conversation would mean receiving inbound mail, threading it and fanning
-it out ourselves — a helpdesk, and squarely in [§2 Non-Goals](../../../CLAUDE.md#2-non-goals--anti-scope).
-Worth scoping as a change order if the team ever wants it; not worth drifting
-into.
+### Personal copies are the notification; `contact@` is the record
+
+**"Everyone is pushed every reply" and "an admin can opt out of being pushed"
+are the same switch.** They cannot both be true, and which one you get is
+decided entirely by how `contact@` is configured:
+
+| `contact@` as… | replies pushed to every admin | notify toggle means anything |
+|---|---|---|
+| a **delivery group** | yes | no — Google delivers to people who muted |
+| a **shared mailbox**, delegated | no — available, not pushed | **yes** |
+
+**Take the second.** Opting out should mean *don't ping me*, not *cut me out of
+the record* — which is exactly what the toggle already promises on the role
+card: "untick to stop your own copies; you stay a full admin, and the shared
+inbox still receives everything."
+
+That promise is load-bearing and is held by one line: `site.email` is appended
+to `listAdminEmails()` **after** the notify filter, never through it. So a
+submission mutes to nobody and the correspondence is still complete. There is a
+test on exactly that (`tests/unit/contactRouting.test.ts`), because it is the
+sentence the design rests on and nothing else would catch it going false.
+
+The residue is small and worth stating: an admin's reply is not *pushed* to the
+other admins, it is *available* to them in the shared inbox. That is the same
+trade the toggle makes everywhere else, and it is the one the label already
+describes.
+
+**What would change it** is receiving inbound mail, threading it and fanning it
+out ourselves — a helpdesk, squarely in [§2 Non-Goals](../../../CLAUDE.md#2-non-goals--anti-scope).
+That would make the toggle authoritative over the whole conversation rather than
+over what we send. Worth scoping as a change order if it is ever wanted; not
+worth drifting into.
 
 **Neither uses the default footer.** It says "about your coaching submission",
 which is wrong twice over here — the writer has not made one, and the admin is
