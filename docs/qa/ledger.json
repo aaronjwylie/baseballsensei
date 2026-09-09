@@ -3049,6 +3049,20 @@
       "expect": "\"Answer from contact@…, not from here\" — in the mail, at the moment somebody is deciding whether to hit Reply. A rule that lives only in a document is discovered by breaking it",
       "retired": false,
       "history": []
+    },
+    "1.2.22": {
+      "firstSeen": "2026-09-09T21:17:56.913Z",
+      "what": "⚠️ No admin notice puts the admins in to. Trigger ②, ④, ⑤ and ⑦ and read the headers",
+      "expect": "contact@ in to, every admin in bcc, through one adminAudience(). ⚠️ ⑤ handed every admin's personal address to the coach, and the coach's to every admin, until 2026-09-09",
+      "retired": false,
+      "history": []
+    },
+    "1.2.23": {
+      "firstSeen": "2026-09-09T21:17:56.913Z",
+      "what": "⑤ still addresses the coach openly",
+      "expect": "They are in to beside contact@ and not also bcc'd — a notice about your own work should not look like it was sent to somebody else, and both would deliver it twice",
+      "retired": false,
+      "history": []
     }
   }
 }

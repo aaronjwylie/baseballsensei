@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 72,
-    "generatedAt": "2026-09-09T21:07:31.969Z",
-    "checks": 356,
-    "live": 353,
+    "build": 73,
+    "generatedAt": "2026-09-09T21:17:56.913Z",
+    "checks": 358,
+    "live": 355,
     "retired": 3,
     "edited": 83
   },
@@ -341,6 +341,16 @@
                   "expect": "From reads contact@baseball-sensei.com, not a personal address. Needs send-as for each admin — bcc protects the recipient list, only send-as protects the sender"
                 }
               ]
+            },
+            {
+              "id": "1.2.22",
+              "what": "⚠️ No admin notice puts the admins in to. Trigger ②, ④, ⑤ and ⑦ and read the headers",
+              "expect": "contact@ in to, every admin in bcc, through one adminAudience(). ⚠️ ⑤ handed every admin's personal address to the coach, and the coach's to every admin, until 2026-09-09"
+            },
+            {
+              "id": "1.2.23",
+              "what": "⑤ still addresses the coach openly",
+              "expect": "They are in to beside contact@ and not also bcc'd — a notice about your own work should not look like it was sent to somebody else, and both would deliver it twice"
             },
             {
               "id": "1.2.20",

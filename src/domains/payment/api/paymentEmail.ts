@@ -79,7 +79,9 @@ function fileList(files: SubmissionFile[]): string {
  * arrivals has to be watched instead of used.
  */
 export function sendPaymentReceivedEmail(opts: {
-  to: string[];
+  to: string | string[];
+  /** The admins, blind — built by `adminAudience`. */
+  bcc?: string[];
   playerName: string;
   focus?: string;
   fileCount: number;
@@ -94,6 +96,7 @@ export function sendPaymentReceivedEmail(opts: {
   const files = `${opts.fileCount} file${opts.fileCount === 1 ? "" : "s"}`;
   return sendEmail({
     to: opts.to,
+    bcc: opts.bcc,
     subject: `${site.name}: new paid submission for ${opts.playerName}`,
     html: emailShell(
       "A new submission is paid and waiting",

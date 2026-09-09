@@ -29,7 +29,7 @@ import {
   assigneeFor,
 } from "@/domains/submission";
 import { getCoach } from "@/domains/operator";
-import { listAdminEmails } from "@/domains/operator";
+import { adminAudience } from "@/domains/operator";
 import { getSettings } from "@/domains/settings";
 import { env } from "@/shared/config/env";
 import {
@@ -111,9 +111,16 @@ export async function sendFeedbackForApproval(
   // work is delivered either way, and a webhook must never fail on mail.
   const assignee = await assigneeFor(updated.id, "feedback");
   const coach = assignee ? await getCoach(assignee) : null;
-  const admins = await listAdminEmails();
+  /*
+    The coach is addressed openly and the admins are blind. A notice about your
+    own work should not look like it was sent to somebody else — and until
+    2026-09-09 this handed every admin's personal address to the coach, and the
+    coach's to every admin, for no reason either of them needed.
+  */
+  const audience = await adminAudience(coach?.email ?? undefined);
   const submitted = await sendResponseSubmittedEmail({
-    to: [...admins, ...(coach?.email ? [coach.email] : [])],
+    to: audience.to,
+    bcc: audience.bcc,
     coachName: coach?.name ?? "The coach",
     playerName: updated.playerName,
     fileCount: files.length,
@@ -182,8 +189,10 @@ export async function noteCustomerCollected(
     const collected = await markCustomerCollected(submissionId);
     if (!collected) return;
 
+    const collectedAudience = await adminAudience();
     const result = await sendCustomerCollectedEmail({
-      to: await listAdminEmails(),
+      to: collectedAudience.to,
+      bcc: collectedAudience.bcc,
       playerName: collected.playerName,
       submissionUrl: `${env.siteUrl}/admin`,
     });

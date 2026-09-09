@@ -16,11 +16,10 @@ vi.mock("@/shared/email", async (orig) => ({
   },
 }));
 vi.mock("@/domains/operator", () => ({
-  listAdminEmails: async () => [
-    "contact@baseball-sensei.com",
-    "aaron@example.com",
-    "yuta@example.com",
-  ],
+  adminAudience: async (alsoTo?: string) => ({
+    to: alsoTo ? ["contact@baseball-sensei.com", alsoTo] : "contact@baseball-sensei.com",
+    bcc: ["aaron@example.com", "yuta@example.com"].filter((a) => a !== alsoTo),
+  }),
 }));
 
 const { sendContactMessage, sendContactReceipt } = await import(
@@ -84,7 +83,7 @@ describe("the admin copy", () => {
 describe("every admin muted", () => {
   it("1.2.19 still reaches the shared inbox, and nobody else", async () => {
     vi.doMock("@/domains/operator", () => ({
-      listAdminEmails: async () => ["contact@baseball-sensei.com"],
+      adminAudience: async () => ({ to: "contact@baseball-sensei.com", bcc: [] }),
     }));
     vi.resetModules();
     const mod = await import("@/domains/contact/api/contactEmail");

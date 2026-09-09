@@ -58,6 +58,37 @@ export async function listAdminEmails(): Promise<string[]> {
 }
 
 /**
+ * How to address the admins: **the shared inbox visibly, the people blind.**
+ *
+ * Every notice used to put all four admins in `to`, which gave nothing and
+ * risked something. It gave nothing because an admin who wants to know who was
+ * told can read the notify flags in the portal, where they are actually true —
+ * a header is a stale copy of that at best. It risked something because a `to`
+ * list travels: forward the mail once and every admin's personal address goes
+ * with it, and ⑤ already carried them all to the coach (Ben, 2026-09-09).
+ *
+ * `site.email` takes the `to` slot, so there is always a real recipient and the
+ * shared inbox stays the record. `alsoTo` is for the message with a second
+ * audience — ⑤ tells the coach their work arrived as much as it tells us — and
+ * that person is addressed openly, because a notice about your own work should
+ * not look like it was sent to somebody else.
+ *
+ * Bcc is not secrecy here; it is that nobody outside this group has any use for
+ * the list, and one forward is all it takes to hand it over.
+ */
+export async function adminAudience(
+  alsoTo?: string,
+): Promise<{ to: string | string[]; bcc: string[] }> {
+  const everyone = await listAdminEmails();
+  const shared = site.email.trim().toLowerCase();
+  const also = alsoTo?.trim().toLowerCase();
+  return {
+    to: also && also !== shared ? [shared, also] : shared,
+    bcc: everyone.filter((address) => address !== shared && address !== also),
+  };
+}
+
+/**
  * Look someone up by their login address.
  *
  * Callers that use this to decide whether to send something must resolve the

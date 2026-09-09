@@ -174,7 +174,9 @@ export function sendAssignmentEmail(opts: AssignmentEmailInput) {
  * day the enum grows a value nobody wants printed.
  */
 export function sendCollectedEmail(opts: {
-  to: string[];
+  to: string | string[];
+  /** The admins, blind — built by `adminAudience`. */
+  bcc?: string[];
   collectorName: string;
   role: string;
   playerName: string;
@@ -188,6 +190,7 @@ export function sendCollectedEmail(opts: {
   const player = esc(opts.playerName);
   return sendEmail({
     to: opts.to,
+    bcc: opts.bcc,
     subject: `${site.name}: ${opts.collectorName} picked up ${opts.playerName}`,
     html: emailShell(
       `The ${opts.role} has the files`,

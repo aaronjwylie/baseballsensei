@@ -25,7 +25,7 @@ import {
 import { site } from "@/shared/config/site";
 import { getSettings } from "@/domains/settings";
 import type { PaidResult } from "../model/fulfillment";
-import { listAdminEmails } from "@/domains/operator";
+import { adminAudience } from "@/domains/operator";
 import {
   sendPaymentFailed,
   sendPaymentReceivedEmail,
@@ -99,13 +99,14 @@ export async function completePayment({
   // announces the same sale twice to nobody. Admin lookup is wrapped for the
   // same reason as the reads above — a failure here must not cost the customer
   // their receipt, which has already been sent.
-  const adminEmails = await listAdminEmails().catch((err) => {
+  const audience = await adminAudience().catch((err) => {
     console.error("[payment] listing admin emails for the arrival note failed:", err);
-    return [] as string[];
+    return null;
   });
-  if (adminEmails.length > 0) {
+  if (audience) {
     const arrival = await sendPaymentReceivedEmail({
-      to: adminEmails,
+      to: audience.to,
+      bcc: audience.bcc,
       playerName: submission.playerName,
       focus: submission.focus,
       fileCount: files.length,

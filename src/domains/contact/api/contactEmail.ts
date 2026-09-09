@@ -1,7 +1,7 @@
 import "server-only";
 import { emailShell, escapeHtml, quotedMessage, sendEmail } from "@/shared/email";
 import { site } from "@/shared/config/site";
-import { listAdminEmails } from "@/domains/operator";
+import { adminAudience } from "@/domains/operator";
 import type { ContactInput } from "../model/contactInput";
 
 /**
@@ -55,13 +55,13 @@ export async function sendContactMessage(input: ContactInput) {
   const name = escapeHtml(`${input.firstName} ${input.lastName}`.trim());
   const email = escapeHtml(input.email);
 
-  // `contact@` is always in the list and is the identity the customer sees; the
-  // people are bcc so no address of ours can travel back to them.
-  const everyone = await listAdminEmails();
-  const bcc = everyone.filter((address) => address !== site.email.toLowerCase());
+  // The same shape every admin notice uses — `contact@` visible, the people
+  // blind. It was written out by hand here first; `adminAudience` is that rule
+  // with one home, so a fifth message cannot get it wrong.
+  const { to, bcc } = await adminAudience();
 
   return sendEmail({
-    to: site.email,
+    to,
     bcc,
     replyTo: [input.email, site.email],
     subject: `${site.name}: message from ${name}`,

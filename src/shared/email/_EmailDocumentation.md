@@ -224,11 +224,27 @@ for; anything Google distributes is outside it.
 | `bcc` | every admin with notify on | — |
 | `reply_to` | **the writer *and* `contact@`** | — (from is already right) |
 
-**Bcc, because a customer is in this thread.** Four admins in `to` means any one
-of them can hand the customer all four addresses by hitting reply-all, and
-"remember not to reply-all" is not a mechanism. The submission notices (②④⑤⑦)
-keep everyone in `to` deliberately — no customer is ever in those threads, and
-seeing who else was told is useful.
+**Bcc, and not only here.** Every message that tells the admins something is
+addressed the same way, through `adminAudience()` in `domains/operator`:
+`contact@` in `to`, the people in `bcc`.
+
+It was the contact form's rule first, and the reasoning turned out to be too
+narrow (Ben, 2026-09-09). Keeping the others in `to` was defended as "seeing who
+else was told is useful" — but an admin who wants that reads the notify flags in
+the portal, where they are actually true, and a header is a stale copy at best.
+Against that, a `to` list **travels**: forward the mail once and every admin's
+personal address goes with it. ⑤ was not hypothetical either — it carried all
+four to the coach, and the coach's back to all four, for no reason either needed.
+
+Bcc is not secrecy. An admin knows who the other admins are. It is that nobody
+*outside* the group has any use for the list, and one forward is all it takes to
+hand it over.
+
+**A second audience is addressed openly.** ⑤ tells the coach their own work
+arrived as much as it tells us, so `adminAudience(coach.email)` puts them in
+`to` beside `contact@` and leaves them out of the bcc — a notice about your own
+work should not look like it was sent to somebody else, and being in both would
+deliver it twice.
 
 **Two addresses in `reply_to`** so one Reply reaches the customer *and* the
 shared inbox. The answer is delivered and archived in the same gesture, instead
