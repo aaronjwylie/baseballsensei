@@ -38,6 +38,9 @@ const {
   markTranslatorCollected,
 } = await import("@/domains/submission");
 const { findLegsForTranslator } = await import("@/domains/translation");
+const { recordSubmissionEvent, listSubmissionEvents, reachedAt } = await import(
+  "@/domains/submission"
+);
 const { handBackTranslationAction, removeTranslationFileAction } = await import(
   "@/domains/translation/api/translationActions"
 );
@@ -383,6 +386,37 @@ describe("6.16 — both legs of one submission, handed back", () => {
 
     // The titles differ too, so the two cards cannot be told apart only by date.
     expect(intake.leg.title).not.toBe(feedback.leg.title);
+  });
+
+  /*
+    And the dates. Each card is dated from **its own** leg's `done` rung, so a
+    translator who finished the intake on Monday and the return on Friday sees
+    Monday and Friday — not one shared submission timestamp on both.
+  */
+  it("dates each card from its own leg's rung", async () => {
+    const both = await makeSubmission();
+    await assignOperator(both, alice, "intake_translation");
+    await assignOperator(both, alice, "feedback_translation");
+
+    await recordSubmissionEvent(both, "intake_translated", "intake leg done");
+    await new Promise((r) => setTimeout(r, 20));
+    await recordSubmissionEvent(both, "feedback_translated", "return leg done");
+    await updateSubmission(both, { status: "feedback_translated" });
+
+    const events = await listSubmissionEvents(both);
+    const intakeDate = reachedAt(events, "intake_translated");
+    const returnDate = reachedAt(events, "feedback_translated");
+
+    expect(intakeDate).toBeTruthy();
+    expect(returnDate).toBeTruthy();
+    expect(intakeDate).not.toBe(returnDate);
+
+    // Which is what the page asks for, keyed by the leg rather than shared.
+    const legs = (await findLegsForTranslator(alice)).filter(
+      (l) => l.submission.id === both,
+    );
+    const dates = legs.map((l) => reachedAt(events, l.leg.done));
+    expect(new Set(dates).size).toBe(2);
   });
 });
 
