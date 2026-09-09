@@ -240,6 +240,19 @@ Bcc is not secrecy. An admin knows who the other admins are. It is that nobody
 *outside* the group has any use for the list, and one forward is all it takes to
 hand it over.
 
+**Applied evenly, and the compiler keeps it that way.** Audited 2026-09-09:
+exactly five messages address more than one person — ②, ④, ⑤, ⑦ and the contact
+form — and all five go through `adminAudience()`. Every other message takes
+`to: string`, one recipient, so the question cannot arise: ① the code, ③ and
+⑩⑪ the hand-offs, ⑥ ready, ⑧ thank you, ⑨ the warning, the receipt, the access
+code, the operator welcome, the password reset.
+
+`bcc` on those five is **required, not optional**. A message addressed to more
+than one person is a message that can expose a list, so the type refuses to
+describe one without saying where the people went. `bcc: []` is a legitimate
+answer — everyone muted — and it is an *answer*, which is the point. A sixth
+such message cannot be written wrong without failing `tsc`.
+
 **A second audience is addressed openly.** ⑤ tells the coach their own work
 arrived as much as it tells us, so `adminAudience(coach.email)` puts them in
 `to` beside `contact@` and leaves them out of the bcc — a notice about your own

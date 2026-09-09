@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 73</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 75</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -801,9 +801,19 @@ const PHASES = [
             "Out of scope, 2026-09-09 — send-as was not taken on. The accepted consequence: a reply from a personal address arrives from that address, so the customer's reply returns to that person alone and contact@ loses the thread"
           ],
           [
+            "1.2.24",
+            "⚠️ Retest on a fresh tab, not an open one",
+            "Vercel pins a browser to the deployment that served it for 12 hours (Skew Protection), so an open tab keeps running the code that was live when it loaded. ⚠️ Four contact-form tests on 2026-09-09 came out pre-fix while the fix was demonstrably live and every deploy had succeeded. See qa-plan.md §5b"
+          ],
+          [
             "1.2.22",
             "⚠️ No admin notice puts the admins in to. Trigger ②, ④, ⑤ and ⑦ and read the headers",
             "contact@ in to, every admin in bcc, through one adminAudience(). ⚠️ ⑤ handed every admin's personal address to the coach, and the coach's to every admin, until 2026-09-09"
+          ],
+          [
+            "1.2.25",
+            "A sixth multi-recipient message cannot forget the bcc",
+            "bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string"
           ],
           [
             "1.2.23",

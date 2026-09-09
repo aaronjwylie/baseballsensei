@@ -80,8 +80,8 @@ function fileList(files: SubmissionFile[]): string {
  */
 export function sendPaymentReceivedEmail(opts: {
   to: string | string[];
-  /** The admins, blind — built by `adminAudience`. */
-  bcc?: string[];
+  /** The admins, blind. Required — see `AdminAudience`. */
+  bcc: string[];
   playerName: string;
   focus?: string;
   fileCount: number;

@@ -3063,6 +3063,20 @@
       "expect": "They are in to beside contact@ and not also bcc'd — a notice about your own work should not look like it was sent to somebody else, and both would deliver it twice",
       "retired": false,
       "history": []
+    },
+    "1.2.24": {
+      "firstSeen": "2026-09-09T21:50:24.321Z",
+      "what": "⚠️ Retest on a fresh tab, not an open one",
+      "expect": "Vercel pins a browser to the deployment that served it for 12 hours (Skew Protection), so an open tab keeps running the code that was live when it loaded. ⚠️ Four contact-form tests on 2026-09-09 came out pre-fix while the fix was demonstrably live and every deploy had succeeded. See qa-plan.md §5b",
+      "retired": false,
+      "history": []
+    },
+    "1.2.25": {
+      "firstSeen": "2026-09-09T21:54:10.494Z",
+      "what": "A sixth multi-recipient message cannot forget the bcc",
+      "expect": "bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string",
+      "retired": false,
+      "history": []
     }
   }
 }

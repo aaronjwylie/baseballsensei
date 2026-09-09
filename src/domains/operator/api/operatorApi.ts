@@ -76,9 +76,18 @@ export async function listAdminEmails(): Promise<string[]> {
  * Bcc is not secrecy here; it is that nobody outside this group has any use for
  * the list, and one forward is all it takes to hand it over.
  */
-export async function adminAudience(
-  alsoTo?: string,
-): Promise<{ to: string | string[]; bcc: string[] }> {
+export interface AdminAudience {
+  to: string | string[];
+  /**
+   * **Required, not optional.** A message addressed to more than one person is
+   * a message that can expose a list, so the type refuses to describe one
+   * without saying where the people went. `bcc: []` is a legitimate answer —
+   * everyone muted — and it is an answer, which is the point.
+   */
+  bcc: string[];
+}
+
+export async function adminAudience(alsoTo?: string): Promise<AdminAudience> {
   const everyone = await listAdminEmails();
   const shared = site.email.trim().toLowerCase();
   const also = alsoTo?.trim().toLowerCase();

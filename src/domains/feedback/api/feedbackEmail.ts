@@ -69,8 +69,8 @@ export function sendFeedbackViewCode(to: string, code: string) {
  */
 export function sendResponseSubmittedEmail(opts: {
   to: string | string[];
-  /** The admins, blind — built by `adminAudience`. */
-  bcc?: string[];
+  /** The admins, blind. Required — see `AdminAudience`. */
+  bcc: string[];
   coachName: string;
   playerName: string;
   fileCount: number;
@@ -106,8 +106,8 @@ export function sendResponseSubmittedEmail(opts: {
  */
 export function sendCustomerCollectedEmail(opts: {
   to: string | string[];
-  /** The admins, blind — built by `adminAudience`. */
-  bcc?: string[];
+  /** The admins, blind. Required — see `AdminAudience`. */
+  bcc: string[];
   playerName: string;
   submissionUrl: string;
 }) {

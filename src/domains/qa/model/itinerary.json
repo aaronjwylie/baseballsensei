@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 73,
-    "generatedAt": "2026-09-09T21:17:56.913Z",
-    "checks": 358,
-    "live": 355,
+    "build": 75,
+    "generatedAt": "2026-09-09T21:54:10.494Z",
+    "checks": 360,
+    "live": 357,
     "retired": 3,
     "edited": 83
   },
@@ -343,9 +343,19 @@
               ]
             },
             {
+              "id": "1.2.24",
+              "what": "⚠️ Retest on a fresh tab, not an open one",
+              "expect": "Vercel pins a browser to the deployment that served it for 12 hours (Skew Protection), so an open tab keeps running the code that was live when it loaded. ⚠️ Four contact-form tests on 2026-09-09 came out pre-fix while the fix was demonstrably live and every deploy had succeeded. See qa-plan.md §5b"
+            },
+            {
               "id": "1.2.22",
               "what": "⚠️ No admin notice puts the admins in to. Trigger ②, ④, ⑤ and ⑦ and read the headers",
               "expect": "contact@ in to, every admin in bcc, through one adminAudience(). ⚠️ ⑤ handed every admin's personal address to the coach, and the coach's to every admin, until 2026-09-09"
+            },
+            {
+              "id": "1.2.25",
+              "what": "A sixth multi-recipient message cannot forget the bcc",
+              "expect": "bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string"
             },
             {
               "id": "1.2.23",

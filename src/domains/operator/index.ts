@@ -11,6 +11,7 @@ export {
   getOperatorById,
   listAdminEmails,
   adminAudience,
+  type AdminAudience,
 } from "./api/operatorApi";
 /*
   `credentialApi` is deliberately absent.

@@ -175,8 +175,8 @@ export function sendAssignmentEmail(opts: AssignmentEmailInput) {
  */
 export function sendCollectedEmail(opts: {
   to: string | string[];
-  /** The admins, blind — built by `adminAudience`. */
-  bcc?: string[];
+  /** The admins, blind. Required — see `AdminAudience`. */
+  bcc: string[];
   collectorName: string;
   role: string;
   playerName: string;
