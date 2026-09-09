@@ -124,6 +124,9 @@ yesterday's codebase, caught before it was tested rather than after.
 | 1.2.9 | **Hit reply on that mail** | ⚠️ Goes to the address *you typed in the form*, not to ourselves|
 | 1.2.10 | Message body | Your text, intact, and any `<tags>` shown as text not markup |
 | 1.2.11 | Submit a second time | Works; no duplicate-send guard needed |
+| 1.2.12 | **The writer gets a receipt too.** Submit the form, then check the address you typed | A confirmation quoting your own message back, so you have a copy and know it arrived. ⚠️ Added 2026-09-09 — the form answered only with "Message sent" on a page you are about to close |
+| 1.2.13 | Its footer doesn't call it a submission | "an automated confirmation that we received your message". The shell's default says "about your coaching submission", which is wrong twice here — the writer hasn't made one, and the admin copy isn't going to a customer |
+| 1.2.14 | The receipt can't fail the form | Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry |
 
 ### 1.3 Terms (`/terms`)
 | 1.3.1 | Loads, says it is a placeholder | Flag for legal copy |

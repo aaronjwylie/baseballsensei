@@ -13,7 +13,7 @@ emails exist and which don't" is a question no single domain can answer.
 
 ## Where we are now — 2026-08-01 (evening)
 
-**All nine built**, plus two off-spine messages. The set grew from six this
+**All nine built**, plus four off-spine messages. The set grew from six this
 morning when the northstar path added two download confirmations and a deletion
 warning; all three landed the same day, along with the four that tell the admin
 something.
@@ -184,13 +184,31 @@ in the row, and nothing here acts destructively on a submission somebody paid fo
 
 ### Off the spine
 
-Two messages belong to side-paths rather than to a stage, so they carry no number
-— there's no rung for them to sit on.
+Four messages belong to side-paths rather than to a stage, so they carry no
+number — there's no rung for them to sit on.
 
 | Trigger | To | Status |
 |---|---|---|
 | A card was declined | customer | ✅ **built** — `domains/payment/api/paymentEmail.ts`, carries a link back into the flow |
 | Status-page access code | customer | ✅ **built** — `domains/feedback/api/feedbackEmail.ts` |
+| Contact form submitted | **every admin** | ✅ **built** — `domains/contact/api/contactEmail.ts`, `replyTo` the writer |
+| Contact form submitted | **the writer** | ✅ **built** — same file, a receipt quoting their own message back (2026-09-09) |
+
+**The two contact messages are the only pair that describes one event twice**,
+and they differ in the two ways that matter. The admin's carries `replyTo` so
+hitting reply answers the writer rather than ourselves; the receipt carries none,
+because it already comes from the shared inbox and reply is already right. And
+the admin's send *is* the work — the form fails if it doesn't leave — while the
+receipt is best-effort behind it, because by then the message has arrived and
+failing the form would only earn us a duplicate.
+
+They quote the message through one `quotedMessage()` in `shared/email/shell.ts`,
+so the words cannot be shown two ways. Nobody would catch it if they were: no
+one sees both emails except by accident.
+
+**Neither uses the default footer.** It says "about your coaching submission",
+which is wrong twice over here — the writer has not made one, and the admin is
+not a customer.
 
 **The decline message is deliberately vague about the reason.** Stripe's own
 wording is shown inline on the page, where it's actionable; repeating

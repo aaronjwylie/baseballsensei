@@ -2962,6 +2962,27 @@
           "expect": "Every file still listed, struck through and marked deleted, and the count line says \"n files, deleted after the retention window\" rather than a bare count"
         }
       ]
+    },
+    "1.2.12": {
+      "firstSeen": "2026-09-09T19:36:54.454Z",
+      "what": "The writer gets a receipt too. Submit the form, then check the address you typed",
+      "expect": "A confirmation quoting your own message back, so you have a copy and know it arrived. ⚠️ Added 2026-09-09 — the form answered only with \"Message sent\" on a page you are about to close",
+      "retired": false,
+      "history": []
+    },
+    "1.2.13": {
+      "firstSeen": "2026-09-09T19:36:54.454Z",
+      "what": "Its footer doesn't call it a submission",
+      "expect": "\"an automated confirmation that we received your message\". The shell's default says \"about your coaching submission\", which is wrong twice here — the writer hasn't made one, and the admin copy isn't going to a customer",
+      "retired": false,
+      "history": []
+    },
+    "1.2.14": {
+      "firstSeen": "2026-09-09T19:36:54.454Z",
+      "what": "The receipt can't fail the form",
+      "expect": "Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry",
+      "retired": false,
+      "history": []
     }
   }
 }

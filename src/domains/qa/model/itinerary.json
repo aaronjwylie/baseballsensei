@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 68,
-    "generatedAt": "2026-09-09T03:48:51.987Z",
-    "checks": 346,
-    "live": 345,
+    "build": 69,
+    "generatedAt": "2026-09-09T19:36:54.454Z",
+    "checks": 349,
+    "live": 348,
     "retired": 1,
     "edited": 81
   },
@@ -285,6 +285,21 @@
               "id": "1.2.11",
               "what": "Submit a second time",
               "expect": "Works; no duplicate-send guard needed"
+            },
+            {
+              "id": "1.2.12",
+              "what": "The writer gets a receipt too. Submit the form, then check the address you typed",
+              "expect": "A confirmation quoting your own message back, so you have a copy and know it arrived. ⚠️ Added 2026-09-09 — the form answered only with \"Message sent\" on a page you are about to close"
+            },
+            {
+              "id": "1.2.13",
+              "what": "Its footer doesn't call it a submission",
+              "expect": "\"an automated confirmation that we received your message\". The shell's default says \"about your coaching submission\", which is wrong twice here — the writer hasn't made one, and the admin copy isn't going to a customer"
+            },
+            {
+              "id": "1.2.14",
+              "what": "The receipt can't fail the form",
+              "expect": "Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry"
             }
           ]
         },

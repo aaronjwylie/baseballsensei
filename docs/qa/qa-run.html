@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 68</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 69</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -764,6 +764,21 @@ const PHASES = [
             "1.2.11",
             "Submit a second time",
             "Works; no duplicate-send guard needed"
+          ],
+          [
+            "1.2.12",
+            "The writer gets a receipt too. Submit the form, then check the address you typed",
+            "A confirmation quoting your own message back, so you have a copy and know it arrived. ⚠️ Added 2026-09-09 — the form answered only with \"Message sent\" on a page you are about to close"
+          ],
+          [
+            "1.2.13",
+            "Its footer doesn't call it a submission",
+            "\"an automated confirmation that we received your message\". The shell's default says \"about your coaching submission\", which is wrong twice here — the writer hasn't made one, and the admin copy isn't going to a customer"
+          ],
+          [
+            "1.2.14",
+            "The receipt can't fail the form",
+            "Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry"
           ]
         ]
       },
