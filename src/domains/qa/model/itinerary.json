@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 71,
-    "generatedAt": "2026-09-09T20:06:33.458Z",
-    "checks": 354,
+    "build": 72,
+    "generatedAt": "2026-09-09T21:07:31.969Z",
+    "checks": 356,
     "live": 353,
-    "retired": 1,
-    "edited": 82
+    "retired": 3,
+    "edited": 83
   },
   "phases": [
     {
@@ -309,12 +309,18 @@
             {
               "id": "1.2.17",
               "what": "⚠️ contact@ is readable by every admin",
-              "expect": "Each admin can open the shared inbox and see the whole correspondence. Delegated access, not a delivery group — a group would push mail to admins who muted notifications, which is the one thing the toggle promises it will not do. Workspace configuration, not code",
+              "expect": "Out of scope, 2026-09-09. Aaron and Ben chose not to take on the Workspace delegation work. Correspondence runs between contact@ and the customer; an admin's own address signs them in and tells them things, and is not for corresponding from",
+              "retired": true,
               "history": [
                 {
                   "at": "2026-09-09T20:06:33.458Z",
                   "what": "⚠️ contact@ delivers to the people who read it",
                   "expect": "Send to contact@ alone and every admin receives it. ⚠️ On 2026-09-09 it reached nobody — a mailbox with no members. Workspace configuration, not code"
+                },
+                {
+                  "at": "2026-09-09T21:07:31.969Z",
+                  "what": "⚠️ contact@ is readable by every admin",
+                  "expect": "Each admin can open the shared inbox and see the whole correspondence. Delegated access, not a delivery group — a group would push mail to admins who muted notifications, which is the one thing the toggle promises it will not do. Workspace configuration, not code"
                 }
               ]
             },
@@ -326,7 +332,25 @@
             {
               "id": "1.2.18",
               "what": "⚠️ An admin's reply carries the brand address",
-              "expect": "From reads contact@baseball-sensei.com, not a personal address. Needs send-as for each admin — bcc protects the recipient list, only send-as protects the sender"
+              "expect": "Out of scope, 2026-09-09 — send-as was not taken on. The accepted consequence: a reply from a personal address arrives from that address, so the customer's reply returns to that person alone and contact@ loses the thread",
+              "retired": true,
+              "history": [
+                {
+                  "at": "2026-09-09T21:07:31.969Z",
+                  "what": "⚠️ An admin's reply carries the brand address",
+                  "expect": "From reads contact@baseball-sensei.com, not a personal address. Needs send-as for each admin — bcc protects the recipient list, only send-as protects the sender"
+                }
+              ]
+            },
+            {
+              "id": "1.2.20",
+              "what": "The Admins tab says the address is not for correspondence",
+              "expect": "An amber note under the blurb, on that tab only. It is where an admin is added, which is where the expectation is set"
+            },
+            {
+              "id": "1.2.21",
+              "what": "The contact notification says it too",
+              "expect": "\"Answer from contact@…, not from here\" — in the mail, at the moment somebody is deciding whether to hit Reply. A rule that lives only in a document is discovered by breaking it"
             },
             {
               "id": "1.2.14",

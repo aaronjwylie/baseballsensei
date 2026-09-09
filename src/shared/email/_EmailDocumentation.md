@@ -273,6 +273,28 @@ other admins, it is *available* to them in the shared inbox. That is the same
 trade the toggle makes everywhere else, and it is the one the label already
 describes.
 
+### What the team decided, 2026-09-09
+
+**Scope stays where it is.** Aaron and Ben chose not to take on the Workspace
+work — no send-as, no delegation — and to accept the narrower model instead:
+
+> An admin's own address signs them in and tells them a submission arrived. It
+> is **not** an address to correspond from. Correspondence runs between
+> `contact@` and the customer.
+
+That is a sound trade, and the failure mode it accepts is worth naming exactly,
+because it is the reverse of the obvious one. An admin who answers from their
+personal address sends a message whose `From` is *theirs* — so the customer's
+Reply comes back to **that person alone**, and `contact@` never sees the rest of
+the thread. Nothing announces this; the shared record simply stops following a
+conversation it began. The personal address is now a stranger's to keep, too.
+
+It is written in the two places somebody meets the decision rather than in this
+file alone: on the **Admins tab** of the operators page, where an admin is
+added and the expectation is set, and in the **contact notification itself**,
+which is where a person is deciding whether to hit Reply. A rule that lives only
+in a document is a rule discovered by breaking it.
+
 **What would change it** is receiving inbound mail, threading it and fanning it
 out ourselves — a helpdesk, squarely in [§2 Non-Goals](../../../CLAUDE.md#2-non-goals--anti-scope).
 That would make the toggle authoritative over the whole conversation rather than

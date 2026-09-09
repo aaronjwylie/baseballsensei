@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 71</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 72</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -788,7 +788,7 @@ const PHASES = [
           [
             "1.2.17",
             "⚠️ contact@ is readable by every admin",
-            "Each admin can open the shared inbox and see the whole correspondence. Delegated access, not a delivery group — a group would push mail to admins who muted notifications, which is the one thing the toggle promises it will not do. Workspace configuration, not code"
+            "Out of scope, 2026-09-09. Aaron and Ben chose not to take on the Workspace delegation work. Correspondence runs between contact@ and the customer; an admin's own address signs them in and tells them things, and is not for corresponding from"
           ],
           [
             "1.2.19",
@@ -798,7 +798,17 @@ const PHASES = [
           [
             "1.2.18",
             "⚠️ An admin's reply carries the brand address",
-            "From reads contact@baseball-sensei.com, not a personal address. Needs send-as for each admin — bcc protects the recipient list, only send-as protects the sender"
+            "Out of scope, 2026-09-09 — send-as was not taken on. The accepted consequence: a reply from a personal address arrives from that address, so the customer's reply returns to that person alone and contact@ loses the thread"
+          ],
+          [
+            "1.2.20",
+            "The Admins tab says the address is not for correspondence",
+            "An amber note under the blurb, on that tab only. It is where an admin is added, which is where the expectation is set"
+          ],
+          [
+            "1.2.21",
+            "The contact notification says it too",
+            "\"Answer from contact@…, not from here\" — in the mail, at the moment somebody is deciding whether to hit Reply. A rule that lives only in a document is discovered by breaking it"
           ],
           [
             "1.2.14",

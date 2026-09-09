@@ -22,13 +22,19 @@ import type { ContactInput } from "../model/contactInput";
  *   `contact@`, so the answer is delivered and archived in one gesture rather
  *   than two an admin has to remember.
  *
- * **What this cannot do, and must not pretend to.** An admin's reply is sent by
- * Gmail, not by us, so we cannot fan *that* out — the other admins see it only
- * because it lands in `contact@`. Two pieces of Workspace configuration finish
- * the job and neither belongs in code: `contact@` has to deliver to the people
- * who read it, and each admin needs **send-as `contact@`** so their reply
- * carries the brand address in `From` rather than their own. Bcc protects the
- * recipient list; only send-as protects the sender.
+ * **Where it stops, and what the team decided about that** (Ben + Aaron,
+ * 2026-09-09). An admin's reply is sent by Gmail, not by us: it carries *their*
+ * address in `From`, so the customer's own Reply comes back to them alone and
+ * the shared inbox never sees the rest of the thread. Closing that needs
+ * send-as `contact@` for every admin, and the team chose not to take on the
+ * Workspace work.
+ *
+ * So the accepted model is narrower and worth stating plainly: **an admin's
+ * personal address is for the portal and for being told, not for
+ * corresponding.** Correspondence runs between `contact@` and the customer.
+ * This message says so where it will actually be read — in the mail itself, at
+ * the moment somebody is deciding whether to hit Reply — because a rule that
+ * lives only in a document is a rule that gets discovered by breaking it.
  *
  * **Off-spine.** The nine numbered messages in `shared/email/_EmailDocumentation.md`
  * all hang off a submission's ladder; this one has no submission and no rung —
@@ -62,10 +68,12 @@ export async function sendContactMessage(input: ContactInput) {
     html: emailShell(
       "Someone sent a message",
       `<p><strong>${name}</strong> wrote in from the contact form.</p>
-       <p style="color:#4f4f52;">Reply and it reaches
-       <a href="mailto:${email}">${email}</a> and the shared inbox together —
-       send as <strong>${escapeHtml(site.email)}</strong> so they see the brand
-       address rather than yours.</p>
+       <p style="color:#4f4f52;">Answer from
+       <strong>${escapeHtml(site.email)}</strong>, not from here. Replying to
+       this message reaches
+       <a href="mailto:${email}">${email}</a> — but it arrives from
+       <em>your</em> address, so their reply comes back to you alone and the
+       shared inbox never sees the rest of the conversation.</p>
        ${quotedMessage(input.message)}`,
       undefined,
       "Sent by the contact form on baseball-sensei.com.",
