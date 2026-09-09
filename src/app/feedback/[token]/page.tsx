@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ButtonLink, NarrowPage, pageTitleClass } from "@/shared/ui";
-import { FeedbackDownloadRow } from "@/domains/feedback";
+import { FeedbackFiles } from "@/domains/feedback";
 import {
   filesAsSent,
   getSubmission,
@@ -72,17 +72,17 @@ export default async function FeedbackPage({
               </p>
             </div>
 
-            <ul className="mt-10 space-y-3">
-              {files.map((file) => (
-                <FeedbackDownloadRow
-                  key={file.id}
-                  fileId={file.id}
-                  filename={file.filename}
-                  sizeBytes={file.sizeBytes}
-                  padding="p-5"
-                />
-              ))}
-            </ul>
+            {/*
+              The same grouped list `/status` shows (Ben, QA 8.9.3).
+
+              This was a flat map over the files, so a submission released with
+              both folders arrived here as two rows a parent could only tell
+              apart by filename. One component now, so a fix to either page is
+              a fix to both.
+            */}
+            <div className="mt-10">
+              <FeedbackFiles files={files} />
+            </div>
 
             {/*
               This page deliberately shows **one** submission (Ben, 2026-09-03).

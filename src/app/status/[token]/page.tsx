@@ -91,7 +91,7 @@ export default async function StatusByTokenPage({
             // Each submission's files, keyed by its id, so they render inside
             // that submission's own card rather than in a panel beside the list.
             downloads={Object.fromEntries(
-              ready.map((g) => [g.submission.id, <FeedbackFiles key={g.submission.id} group={g} />]),
+              ready.map((g) => [g.submission.id, <FeedbackFiles key={g.submission.id} files={g.files} />]),
             )}
           />
         </div>

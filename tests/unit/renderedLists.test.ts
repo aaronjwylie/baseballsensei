@@ -80,12 +80,11 @@ describe("6.15.1 / 7.13 — a list whose bytes the sweep has taken", () => {
 
 describe("8.9.25–28 — the customer's download card", () => {
   const group = (files: SubmissionFile[]) =>
-    ({ files }) as unknown as Parameters<typeof FeedbackFiles>[0]["group"];
+    files as unknown as Parameters<typeof FeedbackFiles>[0]["files"];
 
   it("8.9.25 heads each group when both folders were released", () => {
     const html = render(
-      FeedbackFiles({
-        group: group([
+      FeedbackFiles({ files: group([
           file({ kind: "feedback", filename: "coach.mp4" }),
           file({ kind: "feedback_translation", filename: "translated.mp4" }),
         ]),
@@ -97,7 +96,7 @@ describe("8.9.25–28 — the customer's download card", () => {
 
   it("8.9.26 stays flat when there is only one folder", () => {
     const html = render(
-      FeedbackFiles({ group: group([file({ kind: "feedback", filename: "only.mp4" })]) }),
+      FeedbackFiles({ files: group([file({ kind: "feedback", filename: "only.mp4" })]) }),
     );
     expect(html).toContain("only.mp4");
     expect(html).not.toContain("From your coach");
@@ -111,8 +110,7 @@ describe("8.9.25–28 — the customer's download card", () => {
   */
   it("8.9.27 puts the coach's own file first, whatever the upload order", () => {
     const html = render(
-      FeedbackFiles({
-        group: group([
+      FeedbackFiles({ files: group([
           file({
             kind: "feedback_translation",
             filename: "translated.mp4",
@@ -136,8 +134,7 @@ describe("8.9.25–28 — the customer's download card", () => {
   */
   it("8.9.28 never names a language", () => {
     const html = render(
-      FeedbackFiles({
-        group: group([
+      FeedbackFiles({ files: group([
           file({ kind: "feedback", filename: "a.mp4" }),
           file({ kind: "feedback_translation", filename: "b.mp4" }),
         ]),
@@ -146,5 +143,28 @@ describe("8.9.25–28 — the customer's download card", () => {
     for (const language of ["English", "Japanese", "japanese", "english"]) {
       expect(html).not.toContain(language);
     }
+  });
+});
+
+/**
+ * 8.9.3 — the two customer download pages show the same rows.
+ *
+ * `/feedback/[token]` (the link inside the ⑥ email) hand-rolled a flat list
+ * because `FeedbackFiles` demanded a whole `FeedbackGroup` while reading only
+ * its `files`. Both pages pass the same array through the same component now,
+ * so the grouping cannot land on one and not the other again.
+ */
+describe("8.9.3 — one row shape for both customer pages", () => {
+  it("groups a both-folder release wherever it is rendered", () => {
+    const files = [
+      file({ kind: "feedback", filename: "coach.mp4" }),
+      file({ kind: "feedback_translation", filename: "translated.mp4" }),
+    ];
+    const html = render(FeedbackFiles({ files: files as never }));
+    expect(html).toContain("From your coach");
+    expect(html).toContain("Translated for you");
+    // And the row itself is the shared one, with its plain anchor.
+    expect(html).toContain("/api/feedback/");
+    expect(html).not.toContain("_blank");
   });
 });

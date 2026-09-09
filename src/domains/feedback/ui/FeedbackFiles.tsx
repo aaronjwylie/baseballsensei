@@ -46,17 +46,31 @@ const KIND_LABELS: Partial<Record<FileKind, string>> = {
  * precedes its translation rather than following it whenever the translator
  * happened to finish first.
  */
-export function FeedbackFiles({ group }: { group: FeedbackGroup }) {
-  if (group.files.length === 0) return null;
+/*
+  Takes the files, not the whole group (Ben, QA 8.9.3, 2026-09-08).
+
+  It only ever read `group.files`, and asking for a `FeedbackGroup` meant the
+  one page that has files but no group — `/feedback/[token]`, the link inside
+  the ⑥ email — could not use it, and hand-rolled a flat list instead. So a
+  submission released with **both** folders showed its two files there
+  distinguished only by whatever the coach happened to name them: the exact
+  failure 8.9.25 records, fixed on `/status` and not here, which is the exact
+  failure 8.9.3 exists to catch.
+
+  A prop that asks for more than the component reads is how one of two callers
+  gets locked out.
+*/
+export function FeedbackFiles({ files }: { files: FeedbackGroup["files"] }) {
+  if (files.length === 0) return null;
 
   const byKind = FILE_KINDS.map((kind) => ({
     kind,
-    files: group.files.filter((f) => f.kind === kind),
+    files: files.filter((f) => f.kind === kind),
   })).filter((k) => k.files.length > 0);
 
-  const list = (files: FeedbackGroup["files"]) => (
+  const list = (rows: FeedbackGroup["files"]) => (
     <ul className="mt-2 space-y-2">
-      {files.map((file) => (
+      {rows.map((file) => (
         <FeedbackDownloadRow
           key={file.id}
           fileId={file.id}
@@ -67,7 +81,7 @@ export function FeedbackFiles({ group }: { group: FeedbackGroup }) {
     </ul>
   );
 
-  if (byKind.length <= 1) return <div className="mt-4">{list(group.files)}</div>;
+  if (byKind.length <= 1) return <div className="mt-4">{list(files)}</div>;
 
   return (
     <>

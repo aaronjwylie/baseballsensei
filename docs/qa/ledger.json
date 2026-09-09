@@ -2055,16 +2055,28 @@
     "8.8": {
       "firstSeen": "2026-09-01T00:02:41.928Z",
       "what": "The Download button doesn't flash a tab",
-      "expect": "Same tab, no window opening and closing. The route answers with Content-Disposition: attachment, so nothing was ever going to be shown in it",
+      "expect": "Covered by tests/unit/downloadRow.test.ts. Same tab, no window opening and closing. The route answers with Content-Disposition: attachment, so nothing was ever going to be shown in it",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "The Download button doesn't flash a tab",
+          "expect": "Same tab, no window opening and closing. The route answers with Content-Disposition: attachment, so nothing was ever going to be shown in it"
+        }
+      ]
     },
     "8.9": {
       "firstSeen": "2026-09-01T00:02:41.928Z",
       "what": "⚠️ Download still works after that change",
-      "expect": "It is a plain <a>, not ButtonLink. next/link intercepts internal hrefs and was skipping this one only because target was set",
+      "expect": "Covered by tests/unit/downloadRow.test.ts. It is a plain <a>, not ButtonLink. next/link intercepts internal hrefs and was skipping this one only because target was set",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "⚠️ Download still works after that change",
+          "expect": "It is a plain <a>, not ButtonLink. next/link intercepts internal hrefs and was skipping this one only because target was set"
+        }
+      ]
     },
     "5.9.3.1": {
       "firstSeen": "2026-09-01T01:44:04.272Z",
@@ -2174,16 +2186,28 @@
     "8.9.3": {
       "firstSeen": "2026-09-01T02:15:30.609Z",
       "what": "⚠️ Both customer download pages, not one. Check the signed link from the ⑥ email and the status lookup",
-      "expect": "Identical rows on both. ⚠️ Each had built this row for itself, so the first fix landed on one page and the same report came back about the other. They render one shared component now",
+      "expect": "Covered by tests/unit/renderedLists.test.ts. ⚠️ It had happened again: /feedback/[token] hand-rolled a flat list, so a both-folder release arrived from the ⑥ email ungrouped. FeedbackFiles demanded a whole FeedbackGroup while reading only its files — a prop asking for more than it reads is how one of two callers gets locked out. Fixed 2026-09-08. Identical rows on both. ⚠️ Each had built this row for itself, so the first fix landed on one page and the same report came back about the other. They render one shared component now",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "⚠️ Both customer download pages, not one. Check the signed link from the ⑥ email and the status lookup",
+          "expect": "Identical rows on both. ⚠️ Each had built this row for itself, so the first fix landed on one page and the same report came back about the other. They render one shared component now"
+        }
+      ]
     },
     "8.9.4": {
       "firstSeen": "2026-09-01T02:15:30.609Z",
       "what": "No tab flash on either page",
-      "expect": "Clicking Download starts a download in place. target=\"_blank\" opened a window with nothing in it — the route answers Content-Disposition: attachment",
+      "expect": "Covered by tests/unit/downloadRow.test.ts. Clicking Download starts a download in place. target=\"_blank\" opened a window with nothing in it — the route answers Content-Disposition: attachment",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "No tab flash on either page",
+          "expect": "Clicking Download starts a download in place. target=\"_blank\" opened a window with nothing in it — the route answers Content-Disposition: attachment"
+        }
+      ]
     },
     "8.9.5": {
       "firstSeen": "2026-09-01T02:15:30.609Z",
@@ -2216,30 +2240,54 @@
     "8.9.9": {
       "firstSeen": "2026-09-01T02:21:53.834Z",
       "what": "⚠️ A \"Feedback ready\" card leads to its files. Click Download ↓ on the card",
-      "expect": "Jumps to the panel below the stack. Nothing on the card said the files were already on the page, so customers went back to their email for the link instead of scrolling",
+      "expect": "Superseded by 8.9.44 — this describes the two-section page that became one list on 2026-09-03. Retire at the next reconcile. Jumps to the panel below the stack. Nothing on the card said the files were already on the page, so customers went back to their email for the link instead of scrolling",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "⚠️ A \"Feedback ready\" card leads to its files. Click Download ↓ on the card",
+          "expect": "Jumps to the panel below the stack. Nothing on the card said the files were already on the page, so customers went back to their email for the link instead of scrolling"
+        }
+      ]
     },
     "8.9.10": {
       "firstSeen": "2026-09-01T02:21:53.834Z",
       "what": "A card with no feedback shows no link",
-      "expect": "And a page with no downloads shows none on any card",
+      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. And a page with no downloads shows none on any card",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "A card with no feedback shows no link",
+          "expect": "And a page with no downloads shows none on any card"
+        }
+      ]
     },
     "8.9.11": {
       "firstSeen": "2026-09-01T02:27:27.121Z",
       "what": "⚠️ Both code emails look the same. Trigger the step-2 verification code and the /status access code, and put them side by side",
-      "expect": "Identical grey rounded panel, display face, same size and tracking. ⚠️ They differed in five ways: box, typeface, size, tracking and colour",
+      "expect": "Covered by tests/unit/codeEmails.test.ts. Identical grey rounded panel, display face, same size and tracking. ⚠️ They differed in five ways: box, typeface, size, tracking and colour",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "⚠️ Both code emails look the same. Trigger the step-2 verification code and the /status access code, and put them side by side",
+          "expect": "Identical grey rounded panel, display face, same size and tracking. ⚠️ They differed in five ways: box, typeface, size, tracking and colour"
+        }
+      ]
     },
     "8.9.12": {
       "firstSeen": "2026-09-01T02:27:27.121Z",
       "what": "The panel follows the shell's palette",
-      "expect": "Its greys are the shell's PAPER_ALT and LINE, not literals, so a palette change carries the code box with it",
+      "expect": "Covered by tests/unit/codeEmails.test.ts. Its greys are the shell's PAPER_ALT and LINE, not literals, so a palette change carries the code box with it",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "The panel follows the shell's palette",
+          "expect": "Its greys are the shell's PAPER_ALT and LINE, not literals, so a palette change carries the code box with it"
+        }
+      ]
     },
     "5.9.2.1": {
       "firstSeen": "2026-09-02T20:39:47.079Z",
@@ -2369,16 +2417,28 @@
     "8.9.15": {
       "firstSeen": "2026-09-03T20:08:06.085Z",
       "what": "⚠️ Ready before history. Open /status with a released review waiting",
-      "expect": "The downloads are the first thing on the page; history sits under its own heading below. ⚠️ They were the other way round, so a parent whose review had just landed scrolled past their own past to reach it",
+      "expect": "Superseded by 8.9.43 and 8.9.45 — this describes the two-section page that became one list on 2026-09-03. Retire at the next reconcile. The downloads are the first thing on the page; history sits under its own heading below. ⚠️ They were the other way round, so a parent whose review had just landed scrolled past their own past to reach it",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "⚠️ Ready before history. Open /status with a released review waiting",
+          "expect": "The downloads are the first thing on the page; history sits under its own heading below. ⚠️ They were the other way round, so a parent whose review had just landed scrolled past their own past to reach it"
+        }
+      ]
     },
     "8.9.16": {
       "firstSeen": "2026-09-03T20:08:06.085Z",
       "what": "Nothing ready",
-      "expect": "No downloads block at all, and the list is headed \"Your submissions\" rather than \"Your history\"",
+      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. No downloads block at all, and the list is headed \"Your submissions\" rather than \"Your history\"",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "Nothing ready",
+          "expect": "No downloads block at all, and the list is headed \"Your submissions\" rather than \"Your history\""
+        }
+      ]
     },
     "8.9.17": {
       "firstSeen": "2026-09-03T20:08:06.085Z",
@@ -2411,9 +2471,15 @@
     "8.9.21": {
       "firstSeen": "2026-09-03T20:32:30.877Z",
       "what": "⚠️ Each card identifies its own submission. Look up an email with several",
-      "expect": "Player and age, focus, the customer's own notes, sent date and feedback-ready date. ⚠️ It was a name, a focus and a date, so two reviews of the same child were indistinguishable",
+      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Player and age, focus, the customer's own notes, sent date and feedback-ready date. ⚠️ It was a name, a focus and a date, so two reviews of the same child were indistinguishable",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "⚠️ Each card identifies its own submission. Look up an email with several",
+          "expect": "Player and age, focus, the customer's own notes, sent date and feedback-ready date. ⚠️ It was a name, a focus and a date, so two reviews of the same child were indistinguishable"
+        }
+      ]
     },
     "8.9.22": {
       "firstSeen": "2026-09-03T20:32:30.877Z",
@@ -2425,16 +2491,28 @@
     "8.9.23": {
       "firstSeen": "2026-09-03T20:55:36.539Z",
       "what": "⚠️ A card per finished review. Look up an email with several ready",
-      "expect": "One green card each, headed \"Ready to download (n)\". ⚠️ All of them sat inside a single green panel separated only by a player name, so seven reviews arrived as one block",
+      "expect": "Superseded by 8.9.43 — this describes the two-section page that became one list on 2026-09-03. Retire at the next reconcile. One green card each, headed \"Ready to download (n)\". ⚠️ All of them sat inside a single green panel separated only by a player name, so seven reviews arrived as one block",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "⚠️ A card per finished review. Look up an email with several ready",
+          "expect": "One green card each, headed \"Ready to download (n)\". ⚠️ All of them sat inside a single green panel separated only by a player name, so seven reviews arrived as one block"
+        }
+      ]
     },
     "8.9.24": {
       "firstSeen": "2026-09-03T20:55:36.539Z",
       "what": "Each ready card carries the same detail as its history card",
-      "expect": "Player, age, focus, their own notes, both dates. They render one shared component, so the two lists cannot describe one submission two ways",
+      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Player, age, focus, their own notes, both dates. They render one shared component, so the two lists cannot describe one submission two ways",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "Each ready card carries the same detail as its history card",
+          "expect": "Player, age, focus, their own notes, both dates. They render one shared component, so the two lists cannot describe one submission two ways"
+        }
+      ]
     },
     "8.9.25": {
       "firstSeen": "2026-09-03T21:19:20.366Z",
@@ -2547,16 +2625,28 @@
     "8.9.32": {
       "firstSeen": "2026-09-03T22:24:20.214Z",
       "what": "⚠️ Override reads like its neighbours. Expand a row",
-      "expect": "\"This submission\", \"Trail\" and \"Override\" all carry the same small-caps label and a › that rotates. ⚠️ Override had its own \"Override…\" link and a \"close\", so the third panel of three announced itself as a different kind of control",
+      "expect": "Covered by tests/unit/disclosure.test.ts. \"This submission\", \"Trail\" and \"Override\" all carry the same small-caps label and a › that rotates. ⚠️ Override had its own \"Override…\" link and a \"close\", so the third panel of three announced itself as a different kind of control",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "⚠️ Override reads like its neighbours. Expand a row",
+          "expect": "\"This submission\", \"Trail\" and \"Override\" all carry the same small-caps label and a › that rotates. ⚠️ Override had its own \"Override…\" link and a \"close\", so the third panel of three announced itself as a different kind of control"
+        }
+      ]
     },
     "8.9.33": {
       "firstSeen": "2026-09-03T22:24:20.214Z",
       "what": "It still opens and its forms still work",
-      "expect": "It is a native <details> now, so it survives without hydration and cannot desync from what is on screen",
+      "expect": "Covered by tests/unit/disclosure.test.ts. It is a native <details> now, so it survives without hydration and cannot desync from what is on screen",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "It still opens and its forms still work",
+          "expect": "It is a native <details> now, so it survives without hydration and cannot desync from what is on screen"
+        }
+      ]
     },
     "8.9.34": {
       "firstSeen": "2026-09-03T22:24:20.214Z",
@@ -2621,16 +2711,28 @@
     "8.9.40": {
       "firstSeen": "2026-09-03T22:42:18.743Z",
       "what": "⚠️ The customer's card carries the deadline. Look up a delivered submission on /status",
-      "expect": "A last line: \"Files deleted in N days\". ⚠️ They are told at ⑥ and again at ⑨; this is the same promise on the page they actually return to",
+      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A last line: \"Files deleted in N days\". ⚠️ They are told at ⑥ and again at ⑨; this is the same promise on the page they actually return to",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "⚠️ The customer's card carries the deadline. Look up a delivered submission on /status",
+          "expect": "A last line: \"Files deleted in N days\". ⚠️ They are told at ⑥ and again at ⑨; this is the same promise on the page they actually return to"
+        }
+      ]
     },
     "8.9.41": {
       "firstSeen": "2026-09-03T22:42:18.743Z",
       "what": "And it disappears once the files are gone",
-      "expect": "A countdown after the fact is shown too late — the struck-through filenames say it better",
+      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A countdown after the fact is shown too late — the struck-through filenames say it better",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "And it disappears once the files are gone",
+          "expect": "A countdown after the fact is shown too late — the struck-through filenames say it better"
+        }
+      ]
     },
     "8.9.42": {
       "firstSeen": "2026-09-03T22:42:18.743Z",
@@ -2648,61 +2750,87 @@
     "8.9.43": {
       "firstSeen": "2026-09-03T22:46:22.323Z",
       "what": "⚠️ One card per submission, and only one list. Look up an email with several finished",
-      "expect": "A single \"Your submissions (n)\". ⚠️ It was two sections — every finished review appeared twice, once with its files and no status, once with its status and no files. Neither card was the whole thing",
+      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A single \"Your submissions (n)\". ⚠️ It was two sections — every finished review appeared twice, once with its files and no status, once with its status and no files. Neither card was the whole thing",
       "retired": false,
       "history": [
         {
           "at": "2026-09-03T23:00:18.599Z",
           "what": "⚠️ Each submission appears once. Look up an email where everything is finished",
           "expect": "Only \"Ready to download (n)\". No second list repeating the same reviews under a heading of its own"
+        },
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "⚠️ One card per submission, and only one list. Look up an email with several finished",
+          "expect": "A single \"Your submissions (n)\". ⚠️ It was two sections — every finished review appeared twice, once with its files and no status, once with its status and no files. Neither card was the whole thing"
         }
       ]
     },
     "8.9.44": {
       "firstSeen": "2026-09-03T22:46:22.323Z",
       "what": "The files are inside the card",
-      "expect": "Not in a separate panel with a \"Download ↑\" jump. The card already says whose review it is",
+      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Not in a separate panel with a \"Download ↑\" jump. The card already says whose review it is",
       "retired": false,
       "history": [
         {
           "at": "2026-09-03T23:00:18.599Z",
           "what": "With some finished and some not",
           "expect": "\"Ready to download\" then \"In progress\" below it, and no submission in both"
+        },
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "The files are inside the card",
+          "expect": "Not in a separate panel with a \"Download ↑\" jump. The card already says whose review it is"
         }
       ]
     },
     "8.9.45": {
       "firstSeen": "2026-09-03T22:46:22.323Z",
       "what": "Ready ones come first",
-      "expect": "A parent whose review just landed does not scroll past submissions that need nothing from them",
+      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A parent whose review just landed does not scroll past submissions that need nothing from them",
       "retired": false,
       "history": [
         {
           "at": "2026-09-03T23:00:18.599Z",
           "what": "With nothing finished",
           "expect": "One list, headed \"Your submissions\". \"In progress\" only means something when there is a Ready panel to be else of"
+        },
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "Ready ones come first",
+          "expect": "A parent whose review just landed does not scroll past submissions that need nothing from them"
         }
       ]
     },
     "8.9.46": {
       "firstSeen": "2026-09-03T22:46:22.323Z",
       "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
-      "expect": "Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has",
+      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has",
       "retired": false,
       "history": [
         {
           "at": "2026-09-03T23:00:18.599Z",
           "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
           "expect": "Still listed, under In progress, reading \"No longer available\". ⚠️ It reads as having feedback but has no card above to duplicate — filtering on that flag instead of on what is actually shown would erase the only record it existed"
+        },
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
+          "expect": "Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has"
         }
       ]
     },
     "8.9.47": {
       "firstSeen": "2026-09-03T23:00:18.599Z",
       "what": "Nothing finished",
-      "expect": "The same single list, in the server's order",
+      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. The same single list, in the server's order",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T03:48:51.987Z",
+          "what": "Nothing finished",
+          "expect": "The same single list, in the server's order"
+        }
+      ]
     },
     "8.9.49": {
       "firstSeen": "2026-09-04T00:38:36.466Z",
