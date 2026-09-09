@@ -3077,6 +3077,13 @@
       "expect": "bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string",
       "retired": false,
       "history": []
+    },
+    "1.2.26": {
+      "firstSeen": "2026-09-09T23:26:23.419Z",
+      "what": "⚠️ Open question — the contact form has no rate limit. Post to sendContactAction repeatedly from one address",
+      "expect": "Currently: every one is accepted and mailed. A Server Action is a public endpoint, and the honeypot stops naive bots rather than determined ones; each send costs a Resend credit and lands in five inboxes. Not the same question as 1.2.11 — that one records the deliberate absence of a duplicate guard, which is about a person writing twice, not about abuse. shared/lib/rateLimit.ts already guards checkout and both status-code routes, so this would be reuse. Needs a decision, not a fix",
+      "retired": false,
+      "history": []
     }
   }
 }
