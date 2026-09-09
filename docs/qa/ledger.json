@@ -2932,14 +2932,19 @@
     },
     "6.16": {
       "firstSeen": "2026-09-07T02:12:25.605Z",
-      "what": "The same on the translator's Handed back list",
-      "expect": "The leg's own title and date, and all four folders — what they were given beside what they sent. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one",
+      "what": "The same on the translator's Handed back list. Covered by tests/integration/translatorGuards.test.ts",
+      "expect": "The leg's own title and date, and its own two folders — the one it read from and the one it delivered into. ⚠️ It showed all four folders of the submission, which is submission-scope content on a leg-scope card: hold both legs and the same block prints twice, so the history reads as a duplicate entry (2026-09-09). ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one",
       "retired": false,
       "history": [
         {
           "at": "2026-09-07T17:45:21.391Z",
           "what": "The same on the translator's Handed back list",
           "expect": "The leg's own title and date. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one"
+        },
+        {
+          "at": "2026-09-09T23:47:01.117Z",
+          "what": "The same on the translator's Handed back list",
+          "expect": "The leg's own title and date, and all four folders — what they were given beside what they sent. ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one"
         }
       ]
     },

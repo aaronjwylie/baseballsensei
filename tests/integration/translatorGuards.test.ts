@@ -347,6 +347,45 @@ describe("7.13 — a leg the retention sweep has cleared", () => {
   });
 });
 
+/*
+  7.6's other half — QA 6.16. Two legs of one submission, held by one person,
+  have to render as two *different* cards. They briefly did not: the finished
+  card showed all four folders of the submission, which is submission-scope
+  content on a leg-scope card, so both legs printed the same block and the
+  history read as a duplicate entry (Ben, 2026-09-09).
+
+  `reads` and `produces` are what make a leg a leg. A card built from them
+  cannot collide with the other leg's.
+*/
+describe("6.16 — both legs of one submission, handed back", () => {
+  it("gives each card its own two folders", async () => {
+    const both = await makeSubmission();
+    await assignOperator(both, alice, "intake_translation");
+    await assignOperator(both, alice, "feedback_translation");
+    await updateSubmission(both, { status: "feedback_translated" });
+    await addFile(both, "intake", "customer.mp4");
+    await addFile(both, "intake_translation", "customer-JA.mp4");
+    await addFile(both, "feedback", "coach.mp4");
+    await addFile(both, "feedback_translation", "coach-EN.mp4");
+
+    const legs = (await findLegsForTranslator(alice)).filter(
+      (l) => l.submission.id === both,
+    );
+    expect(legs).toHaveLength(2);
+
+    const intake = legs.find((l) => l.leg.produces === "intake_translation")!;
+    const feedback = legs.find((l) => l.leg.produces === "feedback_translation")!;
+
+    expect(intake.source.map((f) => f.filename)).toEqual(["customer.mp4"]);
+    expect(intake.produced.map((f) => f.filename)).toEqual(["customer-JA.mp4"]);
+    expect(feedback.source.map((f) => f.filename)).toEqual(["coach.mp4"]);
+    expect(feedback.produced.map((f) => f.filename)).toEqual(["coach-EN.mp4"]);
+
+    // The titles differ too, so the two cards cannot be told apart only by date.
+    expect(intake.leg.title).not.toBe(feedback.leg.title);
+  });
+});
+
 /* 7.12 — nobody's translator. The page shows its calm empty panel off this. */
 describe("7.12 — a translator with nothing assigned", () => {
   it("has no legs", async () => {

@@ -9,7 +9,6 @@ import {
   SubmissionFolders,
   describeFolders,
   listEventsForSubmissions,
-  listFoldersForSubmissions,
   reachedAt,
   type FileKind,
   type SubmissionFile,
@@ -41,13 +40,33 @@ export const metadata: Metadata = {
  * twice, weeks apart, pointing in opposite directions. Only one of the two can
  * be open at a time, because a submission sits on one rung.
  */
-/** The shape `listFoldersForSubmissions` returns, for a submission it didn't. */
+/** The shape `SubmissionFolders` takes, with nothing in it. */
 const EMPTY_FOLDERS: Record<FileKind, SubmissionFile[]> = {
   intake: [],
   intake_translation: [],
   feedback: [],
   feedback_translation: [],
 };
+
+/**
+ * One leg's own folders: the one it read from, and the one it delivered into.
+ *
+ * Two of the four, chosen by the leg rather than by the submission — which is
+ * the difference between a card that describes a job and a card that describes
+ * a submission. A translator holding both legs gets two cards, and they have to
+ * say different things.
+ */
+function legFolders(leg: {
+  leg: { reads: FileKind; produces: FileKind };
+  source: SubmissionFile[];
+  produced: SubmissionFile[];
+}): Record<FileKind, SubmissionFile[]> {
+  return {
+    ...EMPTY_FOLDERS,
+    [leg.leg.reads]: leg.source,
+    [leg.leg.produces]: leg.produced,
+  };
+}
 
 export default async function TranslatorHomePage() {
   const session = await requireRole("translator");
@@ -67,10 +86,6 @@ export default async function TranslatorHomePage() {
   // The trail is the only place that knows *when* a leg was handed back — one
   // query for the finished set, not one per card.
   const eventsBySubmission = await listEventsForSubmissions(
-    done.map((l) => l.submission.id),
-  );
-  // All four folders, so a finished card agrees with the admin's panel.
-  const foldersBySubmission = await listFoldersForSubmissions(
     done.map((l) => l.submission.id),
   );
 
@@ -153,24 +168,32 @@ export default async function TranslatorHomePage() {
                   </div>
 
                   {/*
-                    Every folder, not just the one this leg produced (Ben,
-                    2026-09-07). A translator handing back the intake leg wants
-                    to see what they were given beside what they sent, and the
-                    admin's panel shows four folders for the same submission —
-                    a portal that shows one of them disagrees with it.
+                    **This leg's two folders — what it read and what it
+                    delivered.** Not all four (Ben, 2026-09-09).
+
+                    Showing the whole submission was right for the coach, whose
+                    card is one-per-submission. Here a card is one-per-*leg*, and
+                    a translator can hold both legs of the same submission — so
+                    submission-scope content renders identically on both cards
+                    and the finished list reads as a duplicate. It was: two
+                    entries for `asdfasdf`, differing only in a title and a
+                    timestamp under an identical block of four folders.
+
+                    The leg already knows the answer. `reads` and `produces` are
+                    what make it a leg rather than a submission.
                   */}
                   {handedBack && (
                     <p className="mt-1 text-xs text-ink-muted">
                       {"Handed back "}
                       <LocalTime iso={handedBack} />
-                      {` · ${describeFolders(foldersBySubmission.get(leg.submission.id) ?? EMPTY_FOLDERS)}`}
+                      {` · ${describeFolders(legFolders(leg))}`}
                     </p>
                   )}
 
                   <div className="mt-3 border-t border-line pt-3">
                     <SubmissionFolders
-                      folders={foldersBySubmission.get(leg.submission.id) ?? EMPTY_FOLDERS}
-                      emptyLabel="No files on this submission."
+                      folders={legFolders(leg)}
+                      emptyLabel="No files on this leg."
                     />
                   </div>
                 </li>
