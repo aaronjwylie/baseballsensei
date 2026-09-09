@@ -7,10 +7,28 @@ import type { ContactInput } from "../model/contactInput";
 /**
  * The contact form's one message: what somebody wrote, delivered to every admin.
  *
- * **To all admins, not just `contact@`.** It goes to `listAdminEmails()` — the
- * admin operators plus the shared `contact@` inbox — so a message reaches the
- * people who can answer it however the team splits the watching (Ben, QA 1.2.8),
- * the same recipient list a coaching submission's arrival notice uses.
+ * **One visible identity, everyone reached.** `contact@` is the only address in
+ * `to`; every admin who has notifications on is **bcc**. That is the shape a
+ * thread with a customer in it has to have (Ben, 2026-09-09):
+ *
+ * - **The app fans out, not Google.** Nothing is forwarded or distributed
+ *   anywhere — a reply sent to `contact@` alone reaches no admin, which is how
+ *   we found this out. Choosing the recipients here is also what makes the
+ *   per-admin notify toggle real: it can only govern mail we address.
+ * - **Bcc, because a customer is in this thread.** Four admins in `to` means any
+ *   one of them can hand the customer all four addresses by hitting reply-all,
+ *   and "remember not to" is not a mechanism.
+ * - **`replyTo` carries both sides.** One Reply reaches the customer *and*
+ *   `contact@`, so the answer is delivered and archived in one gesture rather
+ *   than two an admin has to remember.
+ *
+ * **What this cannot do, and must not pretend to.** An admin's reply is sent by
+ * Gmail, not by us, so we cannot fan *that* out — the other admins see it only
+ * because it lands in `contact@`. Two pieces of Workspace configuration finish
+ * the job and neither belongs in code: `contact@` has to deliver to the people
+ * who read it, and each admin needs **send-as `contact@`** so their reply
+ * carries the brand address in `From` rather than their own. Bcc protects the
+ * recipient list; only send-as protects the sender.
  *
  * **Off-spine.** The nine numbered messages in `shared/email/_EmailDocumentation.md`
  * all hang off a submission's ladder; this one has no submission and no rung —
@@ -31,15 +49,23 @@ export async function sendContactMessage(input: ContactInput) {
   const name = escapeHtml(`${input.firstName} ${input.lastName}`.trim());
   const email = escapeHtml(input.email);
 
+  // `contact@` is always in the list and is the identity the customer sees; the
+  // people are bcc so no address of ours can travel back to them.
+  const everyone = await listAdminEmails();
+  const bcc = everyone.filter((address) => address !== site.email.toLowerCase());
+
   return sendEmail({
-    to: await listAdminEmails(),
-    replyTo: input.email,
+    to: site.email,
+    bcc,
+    replyTo: [input.email, site.email],
     subject: `${site.name}: message from ${name}`,
     html: emailShell(
       "Someone sent a message",
       `<p><strong>${name}</strong> wrote in from the contact form.</p>
-       <p style="color:#4f4f52;">Reply to this email and it goes straight back to
-       <a href="mailto:${email}">${email}</a>.</p>
+       <p style="color:#4f4f52;">Reply and it reaches
+       <a href="mailto:${email}">${email}</a> and the shared inbox together —
+       send as <strong>${escapeHtml(site.email)}</strong> so they see the brand
+       address rather than yours.</p>
        ${quotedMessage(input.message)}`,
       undefined,
       "Sent by the contact form on baseball-sensei.com.",

@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 69,
-    "generatedAt": "2026-09-09T19:36:54.454Z",
-    "checks": 349,
-    "live": 348,
+    "build": 70,
+    "generatedAt": "2026-09-09T19:59:17.921Z",
+    "checks": 353,
+    "live": 352,
     "retired": 1,
     "edited": 81
   },
@@ -295,6 +295,26 @@
               "id": "1.2.13",
               "what": "Its footer doesn't call it a submission",
               "expect": "\"an automated confirmation that we received your message\". The shell's default says \"about your coaching submission\", which is wrong twice here — the writer hasn't made one, and the admin copy isn't going to a customer"
+            },
+            {
+              "id": "1.2.15",
+              "what": "⚠️ A reply-all cannot dox the admins. Submit the form, then hit reply-all on the admin copy",
+              "expect": "Only the customer and contact@ are addressed. Every admin is bcc, so no address of ours can travel back to the writer. ⚠️ They were all in to until 2026-09-09"
+            },
+            {
+              "id": "1.2.16",
+              "what": "One Reply reaches both sides",
+              "expect": "reply_to carries the writer and contact@, so the answer is delivered and archived in one gesture"
+            },
+            {
+              "id": "1.2.17",
+              "what": "⚠️ contact@ delivers to the people who read it",
+              "expect": "Send to contact@ alone and every admin receives it. ⚠️ On 2026-09-09 it reached nobody — a mailbox with no members. Workspace configuration, not code"
+            },
+            {
+              "id": "1.2.18",
+              "what": "⚠️ An admin's reply carries the brand address",
+              "expect": "From reads contact@baseball-sensei.com, not a personal address. Needs send-as for each admin — bcc protects the recipient list, only send-as protects the sender"
             },
             {
               "id": "1.2.14",

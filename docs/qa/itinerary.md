@@ -126,6 +126,10 @@ yesterday's codebase, caught before it was tested rather than after.
 | 1.2.11 | Submit a second time | Works; no duplicate-send guard needed |
 | 1.2.12 | **The writer gets a receipt too.** Submit the form, then check the address you typed | A confirmation quoting your own message back, so you have a copy and know it arrived. ⚠️ Added 2026-09-09 — the form answered only with "Message sent" on a page you are about to close |
 | 1.2.13 | Its footer doesn't call it a submission | "an automated confirmation that we received your message". The shell's default says "about your coaching submission", which is wrong twice here — the writer hasn't made one, and the admin copy isn't going to a customer |
+| 1.2.15 | ⚠️ **A reply-all cannot dox the admins.** Submit the form, then hit reply-all on the admin copy | Only the customer and `contact@` are addressed. Every admin is **bcc**, so no address of ours can travel back to the writer. ⚠️ They were all in `to` until 2026-09-09 |
+| 1.2.16 | One Reply reaches both sides | `reply_to` carries the writer *and* `contact@`, so the answer is delivered and archived in one gesture |
+| 1.2.17 | ⚠️ **`contact@` delivers to the people who read it** | Send to `contact@` alone and every admin receives it. ⚠️ On 2026-09-09 it reached nobody — a mailbox with no members. **Workspace configuration, not code** |
+| 1.2.18 | ⚠️ **An admin's reply carries the brand address** | `From` reads `contact@baseball-sensei.com`, not a personal address. Needs send-as for each admin — bcc protects the recipient list, only send-as protects the sender |
 | 1.2.14 | The receipt can't fail the form | Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry |
 
 ### 1.3 Terms (`/terms`)

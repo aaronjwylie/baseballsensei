@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 69</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 70</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -774,6 +774,26 @@ const PHASES = [
             "1.2.13",
             "Its footer doesn't call it a submission",
             "\"an automated confirmation that we received your message\". The shell's default says \"about your coaching submission\", which is wrong twice here — the writer hasn't made one, and the admin copy isn't going to a customer"
+          ],
+          [
+            "1.2.15",
+            "⚠️ A reply-all cannot dox the admins. Submit the form, then hit reply-all on the admin copy",
+            "Only the customer and contact@ are addressed. Every admin is bcc, so no address of ours can travel back to the writer. ⚠️ They were all in to until 2026-09-09"
+          ],
+          [
+            "1.2.16",
+            "One Reply reaches both sides",
+            "reply_to carries the writer and contact@, so the answer is delivered and archived in one gesture"
+          ],
+          [
+            "1.2.17",
+            "⚠️ contact@ delivers to the people who read it",
+            "Send to contact@ alone and every admin receives it. ⚠️ On 2026-09-09 it reached nobody — a mailbox with no members. Workspace configuration, not code"
+          ],
+          [
+            "1.2.18",
+            "⚠️ An admin's reply carries the brand address",
+            "From reads contact@baseball-sensei.com, not a personal address. Needs send-as for each admin — bcc protects the recipient list, only send-as protects the sender"
           ],
           [
             "1.2.14",

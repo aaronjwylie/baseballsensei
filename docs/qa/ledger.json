@@ -2983,6 +2983,34 @@
       "expect": "Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry",
       "retired": false,
       "history": []
+    },
+    "1.2.15": {
+      "firstSeen": "2026-09-09T19:59:17.921Z",
+      "what": "⚠️ A reply-all cannot dox the admins. Submit the form, then hit reply-all on the admin copy",
+      "expect": "Only the customer and contact@ are addressed. Every admin is bcc, so no address of ours can travel back to the writer. ⚠️ They were all in to until 2026-09-09",
+      "retired": false,
+      "history": []
+    },
+    "1.2.16": {
+      "firstSeen": "2026-09-09T19:59:17.921Z",
+      "what": "One Reply reaches both sides",
+      "expect": "reply_to carries the writer and contact@, so the answer is delivered and archived in one gesture",
+      "retired": false,
+      "history": []
+    },
+    "1.2.17": {
+      "firstSeen": "2026-09-09T19:59:17.921Z",
+      "what": "⚠️ contact@ delivers to the people who read it",
+      "expect": "Send to contact@ alone and every admin receives it. ⚠️ On 2026-09-09 it reached nobody — a mailbox with no members. Workspace configuration, not code",
+      "retired": false,
+      "history": []
+    },
+    "1.2.18": {
+      "firstSeen": "2026-09-09T19:59:17.921Z",
+      "what": "⚠️ An admin's reply carries the brand address",
+      "expect": "From reads contact@baseball-sensei.com, not a personal address. Needs send-as for each admin — bcc protects the recipient list, only send-as protects the sender",
+      "retired": false,
+      "history": []
     }
   }
 }

@@ -206,6 +206,53 @@ They quote the message through one `quotedMessage()` in `shared/email/shell.ts`,
 so the words cannot be shown two ways. Nobody would catch it if they were: no
 one sees both emails except by accident.
 
+### How a contact thread is addressed — and where our reach ends
+
+**The app is the conduit; `contact@` is the identity.** Nothing is forwarded or
+distributed by Google: a reply sent to `contact@` alone reached no admin when it
+was tested on 2026-09-09, which is how we learned the fan-out we assumed did not
+exist. Everyone who receives a contact message receives it because this app
+addressed them.
+
+That is worth stating positively, because it is what makes the per-admin
+**notify** toggle real. A flag can only govern mail we choose the recipients
+for; anything Google distributes is outside it.
+
+| | admin copy | writer's receipt |
+|---|---|---|
+| `to` | `contact@` — the one visible identity | the writer |
+| `bcc` | every admin with notify on | — |
+| `reply_to` | **the writer *and* `contact@`** | — (from is already right) |
+
+**Bcc, because a customer is in this thread.** Four admins in `to` means any one
+of them can hand the customer all four addresses by hitting reply-all, and
+"remember not to reply-all" is not a mechanism. The submission notices (②④⑤⑦)
+keep everyone in `to` deliberately — no customer is ever in those threads, and
+seeing who else was told is useful.
+
+**Two addresses in `reply_to`** so one Reply reaches the customer *and* the
+shared inbox. The answer is delivered and archived in the same gesture, instead
+of two an admin has to remember.
+
+**Where this stops, and what has to finish it.** An admin's reply is sent by
+Gmail, not by us, so we cannot fan *that* out — the other admins see it only
+because it lands in `contact@`. Two pieces of Workspace configuration close the
+gap and neither belongs in code:
+
+1. **`contact@` must deliver to the people who read it** — a group with the
+   admins as members, or a shared mailbox they are delegated into. Without it
+   the archive is a mailbox nobody opens.
+2. **Each admin needs send-as `contact@`**, so a reply carries the brand address
+   in `From` rather than their own. Bcc protects the recipient list; only
+   send-as protects the sender.
+
+**The honest boundary:** with (1) in place the notify toggle governs what this
+app sends and not what Google redistributes. Making it authoritative over the
+whole conversation would mean receiving inbound mail, threading it and fanning
+it out ourselves — a helpdesk, and squarely in [§2 Non-Goals](../../../CLAUDE.md#2-non-goals--anti-scope).
+Worth scoping as a change order if the team ever wants it; not worth drifting
+into.
+
 **Neither uses the default footer.** It says "about your coaching submission",
 which is wrong twice over here — the writer has not made one, and the admin is
 not a customer.
