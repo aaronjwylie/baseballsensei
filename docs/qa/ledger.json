@@ -2980,9 +2980,15 @@
     "1.2.14": {
       "firstSeen": "2026-09-09T19:36:54.454Z",
       "what": "The receipt can't fail the form",
-      "expect": "Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry",
+      "expect": "Covered by tests/unit/contactReceiptFailure.test.ts. Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T23:39:18.171Z",
+          "what": "The receipt can't fail the form",
+          "expect": "Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry"
+        }
+      ]
     },
     "1.2.15": {
       "firstSeen": "2026-09-09T19:59:17.921Z",
@@ -3039,9 +3045,15 @@
     "1.2.20": {
       "firstSeen": "2026-09-09T21:07:31.969Z",
       "what": "The Admins tab says the address is not for correspondence",
-      "expect": "An amber note under the blurb, on that tab only. It is where an admin is added, which is where the expectation is set",
+      "expect": "Covered by tests/unit/adminEmailNote.test.tsx. An amber note under the blurb, on that tab only. It is where an admin is added, which is where the expectation is set",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T23:39:18.171Z",
+          "what": "The Admins tab says the address is not for correspondence",
+          "expect": "An amber note under the blurb, on that tab only. It is where an admin is added, which is where the expectation is set"
+        }
+      ]
     },
     "1.2.21": {
       "firstSeen": "2026-09-09T21:07:31.969Z",
@@ -3074,9 +3086,15 @@
     "1.2.25": {
       "firstSeen": "2026-09-09T21:54:10.494Z",
       "what": "A sixth multi-recipient message cannot forget the bcc",
-      "expect": "bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string",
+      "expect": "Covered by tests/unit/contactReceiptFailure.test.ts. bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-09T23:39:18.171Z",
+          "what": "A sixth multi-recipient message cannot forget the bcc",
+          "expect": "bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string"
+        }
+      ]
     },
     "1.2.26": {
       "firstSeen": "2026-09-09T23:26:23.419Z",

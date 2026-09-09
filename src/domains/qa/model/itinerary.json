@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 76,
-    "generatedAt": "2026-09-09T23:26:23.419Z",
+    "build": 77,
+    "generatedAt": "2026-09-09T23:39:18.171Z",
     "checks": 361,
     "live": 358,
     "retired": 3,
-    "edited": 83
+    "edited": 86
   },
   "phases": [
     {
@@ -360,7 +360,14 @@
             {
               "id": "1.2.25",
               "what": "A sixth multi-recipient message cannot forget the bcc",
-              "expect": "bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string"
+              "expect": "Covered by tests/unit/contactReceiptFailure.test.ts. bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string",
+              "history": [
+                {
+                  "at": "2026-09-09T23:39:18.171Z",
+                  "what": "A sixth multi-recipient message cannot forget the bcc",
+                  "expect": "bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string"
+                }
+              ]
             },
             {
               "id": "1.2.23",
@@ -370,7 +377,14 @@
             {
               "id": "1.2.20",
               "what": "The Admins tab says the address is not for correspondence",
-              "expect": "An amber note under the blurb, on that tab only. It is where an admin is added, which is where the expectation is set"
+              "expect": "Covered by tests/unit/adminEmailNote.test.tsx. An amber note under the blurb, on that tab only. It is where an admin is added, which is where the expectation is set",
+              "history": [
+                {
+                  "at": "2026-09-09T23:39:18.171Z",
+                  "what": "The Admins tab says the address is not for correspondence",
+                  "expect": "An amber note under the blurb, on that tab only. It is where an admin is added, which is where the expectation is set"
+                }
+              ]
             },
             {
               "id": "1.2.21",
@@ -380,7 +394,14 @@
             {
               "id": "1.2.14",
               "what": "The receipt can't fail the form",
-              "expect": "Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry"
+              "expect": "Covered by tests/unit/contactReceiptFailure.test.ts. Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry",
+              "history": [
+                {
+                  "at": "2026-09-09T23:39:18.171Z",
+                  "what": "The receipt can't fail the form",
+                  "expect": "Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry"
+                }
+              ]
             }
           ]
         },

@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 76</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 77</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -818,7 +818,7 @@ const PHASES = [
           [
             "1.2.25",
             "A sixth multi-recipient message cannot forget the bcc",
-            "bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string"
+            "Covered by tests/unit/contactReceiptFailure.test.ts. bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string"
           ],
           [
             "1.2.23",
@@ -828,7 +828,7 @@ const PHASES = [
           [
             "1.2.20",
             "The Admins tab says the address is not for correspondence",
-            "An amber note under the blurb, on that tab only. It is where an admin is added, which is where the expectation is set"
+            "Covered by tests/unit/adminEmailNote.test.tsx. An amber note under the blurb, on that tab only. It is where an admin is added, which is where the expectation is set"
           ],
           [
             "1.2.21",
@@ -838,7 +838,7 @@ const PHASES = [
           [
             "1.2.14",
             "The receipt can't fail the form",
-            "Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry"
+            "Covered by tests/unit/contactReceiptFailure.test.ts. Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry"
           ]
         ]
       },
