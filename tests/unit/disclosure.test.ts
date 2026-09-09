@@ -16,7 +16,7 @@ import { Disclosure } from "@/app/admin/Disclosure";
  */
 const render = (label: string, hint?: string) =>
   renderToStaticMarkup(
-    createElement(Disclosure, { label, hint, children: createElement("p", null, "body") }),
+    createElement(Disclosure, { label, hint }, createElement("p", null, "body")),
   );
 
 describe("Disclosure", () => {
