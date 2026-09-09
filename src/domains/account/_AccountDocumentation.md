@@ -102,10 +102,19 @@ reads.
   10, zero drift between the old column and the new table.
 - ✅ `password_hash` on `operator` made nullable (`0014`), so a new operator no
   longer writes it.
-- 🔶 **The old column still exists.** Deliberate: migrations run *before* the
-  build, so for a few seconds the previous deploy serves against the new schema.
-  Dropping it in the same step is the 2026-08-02 outage exactly. A follow-up
-  contracts it once `0013`/`0014` are live.
+- ✅ **The old column is gone** (`0028`, 2026-09-09) — the contract step the
+  expand deliberately deferred. Migrations run *before* the build, so for a few
+  seconds the previous deploy serves against the new schema; dropping in the
+  same step as the move is the 2026-08-02 outage exactly. Waiting until nothing
+  wrote it is what made the drop boring. `operator.role` went with it, for the
+  same reason and on the same schedule (`0015` → `0028`).
+
+  Checked before generating it: no operator held a `password_hash` without an
+  `operator_credential` row, and none held a `role` without a matching grant, so
+  neither drop lost a fact. **The wait was not free.** A vestigial column reads
+  as authoritative — on 2026-09-09 an audit of who could sign in read
+  `operator.password_hash`, found five NULLs including two admins, and very
+  nearly reported a go-live blocker that did not exist.
 - ❌ **No `updatedAt` is surfaced anywhere.** The column exists and is written;
   nothing shows an admin when a password last changed, which is the first thing
   this table makes cheap and is worth doing when the portal grows a security

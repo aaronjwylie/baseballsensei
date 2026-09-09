@@ -535,7 +535,7 @@ async function ensureCoach(name: string, languages: string[]) {
 
   const [operator] = await db
     .insert(operatorTable)
-    .values({ email, passwordHash: "x", name })
+    .values({ email, name })
     .returning();
   // A kind is a grant, and the grant carries the kind's settings — one row, not
   // two. A fixture without a grant is unlike any real operator: it would not
@@ -562,7 +562,7 @@ async function ensureTranslator(name: string) {
 
   const [operator] = await db
     .insert(operatorTable)
-    .values({ email, passwordHash: "x", name })
+    .values({ email, name })
     .returning();
   await grantRole(operator.id, "translator", null);
   await setRoleSettings(operator.id, "translator", {

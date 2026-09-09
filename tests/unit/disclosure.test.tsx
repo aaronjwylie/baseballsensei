@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Disclosure } from "@/app/admin/Disclosure";
 
@@ -16,7 +15,9 @@ import { Disclosure } from "@/app/admin/Disclosure";
  */
 const render = (label: string, hint?: string) =>
   renderToStaticMarkup(
-    createElement(Disclosure, { label, hint }, createElement("p", null, "body")),
+    <Disclosure label={label} hint={hint}>
+      <p>body</p>
+    </Disclosure>,
   );
 
 describe("Disclosure", () => {

@@ -23,7 +23,10 @@ export default defineConfig({
     alias: { "server-only": new URL("./scripts/stubs/serverOnly.ts", import.meta.url).pathname },
   },
   test: {
-    include: ["tests/**/*.test.ts"],
+    // `.tsx` too: a test that renders a component whose props require
+    // `children` has to write JSX — `createElement` with children as a prop
+    // is a lint error, and as a third argument it does not satisfy the type.
+    include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
     environment: "node",
   },
 });

@@ -16,23 +16,10 @@
  * (`npm run db:seed`), and every other operator is created from the admin portal.
  */
 import { pgTable, uuid, text, boolean, timestamp } from "drizzle-orm/pg-core";
-import { operatorRole } from "./operatorRoleEnum";
 
 export const operatorTable = pgTable("operator", {
   id: uuid().defaultRandom().primaryKey(),
   email: text().notNull().unique(),
-  /**
-   * **Vestigial — the credential lives in `operator_credential` since
-   * migration `0013`.** Nullable now so a new operator can be created without
-   * it; the next migration drops it once this deploy is live. Nothing reads it.
-   */
-  passwordHash: text(),
-  /**
-   * **Vestigial — `operator_role_grant` is the record** since `0015`. Nullable
-   * so a new operator need not write it; nothing reads it. A later migration
-   * drops it.
-   */
-  role: operatorRole(),
   name: text().notNull(),
   /*
     Whether they may still sign in and be given work.

@@ -104,7 +104,7 @@ script. So:
 | **Revoke the Figma token** | `figd_TTJa…` was pasted into a transcript on 2026-08-15 and written to `.env.figma`. Read-only and file-scoped, but it does not expire on its own. Revoke and delete the file when the design work is done. |
 | **Rotate the production DB password** | Exposed in a transcript 2026-08-05. |
 | ~~**Reactivate `ben.j.wylie@gmail.com`**~~ — **DONE** | Verified against production 2026-08-26: `is_active = true`, credential present, holding `admin,coach,translator`. Every operator is active with credentials and grants. The cause (the edit form writing `isActive=false` on every save) was fixed by Aaron in `0d6bbf0`. A repair migration was written and then **deleted unapplied** — there was nothing left to repair, and shipping a data mutation for a problem that no longer exists is worse than not shipping one. |
-| **Confirm the admin login works in production** | `0018_repair_orphaned_logins` runs on deploy and rebuilds the missing credential and grant rows from the legacy columns. It can only recover a password that is still in `operator.password_hash`; an admin seeded with no legacy hash at all needs an explicit reset — see below. |
+| ~~**Confirm the admin login works in production**~~ — **DONE** | Verified against production 2026-09-09: all ten operators hold an `operator_credential` row, so `0018_repair_orphaned_logins` has nothing left to recover. The legacy `operator.password_hash` and `operator.role` columns were dropped in `0028` once that was true. If a login is ever lost now, §5 below is the route — the repair migration is spent. |
 
 ---
 
@@ -146,9 +146,10 @@ script. So:
 
 ## 5 · If the admin still cannot sign in
 
-`0018` repairs operators whose legacy `operator.password_hash` survived. If one
-does not have that column populated, there is no password to recover and it has
-to be set. Two ways, both safe to repeat:
+**The recovery migration is spent.** `0018` rebuilt credentials from
+`operator.password_hash`, and that column was dropped in `0028` — every operator
+had a real credential row by then, so there was nothing left for it to find. A
+lost login is now set rather than recovered. Two ways, both safe to repeat:
 
 1. **Forgot password** at `/forgot-password`. This now works for an operator
    with no credential row, which is exactly what it could not do before.
