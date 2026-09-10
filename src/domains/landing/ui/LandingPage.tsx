@@ -1,4 +1,4 @@
-import { Closing } from "./Closing";
+// import { Closing } from "./Closing"; // hidden for now (Aaron) — restore with the render below
 import { Coach } from "./Coach";
 import { Faq } from "./Faq";
 import { FinalCta } from "./FinalCta";
@@ -30,7 +30,7 @@ export function LandingPage() {
       <Coach />
       <Pricing />
       <Faq />
-      <Closing />
+      {/* <Closing /> hidden for now (Aaron) */}
       <FinalCta />
     </>
   );

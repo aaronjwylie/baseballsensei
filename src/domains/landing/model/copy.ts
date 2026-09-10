@@ -34,18 +34,15 @@ export const hero = {
 } as const;
 
 /**
- * The scrolling strip under the hero. Six claims, not the seven the Figma
- * draws — its seventh is "japan precision" a second time, which is the row
- * repeating to fill 1079px rather than a seventh claim. The marquee repeats the
- * set in the component, so the duplicate would have come back doubled.
+ * The scrolling strip under the hero. Three claims (Aaron) — the marquee
+ * component repeats the set to fill the row, so a short set simply cycles more
+ * often. The turnaround reads from `site.turnaround` so it can't drift from the
+ * rest of the site.
  */
 export const ticker = [
   `${site.turnaround.replace(" hours", "h")} turnaround`,
-  "no robots",
-  "human coaching",
-  "real pro coach",
   "japan precision",
-  "1:1 video reply",
+  "real pro coach",
 ] as const;
 
 export const method = {
@@ -81,10 +78,10 @@ export const coach = {
   role: "Title here",
   bio: "Get personalized guidance from Masatomo and his team of experienced Japanese baseball coaches. They'll help you see what's working, understand what needs improvement, and give you clear advice you can take back to the field.",
   stats: [
-    { value: "NPB", label: "Played at the highest level" },
-    { value: "12 yrs", label: "Coaching young athletes" },
-    { value: "JP METHOD", label: "Japanese approach to training" },
-    { value: "GAME IQ", label: "Mechanics + mindset" },
+    { value: "8 years", label: "Playing at NPB's highest level" },
+    { value: "10+ years", label: "Coaching experience" },
+    { value: "JP method", label: "Japanese training approach" },
+    { value: "Game IQ", label: "Mechanics + mindset" },
   ],
 } as const;
 

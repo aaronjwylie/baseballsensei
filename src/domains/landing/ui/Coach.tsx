@@ -90,10 +90,10 @@ export function Coach() {
                 key={stat.value}
                 className="rounded-md border-2 border-accent px-5 py-2.5 text-center"
               >
-                <dt className="text-[13px] font-bold uppercase tracking-[0.04em] text-ink">
+                <dt className="text-[13px] font-bold uppercase tracking-[0.04em] text-accent">
                   {stat.value}
                 </dt>
-                <dd className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-accent">
+                <dd className="mt-0.5 text-[12px] font-semibold text-accent">
                   {stat.label}
                 </dd>
               </div>
