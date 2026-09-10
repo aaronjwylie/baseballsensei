@@ -202,7 +202,8 @@ function Folder({
   const downloadable = files.filter((f) => f.fileUrl);
 
   return (
-    <section className="rounded-lg border border-line bg-paper p-3">
+    /* `min-w-0` because this is a grid item too — see QueueRow. */
+    <section className="min-w-0 rounded-lg border border-line bg-paper p-3">
       <header className="flex items-baseline justify-between gap-2">
         <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
           {label}
