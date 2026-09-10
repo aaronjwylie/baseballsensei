@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Container, LocalTime } from "@/shared/ui";
+import { LocalTime, PageColumn } from "@/shared/ui";
 import { TranslationCard } from "./TranslationCard";
 import { PortalEmptyState } from "../_portal/PortalEmptyState";
 import { storage } from "@/shared/storage";
@@ -105,7 +105,7 @@ export default async function TranslatorHomePage() {
   }
 
   return (
-    <Container className="max-w-3xl">
+    <PageColumn>
       <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">
         {heading}
       </h1>
@@ -200,7 +200,7 @@ export default async function TranslatorHomePage() {
           </ul>
         </>
       )}
-    </Container>
+    </PageColumn>
   );
 }
 

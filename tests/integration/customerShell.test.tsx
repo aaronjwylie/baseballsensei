@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { ReactElement } from "react";
+import { PageColumn } from "@/shared/ui/PageColumn";
 
 /**
  * QA 8.9.18 — the three customer pages resize the same way.
@@ -35,7 +36,7 @@ const html = async (el: unknown) => renderToStaticMarkup((await el) as ReactElem
 /** The shell's own wrapper — the bit every page must share. */
 const shellOf = (markup: string) => {
   const m = markup.match(/<section class="([^"]*py-\[clamp[^"]*)"/);
-  expect(m, "no NarrowPage section found").toBeTruthy();
+  expect(m, "no PageColumn section found").toBeTruthy();
   return m![1];
 };
 
@@ -48,8 +49,13 @@ describe("8.9.18 — one shell, three pages", () => {
     ]);
     const shells = pages.map(shellOf);
     expect(new Set(shells).size).toBe(1);
-    // And it is the solved clamp, not a hand-written value.
-    expect(shells[0]).toContain("clamp(2.5rem,0.904rem+6.81vw,3.5rem)");
+    // And it is the shell itself, not a copy of it. Asserted against what
+    // `PageColumn` renders rather than a literal — a literal stops testing the
+    // rule the moment the value moves, which is how this test came to be
+    // checking a clamp the component no longer had.
+    expect(shells[0]).toBe(
+      shellOf(renderToStaticMarkup(<PageColumn>x</PageColumn>)),
+    );
   });
 
   /*

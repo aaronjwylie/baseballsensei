@@ -17,7 +17,7 @@ import type { ReactNode } from "react";
  * **The padding ate the column.** Inside a single capped box the gutters are
  * subtracted from the cap, so widening the window made the text *narrower* —
  * a `max-w-xl` page went 536 → 512 → 456 across the two breakpoints, in the
- * wrong direction. `NarrowPage` was written to escape exactly this and escaped
+ * wrong direction. `PageColumn` was written to escape exactly this and escaped
  * it for three customer pages; login, account, `/start` and `/qa` were still
  * doing it. Padding outside the cap means the column grows until it caps and
  * then holds, which is the same rule the vertical rhythm follows.
@@ -35,7 +35,7 @@ import type { ReactNode } from "react";
  * `cap - gutters` and left `viewport - gutters`: at 639px a `max-w-3xl` page
  * had 599px of content and at 640px it had 576, because the gutter stepped
  * 20 → 32 underneath it. Constant padding removes the step entirely, which is
- * what `NarrowPage` concluded before this did — *a narrow card wants constant
+ * what `PageColumn` concluded before this did — *a narrow card wants constant
  * padding and one cap*. Past the cap the gutter is `(viewport - cap) / 2`
  * anyway; the class only bites while the column is still viewport-bound, and
  * there 20px is what you want.
