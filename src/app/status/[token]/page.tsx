@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { NarrowPage, pageTitleClass } from "@/shared/ui";
+import { PageColumn, pageTitleClass } from "@/shared/ui";
 import {
   lookupPublicSubmissions,
   verifyStatusToken,
@@ -39,7 +39,7 @@ export default async function StatusByTokenPage({
 
   if (!email) {
     return (
-      <NarrowPage>
+      <PageColumn>
         <div className="text-center">
           <h1 className={pageTitleClass}>
             That link didn&rsquo;t work
@@ -58,7 +58,7 @@ export default async function StatusByTokenPage({
             </Link>
           </p>
         </div>
-      </NarrowPage>
+      </PageColumn>
     );
   }
 
@@ -74,7 +74,7 @@ export default async function StatusByTokenPage({
   const ready = await listFeedbackForEmail(email);
 
   return (
-    <NarrowPage>
+    <PageColumn>
         <div className="text-center">
           <h1 className={pageTitleClass}>
             Your submissions
@@ -100,6 +100,6 @@ export default async function StatusByTokenPage({
           This link is private to you — anyone you forward it to can see this
           page.
         </p>
-    </NarrowPage>
+    </PageColumn>
   );
 }

@@ -21,7 +21,10 @@ export default async function CoachLayout({
   return (
     <>
       <PortalBar home="/coach" canSwitch={canSwitch} email={email} />
-      <div className="flex grow flex-col py-8">{children}</div>
+      {/* No vertical padding here: `PageColumn` owns the rhythm, and the
+          empty state centres itself in the space this leaves. Two sources of
+          it is what made the portals and the customer pages disagree. */}
+      <div className="flex grow flex-col">{children}</div>
     </>
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Container, LocalTime } from "@/shared/ui";
+import { LocalTime, PageColumn } from "@/shared/ui";
 import { PortalEmptyState } from "../_portal/PortalEmptyState";
 import { storage } from "@/shared/storage";
 import { requireRole } from "@/domains/account";
@@ -96,7 +96,7 @@ export default async function CoachHomePage() {
   }
 
   return (
-    <Container className="max-w-3xl">
+    <PageColumn>
       <h1 className="font-display text-2xl font-medium uppercase tracking-[-0.01em] text-ink">
         {coach ? `${coach.name}'s reviews` : "Your reviews"}
       </h1>
@@ -205,7 +205,7 @@ export default async function CoachHomePage() {
             </ul>
           </>
         )}
-    </Container>
+    </PageColumn>
   );
 }
 

@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { NarrowPage, pageTitleClass } from "@/shared/ui/NarrowPage";
+import { PageColumn, pageTitleClass } from "@/shared/ui/PageColumn";
 
 /**
- * QA 8.9.5 / 8.9.6 / 8.9.18 — how the customer pages behave under a drag.
+ * QA 8.9.5 / 8.9.6 / 8.9.18 — how every page a person reads behaves under a
+ * drag: the three customer pages and both portals, which share one shell.
  *
  * The rule these hold down: **vertical rhythm stops scaling where the column
  * stops growing.** The column caps at `max-w-xl` (576px) plus `px-5` either
@@ -15,7 +16,7 @@ import { NarrowPage, pageTitleClass } from "@/shared/ui/NarrowPage";
  * Solved rather than eyeballed, so it is worth asserting: an eyeballed value
  * drifts back the next time someone thinks the page looks tight.
  */
-const COLUMN_CAPS_AT = 616;
+const COLUMN_CAPS_AT = 808;  // max-w-3xl (768) + px-5 either side
 
 /** `clamp(<min>rem, <a>rem + <b>vw, <max>rem)` → px at a given viewport. */
 function evaluate(clamp: string, viewport: number): number {
@@ -34,7 +35,7 @@ const clampIn = (source: string) => {
 };
 
 const paddingClamp = clampIn(
-  renderToStaticMarkup(<NarrowPage>x</NarrowPage>),
+  renderToStaticMarkup(<PageColumn>x</PageColumn>),
 );
 const titleClamp = clampIn(pageTitleClass);
 
@@ -44,7 +45,8 @@ describe.each([
 ])("%s", (_label, clamp) => {
   it("still grows below the cap", () => {
     expect(evaluate(clamp, 375)).toBeLessThan(evaluate(clamp, 500));
-    expect(evaluate(clamp, 500)).toBeLessThan(evaluate(clamp, COLUMN_CAPS_AT));
+    expect(evaluate(clamp, 500)).toBeLessThan(evaluate(clamp, 700));
+    expect(evaluate(clamp, 700)).toBeLessThanOrEqual(evaluate(clamp, COLUMN_CAPS_AT));
   });
 
   /*
@@ -57,7 +59,10 @@ describe.each([
     // a rounding accident.
     const max = Number(clamp.match(/,([\d.]+)rem\)$/)![1]) * 16;
     expect(evaluate(clamp, COLUMN_CAPS_AT)).toBe(max);
-    for (const wider of [700, 900, 1200, 1440, 2560]) {
+    // Derived from the cap, not listed: a hard-coded sample silently stops
+    // testing the rule the moment the cap moves, which is exactly what happened
+    // when the column went from 576 to 768.
+    for (const wider of [COLUMN_CAPS_AT + 1, 1000, 1200, 1440, 2560]) {
       expect(evaluate(clamp, wider)).toBe(max);
     }
   });

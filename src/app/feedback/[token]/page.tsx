@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ButtonLink, NarrowPage, pageTitleClass } from "@/shared/ui";
+import { ButtonLink, PageColumn, pageTitleClass } from "@/shared/ui";
 import { FeedbackFiles } from "@/domains/feedback";
 import {
   filesAsSent,
@@ -43,7 +43,7 @@ export default async function FeedbackPage({
       : [];
 
   return (
-    <NarrowPage>
+    <PageColumn>
         {files.length === 0 ? (
           <div className="rounded-2xl border border-line bg-white p-8 text-center">
             <h1 className="text-2xl font-bold tracking-tight text-ink">
@@ -112,6 +112,6 @@ export default async function FeedbackPage({
             </p>
           </>
         )}
-    </NarrowPage>
+    </PageColumn>
   );
 }
