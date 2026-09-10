@@ -1,5 +1,6 @@
 {
   "pack": "1.0.0",
+  "source": "https://github.com/Ben-J-Wylie/doctrine.git",
   "pinnedAt": "2026-09-10",
   "lawsDir": "laws",
   "laws": {
