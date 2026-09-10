@@ -26,7 +26,8 @@ reviewer's mandate (shape in [`templates/charter.md`](../templates/charter.md), 
 
 **Checked, not trusted.** [`scripts/check-doctrine.mjs`](../scripts/check-doctrine.mjs) runs in
 `npm run build` and fails it on: a law with no companion, an unfilled brace-placeholder outside a
-fenced form, a dead relative link, or a domain with no slice doc. It found fourteen dead links in
+fenced form, a dead relative link, a domain with no slice doc, or **a law that drifted from the hash
+pinned in [`doctrine.json`](../doctrine.json)** (since 2026-09-10). It found fourteen dead links in
 files authored minutes earlier — a markdown link is a string, and a wrong string is a well-typed
 string.
 
@@ -34,4 +35,10 @@ string.
 amendments, and answers to the template's own open questions — is
 [`_DoctrineFeedback.md`](_DoctrineFeedback.md).
 
-Adopted 2026-08-06 from `_DoctrineTemplate`.
+**Versioned.** The pack follows its own `_ReleaseLaw` (its `RELEASING.md`). This project is pinned
+to **pack v1.0.0** in `doctrine.json`, written by the pack's `tools/doctrine/doctrine.mjs pin`. Two laws
+are marked `amended` there — `_NomenclatureLaw` and `_StructureLaw`, the amendments recorded in
+[`_DoctrineFeedback.md`](_DoctrineFeedback.md) §1a–1b — and are upstream candidates for pack v1.1.
+Upgrading is `doctrine upgrade <this repo>` from the pack, then the pack changelog's `Operate` items.
+
+Adopted 2026-08-06 from `_DoctrineTemplate`; pinned to v1.0.0 on 2026-09-10.

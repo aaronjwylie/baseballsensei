@@ -1,0 +1,41 @@
+{
+  "pack": "1.0.0",
+  "pinnedAt": "2026-09-10",
+  "lawsDir": "laws",
+  "laws": {
+    "_CommerceLaw.md": {
+      "sha256": "2d6b5073e5f6d0e4a4f3b22d84380770206e96a0a5357b07f4ce2a931d77ae7d",
+      "source": "pack"
+    },
+    "_DesignLaw.md": {
+      "sha256": "a75d53ccac53fa125640de00eec17e3a9a992eed3a7da8e86d9e84d883a4ff6c",
+      "source": "pack"
+    },
+    "_NomenclatureLaw.md": {
+      "sha256": "5ae159ca84ea0b959a09a312f6820ba3a2bde94b8fe943b6a3728de8fbca93ba",
+      "source": "amended",
+      "packSha256": "04a7211783e4ad89b55bc7d58edc413cb2e7c93ffce80f6e3fa311f8339fcdaa"
+    },
+    "_QALaw.md": {
+      "sha256": "8ae0ebeec483e4e06588b03561242ca59acc1cd3a2657e8c4d2d007b6863fd5f",
+      "source": "pack"
+    },
+    "_ReleaseLaw.md": {
+      "sha256": "ca8c1a06d4d71ff98c8ff38e75f1f7aa1f57adea41e645caa484a3421fc9d65e",
+      "source": "pack"
+    },
+    "_SecurityLaw.md": {
+      "sha256": "ec96e80614333946d82c7daadd240f4ab79294264bd6181f0563813e6dfa577d",
+      "source": "pack"
+    },
+    "_StructureLaw.md": {
+      "sha256": "306dc3861e91b4cfb190e22bbf7f35b6657dfdc708e43c38978a8d97422b774f",
+      "source": "amended",
+      "packSha256": "361a3c68a3a0ed51413f0a6f450e551a5b04a5e1ca6f2947a1a6bbae2dffabef"
+    },
+    "_VerificationLaw.md": {
+      "sha256": "4c3c040e60a85b917eb1ad641c97c447f4e751184d9b931d11c753967930b11b",
+      "source": "pack"
+    }
+  }
+}

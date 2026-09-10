@@ -19,6 +19,11 @@ Written for the reader who was not there: what is different *for someone*, not w
 
 ### Added
 
+- `doctrine.json` pins this project to doctrine pack **v1.0.0** and records each law's hash; the
+  doctrine gate now fails on a law edited after it was pinned (drift), so "copied verbatim" is checked
+  rather than trusted. Two laws are pinned as `amended` — Nomenclature and Structure — and are
+  upstream candidates.
+
 - The Release Law (`laws/_ReleaseLaw.md`) and this project's instance of it
   (`documentation/_ReleaseDocumentation.md`): what a release is here, the four rungs, the promotion
   mechanism, the rollback floors, and the route from every push deploying production to a pipeline.

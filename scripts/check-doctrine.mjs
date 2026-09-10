@@ -14,18 +14,23 @@
  * `check:names` could see them — a markdown link is a string, and a wrong string
  * is a well-typed string.
  *
- * Four checks, cheapest first:
+ * Five checks, cheapest first:
  *
  *   1. PAIRING      every laws/_XLaw.md has documentation/_XDocumentation.md
  *   2. PLACEHOLDERS no {{…}} survives outside templates/, where it is the point
  *   3. LINKS        every relative markdown link resolves to a real path
  *   4. SLICES       every domain carries a _XxxDocumentation.md
+ *   5. DRIFT        every law matches the hash pinned in doctrine.json — a law
+ *                   is "copied verbatim" from the pack, and until 2026-09-10
+ *                   nothing could say whether it still was (_ReleaseLaw P13,
+ *                   applied to the documents: every copy says which version)
  *
  * Runs in `npm run build`. A broken doctrine link blocking a deploy is a
  * deliberate trade: this project has spent more time on documents that quietly
  * stopped being true than on any bug.
  */
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join, dirname, normalize, relative } from "node:path";
 
 const ROOT = process.cwd();
@@ -117,6 +122,34 @@ if (existsSync(domainsDir)) {
   }
 }
 
+// ── 5 · DRIFT ──────────────────────────────────────────────────────────────
+// doctrine.json is written by the pack's `tools/doctrine/doctrine.mjs pin`. It
+// records the pack version adopted and each law's hash as pinned. A law whose
+// hash has moved since is one of two things — an amendment nobody recorded in
+// _DoctrineFeedback.md, or a pack upgrade nobody re-pinned — and both are
+// findings. Position against the pack (amended / behind) is the pack's job to
+// report, not this gate's to fail: those are decisions a project may have made.
+const pinFile = join(ROOT, "doctrine.json");
+if (!existsSync(pinFile)) {
+  note(pinFile, "no doctrine.json — run `doctrine pin` from the pack (see documentation/README.md)");
+} else {
+  const pin = JSON.parse(readFileSync(pinFile, "utf8"));
+  const pinnedDir = join(ROOT, pin.lawsDir ?? "laws");
+  const pinned = Object.keys(pin.laws ?? {});
+  if (pinned.length < 3) note(pinFile, `vacuity: only ${pinned.length} law(s) pinned — wrong lawsDir?`);
+  for (const law of pinned) {
+    const file = join(pinnedDir, law);
+    if (!existsSync(file)) { note(file, "pinned in doctrine.json but missing"); continue; }
+    const hash = createHash("sha256").update(readFileSync(file)).digest("hex");
+    if (hash !== pin.laws[law].sha256) {
+      note(file, "changed since pinned — record the amendment in documentation/_DoctrineFeedback.md and upstream it, or re-pin deliberately (`doctrine pin`)");
+    }
+  }
+  for (const law of laws) {
+    if (!pin.laws?.[law]) note(join(lawsDir, law), "present but not pinned in doctrine.json — `doctrine pin`");
+  }
+}
+
 // ── report ─────────────────────────────────────────────────────────────────
 if (findings.length) {
   console.error(`\n[doctrine] ${findings.length} problem${findings.length === 1 ? "" : "s"}:\n`);
@@ -128,4 +161,5 @@ if (findings.length) {
 const docCount = existsSync(docsDir)
   ? readdirSync(docsDir).filter((f) => f.endsWith("Documentation.md")).length
   : 0;
-console.log(`[doctrine] ok — ${laws.length} laws, ${docCount} companions, every link resolves`);
+const pinnedPack = existsSync(pinFile) ? JSON.parse(readFileSync(pinFile, "utf8")).pack : "unpinned";
+console.log(`[doctrine] ok — ${laws.length} laws (pack v${pinnedPack}, no drift), ${docCount} companions, every link resolves`);
