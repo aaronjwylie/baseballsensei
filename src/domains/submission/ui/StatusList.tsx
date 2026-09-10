@@ -105,9 +105,19 @@ const WITH_YOUR_COACH = {
   className: "bg-blue-50 text-blue-700 border-blue-200",
 } as const;
 
+/**
+ * `wantsYou` marks the states that are asking the customer for something.
+ *
+ * It is what tints the card, and it lives on the badge so the badge and the
+ * card cannot disagree. They did: the tint keyed on *having files*, which stays
+ * true after a download, so a collected review kept its green while its own
+ * badge had already gone quiet (Ben, 2026-09-10). Two renderings of one fact,
+ * derived two different ways, is the drift this field closes.
+ */
 const READY = {
   label: "Feedback ready",
   className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  wantsYou: true,
 } as const;
 
 /**
@@ -128,7 +138,7 @@ const DOWNLOADED = {
 
 const STATUS_META: Record<
   PublicSubmission["status"],
-  { label: string; className: string }
+  { label: string; className: string; wantsYou?: boolean }
 > = {
   // A draft never reaches the lookup — `findByCustomerEmail` filters it out —
   // but the map is exhaustive so a new status can't be added without deciding
@@ -180,6 +190,7 @@ const STATUS_META: Record<
   purge_imminent: {
     label: "Ready, expiring soon",
     className: "bg-amber-50 text-amber-700 border-amber-200",
+    wantsYou: true,
   },
   purged: {
     label: "No longer available",
@@ -216,14 +227,22 @@ function StatusRow({
 
   return (
     /*
-      A ready card is tinted, the rest are plain. Colour is what separated the
-      two lists, and it survives the merge as a property of the card rather than
-      of a section \u2014 which is the more honest place for it: readiness belongs to
-      a submission, not to a region of the page.
+      A card that wants something from the customer is tinted; the rest are
+      plain. Colour is what separated the two lists, and it survives the merge
+      as a property of the card rather than of a section — the more honest
+      place for it: readiness belongs to a submission, not to a region of the
+      page.
+
+      **It follows the badge, not the files.** Tinting on `downloads` only ever
+      meant "this has files", which stays true forever — so a collected review
+      sat in green urging a parent on while its own badge read "Downloaded"
+      (Ben, 2026-09-10). Both read `wantsYou` off one constant now.
     */
     <li
       className={`rounded-2xl border p-5 ${
-        downloads ? "border-emerald-200 bg-emerald-50/50" : "border-line bg-white"
+        meta.wantsYou && downloads
+          ? "border-emerald-200 bg-emerald-50/50"
+          : "border-line bg-white"
       }`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">

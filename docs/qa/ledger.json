@@ -3218,9 +3218,15 @@
     "8.9.52": {
       "firstSeen": "2026-09-10T22:28:12.286Z",
       "what": "A downloaded review stops saying \"Feedback ready\"",
-      "expect": "The badge reads \"Downloaded\" at collected and resolved. ⚠️ All three released rungs read \"Feedback ready\", so a parent who had already downloaded was still being told to. \"Ready\" is an instruction",
+      "expect": "Covered by tests/unit/statusCards.test.ts. The badge reads \"Downloaded\" at collected and resolved. ⚠️ All three released rungs read \"Feedback ready\", so a parent who had already downloaded was still being told to. \"Ready\" is an instruction",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-10T23:04:32.179Z",
+          "what": "A downloaded review stops saying \"Feedback ready\"",
+          "expect": "The badge reads \"Downloaded\" at collected and resolved. ⚠️ All three released rungs read \"Feedback ready\", so a parent who had already downloaded was still being told to. \"Ready\" is an instruction"
+        }
+      ]
     },
     "6.17": {
       "firstSeen": "2026-09-10T22:50:38.702Z",
@@ -3268,6 +3274,20 @@
       "firstSeen": "2026-09-10T22:50:38.702Z",
       "what": "⑥ states both clocks. Read a feedback-ready email",
       "expect": "\"We delete everything 30 days after you first download it… If you never download it, it goes after 90 days.\" ⚠️ It stated only the first, so the customer it was written to protect — the one who never downloads — was given no deadline until the ⑨ warning a week out, which is the surprise that line exists to prevent",
+      "retired": false,
+      "history": []
+    },
+    "8.9.53": {
+      "firstSeen": "2026-09-10T23:04:32.179Z",
+      "what": "A downloaded card is grey, not green",
+      "expect": "Covered by tests/unit/statusCards.test.ts. The tint follows the badge — green only while the card wants something (complete, purge_imminent), plain once collected. The files stay on the card either way; it is the colour that changes. ⚠️ The tint keyed on having files, which stays true forever, so a collected review sat in green while its own badge already read \"Downloaded\" (Ben, 2026-09-10). Both read wantsYou off one constant now",
+      "retired": false,
+      "history": []
+    },
+    "8.9.54": {
+      "firstSeen": "2026-09-10T23:04:32.179Z",
+      "what": "The folder headings inside a downloaded card",
+      "expect": "Neutral. They took their green from the panel they used to sit in, and on a grey card the heading was the last green thing left",
       "retired": false,
       "history": []
     }

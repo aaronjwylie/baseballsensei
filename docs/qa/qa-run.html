@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 92</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 93</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -2367,7 +2367,17 @@ const PHASES = [
           [
             "8.9.52",
             "A downloaded review stops saying \"Feedback ready\"",
-            "The badge reads \"Downloaded\" at collected and resolved. ⚠️ All three released rungs read \"Feedback ready\", so a parent who had already downloaded was still being told to. \"Ready\" is an instruction"
+            "Covered by tests/unit/statusCards.test.ts. The badge reads \"Downloaded\" at collected and resolved. ⚠️ All three released rungs read \"Feedback ready\", so a parent who had already downloaded was still being told to. \"Ready\" is an instruction"
+          ],
+          [
+            "8.9.53",
+            "A downloaded card is grey, not green",
+            "Covered by tests/unit/statusCards.test.ts. The tint follows the badge — green only while the card wants something (complete, purge_imminent), plain once collected. The files stay on the card either way; it is the colour that changes. ⚠️ The tint keyed on having files, which stays true forever, so a collected review sat in green while its own badge already read \"Downloaded\" (Ben, 2026-09-10). Both read wantsYou off one constant now"
+          ],
+          [
+            "8.9.54",
+            "The folder headings inside a downloaded card",
+            "Neutral. They took their green from the panel they used to sit in, and on a grey card the heading was the last green thing left"
           ],
           [
             "8.9.40",

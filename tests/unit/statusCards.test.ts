@@ -192,6 +192,40 @@ describe("what a card says about its own state", () => {
   });
 
   /*
+    The card's colour follows its badge (Ben, 2026-09-10).
+
+    The tint keyed on whether the card had files, and a downloaded review still
+    has them — so it kept the green that means "this wants you" while the badge
+    beside it already read "Downloaded". Both read `wantsYou` off one constant
+    now, which is what makes these two assertions a pair rather than a
+    coincidence.
+  */
+  const tinted = (html: string) => html.includes("bg-emerald-50/50");
+
+  it("tints a card that is still waiting to be collected", () => {
+    const files = createElement("div", null, "THE-FILES");
+    expect(tinted(render([submission({ status: "complete" })], { s1: files }))).toBe(
+      true,
+    );
+  });
+
+  it("drops the tint once it has been downloaded", () => {
+    const files = createElement("div", null, "THE-FILES");
+    for (const status of ["collected", "resolved"] as const) {
+      const html = render([submission({ status })], { s1: files });
+      // The files are still there — it is the colour that changed, not the card.
+      expect(html).toContain("THE-FILES");
+      expect(tinted(html)).toBe(false);
+    }
+  });
+
+  it("keeps the tint while the files are expiring, which does want them", () => {
+    const files = createElement("div", null, "THE-FILES");
+    const html = render([submission({ status: "purge_imminent" })], { s1: files });
+    expect(tinted(html)).toBe(true);
+  });
+
+  /*
     The unpaid deadline, which this page is the only place to say: an unpaid
     submission is removed outright rather than having its files cleared, and no
     email carries the window because the retention mail only goes out after

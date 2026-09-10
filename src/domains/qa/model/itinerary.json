@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 92,
-    "generatedAt": "2026-09-10T22:50:43.652Z",
-    "checks": 370,
-    "live": 367,
+    "build": 93,
+    "generatedAt": "2026-09-10T23:04:32.179Z",
+    "checks": 372,
+    "live": 369,
     "retired": 3,
-    "edited": 96
+    "edited": 97
   },
   "phases": [
     {
@@ -2502,7 +2502,24 @@
             {
               "id": "8.9.52",
               "what": "A downloaded review stops saying \"Feedback ready\"",
-              "expect": "The badge reads \"Downloaded\" at collected and resolved. ⚠️ All three released rungs read \"Feedback ready\", so a parent who had already downloaded was still being told to. \"Ready\" is an instruction"
+              "expect": "Covered by tests/unit/statusCards.test.ts. The badge reads \"Downloaded\" at collected and resolved. ⚠️ All three released rungs read \"Feedback ready\", so a parent who had already downloaded was still being told to. \"Ready\" is an instruction",
+              "history": [
+                {
+                  "at": "2026-09-10T23:04:32.179Z",
+                  "what": "A downloaded review stops saying \"Feedback ready\"",
+                  "expect": "The badge reads \"Downloaded\" at collected and resolved. ⚠️ All three released rungs read \"Feedback ready\", so a parent who had already downloaded was still being told to. \"Ready\" is an instruction"
+                }
+              ]
+            },
+            {
+              "id": "8.9.53",
+              "what": "A downloaded card is grey, not green",
+              "expect": "Covered by tests/unit/statusCards.test.ts. The tint follows the badge — green only while the card wants something (complete, purge_imminent), plain once collected. The files stay on the card either way; it is the colour that changes. ⚠️ The tint keyed on having files, which stays true forever, so a collected review sat in green while its own badge already read \"Downloaded\" (Ben, 2026-09-10). Both read wantsYou off one constant now"
+            },
+            {
+              "id": "8.9.54",
+              "what": "The folder headings inside a downloaded card",
+              "expect": "Neutral. They took their green from the panel they used to sit in, and on a grey card the heading was the last green thing left"
             },
             {
               "id": "8.9.40",

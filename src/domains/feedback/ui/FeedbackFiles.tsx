@@ -87,7 +87,11 @@ export function FeedbackFiles({ files }: { files: FeedbackGroup["files"] }) {
     <>
       {byKind.map(({ kind, files }) => (
         <div key={kind} className="mt-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
+          {/* Neutral, not green. It borrowed the green from the panel it used to
+              sit in, and that panel is now only tinted while the review still
+              wants collecting — so on a downloaded card the heading was the one
+              green thing left (Ben, 2026-09-10). */}
+          <div className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             {KIND_LABELS[kind] ?? kind}
           </div>
           {list(files)}
