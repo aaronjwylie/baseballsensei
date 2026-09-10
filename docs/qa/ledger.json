@@ -2256,10 +2256,16 @@
     },
     "8.9.8": {
       "firstSeen": "2026-09-01T02:21:53.834Z",
-      "what": "Same on the /status/[token] link from ⑥",
-      "expect": "No code prompt at all. The signed link is the proof; asking again proves nothing new",
+      "what": "Same on the /status/[token] link — which comes from the payment receipt, not ⑥. ⑥ links to /feedback/[token], one submission; the receipt's link covers the address (corrected 2026-09-10)",
+      "expect": "No code prompt at all. The signed link is the proof: that address verified itself at step 2 and paid at step 4, and a code is single-use, so asking again costs a trip to the inbox and proves nothing. Covered by tests/integration/statusTokenPage.test.tsx",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-10T02:48:16.743Z",
+          "what": "Same on the /status/[token] link from ⑥",
+          "expect": "No code prompt at all. The signed link is the proof; asking again proves nothing new"
+        }
+      ]
     },
     "8.9.9": {
       "firstSeen": "2026-09-01T02:21:53.834Z",

@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 83</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 84</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -2181,8 +2181,8 @@ const PHASES = [
           ],
           [
             "8.9.8",
-            "Same on the /status/[token] link from ⑥",
-            "No code prompt at all. The signed link is the proof; asking again proves nothing new"
+            "Same on the /status/[token] link — which comes from the payment receipt, not ⑥. ⑥ links to /feedback/[token], one submission; the receipt's link covers the address (corrected 2026-09-10)",
+            "No code prompt at all. The signed link is the proof: that address verified itself at step 2 and paid at step 4, and a code is single-use, so asking again costs a trip to the inbox and proves nothing. Covered by tests/integration/statusTokenPage.test.tsx"
           ],
           [
             "8.9.9",

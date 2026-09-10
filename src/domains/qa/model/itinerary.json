@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 83,
-    "generatedAt": "2026-09-10T02:20:51.647Z",
+    "build": 84,
+    "generatedAt": "2026-09-10T02:48:16.743Z",
     "checks": 361,
     "live": 358,
     "retired": 3,
-    "edited": 90
+    "edited": 91
   },
   "phases": [
     {
@@ -2137,8 +2137,15 @@
             },
             {
               "id": "8.9.8",
-              "what": "Same on the /status/[token] link from ⑥",
-              "expect": "No code prompt at all. The signed link is the proof; asking again proves nothing new"
+              "what": "Same on the /status/[token] link — which comes from the payment receipt, not ⑥. ⑥ links to /feedback/[token], one submission; the receipt's link covers the address (corrected 2026-09-10)",
+              "expect": "No code prompt at all. The signed link is the proof: that address verified itself at step 2 and paid at step 4, and a code is single-use, so asking again costs a trip to the inbox and proves nothing. Covered by tests/integration/statusTokenPage.test.tsx",
+              "history": [
+                {
+                  "at": "2026-09-10T02:48:16.743Z",
+                  "what": "Same on the /status/[token] link from ⑥",
+                  "expect": "No code prompt at all. The signed link is the proof; asking again proves nothing new"
+                }
+              ]
             },
             {
               "id": "8.9.9",
