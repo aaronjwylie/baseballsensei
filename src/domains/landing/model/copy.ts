@@ -66,16 +66,12 @@ export const method = {
   ],
 } as const;
 
-/**
- * ⚠️ `role` is still the Figma's placeholder — it reads "Title here" there and
- * reads the same here, because inventing a job title for a real, named person
- * is not a gap code should fill. It needs Masatomo's actual title before launch.
- */
 export const coach = {
   eyebrow: "Professional Baseball Coaching",
   title: { lead: "Your coach.", highlight: "Your next level." },
   name: "masatomo",
-  role: "Title here",
+  // Was the Figma's "Title here" placeholder; Masatomo's title set 2026-09-10 (Aaron).
+  role: "Head Coach",
   bio: "Get personalized guidance from Masatomo and his team of experienced Japanese baseball coaches. They'll help you see what's working, understand what needs improvement, and give you clear advice you can take back to the field.",
   stats: [
     { value: "8 years", label: "Playing at NPB's highest level" },
