@@ -544,8 +544,8 @@ working and bounce silent. A single check would have gone green on the delivery 
 | --- | --- | --- |
 | 10.1 | Every page at **375px** | No horizontal scroll |
 | 10.2 | Keyboard-only through the whole customer flow | Everything reachable, focus visible |
-| 10.3 | Form labels | Every input has one |
-| 10.4 | Images | Meaningful ones have alt text; decorative ones are empty |
+| 10.3 | Form labels | Every input has one — from `aria-label`, `aria-labelledby`, a `htmlFor`, or an enclosing `<label>`/`<Field>`. ⚠️ Four admin controls had none on 2026-09-10: two reason boxes leaning on a placeholder, and both assignment selects, which a screen reader announced as a bare "combo box". **Gated by `npm run check:a11y`, which runs in `build`** |
+| 10.4 | Images | Meaningful ones have alt text; decorative ones are empty. 12 images: 4 named, 8 deliberately blank — grounds, bands, and step illustrations that sit above their own heading. **Same gate** |
 | 10.5 | Browser back button mid-flow | Doesn't strand you |
 | 10.6 | Two tabs, same flow | Doesn't corrupt either |
 | 10.7 | Slow connection (throttle) | Loading states appear |

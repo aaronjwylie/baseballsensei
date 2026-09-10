@@ -1214,16 +1214,28 @@
     "10.3": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "Form labels",
-      "expect": "Every input has one",
+      "expect": "Every input has one — from aria-label, aria-labelledby, a htmlFor, or an enclosing <label>/<Field>. ⚠️ Four admin controls had none on 2026-09-10: two reason boxes leaning on a placeholder, and both assignment selects, which a screen reader announced as a bare \"combo box\". Gated by npm run check:a11y, which runs in build",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-10T03:07:59.917Z",
+          "what": "Form labels",
+          "expect": "Every input has one"
+        }
+      ]
     },
     "10.4": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "Images",
-      "expect": "Meaningful ones have alt text; decorative ones are empty",
+      "expect": "Meaningful ones have alt text; decorative ones are empty. 12 images: 4 named, 8 deliberately blank — grounds, bands, and step illustrations that sit above their own heading. Same gate",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-10T03:07:59.917Z",
+          "what": "Images",
+          "expect": "Meaningful ones have alt text; decorative ones are empty"
+        }
+      ]
     },
     "10.5": {
       "firstSeen": "2026-08-26T22:00:09.081Z",

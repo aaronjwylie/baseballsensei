@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 86</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 87</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -2483,12 +2483,12 @@ const PHASES = [
           [
             "10.3",
             "Form labels",
-            "Every input has one"
+            "Every input has one — from aria-label, aria-labelledby, a htmlFor, or an enclosing <label>/<Field>. ⚠️ Four admin controls had none on 2026-09-10: two reason boxes leaning on a placeholder, and both assignment selects, which a screen reader announced as a bare \"combo box\". Gated by npm run check:a11y, which runs in build"
           ],
           [
             "10.4",
             "Images",
-            "Meaningful ones have alt text; decorative ones are empty"
+            "Meaningful ones have alt text; decorative ones are empty. 12 images: 4 named, 8 deliberately blank — grounds, bands, and step illustrations that sit above their own heading. Same gate"
           ],
           [
             "10.5",

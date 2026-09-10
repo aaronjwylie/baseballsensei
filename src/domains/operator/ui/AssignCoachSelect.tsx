@@ -59,6 +59,7 @@ export function AssignCoachSelect({
         <input type="hidden" name="submissionId" value={submissionId} />
         <select
           name="coachId"
+          aria-label="Coach for this submission"
           value={coachId}
           onChange={(e) => setCoachId(e.target.value)}
           disabled={pending}

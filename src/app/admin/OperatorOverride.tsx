@@ -210,6 +210,7 @@ export function OperatorOverride({
             */}
             <input
               name="reason"
+              aria-label="Why this submission is being reset"
               placeholder="why (optional)"
               className={`${control} w-44 border-line bg-white`}
             />
@@ -261,6 +262,7 @@ export function OperatorOverride({
           </span>
           <input
             name="reason"
+            aria-label="Why this submission is being archived"
             value={archiveReason}
             onChange={(e) => setArchiveReason(e.target.value)}
             placeholder={owed ? "why (required)" : "why (optional)"}
