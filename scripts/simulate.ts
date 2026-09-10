@@ -399,33 +399,35 @@ async function walk(label: string, translating: boolean) {
   await resolveSubmission(s.id, settings.retainCollectedDays);
   await rung(s.id, "resolved", "system");
 
-  // Regression: "whichever clock is later." A submission collected promptly
-  // after delivery must live to the *delivery* backstop, not be purged
-  // retainCollectedDays after collection. Here the collection clock has elapsed
-  // but the delivery clock has not — the sweep must leave it untouched.
+  // Regression: collection *supersedes* the backstop, it does not ignore it.
+  // Delivered long past the backstop but downloaded today — the download
+  // restarts the clock, so nothing is due and the sweep must leave it alone.
+  // Read the wrong way round ("the backstop has elapsed, delete it") this
+  // deletes a review the customer collected this morning.
   await db.update(submissionTable)
     .set({
-      collectedAt: new Date(Date.now() - (settings.retainCollectedDays + 8) * day),
-      completedAt: new Date(Date.now() - (settings.retainCollectedDays + 10) * day),
+      collectedAt: new Date(Date.now() - 1 * day),
+      completedAt: new Date(Date.now() - (settings.retainDeliveredDays + 10) * day),
     })
     .where(eq(submissionTable.id, s.id));
   await runRetentionSweep();
-  const keptToBackstop = await at(s.id);
+  const restarted = await at(s.id);
   check(
-    !keptToBackstop.deletionWarnedAt && !keptToBackstop.filesPurgedAt,
-    "   a prompt collector is kept to the delivery backstop, not purged early",
+    !restarted.deletionWarnedAt && !restarted.filesPurgedAt,
+    "   a fresh download restarts the clock past an elapsed backstop",
   );
 
   // ── rung 15: purge_imminent — the warning ────────────────────────────
   await db.update(submissionTable)
     .set({
       collectedAt: new Date(Date.now() - (settings.retainCollectedDays - 2) * day),
-      // Whichever clock is later governs the deletion, and this scenario
-      // exercises the *collection* one (deletion two days out, so the warning is
-      // due). For it to be the later clock the delivery backstop must already
-      // have passed — otherwise `retainDeliveredDays` from delivery would be the
-      // later deadline and nothing would be due yet.
-      completedAt: new Date(Date.now() - (settings.retainDeliveredDays + 5) * day),
+      // Delivery is *recent* on purpose. Once the customer has downloaded, the
+      // collection clock is the only one running — deletion is two days out and
+      // the warning is due, even though the delivery backstop has barely
+      // started. Under the retired "whichever is later" rule this row was
+      // months from due and no warning fired, so this line is what tells the
+      // two rules apart.
+      completedAt: new Date(Date.now() - 2 * day),
     })
     .where(eq(submissionTable.id, s.id));
   const warned = await runRetentionSweep();
@@ -438,9 +440,9 @@ async function walk(label: string, translating: boolean) {
   await db.update(submissionTable)
     .set({
       collectedAt: new Date(Date.now() - (settings.retainCollectedDays + 1) * day),
-      // Keep the delivery backstop in the past too, so the collection clock stays
-      // the later, governing deadline (as in the warning step above).
-      completedAt: new Date(Date.now() - (settings.retainDeliveredDays + 5) * day),
+      // Recent delivery again, for the same reason as the warning step: the
+      // collection clock alone governs a submission the customer has collected.
+      completedAt: new Date(Date.now() - 2 * day),
       // The warning went out in the previous sweep; advance its clock past the
       // notice period too. The purge now waits on the *age of the warning*, not
       // only the retention deadline — a real run always leaves days between warn

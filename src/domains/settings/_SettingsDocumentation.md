@@ -26,7 +26,7 @@ Worth knowing before anyone asks for "a timer in admin":
 | Clock | Value | How it's enforced |
 | --- | --- | --- |
 | **The flow window** — one clock for the whole unfinished attempt | **30 min**, sliding — and now the *only* clock before payment: the verification code shares it | the flow cookie's own TTL. No scheduler: an expired token simply fails to verify |
-| **Deferred cleanup** — a released submission's files | `retainCollectedDays` from `collectedAt`, or `retainDeliveredDays` from `completedAt` — **whichever is later** | the nightly sweep. **All four folders go**, records stay |
+| **Deferred cleanup** — a released submission's files | `retainCollectedDays` from `collectedAt` if the customer ever downloaded, else `retainDeliveredDays` from `completedAt` — **collection supersedes the backstop** | the nightly sweep. **All four folders go**, records stay |
 | **A scheduled one-off** — the deletion warning | `warnBeforeDeletionDays` before the above | the same sweep, running *first* and against a nearer cutoff, so a single night can't both warn and delete |
 | **Deferred cleanup** — an abandoned submission | `retainUnpaidHours` | the sweep *and* every new submission. **Deleted outright** — files and record |
 

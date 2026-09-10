@@ -346,7 +346,7 @@ go out for something the customer hasn't seen.
 
 | | Ships | |
 | --- | --- | --- |
-| 6.1 | Collection +30d, or delivery +90d, whichever is later | ✅ |
+| 6.1 | Collection +30d if downloaded, else delivery +90d | ✅ |
 | 6.2 | ⑥ states the retention window at delivery | ✅ |
 | 6.3 | **Step 16** — the ⑨ warning, its own stamp, `purge_imminent` | ✅ |
 | 6.4 | **Step 17** — purge all four sets, keep every record forever | ✅ |

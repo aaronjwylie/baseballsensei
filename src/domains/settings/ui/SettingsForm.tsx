@@ -109,7 +109,7 @@ export function SettingsForm({ settings }: { settings: PlatformSettings }) {
 
         <Field
           label="…or this long after we send it, if they never download (days)"
-          hint="The backstop. Without it, a customer who never collects would keep their files forever. Whichever window ends later wins."
+          hint="The backstop, and only the backstop. It applies to a customer who never collects; the moment they download, the window above replaces it."
         >
           <input
             name="retainDeliveredDays"

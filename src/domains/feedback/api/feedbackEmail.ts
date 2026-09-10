@@ -14,6 +14,7 @@ export function sendFeedbackReady(
   feedbackUrl: string,
   playerName?: string,
   retentionDays?: number,
+  backstopDays?: number,
 ) {
   /*
     The retention line is not a nicety.
@@ -22,9 +23,21 @@ export function sendFeedbackReady(
     response — so this message and the ⑨ warning are the only protection against
     a parent losing a review they cannot recreate. A deadline disclosed at
     delivery is a term of the service; disclosed a week out, it's a surprise.
+
+    **Both clocks, because at this moment neither has been chosen yet.** The
+    reader has not downloaded anything, so the sentence that applies to them
+    depends on what they do next: download and the collection clock starts,
+    don't and the backstop runs. Stating only the first left the customer this
+    email exists to protect — the one who never comes for it — with no deadline
+    at all until the ⑨ warning, which is the surprise this line was written to
+    prevent (Ben, 2026-09-10).
   */
   const retention = retentionDays
-    ? `<p><strong>Download and keep it.</strong> We delete everything ${retentionDays} days after you first download it, so save a copy of anything you want to hold on to.</p>`
+    ? `<p><strong>Download and keep it.</strong> We delete everything ${retentionDays} days after you first download it, so save a copy of anything you want to hold on to.${
+        backstopDays
+          ? ` If you never download it, it goes after ${backstopDays} days.`
+          : ""
+      }</p>`
     : "";
 
   return sendEmail({

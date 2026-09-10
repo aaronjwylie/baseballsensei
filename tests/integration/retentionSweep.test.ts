@@ -37,8 +37,17 @@ const stamp = `${process.hrtime.bigint()}`;
 const submissions: string[] = [];
 const DAY = 24 * 3600_000;
 
-/** A released submission with one real object behind it, aged by `days`. */
-async function aged(days: number): Promise<{ id: string; fileId: string }> {
+/**
+ * A released submission with one real object behind it, aged by `days`.
+ *
+ * `deliveredDays` splits the two clocks apart. They move together for most of
+ * these tests, but the whole point of the rule is what happens when they
+ * disagree, and a helper that can only age them in lockstep cannot ask that.
+ */
+async function aged(
+  days: number,
+  deliveredDays: number = days,
+): Promise<{ id: string; fileId: string }> {
   const s = await createSubmission({
     customerEmail: `qa-sweep-${stamp}-${submissions.length}@integration.test`,
     playerName: "QA Sweep",
@@ -62,11 +71,10 @@ async function aged(days: number): Promise<{ id: string; fileId: string }> {
     "feedback",
   );
 
-  const at = new Date(Date.now() - days * DAY).toISOString();
   await updateSubmission(s.id, {
     status: "collected",
-    completedAt: at,
-    collectedAt: at,
+    completedAt: new Date(Date.now() - deliveredDays * DAY).toISOString(),
+    collectedAt: new Date(Date.now() - days * DAY).toISOString(),
   });
   return { id: s.id, fileId: file.id };
 }
@@ -93,11 +101,42 @@ describe("9.1/9.4 — the windows, and the one warning", () => {
   });
 
   /*
-    Both clocks, not either. The rule is "30 days from collection **or** 90 from
-    delivery, whichever is later", so a submission collected long ago but
-    delivered recently is not due — the safe half of the pair is the one that
-    governs.
+    One clock at a time, and collection supersedes the backstop: a submission
+    the customer downloaded is governed by `retainCollectedDays` from *that*
+    moment, and the delivery backstop no longer applies to it.
+
+    This is the case that separates the rule from "whichever is later" —
+    collected long ago, delivered recently. Under the old form it was months
+    from due; under this one it is due now, which is what `/admin/settings` and
+    the ⑨ warning email have always said (Ben, 2026-09-10).
   */
+  it("9.4b a collected submission runs on its own clock, not the backstop", async () => {
+    const settings = await getSettings();
+    const { id } = await aged(settings.retainCollectedDays + 1, 1);
+
+    const report = await runRetentionSweep();
+    expect(report.failures).toBe(0);
+    const after = await getSubmission(id);
+    expect(after?.deletionWarnedAt).toBeTruthy();
+    expect(after?.status).toBe("purge_imminent");
+  });
+
+  /*
+    And the backstop still governs the customer who never came for it. Delivered
+    past `retainDeliveredDays`, never collected — due, and warned, which is the
+    case that used to be purged in silence.
+  */
+  it("9.4c an uncollected submission rests on the delivery backstop", async () => {
+    const settings = await getSettings();
+    const { id } = await aged(0, settings.retainDeliveredDays + 1);
+    await updateSubmission(id, { collectedAt: null, status: "complete" });
+
+    const report = await runRetentionSweep();
+    expect(report.failures).toBe(0);
+    const after = await getSubmission(id);
+    expect(after?.deletionWarnedAt).toBeTruthy();
+  });
+
   it("9.4 warns once, and only once, when both clocks have run out", async () => {
     const settings = await getSettings();
     const past = Math.max(settings.retainCollectedDays, settings.retainDeliveredDays) + 1;

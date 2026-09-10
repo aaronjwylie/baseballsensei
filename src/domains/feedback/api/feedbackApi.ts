@@ -260,6 +260,7 @@ export async function approveAndComplete(
       `${env.siteUrl}/feedback/${token}`,
       updated.playerName,
       settings.retainCollectedDays,
+      settings.retainDeliveredDays,
     );
     await noteEmailSent(submissionId, "⑥ feedback ready → customer", ready);
   }

@@ -440,11 +440,23 @@ const RELEASED_AT_STATUS: Record<SubmissionStatus, boolean> = {
 /**
  * When this submission's files are deleted — the date the sweep is counting to.
  *
- * **The later of the two clocks**, which is the rule the sweep already applies:
- * a submission is purged once it is both `retainCollectedDays` past collection
- * *and* `retainDeliveredDays` past delivery. Taking the later of the two is the
- * same statement read forwards, and reading it forwards is what lets a page say
- * "14 days" instead of "waiting on the retention clock" (Ben, 2026-09-03).
+ * **Collection supersedes the backstop.** One clock runs at a time: from the
+ * customer's first download if they ever came for it, otherwise from delivery.
+ * Downloading does not add to the window, it *replaces* it — a parent who
+ * collects on day 1 has `retainCollectedDays` from that day, not the remainder
+ * of the delivery backstop.
+ *
+ * It read "whichever is later" until 2026-09-10, and that was never what the
+ * two knobs said. `/admin/settings` labels them "delete this long after the
+ * customer downloads" and "**…or** this long after we send it, **if they never
+ * download**" — an either/or, chosen by whether `collectedAt` is set. The
+ * deletion warning ⑨ had always mailed the date this function now returns, so
+ * a prompt collector could be told "deleted 3 Oct" and still hold the files in
+ * December. Three statements of one rule, and the two a customer can actually
+ * read agreed with each other (Ben, 2026-09-10).
+ *
+ * The backstop is for the customer who never downloads, and it stops applying
+ * the moment that stops being true.
  *
  * Null when neither clock has started — nothing has been delivered, so there is
  * no date to name and a countdown would be inventing one.
@@ -458,15 +470,17 @@ export function deletionDueAt(
   retainDeliveredDays: number,
 ): string | null {
   const day = 86_400_000;
-  const dates: number[] = [];
   if (submission.collectedAt) {
-    dates.push(new Date(submission.collectedAt).getTime() + retainCollectedDays * day);
+    return new Date(
+      new Date(submission.collectedAt).getTime() + retainCollectedDays * day,
+    ).toISOString();
   }
   if (submission.completedAt) {
-    dates.push(new Date(submission.completedAt).getTime() + retainDeliveredDays * day);
+    return new Date(
+      new Date(submission.completedAt).getTime() + retainDeliveredDays * day,
+    ).toISOString();
   }
-  if (dates.length === 0) return null;
-  return new Date(Math.max(...dates)).toISOString();
+  return null;
 }
 
 /**

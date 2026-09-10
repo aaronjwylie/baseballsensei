@@ -908,9 +908,11 @@ doc's table carries no `(not built)` markers for the first time.
   the customer's starts the retention clock. Each gated on *who* is asking.
 - ✅ **Operator control** — purge any folder now, reset a status to an earlier
   rung; both recorded against the submission with the actor's name.
-- ✅ **Retention** — 30 days from collection or 90 from delivery, whichever is
-  later, with a one-week warning. **Everything is swept together**, which is only
-  safe because the clock can't start until the customer has the files.
+- ✅ **Retention** — 30 days from the customer's download, or 90 from delivery
+  for a customer who never downloads: **collection supersedes the backstop**, it
+  does not extend it. A one-week warning first. **Everything is swept together**,
+  which is only safe because the clock can't start until the customer has the
+  files.
 - ✅ **All nine emails**, plus the decline notice and the status access code.
 
 **Remaining — all of it operations, none of it code:**

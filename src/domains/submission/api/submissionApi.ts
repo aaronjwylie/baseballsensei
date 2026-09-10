@@ -718,30 +718,36 @@ export async function findResolvedDue(
             ]
           : []),
         /*
-          Two clocks, and the later one wins.
+          Two clocks, and collection supersedes the backstop — exactly one of
+          them applies to any given submission.
 
-          Nothing is due until the delivery backstop has elapsed —
-          `retainDeliveredDays` from delivery — and, for a submission the customer
-          collected, until their own collection clock (`retainCollectedDays` from
-          the fetch) has elapsed too. Requiring *both* is what "whichever is
-          later" means: a customer who collects the day after delivery is still
-          kept the full delivery window rather than deleted `retainCollectedDays`
-          after they fetched it; one who collects on day 80 is kept past the
-          backstop to their own clock; one who never collected rests on the
-          backstop alone (`collectedAt` null passes the inner `or`).
+          Collected: the collection clock alone (`retainCollectedDays` from the
+          fetch). Never collected: the delivery backstop alone
+          (`retainDeliveredDays` from delivery). Not both, and not the later of
+          the two — the backstop exists *for* the customer who never downloads,
+          and stops applying the moment that stops being true.
 
-          The earlier form checked *only* the collection clock once collected —
-          "collected and old enough, OR never collected and delivered long enough
-          ago" — which is not whichever-is-later at all: it deleted a prompt
-          collector's paid feedback `retainDeliveredDays − retainCollectedDays`
-          days early (≈60 on the defaults).
+          This is what `/admin/settings` promises in the operator's own words —
+          "delete this long after the customer downloads" **or** "this long
+          after we send it, if they never download" — and what the ⑨ deletion
+          warning has always mailed. Between 2026-09-05 and 2026-09-10 the
+          purge instead required *both* clocks, so a prompt collector could be
+          warned "deleted 3 Oct" and still hold the files in December: three
+          statements of one rule, disagreeing (Ben, 2026-09-10).
+
+          Keep this identical to `findWarningDue` and `deletionDueAt`. A
+          submission must be warned before the deadline that will actually
+          delete it, and shown that same deadline on both portals.
         */
-        and(
-          isNotNull(submissionTable.completedAt),
-          lt(submissionTable.completedAt, deliveredBefore),
-          or(
-            isNull(submissionTable.collectedAt),
+        or(
+          and(
+            isNotNull(submissionTable.collectedAt),
             lt(submissionTable.collectedAt, collectedBefore),
+          ),
+          and(
+            isNull(submissionTable.collectedAt),
+            isNotNull(submissionTable.completedAt),
+            lt(submissionTable.completedAt, deliveredBefore),
           ),
         ),
       ),
@@ -778,16 +784,19 @@ export async function findWarningDue(
         isNull(submissionTable.filesPurgedAt),
         isNull(submissionTable.deletionWarnedAt),
         inArray(submissionTable.status, RELEASED_STATUSES),
-        // Whichever clock is later — the same condition `findResolvedDue` purges
-        // on, so a submission is warned before the deadline that will actually
-        // delete it: the delivery backstop must have elapsed, and the collection
-        // clock too if the customer ever collected.
-        and(
-          isNotNull(submissionTable.completedAt),
-          lt(submissionTable.completedAt, deliveredBefore),
-          or(
-            isNull(submissionTable.collectedAt),
+        // Collection supersedes the backstop — the same condition
+        // `findResolvedDue` purges on, so a submission is warned before the
+        // deadline that will actually delete it: its own collection clock if
+        // the customer ever collected, the delivery backstop if they never did.
+        or(
+          and(
+            isNotNull(submissionTable.collectedAt),
             lt(submissionTable.collectedAt, collectedBefore),
+          ),
+          and(
+            isNull(submissionTable.collectedAt),
+            isNotNull(submissionTable.completedAt),
+            lt(submissionTable.completedAt, deliveredBefore),
           ),
         ),
       ),
