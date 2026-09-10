@@ -324,7 +324,7 @@ function Dropzone({
         setDragging(false);
         onFiles(Array.from(e.dataTransfer.files));
       }}
-      className={`${ENTRY} cursor-pointer items-center gap-1 rounded-lg border-2 border-dashed px-4 py-3 text-center transition-colors ${
+      className={`${ENTRY} cursor-pointer items-center gap-1 rounded-lg border-2 border-dashed px-4 py-3 text-center transition-colors focus-within:border-highlight focus-within:text-highlight focus-within:outline-none focus-within:ring-2 focus-within:ring-highlight ${
         dragging
           ? "border-highlight text-highlight"
           : "border-paper/40 text-paper hover:border-highlight hover:text-highlight"
