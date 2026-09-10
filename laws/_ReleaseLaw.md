@@ -128,7 +128,7 @@ build. A staging that runs on a laptop's disk has tested nothing about the objec
 
 > *Evidence:* a file upload that worked on local disk through the whole build **could never have worked
 > in production** — the serverless request body was capped near 4.5 MB and a phone video is not
-> ([`baseballsensei` ADR 011](../docs/decisions/011-client-direct-uploads.md)). The dev rung differed
+> (`baseballsensei`, ADR 011 — client-direct uploads). The dev rung differed
 > from production in the one dimension that mattered, and nothing between them was shaped like the
 > real thing.
 
