@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 80</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 81</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -2172,7 +2172,7 @@ const PHASES = [
           [
             "8.9.6",
             "Resize slowly across the whole range",
-            "Heading and vertical rhythm scale continuously, with no snap at a breakpoint"
+            "Heading and vertical rhythm scale continuously, with no snap at a breakpoint — and stop at 616px, where the column caps. ⚠️ They kept climbing to 1333px, so dragging a wide window slid the whole page down ~21px and back with nothing else moving (2026-09-10). Covered by tests/unit/narrowPage.test.tsx"
           ],
           [
             "8.9.7",

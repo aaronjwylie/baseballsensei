@@ -2237,9 +2237,15 @@
     "8.9.6": {
       "firstSeen": "2026-09-01T02:15:30.609Z",
       "what": "Resize slowly across the whole range",
-      "expect": "Heading and vertical rhythm scale continuously, with no snap at a breakpoint",
+      "expect": "Heading and vertical rhythm scale continuously, with no snap at a breakpoint — and stop at 616px, where the column caps. ⚠️ They kept climbing to 1333px, so dragging a wide window slid the whole page down ~21px and back with nothing else moving (2026-09-10). Covered by tests/unit/narrowPage.test.tsx",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-10T01:48:47.080Z",
+          "what": "Resize slowly across the whole range",
+          "expect": "Heading and vertical rhythm scale continuously, with no snap at a breakpoint"
+        }
+      ]
     },
     "8.9.7": {
       "firstSeen": "2026-09-01T02:21:53.834Z",
