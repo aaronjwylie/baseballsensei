@@ -76,7 +76,7 @@ export async function Pricing() {
               centres under the button rather than across the whole card. */}
           <div className="mt-8 inline-flex flex-col items-center">
             <ButtonLink href="/start" variant="primaryLime">
-              {pricing.cta} <span aria-hidden className="relative -top-[2px]">→</span>
+              {pricing.cta} <span aria-hidden className="relative -top-[3px]">→</span>
             </ButtonLink>
 
             <p className="mt-5 text-[13px] text-paper/80">
