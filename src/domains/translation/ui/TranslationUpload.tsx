@@ -11,12 +11,13 @@ import {
 } from "@/shared/upload";
 // A client component imports the slice's client-safe model directly, not the
 // barrel — the barrel re-exports Postgres code that can't reach the browser.
-import { formatFileSize } from "@/domains/submission/model/submissionFile";
 import {
   handBackTranslationAction,
   removeTranslationFileAction,
 } from "../api/translationActions";
 import type { TranslationKind } from "../model/translationLeg";
+import { formatFileSize } from "@/shared/lib";
+import { refuseFile } from "@/shared/upload";
 
 /** What the translator has handed over so far — the shape the routes echo back. */
 interface TranslationFile {
@@ -43,6 +44,7 @@ export function TranslationUpload({
   submissionId,
   produces,
   uploadMode,
+  maxFileSizeMb,
   existingFiles,
   handBackLabel,
   hint,
@@ -50,6 +52,8 @@ export function TranslationUpload({
   submissionId: string;
   produces: TranslationKind;
   uploadMode: UploadMode;
+  /** The operator's limit — the same setting the customer's panel reads. */
+  maxFileSizeMb: number;
   existingFiles: TranslationFile[];
   handBackLabel: string;
   hint: string;
@@ -81,6 +85,17 @@ export function TranslationUpload({
     setError(null);
     try {
       for (const file of chosen) {
+        /*
+          Refused before a byte moves — the customer's rule, on the operator's
+          side. This uploaded first and reported the server's refusal afterwards,
+          so a coach watched a 21 MB progress bar finish before being told the
+          limit was 10 (Ben, QA 6.6.1).
+        */
+        const refusal = refuseFile(file, maxFileSizeMb);
+        if (refusal) {
+          setError(refusal);
+          break;
+        }
         setProgress({ name: file.name, pct: 0 });
         const uploaded = await uploadFile({
           mode: uploadMode,

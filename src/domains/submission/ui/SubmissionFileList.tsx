@@ -1,4 +1,5 @@
-import { formatFileSize, type SubmissionFile } from "../model/submissionFile";
+import { formatFileSize } from "@/shared/lib";
+import type { SubmissionFile } from "../model/submissionFile";
 
 /**
  * The customer's uploaded files, for an operator.

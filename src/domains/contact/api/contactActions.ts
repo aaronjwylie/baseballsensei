@@ -1,7 +1,7 @@
 "use server";
 
 import { contactInputSchema, HONEYPOT_FIELD } from "../model/contactInput";
-import { sendContactMessage } from "./contactEmail";
+import { sendContactMessage, sendContactReceipt } from "./contactEmail";
 
 export type ContactResult = { ok: true } | { ok: false; error: string };
 
@@ -48,6 +48,20 @@ export async function sendContactAction(
       error:
         "We couldn't send that just now. Please try again, or email us directly.",
     };
+  }
+
+  /*
+    The writer's receipt, after the send that matters and unable to affect it.
+
+    Order is the whole design: by the time this runs the message is with every
+    admin, so a failure here costs a courtesy and nothing else. Reporting it
+    would tell someone their message did not go when it did, and they would send
+    it again — turning a missed receipt into a duplicate enquiry. Logged, never
+    surfaced (ADR 004).
+  */
+  const receipt = await sendContactReceipt(parsed.data);
+  if (!receipt.ok) {
+    console.error("[contact] receipt to the writer failed:", receipt.error);
   }
 
   return { ok: true };

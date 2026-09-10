@@ -19,7 +19,7 @@ import {
   getSubmissionFile,
   deleteSubmissionFile,
   isPaid,
-  listSubmissionFiles,
+  listIntakeFiles,
   noteEmailSent,
   languagesForChoice,
   parseSubmissionInput,
@@ -367,7 +367,7 @@ export async function listFlowFilesAction(): Promise<
   const submissionId = await readFlowSession();
   if (!submissionId) return gone();
   await touchFlowSession();
-  return { ok: true, data: await listSubmissionFiles(submissionId) };
+  return { ok: true, data: await listIntakeFiles(submissionId) };
 }
 
 /**
@@ -415,7 +415,7 @@ export async function createIntentAction(): Promise<ActionResult<CreatedIntent>>
   if (!submission.emailVerifiedAt) return fail("Please verify your email first.");
   if (isPaid(submission)) return fail("This submission has already been paid for.");
 
-  const files = await listSubmissionFiles(submission.id);
+  const files = await listIntakeFiles(submission.id);
   if (files.length === 0) return fail("Please attach at least one file first.");
 
   await touchFlowSession();

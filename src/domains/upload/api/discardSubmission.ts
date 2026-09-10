@@ -39,7 +39,7 @@ import {
   deleteSubmission,
   getSubmission,
   isPaid,
-  listSubmissionFiles,
+  listIntakeFiles,
 } from "@/domains/submission";
 
 export async function discardUnpaidSubmission(
@@ -56,7 +56,7 @@ export async function discardUnpaidSubmission(
   // leave it for the sweep rather than racing the charge (see above).
   if (opts.spareStarted && submission.status !== "draft") return false;
 
-  const files = await listSubmissionFiles(submissionId);
+  const files = await listIntakeFiles(submissionId);
   for (const file of files) {
     if (!file.fileUrl) continue;
     try {

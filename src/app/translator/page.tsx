@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
-import { Container } from "@/shared/ui";
+import { Container, LocalTime } from "@/shared/ui";
+import { TranslationCard } from "./TranslationCard";
 import { PortalEmptyState } from "../_portal/PortalEmptyState";
 import { storage } from "@/shared/storage";
 import { requireRole } from "@/domains/account";
 import { getOperatorProfile } from "@/domains/operator";
-import { SubmissionFileList } from "@/domains/submission";
+import {
+  SubmissionFolders,
+  describeFolders,
+  listEventsForSubmissions,
+  reachedAt,
+  type FileKind,
+  type SubmissionFile,
+} from "@/domains/submission";
 import {
   findLegsForTranslator,
-  TranslationUpload,
-  type TranslatorLeg,
 } from "@/domains/translation";
 import type { UploadMode } from "@/shared/upload";
+import { getSettings } from "@/domains/settings";
 
 export const metadata: Metadata = {
   title: "Translator portal",
@@ -31,6 +38,34 @@ export const metadata: Metadata = {
  * twice, weeks apart, pointing in opposite directions. Only one of the two can
  * be open at a time, because a submission sits on one rung.
  */
+/** The shape `SubmissionFolders` takes, with nothing in it. */
+const EMPTY_FOLDERS: Record<FileKind, SubmissionFile[]> = {
+  intake: [],
+  intake_translation: [],
+  feedback: [],
+  feedback_translation: [],
+};
+
+/**
+ * One leg's own folders: the one it read from, and the one it delivered into.
+ *
+ * Two of the four, chosen by the leg rather than by the submission — which is
+ * the difference between a card that describes a job and a card that describes
+ * a submission. A translator holding both legs gets two cards, and they have to
+ * say different things.
+ */
+function legFolders(leg: {
+  leg: { reads: FileKind; produces: FileKind };
+  source: SubmissionFile[];
+  produced: SubmissionFile[];
+}): Record<FileKind, SubmissionFile[]> {
+  return {
+    ...EMPTY_FOLDERS,
+    [leg.leg.reads]: leg.source,
+    [leg.leg.produces]: leg.produced,
+  };
+}
+
 export default async function TranslatorHomePage() {
   const session = await requireRole("translator");
   const profile = await getOperatorProfile(session.operatorId);
@@ -39,9 +74,18 @@ export default async function TranslatorHomePage() {
   // Prod uploads straight to Blob; dev proxies to disk. The same seam the
   // customer flow and the coach's page read.
   const uploadMode: UploadMode = storage.supportsDirectUpload ? "blob" : "proxy";
+  // The same limit the customer's panel enforces, so an operator is refused
+  // in the browser rather than after the upload (Ben, QA 6.6.1).
+  const settings = await getSettings();
 
   const open = legs.filter((l) => l.open);
   const done = legs.filter((l) => !l.open);
+
+  // The trail is the only place that knows *when* a leg was handed back — one
+  // query for the finished set, not one per card.
+  const eventsBySubmission = await listEventsForSubmissions(
+    done.map((l) => l.submission.id),
+  );
 
   const heading = profile ? `${profile.name}'s translations` : "Your translations";
 
@@ -80,6 +124,7 @@ export default async function TranslatorHomePage() {
             key={`${leg.submission.id}-${leg.leg.produces}`}
             work={leg}
             uploadMode={uploadMode}
+            maxFileSizeMb={settings.maxFileSizeMb}
           />
         ))}
       </ul>
@@ -89,21 +134,69 @@ export default async function TranslatorHomePage() {
           <h2 className="mt-10 text-sm font-semibold uppercase tracking-wide text-ink-muted">
             {`Handed back (${done.length})`}
           </h2>
+          {/*
+            A receipt, not a one-liner — the same change the coach's finished
+            list got, for the same reason (Ben, 2026-09-06). A translator who
+            wanted to check which files they had handed back, or when, had
+            nowhere to look once the card left the top of the page.
+
+            The leg's own `done` rung is what dates it: a translator may hold
+            both legs of one submission, and "handed back" means two different
+            moments depending on which.
+          */}
           <ul className="mt-3 space-y-3">
-            {done.map((leg) => (
-              <li
-                key={`${leg.submission.id}-${leg.leg.produces}`}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-white p-5 text-sm"
-              >
-                <span className="font-medium text-ink">
-                  {leg.submission.playerName}
-                  <span className="text-ink-muted">{` · ${leg.leg.title}`}</span>
-                </span>
-                <span className="font-semibold text-emerald-600">
-                  {`${leg.produced.length} file${leg.produced.length === 1 ? "" : "s"} delivered ✓`}
-                </span>
-              </li>
-            ))}
+            {done.map((leg) => {
+              const handedBack = reachedAt(
+                eventsBySubmission.get(leg.submission.id),
+                leg.leg.done,
+              );
+              return (
+                <li
+                  key={`${leg.submission.id}-${leg.leg.produces}`}
+                  className="rounded-2xl border border-line bg-white p-5 text-sm"
+                >
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="font-medium text-ink">
+                      {leg.submission.playerName}
+                      <span className="text-ink-muted">{` · ${leg.leg.title}`}</span>
+                    </span>
+                    <span className="font-semibold text-emerald-600">
+                      {`${leg.produced.length} file${leg.produced.length === 1 ? "" : "s"} delivered ✓`}
+                    </span>
+                  </div>
+
+                  {/*
+                    **This leg's two folders — what it read and what it
+                    delivered.** Not all four (Ben, 2026-09-09).
+
+                    Showing the whole submission was right for the coach, whose
+                    card is one-per-submission. Here a card is one-per-*leg*, and
+                    a translator can hold both legs of the same submission — so
+                    submission-scope content renders identically on both cards
+                    and the finished list reads as a duplicate. It was: two
+                    entries for `asdfasdf`, differing only in a title and a
+                    timestamp under an identical block of four folders.
+
+                    The leg already knows the answer. `reads` and `produces` are
+                    what make it a leg rather than a submission.
+                  */}
+                  {handedBack && (
+                    <p className="mt-1 text-xs text-ink-muted">
+                      {"Handed back "}
+                      <LocalTime iso={handedBack} />
+                      {` · ${describeFolders(legFolders(leg))}`}
+                    </p>
+                  )}
+
+                  <div className="mt-3 border-t border-line pt-3">
+                    <SubmissionFolders
+                      folders={legFolders(leg)}
+                      emptyLabel="No files on this leg."
+                    />
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </>
       )}
@@ -123,57 +216,3 @@ export default async function TranslatorHomePage() {
  * being translated, and a translator working without them is guessing at
  * register and intent.
  */
-function TranslationCard({
-  work,
-  uploadMode,
-}: {
-  work: TranslatorLeg;
-  uploadMode: UploadMode;
-}) {
-  const { submission, leg, source, produced } = work;
-  return (
-    <li className="rounded-2xl border border-line bg-white p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-xs font-semibold uppercase tracking-wide text-accent">
-            {leg.title}
-          </div>
-          <div className="mt-1 font-semibold text-ink">
-            {submission.playerName}
-            {submission.playerAge ? (
-              <span className="text-ink-muted">{` · ${submission.playerAge}`}</span>
-            ) : null}
-          </div>
-          <div className="mt-0.5 text-sm text-ink-muted">
-            {submission.focus ? `${submission.focus} · ` : ""}
-            {submission.customerNotes ? submission.customerNotes : "No notes"}
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-            {`${source.length} file${source.length === 1 ? "" : "s"} to translate`}
-          </div>
-          {/* Downloading one of these is what earns `*_translating` — the
-              translator's equivalent of the coach's `in_review`, observed
-              rather than declared. */}
-          <SubmissionFileList files={source} emptyLabel="Files deleted" />
-        </div>
-      </div>
-
-      <div className="mt-4 border-t border-line pt-4">
-        <TranslationUpload
-          submissionId={submission.id}
-          produces={leg.produces}
-          uploadMode={uploadMode}
-          existingFiles={produced.map((f) => ({
-            id: f.id,
-            filename: f.filename,
-            sizeBytes: f.sizeBytes,
-          }))}
-          handBackLabel="Hand back"
-          hint={leg.handBackHint}
-        />
-      </div>
-    </li>
-  );
-}

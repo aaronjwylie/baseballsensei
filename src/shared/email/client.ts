@@ -26,15 +26,26 @@ export interface EmailMessage {
   subject: string;
   html: string;
   /**
+   * Recipients nobody else can see.
+   *
+   * **The only safe way to mail a group that a customer is also in.** Put four
+   * admins in `to` and any one of them can expose all four by hitting reply-all
+   * on a thread the customer is part of. Their addresses are ours to protect,
+   * and "remember not to reply-all" is not a mechanism (Ben, 2026-09-09).
+   */
+  bcc?: string | string[];
+  /**
    * Where a reply should go, when that is not us.
    *
    * Every message this app sends is *from* the brand, so `from` stays
-   * `EMAIL_FROM` and callers never touch it. The contact form is the one case
-   * where the person who should receive a reply is not the person who sent the
-   * mail: the operator gets it, and hitting reply has to reach the customer who
-   * wrote in, not the app's own outbox.
+   * `EMAIL_FROM` and callers never touch it.
+   *
+   * **An array continues a thread on both sides at once.** A contact message
+   * has two parties who must stay in it — the customer who wrote and the shared
+   * inbox that archives it — so one Reply has to reach both. A single address
+   * would force the admin to remember the other one every time.
    */
-  replyTo?: string;
+  replyTo?: string | string[];
 }
 
 /**
@@ -75,6 +86,7 @@ export interface SendResult {
 
 export async function sendEmail({
   to,
+  bcc,
   subject,
   html,
   replyTo,
@@ -101,6 +113,7 @@ export async function sendEmail({
       body: JSON.stringify({
         from: env.emailFrom,
         to,
+        ...(bcc && bcc.length ? { bcc } : {}),
         subject,
         html,
         ...(replyTo ? { reply_to: replyTo } : {}),

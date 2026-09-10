@@ -68,7 +68,9 @@ export function sendFeedbackViewCode(to: string, code: string) {
  * "message sent" confirmation exists at all.
  */
 export function sendResponseSubmittedEmail(opts: {
-  to: string[];
+  to: string | string[];
+  /** The admins, blind. Required — see `AdminAudience`. */
+  bcc: string[];
   coachName: string;
   playerName: string;
   fileCount: number;
@@ -83,6 +85,7 @@ export function sendResponseSubmittedEmail(opts: {
   const files = `${opts.fileCount} file${opts.fileCount === 1 ? "" : "s"}`;
   return sendEmail({
     to: opts.to,
+    bcc: opts.bcc,
     subject: `${site.name}: review ready to approve for ${opts.playerName}`,
     html: emailShell(
       "A review is waiting for approval",
@@ -102,7 +105,9 @@ export function sendResponseSubmittedEmail(opts: {
  * guess.
  */
 export function sendCustomerCollectedEmail(opts: {
-  to: string[];
+  to: string | string[];
+  /** The admins, blind. Required — see `AdminAudience`. */
+  bcc: string[];
   playerName: string;
   submissionUrl: string;
 }) {
@@ -113,6 +118,7 @@ export function sendCustomerCollectedEmail(opts: {
   const player = escapeFeedbackHtml(opts.playerName);
   return sendEmail({
     to: opts.to,
+    bcc: opts.bcc,
     subject: `${site.name}: ${opts.playerName}'s feedback was collected`,
     html: emailShell(
       "The customer has their feedback",

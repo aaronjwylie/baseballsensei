@@ -17,3 +17,18 @@ export {
   type UploadEndpoints,
   type UploadRequest,
 } from "./uploadTransport";
+
+/*
+  What we accept, and why a file is refused — moved off `domains/upload` on
+  2026-09-06 so the three operator surfaces can ask without importing a domain.
+*/
+export {
+  ACCEPT_ATTRIBUTE,
+  ALLOWED_MIME_TYPES,
+  ALLOWED_TYPES,
+  describeAllowedTypes,
+  extensionOf,
+  refuseFile,
+  isAllowedFilename,
+  resolveContentType,
+} from "./fileTypes";

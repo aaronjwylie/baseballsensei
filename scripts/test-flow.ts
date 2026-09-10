@@ -23,7 +23,7 @@ import {
   createSubmission,
   getSubmission,
   listFeedbackFiles,
-  listSubmissionFiles,
+  listIntakeFiles,
   updateSubmission,
   markCoachCollected,
   markCustomerCollected,
@@ -109,7 +109,7 @@ async function main() {
     "image/png",
   );
 
-  const files = await listSubmissionFiles(submission.id);
+  const files = await listIntakeFiles(submission.id);
   check(files.length === 2, `two files recorded (${files.length})`);
   check(
     files.every((f) => !!f.fileUrl),
@@ -211,7 +211,7 @@ async function main() {
     `a long-completed submission is swept (${afterSweep.resolvedPurged} purged, ${afterSweep.filesDeleted} files)`,
   );
 
-  const swept = await listSubmissionFiles(submission.id);
+  const swept = await listIntakeFiles(submission.id);
   check(swept.length === 2, "the file records survive the sweep");
   check(
     swept.every((f) => !f.fileUrl),

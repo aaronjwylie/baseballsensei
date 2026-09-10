@@ -1,14 +1,23 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { failed, succeeded, type ActionResult } from "@/shared/lib/actionResult";
 import { FileButton } from "@/shared/ui";
 import {
-  formatFileSize,
   type FileKind,
   type SubmissionFile,
 } from "@/domains/submission/model/submissionFile";
+import { formatFileSize } from "@/shared/lib";
+// The labels live with the kinds, so the portals' finished cards and these
+// boxes cannot disagree about what a folder is called.
+import { FOLDER_LABEL } from "@/domains/submission/model/submissionFile";
+import {
+  refuseFile,
+  uploadFile,
+  type UploadEndpoints,
+  type UploadMode,
+} from "@/shared/upload";
 
 /**
  * The four folders, as the admin sees them.
@@ -41,16 +50,16 @@ const FOLDERS: {
   label: string;
   hint: string;
 }[] = [
-  { kind: "intake", label: "Client", hint: "What the customer sent" },
+  { kind: "intake", label: FOLDER_LABEL.intake, hint: "What the customer sent" },
   {
     kind: "intake_translation",
-    label: "Client (translated)",
+    label: FOLDER_LABEL.intake_translation,
     hint: "The client's files, translated for the coach",
   },
-  { kind: "feedback", label: "Coach", hint: "What the coach wrote back" },
+  { kind: "feedback", label: FOLDER_LABEL.feedback, hint: "What the coach wrote back" },
   {
     kind: "feedback_translation",
-    label: "Coach (translated)",
+    label: FOLDER_LABEL.feedback_translation,
     hint: "The coach's response, translated for the client",
   },
 ];
@@ -58,12 +67,14 @@ const FOLDERS: {
 export function FileFolders({
   submissionId,
   folders,
-  uploadAction,
+  maxFileSizeMb,
+  uploadMode,
   removeAction,
 }: {
   submissionId: string;
   folders: Record<FileKind, SubmissionFile[]>;
-  uploadAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
+  maxFileSizeMb: number;
+  uploadMode: UploadMode;
   removeAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
 }) {
   return (
@@ -73,7 +84,8 @@ export function FileFolders({
           key={folder.kind}
           submissionId={submissionId}
           files={folders[folder.kind] ?? []}
-          uploadAction={uploadAction}
+          maxFileSizeMb={maxFileSizeMb}
+          uploadMode={uploadMode}
           removeAction={removeAction}
           {...folder}
         />
@@ -109,7 +121,8 @@ function Folder({
   label,
   hint,
   files,
-  uploadAction,
+  maxFileSizeMb,
+  uploadMode,
   removeAction,
 }: {
   submissionId: string;
@@ -117,29 +130,80 @@ function Folder({
   label: string;
   hint: string;
   files: SubmissionFile[];
-  uploadAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
+  maxFileSizeMb: number;
+  uploadMode: UploadMode;
   removeAction: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
 }) {
   const router = useRouter();
-  const [state, submit, busy] = useActionState<ActionResult, FormData>(
-    uploadAction,
-    undefined,
-  );
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<{ pct: number } | null>(null);
   const [removeState, removeSubmit, removing] = useActionState<
     ActionResult,
     FormData
   >(removeAction, undefined);
+  /** A refusal raised in the browser, before a byte moves. */
+  const [preflight, setPreflight] = useState<string | null>(null);
+
+  /*
+    Straight to storage, like the other three surfaces (Ben, QA 6.6.5).
+
+    This posted to a Server Action until 2026-09-06, so the bytes came through
+    us — and a serverless request body is capped near 4.5 MB on Vercel. An admin
+    could not attach a real video at all, and an oversize one blew the limit and
+    got Next's own error page instead of ours. It was the last upload path still
+    routed through the server.
+  */
+  const endpoints: UploadEndpoints = {
+    blobToken: "/api/folder/blob",
+    complete: "/api/folder/complete",
+    // The dev proxy is told the submission and the folder; blob mode reads both
+    // off the pathname instead.
+    proxy: `/api/folder/upload?submission=${encodeURIComponent(submissionId)}&kind=${encodeURIComponent(kind)}`,
+  };
+
+  async function onSelect(event: ChangeEvent<HTMLInputElement>) {
+    const chosen = Array.from(event.target.files ?? []);
+    event.target.value = ""; // allow re-picking the same file after a failure
+    if (chosen.length === 0) return;
+
+    setPreflight(null);
+    setBusy(true);
+    try {
+      for (const file of chosen) {
+        const refusal = refuseFile(file, maxFileSizeMb);
+        if (refusal) {
+          setPreflight(refusal);
+          break;
+        }
+        setProgress({ pct: 0 });
+        await uploadFile({
+          mode: uploadMode,
+          folder: `submissions/${submissionId}/${kind}`,
+          file,
+          endpoints,
+          onProgress: (pct) => setProgress({ pct }),
+        });
+      }
+      router.refresh();
+    } catch (err) {
+      setPreflight(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setBusy(false);
+      setProgress(null);
+    }
+  }
 
   useEffect(() => {
-    if (succeeded(state) || succeeded(removeState)) router.refresh();
-  }, [state, removeState, router]);
+    if (succeeded(removeState)) router.refresh();
+  }, [removeState, router]);
 
   // Swept files keep their row but lose their bytes, so they're listed and not
   // fetchable — counting them would promise a download that 410s.
   const downloadable = files.filter((f) => f.fileUrl);
 
   return (
-    <section className="rounded-lg border border-line bg-paper p-3">
+    /* `min-w-0` because this is a grid item too — see QueueRow. */
+    <section className="min-w-0 rounded-lg border border-line bg-paper p-3">
       <header className="flex items-baseline justify-between gap-2">
         <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
           {label}
@@ -226,22 +290,26 @@ function Folder({
           anyone reads. So the button opens the picker and the choice submits
           the form.
         */}
-        <form action={submit} className="contents">
-          <input type="hidden" name="submissionId" value={submissionId} />
-          <input type="hidden" name="kind" value={kind} />
-          <FileButton
-            label={busy ? "Uploading…" : "Upload"}
-            name="files"
-            multiple
-            size="sm"
-            disabled={busy}
-            onSelect={(event) => event.currentTarget.form?.requestSubmit()}
-          />
-        </form>
-      </div>
+        {/*
+          One button, not two. This was a file input and a separate Upload
+          button, so choosing a file left it sitting there until you found the
+          second control — and the native input announced "No file selected"
+          beside it the whole time (Ben, 2026-08-31).
 
-      {failed(state) && (
-        <p className="mt-1 text-[13px] text-rose-700">{state.error}</p>
+          Picking the files *is* the confirmation: the browser's own picker
+          already has a Cancel, and it is the only dialogue in the sequence
+          anyone reads.
+        */}
+        <FileButton
+          label={progress ? `${progress.pct}%` : busy ? "Uploading…" : "Upload"}
+          multiple
+          size="sm"
+          disabled={busy}
+          onSelect={onSelect}
+        />      </div>
+
+      {preflight && (
+        <p className="mt-1 text-[13px] text-rose-700">{preflight}</p>
       )}
       {failed(removeState) && (
         <p className="mt-1 text-[13px] text-rose-700">{removeState.error}</p>

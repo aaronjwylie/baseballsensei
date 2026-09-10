@@ -69,6 +69,29 @@ function wordmark(): string {
  * Escaped, though every caller passes digits we generated. A code is not
  * user-supplied *today*, and the cost of that staying true is one function call.
  */
+/**
+ * Somebody's own words, quoted back to them — or forwarded to us.
+ *
+ * **One block, two readers.** The admin's copy of a contact message and the
+ * writer's own receipt show the same text, and the receipt exists to be
+ * recognisable as the thing they just sent (Ben, 2026-09-09). Two copies of
+ * this markup would drift the first time either was touched, and the drift
+ * would be invisible: nobody sees both emails side by side except by accident.
+ *
+ * The greys and the rule are the shell's own tokens, not the literals that were
+ * sitting here — the same fix `codeBlock` needed (QA 8.9.12), for the same
+ * reason: a palette change has to carry the quoted block with it.
+ *
+ * **Escapes, and it is not optional.** This is a stranger's typed text, and the
+ * name and the message are exactly the fields a bot fills with markup. Newlines
+ * become `<br />` after escaping, never before.
+ */
+export function quotedMessage(text: string): string {
+  return `<div style="margin:20px 0;padding:16px;background:${PAPER_ALT};border-left:3px solid ${ACCENT};color:${INK_SOFT};">
+    ${escapeHtml(text).replace(/\n/g, "<br />")}
+  </div>`;
+}
+
 export function codeBlock(code: string): string {
   return `<div style="margin:20px 0;padding:18px;background:${PAPER_ALT};border:1px solid ${LINE};border-radius:14px;text-align:center;">
          <span style="font-family:${DISPLAY};font-size:38px;font-weight:700;letter-spacing:0.22em;color:${INK};">${escapeHtml(code)}</span>

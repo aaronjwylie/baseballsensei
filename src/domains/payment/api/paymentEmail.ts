@@ -10,7 +10,8 @@
  */
 import { emailShell, escapeHtml, sendEmail } from "@/shared/email";
 import { site } from "@/shared/config/site";
-import { formatFileSize, type SubmissionFile } from "@/domains/submission";
+import { type SubmissionFile } from "@/domains/submission";
+import { formatFileSize } from "@/shared/lib";
 
 export interface ReceiptDetails {
   playerName: string;
@@ -78,7 +79,9 @@ function fileList(files: SubmissionFile[]): string {
  * arrivals has to be watched instead of used.
  */
 export function sendPaymentReceivedEmail(opts: {
-  to: string[];
+  to: string | string[];
+  /** The admins, blind. Required — see `AdminAudience`. */
+  bcc: string[];
   playerName: string;
   focus?: string;
   fileCount: number;
@@ -93,6 +96,7 @@ export function sendPaymentReceivedEmail(opts: {
   const files = `${opts.fileCount} file${opts.fileCount === 1 ? "" : "s"}`;
   return sendEmail({
     to: opts.to,
+    bcc: opts.bcc,
     subject: `${site.name}: new paid submission for ${opts.playerName}`,
     html: emailShell(
       "A new submission is paid and waiting",

@@ -12,7 +12,7 @@
  * and §3a says so out loud.
  */
 import { listAssignable, getByRole, createProfiledOperator, updateProfiledOperator } from "./operatorProfileApi";
-import { listAdminEmails } from "./operatorApi";
+import { adminAudience } from "./operatorApi";
 import { isAssignedTo, markCoachCollected, noteEmailSent } from "@/domains/submission";
 import { env } from "@/shared/config/env";
 import { sendCollectedEmail } from "./handoffEmail";
@@ -85,8 +85,10 @@ export async function noteCoachCollected(
     const collected = await markCoachCollected(submissionId);
     if (!collected) return;
 
+    const audience = await adminAudience();
     const result = await sendCollectedEmail({
-      to: await listAdminEmails(),
+      to: audience.to,
+      bcc: audience.bcc,
       collectorName: coach.name,
       role: "coach",
       playerName: collected.playerName,

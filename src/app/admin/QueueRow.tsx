@@ -119,25 +119,39 @@ export function QueueRow({
 
       {open && (
         <div className="bg-paper-alt px-4 pb-5">
+          {/*
+            `min-w-0` on the items, not just `minmax(0,…)` on the tracks.
+
+            The track being allowed to shrink is only half of it: a grid item
+            still defaults to `min-width: auto`, so it refuses to go below its
+            own min-content and spills past the track instead. `truncate` sets
+            `white-space: nowrap`, which makes a filename's min-content the
+            whole string — so one long unbroken name pushed the folder box off
+            the right of the panel while a name with spaces, whose min-content
+            is just its longest word, looked fine (Ben, 2026-09-10).
+
+            Every item here can hold a filename, a trail note or a customer's
+            own words, so every one of them gets it.
+          */}
           <div className="grid grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] gap-6 pt-4 max-[860px]:grid-cols-1">
-            <div>
+            <div className="min-w-0">
               <StageChain
                 stage={stage}
                 control={control}
                 lastCompleted={lastCompleted}
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <Label>Files: four folders</Label>
               {folders}
             </div>
           </div>
 
           <div className="mt-4 grid grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] gap-6 border-t border-line pt-3 max-[860px]:grid-cols-1">
-            <div>
+            <div className="min-w-0">
               <Disclosure label="This submission">{details}</Disclosure>
             </div>
-            <div>
+            <div className="min-w-0">
               {/*
                 Closed by default, like the override. An expanded row was
                 showing four sections at once, and the two that are *reference*

@@ -24,7 +24,7 @@ export function StatusPanel() {
         Object.fromEntries(
           groups.map((g) => [
             g.submission.id,
-            <FeedbackFiles key={g.submission.id} group={g} />,
+            <FeedbackFiles key={g.submission.id} files={g.files} />,
           ]),
         )
       }

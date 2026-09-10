@@ -1,11 +1,11 @@
 "use client";
 
 import { buttonClasses } from "@/shared/ui";
+import { formatFileSize } from "@/shared/lib";
 // A client component imports the slice model directly, never the barrel: the
 // barrel re-exports Postgres code that cannot reach the browser (CLAUDE.md §12).
 // This row renders inside `FeedbackAccess`, which is itself `"use client"`, so it
 // ships to the browser either way.
-import { formatFileSize } from "@/domains/submission/model/submissionFile";
 
 /**
  * One downloadable feedback file, as the customer sees it.

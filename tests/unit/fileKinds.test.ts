@@ -7,8 +7,8 @@ import {
   availableSets,
   isIntake,
   isFeedback,
-  formatFileSize,
 } from "@/domains/submission/model/submissionFile";
+import { formatFileSize } from "@/shared/lib";
 
 describe("intake / feedback partition the file kinds", () => {
   it("every kind is on exactly one side — no overlap, no gap", () => {

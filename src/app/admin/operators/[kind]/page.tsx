@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/shared/ui";
+import { AdminEmailNote } from "../AdminEmailNote";
 import { requireRole } from "@/domains/account";
 import {
   listOperators,
@@ -112,6 +113,8 @@ export default async function OperatorsPage(props: {
         guidance does not bite.
       */}
       <p className="mt-4 text-sm text-ink-muted">{blurb}</p>
+
+      <AdminEmailNote kind={kind} />
 
       <OperatorList
         filter={role}

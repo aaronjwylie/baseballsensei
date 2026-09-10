@@ -749,9 +749,27 @@ Operator identity — **operators only, never customers.**
 | --- | --- | --- |
 | `id` | uuid, primary key | |
 | `email` | text, unique | login |
-| `passwordHash` | text | credentials auth |
-| `role` | enum | `admin` · `coach` |
+| `name` | text | |
+| `isActive` | boolean | may they sign in at all — availability *per role* lives on the grant |
 | `createdAt` | timestamptz | |
+
+**Identity only.** The two facts this table used to carry moved out and the
+columns were dropped in `0028`:
+
+- **the credential** → `operator_credential` (since `0013`), so a person can
+  exist before anyone gives them a login, and revoking a login does not delete
+  the person.
+- **the role** → `operator_role_grant` (since `0015`), because a person can be
+  more than one thing — an admin who also coaches, a coach who translates their
+  own submissions — and one column cannot hold two. The grant carries that
+  role's settings with it (languages, specialties, bio), which is why "this
+  person's languages" is no longer a question that can be asked.
+
+Both sat nullable for a month after they stopped being read, which is the safe
+order to retire a column in and also how they came to be forgotten. Leaving them
+was not free: `operator.password_hash` still read as authoritative, and on
+2026-09-09 it briefly appeared that five operators — two of them admins — had no
+way to sign in.
 
 The first `admin` (the admin) is **seeded**; coaches are created from the admin portal,
 each paired with a `coach` row.

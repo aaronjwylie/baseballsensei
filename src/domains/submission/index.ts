@@ -53,7 +53,6 @@ export {
   FILE_KINDS,
   INTAKE_KINDS,
   FEEDBACK_KINDS,
-  formatFileSize,
   isAvailable,
   isIntake,
   isFeedback,
@@ -64,6 +63,7 @@ export {
   availableSets,
   filesAsSent,
   FILE_SET_LABEL,
+  FOLDER_LABEL,
   kindsForSet,
   type FileSet,
 } from "./model/submissionFile";
@@ -118,14 +118,14 @@ export {
 export {
   addSubmissionFile,
   addIntakeFileWithinLimit,
-  clearFileLocators,
+  clearIntakeFileLocators,
   countSubmissionFiles,
   deleteSubmissionFile,
   getSubmissionFile,
   listFeedbackFiles,
   listFeedbackFilesForSubmissions,
-  listFilesForSubmissions,
-  listSubmissionFiles,
+  listIntakeFilesForSubmissions,
+  listIntakeFiles,
   listFilesByFolder,
   listFoldersForSubmissions,
   listFilesByKinds,
@@ -134,12 +134,14 @@ export {
   listAllSubmissionFiles,
 } from "./api/submissionFileApi";
 
+export { saveFolderFile, recordFolderFile } from "./api/folderApi";
 export { signStatusToken, verifyStatusToken } from "./api/statusToken";
 
 export {
   listProgressFacts,
   listSubmissionEvents,
   listEventsForSubmissions,
+  reachedAt,
   noteEmailSent,
   noteVerification,
   recordSubmissionEvent,
@@ -170,6 +172,10 @@ export { StatusList } from "./ui/StatusList";
 
 export { StatusLookup } from "./ui/StatusLookup";
 export { SubmissionFileList } from "./ui/SubmissionFileList";
+export {
+  SubmissionFolders,
+  describeFolders,
+} from "./ui/SubmissionFolders";
 
 export {
   assignOperator,

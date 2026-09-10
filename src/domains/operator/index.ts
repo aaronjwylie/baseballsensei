@@ -7,7 +7,12 @@
  * components must import `LoginForm` — and only `LoginForm` — so they don't pull
  * the server-only db/bcrypt code; it imports the `login` action directly.
  */
-export { getOperatorById, listAdminEmails } from "./api/operatorApi";
+export {
+  getOperatorById,
+  listAdminEmails,
+  adminAudience,
+  type AdminAudience,
+} from "./api/operatorApi";
 /*
   `credentialApi` is deliberately absent.
 

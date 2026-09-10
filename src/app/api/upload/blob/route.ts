@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { submissionFolder } from "@/shared/storage";
 import { env } from "@/shared/config/env";
-import { ALLOWED_MIME_TYPES, authorizeUpload, isAllowedFilename } from "@/domains/upload";
+import { authorizeUpload } from "@/domains/upload";
+import { ALLOWED_MIME_TYPES, isAllowedFilename } from "@/shared/upload";
 import { maxFileSizeBytes } from "@/domains/settings";
 
 /**

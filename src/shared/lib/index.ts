@@ -1,3 +1,4 @@
+export { formatFileSize } from "./formatFileSize";
 export { FLOW_WINDOW_MINUTES, FLOW_WINDOW_SECONDS } from "./flowWindow";
 export { MAX_CODE_ATTEMPTS } from "./codeEntry";
 export {

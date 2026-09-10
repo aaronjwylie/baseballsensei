@@ -18,11 +18,10 @@ function submission(overrides: Partial<Submission> = {}): Submission {
 }
 
 describe("toPublicSubmission is a safe projection", () => {
-  it("carries none of the internal fields — id, email, notes, Stripe, locators", () => {
+  it("carries none of the internal fields — email, Stripe, locators", () => {
     const pub = toPublicSubmission(submission({ status: "complete" }));
     const json = JSON.stringify(pub);
     for (const secret of [
-      "SECRET-internal-uuid",
       "SECRET-parent@example.com",
       "SECRET-ops-note",
       "SECRET-pi_123",
@@ -30,8 +29,14 @@ describe("toPublicSubmission is a safe projection", () => {
     ]) {
       expect(json).not.toContain(secret);
     }
-    // Structurally: the id and email keys are simply not there.
-    expect("id" in pub).toBe(false);
+    /*
+      The id IS carried now (2026-09-03). The status page went from a list of
+      rows to one card per submission with its own download controls, and a card
+      has to be able to name which submission it is. It was never a secret — it
+      is in the customer's own feedback link — it was simply not needed until
+      the page had to key on something.
+    */
+    expect("id" in pub).toBe(true);
     expect("customerEmail" in pub).toBe(false);
   });
 

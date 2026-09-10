@@ -13,7 +13,7 @@ emails exist and which don't" is a question no single domain can answer.
 
 ## Where we are now — 2026-08-01 (evening)
 
-**All nine built**, plus two off-spine messages. The set grew from six this
+**All nine built**, plus four off-spine messages. The set grew from six this
 morning when the northstar path added two download confirmations and a deletion
 warning; all three landed the same day, along with the four that tell the admin
 something.
@@ -184,13 +184,155 @@ in the row, and nothing here acts destructively on a submission somebody paid fo
 
 ### Off the spine
 
-Two messages belong to side-paths rather than to a stage, so they carry no number
-— there's no rung for them to sit on.
+Four messages belong to side-paths rather than to a stage, so they carry no
+number — there's no rung for them to sit on.
 
 | Trigger | To | Status |
 |---|---|---|
 | A card was declined | customer | ✅ **built** — `domains/payment/api/paymentEmail.ts`, carries a link back into the flow |
 | Status-page access code | customer | ✅ **built** — `domains/feedback/api/feedbackEmail.ts` |
+| Contact form submitted | **every admin** | ✅ **built** — `domains/contact/api/contactEmail.ts`, `replyTo` the writer |
+| Contact form submitted | **the writer** | ✅ **built** — same file, a receipt quoting their own message back (2026-09-09) |
+
+**The two contact messages are the only pair that describes one event twice**,
+and they differ in the two ways that matter. The admin's carries `replyTo` so
+hitting reply answers the writer rather than ourselves; the receipt carries none,
+because it already comes from the shared inbox and reply is already right. And
+the admin's send *is* the work — the form fails if it doesn't leave — while the
+receipt is best-effort behind it, because by then the message has arrived and
+failing the form would only earn us a duplicate.
+
+They quote the message through one `quotedMessage()` in `shared/email/shell.ts`,
+so the words cannot be shown two ways. Nobody would catch it if they were: no
+one sees both emails except by accident.
+
+### How a contact thread is addressed — and where our reach ends
+
+**The app is the conduit; `contact@` is the identity.** Nothing is forwarded or
+distributed by Google: a reply sent to `contact@` alone reached no admin when it
+was tested on 2026-09-09, which is how we learned the fan-out we assumed did not
+exist. Everyone who receives a contact message receives it because this app
+addressed them.
+
+That is worth stating positively, because it is what makes the per-admin
+**notify** toggle real. A flag can only govern mail we choose the recipients
+for; anything Google distributes is outside it.
+
+| | admin copy | writer's receipt |
+|---|---|---|
+| `to` | `contact@` — the one visible identity | the writer |
+| `bcc` | every admin with notify on | — |
+| `reply_to` | **the writer *and* `contact@`** | — (from is already right) |
+
+**Bcc, and not only here.** Every message that tells the admins something is
+addressed the same way, through `adminAudience()` in `domains/operator`:
+`contact@` in `to`, the people in `bcc`.
+
+It was the contact form's rule first, and the reasoning turned out to be too
+narrow (Ben, 2026-09-09). Keeping the others in `to` was defended as "seeing who
+else was told is useful" — but an admin who wants that reads the notify flags in
+the portal, where they are actually true, and a header is a stale copy at best.
+Against that, a `to` list **travels**: forward the mail once and every admin's
+personal address goes with it. ⑤ was not hypothetical either — it carried all
+four to the coach, and the coach's back to all four, for no reason either needed.
+
+Bcc is not secrecy. An admin knows who the other admins are. It is that nobody
+*outside* the group has any use for the list, and one forward is all it takes to
+hand it over.
+
+**Applied evenly, and the compiler keeps it that way.** Audited 2026-09-09:
+exactly five messages address more than one person — ②, ④, ⑤, ⑦ and the contact
+form — and all five go through `adminAudience()`. Every other message takes
+`to: string`, one recipient, so the question cannot arise: ① the code, ③ and
+⑩⑪ the hand-offs, ⑥ ready, ⑧ thank you, ⑨ the warning, the receipt, the access
+code, the operator welcome, the password reset.
+
+`bcc` on those five is **required, not optional**. A message addressed to more
+than one person is a message that can expose a list, so the type refuses to
+describe one without saying where the people went. `bcc: []` is a legitimate
+answer — everyone muted — and it is an *answer*, which is the point. A sixth
+such message cannot be written wrong without failing `tsc`.
+
+**A second audience is addressed openly.** ⑤ tells the coach their own work
+arrived as much as it tells us, so `adminAudience(coach.email)` puts them in
+`to` beside `contact@` and leaves them out of the bcc — a notice about your own
+work should not look like it was sent to somebody else, and being in both would
+deliver it twice.
+
+**Two addresses in `reply_to`** so one Reply reaches the customer *and* the
+shared inbox. The answer is delivered and archived in the same gesture, instead
+of two an admin has to remember.
+
+**Where this stops, and what has to finish it.** An admin's reply is sent by
+Gmail, not by us, so we cannot fan *that* out — the other admins see it only
+because it lands in `contact@`. Two pieces of Workspace configuration close the
+gap and neither belongs in code:
+
+1. **`contact@` must deliver to the people who read it** — a group with the
+   admins as members, or a shared mailbox they are delegated into. Without it
+   the archive is a mailbox nobody opens.
+2. **Each admin needs send-as `contact@`**, so a reply carries the brand address
+   in `From` rather than their own. Bcc protects the recipient list; only
+   send-as protects the sender.
+
+### Personal copies are the notification; `contact@` is the record
+
+**"Everyone is pushed every reply" and "an admin can opt out of being pushed"
+are the same switch.** They cannot both be true, and which one you get is
+decided entirely by how `contact@` is configured:
+
+| `contact@` as… | replies pushed to every admin | notify toggle means anything |
+|---|---|---|
+| a **delivery group** | yes | no — Google delivers to people who muted |
+| a **shared mailbox**, delegated | no — available, not pushed | **yes** |
+
+**Take the second.** Opting out should mean *don't ping me*, not *cut me out of
+the record* — which is exactly what the toggle already promises on the role
+card: "untick to stop your own copies; you stay a full admin, and the shared
+inbox still receives everything."
+
+That promise is load-bearing and is held by one line: `site.email` is appended
+to `listAdminEmails()` **after** the notify filter, never through it. So a
+submission mutes to nobody and the correspondence is still complete. There is a
+test on exactly that (`tests/unit/contactRouting.test.ts`), because it is the
+sentence the design rests on and nothing else would catch it going false.
+
+The residue is small and worth stating: an admin's reply is not *pushed* to the
+other admins, it is *available* to them in the shared inbox. That is the same
+trade the toggle makes everywhere else, and it is the one the label already
+describes.
+
+### What the team decided, 2026-09-09
+
+**Scope stays where it is.** Aaron and Ben chose not to take on the Workspace
+work — no send-as, no delegation — and to accept the narrower model instead:
+
+> An admin's own address signs them in and tells them a submission arrived. It
+> is **not** an address to correspond from. Correspondence runs between
+> `contact@` and the customer.
+
+That is a sound trade, and the failure mode it accepts is worth naming exactly,
+because it is the reverse of the obvious one. An admin who answers from their
+personal address sends a message whose `From` is *theirs* — so the customer's
+Reply comes back to **that person alone**, and `contact@` never sees the rest of
+the thread. Nothing announces this; the shared record simply stops following a
+conversation it began. The personal address is now a stranger's to keep, too.
+
+It is written in the two places somebody meets the decision rather than in this
+file alone: on the **Admins tab** of the operators page, where an admin is
+added and the expectation is set, and in the **contact notification itself**,
+which is where a person is deciding whether to hit Reply. A rule that lives only
+in a document is a rule discovered by breaking it.
+
+**What would change it** is receiving inbound mail, threading it and fanning it
+out ourselves — a helpdesk, squarely in [§2 Non-Goals](../../../CLAUDE.md#2-non-goals--anti-scope).
+That would make the toggle authoritative over the whole conversation rather than
+over what we send. Worth scoping as a change order if it is ever wanted; not
+worth drifting into.
+
+**Neither uses the default footer.** It says "about your coaching submission",
+which is wrong twice over here — the writer has not made one, and the admin is
+not a customer.
 
 **The decline message is deliberately vague about the reason.** Stripe's own
 wording is shown inline on the page, where it's actionable; repeating

@@ -3,7 +3,7 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { operatorTable } from "@/domains/operator/model/operatorTable";
 import { createOperator } from "@/domains/account/api/loginApi";
-import { grantRole } from "@/domains/operator/api/operatorRoleApi";
+import { grantRole, grantsFor } from "@/domains/operator/api/operatorRoleApi";
 import {
   listOperators,
   getOperatorProfile,
@@ -92,9 +92,24 @@ describe("a profile-less admin is visible and editable", () => {
 });
 
 describe("the profiled (coach) path still works", () => {
-  it("loads with its profile fields intact", async () => {
+  /*
+    `getOperatorProfile` answers **identity only** since roles became plural
+    (2026-08-30). It used to return one grant's settings, which meant picking a
+    role on the caller's behalf — and picking wrong is how "edit this admin"
+    became a 404. This test asserted the old contract and could not say so,
+    because the file needs a database and had been failing to import without one
+    (found 2026-09-06).
+  */
+  it("loads identity, and no role's settings", async () => {
     const coach = await getOperatorProfile(created[1]);
     expect(coach?.email).toBe(coachEmail);
+    expect(coach?.languages).toEqual([]);
+    expect(coach?.specialties).toEqual([]);
+  });
+
+  it("keeps the role facts on the grant, where the role can be named", async () => {
+    const grants = await grantsFor(created[1]);
+    const coach = grants.find((g) => g.role === "coach");
     expect(coach?.languages).toEqual(["English"]);
     expect(coach?.specialties).toEqual(["Hitting"]);
   });

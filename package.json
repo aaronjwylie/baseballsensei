@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/check-names.mjs && node scripts/check-doctrine.mjs && node scripts/check-structure.mjs && node scripts/migrate-on-deploy.mjs && next build",
+    "build": "node scripts/check-names.mjs && node scripts/check-doctrine.mjs && node scripts/check-structure.mjs && node scripts/check-a11y.mjs && node scripts/migrate-on-deploy.mjs && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -31,7 +31,9 @@
     "qa:build": "node scripts/qa-build.mjs && node scripts/qa-selfpublish-check.mjs",
     "qa:check": "node scripts/qa-build.mjs --check",
     "qa:trail": "node scripts/qa-trail.mjs",
-    "qa:notes": "node scripts/qa-notes.mjs"
+    "qa:notes": "node scripts/qa-notes.mjs",
+    "audit:storage": "tsx --tsconfig tsconfig.simulate.json scripts/audit-storage.ts",
+    "check:a11y": "node scripts/check-a11y.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",

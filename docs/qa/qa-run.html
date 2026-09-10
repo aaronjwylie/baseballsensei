@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 61</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 87</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -764,6 +764,81 @@ const PHASES = [
             "1.2.11",
             "Submit a second time",
             "Works; no duplicate-send guard needed"
+          ],
+          [
+            "1.2.12",
+            "The writer gets a receipt too. Submit the form, then check the address you typed",
+            "A confirmation quoting your own message back, so you have a copy and know it arrived. ⚠️ Added 2026-09-09 — the form answered only with \"Message sent\" on a page you are about to close"
+          ],
+          [
+            "1.2.13",
+            "Its footer doesn't call it a submission",
+            "\"an automated confirmation that we received your message\". The shell's default says \"about your coaching submission\", which is wrong twice here — the writer hasn't made one, and the admin copy isn't going to a customer"
+          ],
+          [
+            "1.2.15",
+            "⚠️ A reply-all cannot dox the admins. Submit the form, then hit reply-all on the admin copy",
+            "Only the customer and contact@ are addressed. Every admin is bcc, so no address of ours can travel back to the writer. ⚠️ They were all in to until 2026-09-09"
+          ],
+          [
+            "1.2.16",
+            "One Reply reaches both sides",
+            "reply_to carries the writer and contact@, so the answer is delivered and archived in one gesture"
+          ],
+          [
+            "1.2.17",
+            "⚠️ contact@ is readable by every admin",
+            "Out of scope, 2026-09-09. Aaron and Ben chose not to take on the Workspace delegation work. Correspondence runs between contact@ and the customer; an admin's own address signs them in and tells them things, and is not for corresponding from"
+          ],
+          [
+            "1.2.19",
+            "Muting does not cut an admin out of the record. Untick notify on every admin, then submit the form",
+            "contact@ still receives it; nobody is bcc'd. site.email is appended after the notify filter, never through it"
+          ],
+          [
+            "1.2.18",
+            "⚠️ An admin's reply carries the brand address",
+            "Out of scope, 2026-09-09 — send-as was not taken on. The accepted consequence: a reply from a personal address arrives from that address, so the customer's reply returns to that person alone and contact@ loses the thread"
+          ],
+          [
+            "1.2.26",
+            "⚠️ Open question — the contact form has no rate limit. Post to sendContactAction repeatedly from one address",
+            "Currently: every one is accepted and mailed. A Server Action is a public endpoint, and the honeypot stops naive bots rather than determined ones; each send costs a Resend credit and lands in five inboxes. Not the same question as 1.2.11 — that one records the deliberate absence of a duplicate guard, which is about a person writing twice, not about abuse. shared/lib/rateLimit.ts already guards checkout and both status-code routes, so this would be reuse. Needs a decision, not a fix"
+          ],
+          [
+            "1.2.24",
+            "⚠️ Retest on a fresh tab, not an open one",
+            "Vercel pins a browser to the deployment that served it for 12 hours (Skew Protection), so an open tab keeps running the code that was live when it loaded. ⚠️ Four contact-form tests on 2026-09-09 came out pre-fix while the fix was demonstrably live and every deploy had succeeded. See qa-plan.md §5b"
+          ],
+          [
+            "1.2.22",
+            "⚠️ No admin notice puts the admins in to. Trigger ②, ④, ⑤ and ⑦ and read the headers",
+            "contact@ in to, every admin in bcc, through one adminAudience(). ⚠️ ⑤ handed every admin's personal address to the coach, and the coach's to every admin, until 2026-09-09"
+          ],
+          [
+            "1.2.25",
+            "A sixth multi-recipient message cannot forget the bcc",
+            "Covered by tests/unit/contactReceiptFailure.test.ts. bcc is required on every sender that accepts more than one address, so omitting it fails tsc rather than shipping. Every other message takes to: string"
+          ],
+          [
+            "1.2.23",
+            "⑤ still addresses the coach openly",
+            "They are in to beside contact@ and not also bcc'd — a notice about your own work should not look like it was sent to somebody else, and both would deliver it twice"
+          ],
+          [
+            "1.2.20",
+            "The Admins tab says the address is not for correspondence",
+            "Covered by tests/unit/adminEmailNote.test.tsx. An amber note under the blurb, on that tab only. It is where an admin is added, which is where the expectation is set"
+          ],
+          [
+            "1.2.21",
+            "The contact notification says it too",
+            "\"Answer from contact@…, not from here\" — in the mail, at the moment somebody is deciding whether to hit Reply. A rule that lives only in a document is discovered by breaking it"
+          ],
+          [
+            "1.2.14",
+            "The receipt can't fail the form",
+            "Covered by tests/unit/contactReceiptFailure.test.ts. Kill the second send and the form still succeeds. The message is already with every admin by then, and reporting a failed receipt would earn a duplicate enquiry"
           ]
         ]
       },
@@ -1768,12 +1843,12 @@ const PHASES = [
         "checks": [
           [
             "6.1",
-            "Sees only their assigned submissions",
+            "Sees only their assigned submissions. Covered by tests/integration/coachRemoveGuards.test.ts",
             ""
           ],
           [
             "6.2",
-            "Cannot reach another coach's submission by URL",
+            "Cannot reach another coach's submission by URL. Covered by the same test — the page lists findByCoach and the file route asks isAssignedToSubmission, and the test breaks if either stops scoping",
             "Refused",
             "flag"
           ],
@@ -1810,47 +1885,77 @@ const PHASES = [
           [
             "6.6.1",
             "⚠️ The size limit holds for a coach, not just a customer. Set the limit to 10 MB and upload a larger feedback file",
-            "Refused. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob — the client token's maximumSizeInBytes is not the enforcement it looks like, and only the customer's complete route re-checked"
+            "Refused before the upload starts, naming the file's size and the limit — the customer's wording, from the customer's rule. ⚠️ A 21 MB file was accepted on 2026-09-04 and the object really landed in Blob: the client token's maximumSizeInBytes is not the enforcement it looks like, and only the customer's complete route re-checked"
           ],
           [
             "6.6.2",
             "The same on the translator's upload",
-            "Refused. It mirrored the coach's route, missing guard included"
+            "Refused, the same way. It mirrored the coach's route, missing guard included"
+          ],
+          [
+            "6.6.4",
+            "⚠️ The same in an admin folder box. Upload an oversize file into any of the four",
+            "Refused in the browser. ⚠️ Until 2026-09-06 this posted to a Server Action, blew the request body limit, and Next answered with its own \"this page couldn't load\" — the admin lost the page and never saw our error"
+          ],
+          [
+            "6.6.5",
+            "⚠️ A file between 4.5 MB and the limit, in an admin folder box",
+            "Uploads. ⚠️ Until 2026-09-06 the folder boxes posted to a Server Action, so the bytes came through us and Vercel's ~4.5 MB body cap refused a file the setting allowed — the last upload path still routed through the server. Verified locally at 6 MB accepted, 12 MB refused against a 10 MB limit"
+          ],
+          [
+            "6.6.6",
+            "⚠️ The dev proxy enforces the limit too. With STORAGE_DIR set, upload an oversize file on each operator surface",
+            "Refused, same message. ⚠️ Only the complete routes checked, so the limit that held in production was absent locally — the worst place for it to differ, since local is where a limit gets tested. The customer's dev route always checked"
           ],
           [
             "6.6.3",
-            "⚠️ Hand back from the wrong rung. Upload feedback, have the admin reset the submission, then Send for approval",
+            "⚠️ Hand back from the wrong rung. Covered by the same test. Upload feedback, have the admin reset the submission, then Send for approval",
             "It names the rung, not the files. ⚠️ It said \"Attach at least one file before sending\" to a coach who had attached two — one message served both refusals"
           ],
           [
             "6.9",
-            "⚠️ Remove an uploaded feedback file. Upload two, remove one",
+            "⚠️ Remove an uploaded feedback file. Upload two, remove one. Covered by the same test",
             "That file only. The coach had no undo at all until 2026-08-31 — a wrong take could only be sent alongside the right one and explained by email"
           ],
           [
             "6.10",
-            "Remove the last file, then Send for approval",
+            "Remove the last file, then Send for approval. Covered by the same test",
             "Refused. An empty send parks a submission awaiting approval of nothing"
           ],
           [
             "6.11",
-            "⚠️ Remove after sending (stale tab)",
-            "Refused. Past awaiting_approval the file is what the admin is reviewing"
+            "⚠️ Remove after sending (stale tab). Not clickable — run npx vitest run tests/integration/coachRemoveGuards.test.ts with DATABASE_URL set",
+            "Refused: \"already gone to the admin\". Past awaiting_approval the file is what the admin is reviewing. ⚠️ There is deliberately no button: after a hand-back the card moves under Submitted and stops listing files, so the guard is only reachable by posting the action directly — which is exactly what a stale tab does"
           ],
           [
             "6.12",
-            "⚠️ Remove someone else's, or the customer's. Post a remove for another coach's file, then for an intake file",
-            "Both refused. A coach must not be able to destroy the material they were given"
+            "⚠️ Remove someone else's, or the customer's. Post a remove for another coach's file, then for an intake file. Same test file as 6.11",
+            "Both refused, for different reasons: \"isn't your submission\" and \"can't be removed here\". A coach must not be able to destroy the material they were given, and being a coach is not being this coach"
           ],
           [
             "6.13",
-            "The panel says what the button does",
+            "The panel says what the button does. The coach's is a fixed line in FeedbackUpload; the translator's is the leg's own handBackHint",
             "A line under it: the admin reviews it and releases it to the customer. ⚠️ The translator's card carried this from the start and the coach's did not"
           ],
           [
             "6.14",
             "Upload and Send sit apart",
             "Upload left, Send for approval right. During an upload only the Upload button reads busy, so the send never looks pressed when it hasn't been"
+          ],
+          [
+            "6.15",
+            "The Submitted card is a receipt. Hand back, then read the card under Submitted",
+            "The player and focus, the hand-back date, and all four folders with every file and its size — the same list the admin's panel shows for that submission. ⚠️ It said \"0 files · No files on this submission\" for every finished submission: the page loaded listFilesForSubmissions, which returns intake kinds only, then filtered it for feedback files. A filter that cannot match is the quietest kind of bug — the page rendered and stated something definite"
+          ],
+          [
+            "6.15.1",
+            "After the retention sweep. Read a finished card whose files have been purged",
+            "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. Every file still listed, struck through and marked deleted, and the count line says \"n files, deleted after the retention window\" rather than a bare count"
+          ],
+          [
+            "6.16",
+            "The same on the translator's Handed back list. Covered by tests/integration/translatorGuards.test.ts",
+            "The leg's own title and date, and its own two folders — the one it read from and the one it delivered into. ⚠️ It showed all four folders of the submission, which is submission-scope content on a leg-scope card: hold both legs and the same block prints twice, so the history reads as a duplicate entry (2026-09-09). ⚠️ One translator may hold both legs of a submission, so the date must come from that leg's done rung and not a shared one"
           ]
         ]
       }
@@ -1868,7 +1973,7 @@ const PHASES = [
           [
             "7.1",
             "Sees assigned translations only",
-            "Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real"
+            "Covered by tests/integration/translatorGuards.test.ts. Legs assigned to them, nobody else's. ⚠️ The page was an empty panel until 2026-08-31 — everything in this phase is newly real"
           ],
           [
             "7.2",
@@ -1883,12 +1988,12 @@ const PHASES = [
           [
             "7.2.2",
             "⚠️ Someone else's leg. As a translator assigned to a different submission, open a file you can reach",
-            "No rung moves. Being a translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not"
+            "Covered by tests/integration/translatorGuards.test.ts. No rung moves. Being a translator must not close a hand-off you are not part of — the guard the coach's side always had and this one did not"
           ],
           [
             "7.2.3",
             "Download the same file twice",
-            "The second changes nothing. The rung has already moved, so there is no rung to move"
+            "Covered by tests/integration/translatorGuards.test.ts. The second changes nothing. The rung has already moved, so there is no rung to move"
           ],
           [
             "7.3",
@@ -1908,17 +2013,17 @@ const PHASES = [
           [
             "7.3.3",
             "Remove the last file, then try to hand back",
-            "Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused — an empty hand-back leaves the admin to find the empty folder when they try to pass it on"
           ],
           [
             "7.3.4",
             "⚠️ Remove after handing back (stale tab, or as another translator)",
-            "Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused. Past hand-back the file is what the admin is acting on; pulling it out would leave a leg marked delivered with an empty folder"
           ],
           [
             "7.3.5",
             "⚠️ Remove someone else's file. Post a remove for a file on a leg that isn't yours",
-            "Refused. And a remove aimed at an intake or feedback file is refused whoever asks — a translator must not be able to destroy the material they were given"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused. And a remove aimed at an intake or feedback file is refused whoever asks — a translator must not be able to destroy the material they were given"
           ],
           [
             "7.4",
@@ -1938,27 +2043,27 @@ const PHASES = [
           [
             "7.7",
             "Each card names its direction",
-            "The direction sits above the player's name. With both legs held, the name alone cannot tell them apart"
+            "Covered by tests/unit/translationCard.test.tsx. The direction sits above the player's name. With both legs held, the name alone cannot tell them apart"
           ],
           [
             "7.8",
             "Hand back with no file uploaded",
-            "Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on"
           ],
           [
             "7.9",
             "Hand back twice (two tabs, submit both)",
-            "The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI"
+            "Covered by tests/integration/translatorGuards.test.ts. The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI"
           ],
           [
             "7.10",
             "⚠️ Another translator's leg. As translator A, post a hand-back for a leg assigned to translator B",
-            "Refused. Role is not ownership — being a translator must not close any leg"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused. Role is not ownership — being a translator must not close any leg"
           ],
           [
             "7.11",
             "⚠️ The other folder. Holding only the intake leg, upload to feedback_translation",
-            "Refused by the upload routes. Ownership is per leg, not per submission"
+            "Covered by tests/integration/translatorGuards.test.ts. Refused by the upload routes. Ownership is per leg, not per submission"
           ],
           [
             "7.12",
@@ -1968,12 +2073,12 @@ const PHASES = [
           [
             "7.13",
             "A leg whose files the retention sweep has cleared",
-            "\"Files deleted\" rather than an empty list or a broken link"
+            "Covered by tests/integration/translatorGuards.test.ts. \"Files deleted\" rather than an empty list or a broken link"
           ],
           [
             "7.14",
             "Handed-back legs stay visible",
-            "Under \"Handed back\", with the file count they delivered"
+            "Covered by tests/integration/translatorGuards.test.ts. Under \"Handed back\", with the file count they delivered"
           ],
           [
             "7.15",
@@ -2032,32 +2137,32 @@ const PHASES = [
           [
             "8.8",
             "The Download button doesn't flash a tab",
-            "Same tab, no window opening and closing. The route answers with Content-Disposition: attachment, so nothing was ever going to be shown in it"
+            "Covered by tests/unit/downloadRow.test.ts. Same tab, no window opening and closing. The route answers with Content-Disposition: attachment, so nothing was ever going to be shown in it"
           ],
           [
             "8.9",
             "⚠️ Download still works after that change",
-            "It is a plain <a>, not ButtonLink. next/link intercepts internal hrefs and was skipping this one only because target was set"
+            "Covered by tests/unit/downloadRow.test.ts. It is a plain <a>, not ButtonLink. next/link intercepts internal hrefs and was skipping this one only because target was set"
           ],
           [
             "8.9.1",
             "⚠️ Two files, one row shape. Deliver a submission with a short filename and a long one, then open the customer's download page",
-            "Both rows identical: name, size, Download on the right. ⚠️ The list was flex-wrap, so a long name pushed its button onto a second line and two files in one list looked like two designs"
+            "Mechanism covered by tests/unit/downloadRow.test.ts — a short and a long name render the identical row, nothing wraps, only the name truncates. The look still wants eyes. Both rows identical: name, size, Download on the right. ⚠️ The list was flex-wrap, so a long name pushed its button onto a second line and two files in one list looked like two designs"
           ],
           [
             "8.9.2",
             "A very long filename",
-            "Truncates with an ellipsis. The size and the button never move; the name is the only thing that gives way"
+            "Mechanism covered by tests/unit/downloadRow.test.ts — a short and a long name render the identical row, nothing wraps, only the name truncates. The look still wants eyes. Truncates with an ellipsis. The size and the button never move; the name is the only thing that gives way"
           ],
           [
             "8.9.3",
             "⚠️ Both customer download pages, not one. Check the signed link from the ⑥ email and the status lookup",
-            "Identical rows on both. ⚠️ Each had built this row for itself, so the first fix landed on one page and the same report came back about the other. They render one shared component now"
+            "Covered by tests/unit/renderedLists.test.ts. ⚠️ It had happened again: /feedback/[token] hand-rolled a flat list, so a both-folder release arrived from the ⑥ email ungrouped. FeedbackFiles demanded a whole FeedbackGroup while reading only its files — a prop asking for more than it reads is how one of two callers gets locked out. Fixed 2026-09-08. Identical rows on both. ⚠️ Each had built this row for itself, so the first fix landed on one page and the same report came back about the other. They render one shared component now"
           ],
           [
             "8.9.4",
             "No tab flash on either page",
-            "Clicking Download starts a download in place. target=\"_blank\" opened a window with nothing in it — the route answers Content-Disposition: attachment"
+            "Covered by tests/unit/downloadRow.test.ts. Clicking Download starts a download in place. target=\"_blank\" opened a window with nothing in it — the route answers Content-Disposition: attachment"
           ],
           [
             "8.9.5",
@@ -2067,7 +2172,7 @@ const PHASES = [
           [
             "8.9.6",
             "Resize slowly across the whole range",
-            "Heading and vertical rhythm scale continuously, with no snap at a breakpoint"
+            "Heading and vertical rhythm scale continuously, with no snap at a breakpoint — and stop at 616px, where the column caps. ⚠️ They kept climbing to 1333px, so dragging a wide window slid the whole page down ~21px and back with nothing else moving (2026-09-10). Covered by tests/unit/narrowPage.test.tsx"
           ],
           [
             "8.9.7",
@@ -2076,28 +2181,28 @@ const PHASES = [
           ],
           [
             "8.9.8",
-            "Same on the /status/[token] link from ⑥",
-            "No code prompt at all. The signed link is the proof; asking again proves nothing new"
+            "Same on the /status/[token] link — which comes from the payment receipt, not ⑥. ⑥ links to /feedback/[token], one submission; the receipt's link covers the address (corrected 2026-09-10)",
+            "No code prompt at all. The signed link is the proof: that address verified itself at step 2 and paid at step 4, and a code is single-use, so asking again costs a trip to the inbox and proves nothing. Covered by tests/integration/statusTokenPage.test.tsx"
           ],
           [
             "8.9.9",
             "⚠️ A \"Feedback ready\" card leads to its files. Click Download ↓ on the card",
-            "Jumps to the panel below the stack. Nothing on the card said the files were already on the page, so customers went back to their email for the link instead of scrolling"
+            "Superseded by 8.9.44 — this describes the two-section page that became one list on 2026-09-03. Retire at the next reconcile. Jumps to the panel below the stack. Nothing on the card said the files were already on the page, so customers went back to their email for the link instead of scrolling"
           ],
           [
             "8.9.10",
             "A card with no feedback shows no link",
-            "And a page with no downloads shows none on any card"
+            "Covered by tests/unit/statusCards.test.ts — content and order, not layout. And a page with no downloads shows none on any card"
           ],
           [
             "8.9.11",
             "⚠️ Both code emails look the same. Trigger the step-2 verification code and the /status access code, and put them side by side",
-            "Identical grey rounded panel, display face, same size and tracking. ⚠️ They differed in five ways: box, typeface, size, tracking and colour"
+            "Covered by tests/unit/codeEmails.test.ts. Identical grey rounded panel, display face, same size and tracking. ⚠️ They differed in five ways: box, typeface, size, tracking and colour"
           ],
           [
             "8.9.12",
             "The panel follows the shell's palette",
-            "Its greys are the shell's PAPER_ALT and LINE, not literals, so a palette change carries the code box with it"
+            "Covered by tests/unit/codeEmails.test.ts. Its greys are the shell's PAPER_ALT and LINE, not literals, so a palette change carries the code box with it"
           ],
           [
             "8.9.13",
@@ -2112,12 +2217,12 @@ const PHASES = [
           [
             "8.9.15",
             "⚠️ Ready before history. Open /status with a released review waiting",
-            "The downloads are the first thing on the page; history sits under its own heading below. ⚠️ They were the other way round, so a parent whose review had just landed scrolled past their own past to reach it"
+            "Superseded by 8.9.43 and 8.9.45 — this describes the two-section page that became one list on 2026-09-03. Retire at the next reconcile. The downloads are the first thing on the page; history sits under its own heading below. ⚠️ They were the other way round, so a parent whose review had just landed scrolled past their own past to reach it"
           ],
           [
             "8.9.16",
             "Nothing ready",
-            "No downloads block at all, and the list is headed \"Your submissions\" rather than \"Your history\""
+            "Covered by tests/unit/statusCards.test.ts — content and order, not layout. No downloads block at all, and the list is headed \"Your submissions\" rather than \"Your history\""
           ],
           [
             "8.9.17",
@@ -2126,7 +2231,7 @@ const PHASES = [
           ],
           [
             "8.9.18",
-            "All three customer pages resize the same way",
+            "All three customer pages resize the same way. Covered by tests/integration/customerShell.test.tsx",
             "/status, /status/[token] and the ⑥ link share one shell. Dragging wider never narrows the column"
           ],
           [
@@ -2137,12 +2242,12 @@ const PHASES = [
           [
             "8.9.20",
             "The escape still works",
-            "\"Use a different email\" returns to the form and clears the old code"
+            "\"Use a different email\" returns to the form and clears the old code. An E2E step exists for this in e2e/goldenPath.spec.ts (customer path, after the status lookup) — it asserts the form returns, the results go, and a fresh code field comes back empty. ⚠️ Not yet run: Playwright 1.62 needs macOS 14+ and the dev machine is on 13.7, so it awaits the nightly CI run or a click"
           ],
           [
             "8.9.21",
             "⚠️ Each card identifies its own submission. Look up an email with several",
-            "Player and age, focus, the customer's own notes, sent date and feedback-ready date. ⚠️ It was a name, a focus and a date, so two reviews of the same child were indistinguishable"
+            "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Player and age, focus, the customer's own notes, sent date and feedback-ready date. ⚠️ It was a name, a focus and a date, so two reviews of the same child were indistinguishable"
           ],
           [
             "8.9.22",
@@ -2152,42 +2257,42 @@ const PHASES = [
           [
             "8.9.23",
             "⚠️ A card per finished review. Look up an email with several ready",
-            "One green card each, headed \"Ready to download (n)\". ⚠️ All of them sat inside a single green panel separated only by a player name, so seven reviews arrived as one block"
+            "Superseded by 8.9.43 — this describes the two-section page that became one list on 2026-09-03. Retire at the next reconcile. One green card each, headed \"Ready to download (n)\". ⚠️ All of them sat inside a single green panel separated only by a player name, so seven reviews arrived as one block"
           ],
           [
             "8.9.24",
             "Each ready card carries the same detail as its history card",
-            "Player, age, focus, their own notes, both dates. They render one shared component, so the two lists cannot describe one submission two ways"
+            "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Player, age, focus, their own notes, both dates. They render one shared component, so the two lists cannot describe one submission two ways"
           ],
           [
             "8.9.25",
             "⚠️ A \"both\" card says which file is which. Open a card released with both folders",
-            "Two headed groups: \"From your coach\" and \"Translated for you\". ⚠️ It listed two links distinguished only by whatever the coach happened to name them"
+            "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. Two headed groups: \"From your coach\" and \"Translated for you\". ⚠️ It listed two links distinguished only by whatever the coach happened to name them"
           ],
           [
             "8.9.26",
             "A single-folder card stays flat",
-            "No heading over a list that could not be anything else"
+            "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. No heading over a list that could not be anything else"
           ],
           [
             "8.9.27",
             "The coach's own file comes first",
-            "Even when the translation was uploaded first — ordered by folder, not upload time"
+            "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. Even when the translation was uploaded first — ordered by folder, not upload time"
           ],
           [
             "8.9.28",
             "The labels never name a language",
-            "\"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one"
+            "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. \"From your coach\" / \"Translated for you\". Nothing records what language a file is in, which is why the send radio and folder hints stopped claiming one"
           ],
           [
             "8.9.32",
             "⚠️ Override reads like its neighbours. Expand a row",
-            "\"This submission\", \"Trail\" and \"Override\" all carry the same small-caps label and a › that rotates. ⚠️ Override had its own \"Override…\" link and a \"close\", so the third panel of three announced itself as a different kind of control"
+            "Covered by tests/unit/disclosure.test.ts. \"This submission\", \"Trail\" and \"Override\" all carry the same small-caps label and a › that rotates. ⚠️ Override had its own \"Override…\" link and a \"close\", so the third panel of three announced itself as a different kind of control"
           ],
           [
             "8.9.33",
             "It still opens and its forms still work",
-            "It is a native <details> now, so it survives without hydration and cannot desync from what is on screen"
+            "Covered by tests/unit/disclosure.test.ts. It is a native <details> now, so it survives without hydration and cannot desync from what is on screen"
           ],
           [
             "8.9.34",
@@ -2222,68 +2327,67 @@ const PHASES = [
           [
             "8.9.37",
             "⚠️ The end-of-ladder wait counts down. Open a resolved submission",
-            "\"12 days to deletion\", not \"waiting on the retention clock\""
+            "Covered by tests/unit/deletionClock.test.ts. \"12 days to deletion\", not \"waiting on the retention clock\""
           ],
           [
             "8.9.38",
             "⚠️ An overdue sweep says so. A submission past its deletion date",
-            "\"overdue by Nd — is the sweep running?\" rather than \"0 days\". Clamping is how a stopped cron stays unnoticed"
+            "Covered by tests/unit/deletionClock.test.ts. \"overdue by Nd — is the sweep running?\" rather than \"0 days\". Clamping is how a stopped cron stays unnoticed"
           ],
           [
             "8.9.39",
             "Before anything is delivered",
-            "\"no deletion date yet\" — neither clock has started, so there is nothing to count"
+            "Covered by tests/unit/deletionClock.test.ts. \"no deletion date yet\" — neither clock has started, so there is nothing to count"
           ],
           [
             "8.9.40",
             "⚠️ The customer's card carries the deadline. Look up a delivered submission on /status",
-            "A last line: \"Files deleted in N days\". ⚠️ They are told at ⑥ and again at ⑨; this is the same promise on the page they actually return to"
+            "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A last line: \"Files deleted in N days\". ⚠️ They are told at ⑥ and again at ⑨; this is the same promise on the page they actually return to"
           ],
           [
             "8.9.41",
             "And it disappears once the files are gone",
-            "A countdown after the fact is shown too late — the struck-through filenames say it better"
+            "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A countdown after the fact is shown too late — the struck-through filenames say it better"
           ],
           [
             "8.9.42",
             "The number is the later of the two clocks",
-            "30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards"
+            "Covered by tests/unit/deletionClock.test.ts. 30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards"
           ],
           [
             "8.9.43",
             "⚠️ One card per submission, and only one list. Look up an email with several finished",
-            "A single \"Your submissions (n)\". ⚠️ It was two sections — every finished review appeared twice, once with its files and no status, once with its status and no files. Neither card was the whole thing"
+            "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A single \"Your submissions (n)\". ⚠️ It was two sections — every finished review appeared twice, once with its files and no status, once with its status and no files. Neither card was the whole thing"
           ],
           [
             "8.9.44",
             "The files are inside the card",
-            "Not in a separate panel with a \"Download ↑\" jump. The card already says whose review it is"
+            "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Not in a separate panel with a \"Download ↑\" jump. The card already says whose review it is"
           ],
           [
             "8.9.45",
             "Ready ones come first",
-            "A parent whose review just landed does not scroll past submissions that need nothing from them"
+            "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A parent whose review just landed does not scroll past submissions that need nothing from them"
           ],
           [
             "8.9.46",
             "⚠️ A released submission whose files were swept. Age one past the retention window",
-            "Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has"
+            "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has"
           ],
           [
             "8.9.47",
             "Nothing finished",
-            "The same single list, in the server's order"
+            "Covered by tests/unit/statusCards.test.ts — content and order, not layout. The same single list, in the server's order"
           ],
           [
             "8.9.49",
             "⚠️ Storage matches the database. Audit the Blob store against every locator the DB holds — submission_file.file_url and operator_role_grant.image_url",
-            "No dangling rows — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault",
-            "flag"
+            "Run npm run audit:storage (add -- --fix to clear orphans). ⚠️ No dangling rows — nothing points at bytes that are gone, which is the direction that breaks a download. Orphans the other way are a storage cost, not a fault"
           ],
           [
             "8.9.50",
             "⚠️ Replacing a coach photo drops the old object. Upload a photo, replace it, then audit",
-            "One object for that coach, not two. ⚠️ The removal was voided with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape"
+            "Same script. One object for that coach, not two. ⚠️ The removal was voided with its error swallowed whole, so a failure left an orphan and no trace — and the audit found exactly one photo of that shape"
           ],
           [
             "8.10",
@@ -2316,7 +2420,7 @@ const PHASES = [
           [
             "9.1",
             "Hit /api/cron/sweep with the CRON_SECRET",
-            "Warns first, then purges per the windows"
+            "Covered by tests/integration/retentionSweep.test.ts — real bytes on disk, clocks moved rather than waited on. Warns first, then purges per the windows"
           ],
           [
             "9.2",
@@ -2326,12 +2430,12 @@ const PHASES = [
           [
             "9.3",
             "A swept submission's file",
-            "/api/files/[id] → 410 Gone"
+            "Covered by tests/integration/retentionSweep.test.ts — real bytes on disk, clocks moved rather than waited on. /api/files/[id] → 410 Gone"
           ],
           [
             "9.4",
             "Deletion-warning email",
-            "Sent once, and stamped even if the send failed"
+            "Covered by tests/integration/retentionSweep.test.ts — real bytes on disk, clocks moved rather than waited on. Sent once, and stamped even if the send failed"
           ],
           [
             "9.5",
@@ -2379,12 +2483,12 @@ const PHASES = [
           [
             "10.3",
             "Form labels",
-            "Every input has one"
+            "Every input has one — from aria-label, aria-labelledby, a htmlFor, or an enclosing <label>/<Field>. ⚠️ Four admin controls had none on 2026-09-10: two reason boxes leaning on a placeholder, and both assignment selects, which a screen reader announced as a bare \"combo box\". Gated by npm run check:a11y, which runs in build"
           ],
           [
             "10.4",
             "Images",
-            "Meaningful ones have alt text; decorative ones are empty"
+            "Meaningful ones have alt text; decorative ones are empty. 12 images: 4 named, 8 deliberately blank — grounds, bands, and step illustrations that sit above their own heading. Same gate"
           ],
           [
             "10.5",

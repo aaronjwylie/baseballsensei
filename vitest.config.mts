@@ -12,9 +12,21 @@ import { defineConfig } from "vitest/config";
  * (which scan `src/`) never see a file that imports across domain boundaries.
  */
 export default defineConfig({
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    tsconfigPaths: true,
+    /*
+      `server-only` is a build-time marker with no Node implementation, so any
+      module chain that reaches a Server Action fails to import here. The ladder
+      walk already had this stub; the integration suite needs it too, now that
+      one of its tests calls an action directly (QA 6.11/6.12).
+    */
+    alias: { "server-only": new URL("./scripts/stubs/serverOnly.ts", import.meta.url).pathname },
+  },
   test: {
-    include: ["tests/**/*.test.ts"],
+    // `.tsx` too: a test that renders a component whose props require
+    // `children` has to write JSX — `createElement` with children as a prop
+    // is a lint error, and as a third argument it does not satisfy the type.
+    include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
     environment: "node",
   },
 });

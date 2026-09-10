@@ -3,7 +3,7 @@ import { Container, LocalTime, pillClass } from "@/shared/ui";
 import { FLOW_WINDOW_MINUTES } from "@/shared/lib";
 import {
   listFeedbackFilesForSubmissions,
-  listFilesForSubmissions,
+  listIntakeFilesForSubmissions,
   listSubmissions,
   SubmissionFileList,
   type Submission,
@@ -45,9 +45,10 @@ import {
   resetStatusAction,
   resolveSubmissionAction,
   removeFileAction,
-  uploadToFolderAction,
   unarchiveSubmissionAction,
 } from "./adminActions";
+import { storage } from "@/shared/storage";
+import type { UploadMode } from "@/shared/upload";
 
 export const metadata: Metadata = {
   title: "Admin: Submissions",
@@ -156,6 +157,10 @@ export default async function AdminHomePage({
   // Settings joins the batch rather than being read per row: the two retention
   // windows are the operator's, not the submission's, so one read serves every
   // countdown on the page.
+  // Prod uploads straight to Blob; dev proxies to disk. The same seam the
+  // customer flow and both operator portals read.
+  const uploadMode: UploadMode = storage.supportsDirectUpload ? "blob" : "proxy";
+
   const [all, coaches, translators, settings] = await Promise.all([
     listSubmissions(),
     listCoaches(),
@@ -186,7 +191,7 @@ export default async function AdminHomePage({
     eventsBySubmission,
     feedbackBySubmission,
   ] = await Promise.all([
-    listFilesForSubmissions(ids),
+    listIntakeFilesForSubmissions(ids),
     listFoldersForSubmissions(ids),
     listProgressFacts(ids),
     listEventsForSubmissions(ids),
@@ -209,6 +214,8 @@ export default async function AdminHomePage({
     node: (
       <SubmissionRow
         submission={s}
+        maxFileSizeMb={settings.maxFileSizeMb}
+        uploadMode={uploadMode}
         translators={translators}
         files={filesBySubmission.get(s.id) ?? []}
         feedbackFiles={feedbackBySubmission.get(s.id) ?? []}
@@ -253,11 +260,17 @@ function SubmissionRow({
   coaches,
   translators,
   retention,
+  maxFileSizeMb,
+  uploadMode,
 }: {
   submission: Submission;
   files: SubmissionFile[];
   feedbackFiles: SubmissionFile[];
   folders?: Record<FileKind, SubmissionFile[]>;
+  /** The upload limit, so a folder box can refuse before a byte moves. */
+  maxFileSizeMb: number;
+  /** Direct-to-Blob in prod, proxied to disk in dev. */
+  uploadMode: UploadMode;
   progress?: {
     reached: Set<SubmissionStatus>;
     emails: Map<string, boolean>;
@@ -746,7 +759,8 @@ function SubmissionRow({
           <FileFolders
             submissionId={submission.id}
             folders={folderMap}
-            uploadAction={uploadToFolderAction}
+            maxFileSizeMb={maxFileSizeMb}
+            uploadMode={uploadMode}
             removeAction={removeFileAction}
           />
         ) : (
@@ -754,13 +768,17 @@ function SubmissionRow({
         )
       }
       details={
-        <dl className="grid grid-cols-[auto_1fr] gap-x-3.5 gap-y-1 text-xs">
+        /* `minmax(0,1fr)`, not `1fr`: a bare `1fr` has an `auto` minimum, so a
+           long unbroken value — an email, a filename in a file set — widens the
+           track instead of wrapping in it. The values break rather than
+           truncate because a half-shown id is worse than a wrapped one. */
+        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-1 text-xs">
           <dt className="text-ink-muted">ID</dt>
           <dd className="m-0 font-mono text-[11.5px] break-all text-ink-soft">
             {submission.id}
           </dd>
           <dt className="text-ink-muted">Started</dt>
-          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+          <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">
             <LocalTime iso={submission.submittedAt} />
           </dd>
           {/*
@@ -777,7 +795,7 @@ function SubmissionRow({
           {!isPaid(submission) && (
             <>
               <dt className="text-ink-muted">Session expires</dt>
-              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+              <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">
                 <LocalTime iso={sessionExpiry} />
                 <span className="ml-1.5 font-sans text-ink-muted">at the earliest</span>
               </dd>
@@ -787,15 +805,15 @@ function SubmissionRow({
               reader pairs them without scrolling; "understands" not "reads"
               because most of what a customer uploads is spoken (Ben, QA 5.9.13). */}
           <dt className="text-ink-muted">Customer</dt>
-          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">{submission.customerEmail}</dd>
+          <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">{submission.customerEmail}</dd>
           <dt className="text-ink-muted">Customer understands</dt>
-          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+          <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">
             {submission.languages?.join(", ") || "not declared"}
           </dd>
           <dt className="text-ink-muted">Coach</dt>
-          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">{assignedCoach?.name ?? "—"}</dd>
+          <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">{assignedCoach?.name ?? "—"}</dd>
           <dt className="text-ink-muted">Coach understands</dt>
-          <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+          <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">
             {assignedCoach ? assignedCoach.languages.join(", ") || "none recorded" : "—"}
           </dd>
           {alignmentLine && (
@@ -804,7 +822,7 @@ function SubmissionRow({
               {/* `font-mono` like every other value in this list — it was the
                   one row set in the body face, which made it read as prose
                   rather than as a field (Ben, 2026-09-03). */}
-              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+              <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">
                 {alignmentLine}
               </dd>
             </>
@@ -826,7 +844,7 @@ function SubmissionRow({
           {intakeTranslator && intakeDirection && (
             <>
               <dt className="text-ink-muted">Translator, in</dt>
-              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+              <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">
                 {`${intakeTranslator.name} (${intakeTranslator.languages.join(", ") || "no direction set"})`}
               </dd>
             </>
@@ -834,7 +852,7 @@ function SubmissionRow({
           {responseTranslator && responseDirection && (
             <>
               <dt className="text-ink-muted">Translator, back</dt>
-              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+              <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">
                 {`${responseTranslator.name} (${responseTranslator.languages.join(", ") || "no direction set"})`}
               </dd>
             </>
@@ -853,7 +871,7 @@ function SubmissionRow({
           {submission.coachFileSet && (
             <>
               <dt className="text-ink-muted">Coach was sent</dt>
-              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+              <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">
                 {FILE_SET_LABEL.intake[submission.coachFileSet]}
               </dd>
             </>
@@ -861,7 +879,7 @@ function SubmissionRow({
           {submission.customerFileSet && (
             <>
               <dt className="text-ink-muted">Customer was sent</dt>
-              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+              <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">
                 {FILE_SET_LABEL.feedback[submission.customerFileSet]}
               </dd>
             </>
@@ -869,7 +887,7 @@ function SubmissionRow({
           {submission.collectedAt && (
             <>
               <dt className="text-ink-muted">Collected</dt>
-              <dd className="m-0 font-mono text-[11.5px] text-ink-soft">
+              <dd className="m-0 break-words font-mono text-[11.5px] text-ink-soft">
                 <LocalTime iso={submission.collectedAt} />
               </dd>
             </>

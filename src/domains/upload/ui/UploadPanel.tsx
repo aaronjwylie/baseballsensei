@@ -3,13 +3,13 @@
 import { useCallback, useRef, useState } from "react";
 import { Button } from "@/shared/ui";
 // Models, not barrels — both of these slices reach the database from theirs.
-import { formatFileSize } from "@/domains/submission/model/submissionFile";
 import {
   ACCEPT_ATTRIBUTE,
   describeAllowedTypes,
-  isAllowedFilename,
-} from "../model/fileTypes";
+  refuseFile,
+} from "@/shared/upload";
 import { uploadFile, type UploadMode, type UploadedFile } from "@/shared/upload";
+import { formatFileSize } from "@/shared/lib";
 
 /**
  * Step three — the customer's files.
@@ -182,33 +182,16 @@ export function UploadPanel({
       // Refuse type and size here, before any byte leaves the browser (QA 2.3.6,
       // 2.3.8). These are the same checks the picker's `accept` makes, for the
       // files a drag-and-drop lets through it.
-      if (!isAllowedFilename(file.name)) {
+      /*
+        Refused here, before a byte moves — one rule, shared with the coach's,
+        the translator's and the admin's surfaces, which had no pre-check at all
+        and uploaded first to be told no afterwards (Ben, QA 6.6.1).
+      */
+      const refusal = refuseFile(file, maxFileSizeMb);
+      if (refusal) {
         setCards((cur) => [
           ...cur,
-          {
-            key,
-            state: {
-              status: "error",
-              file,
-              message: `That file type isn't supported. Accepted: ${describeAllowedTypes()}.`,
-              retriable: false,
-            },
-          },
-        ]);
-        return;
-      }
-      if (file.size > maxFileSizeMb * 1024 * 1024) {
-        setCards((cur) => [
-          ...cur,
-          {
-            key,
-            state: {
-              status: "error",
-              file,
-              message: `That file is ${formatFileSize(file.size)}. The limit is ${maxFileSizeMb} MB.`,
-              retriable: false,
-            },
-          },
+          { key, state: { status: "error", file, message: refusal, retriable: false } },
         ]);
         return;
       }

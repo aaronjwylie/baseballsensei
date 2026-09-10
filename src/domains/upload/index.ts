@@ -7,7 +7,7 @@
  * one customer confirmation is the receipt, and that belongs to payment.
  *
  * Server-only: the barrel re-exports database code. A client component imports
- * `model/fileTypes` directly — that module has no server imports for exactly
+ * `@/shared/upload` directly — that module has no server imports for exactly
  * this reason.
  */
 export {
@@ -29,14 +29,5 @@ export {
   type UploadPermit,
   type UploadRefusal,
 } from "./api/uploadPolicy";
-export {
-  ACCEPT_ATTRIBUTE,
-  ALLOWED_MIME_TYPES,
-  ALLOWED_TYPES,
-  describeAllowedTypes,
-  extensionOf,
-  isAllowedFilename,
-  resolveContentType,
-} from "./model/fileTypes";
 export { UploadPanel } from "./ui/UploadPanel";
 

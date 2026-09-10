@@ -1,5 +1,15 @@
+// The floor's formatter, so a refusal names the size it is refusing in the
+// same words the customer's panel has always used.
+import { formatFileSize } from "@/shared/lib";
 /**
- * What a customer is allowed to send us.
+ * What anyone is allowed to send us.
+ *
+ * On the floor rather than in `domains/upload` since 2026-09-06: four surfaces
+ * take files — the customer's panel, the coach's, the translator's and the
+ * admin's folder boxes — and three of them live in other domains. Keeping the
+ * rule inside one of them meant `feedback` importing `upload`, which closed a
+ * cycle back through the retention sweep. What we accept is a platform fact,
+ * not a fact about the customer's leg of the flow.
  *
  * **The single home for that question.** The file picker's `accept` attribute,
  * the browser-side pre-check, and the server's re-validation all read this
@@ -89,4 +99,37 @@ export function describeAllowedTypes(): string {
   return ALLOWED_TYPES.map((t) => t.extension.replace(".", "").toUpperCase())
     .filter((value, index, all) => all.indexOf(value) === index)
     .join(", ");
+}
+
+/**
+ * Why this file can't be uploaded — asked **before** the upload starts, in the
+ * browser, by every surface that takes a file.
+ *
+ * The customer's panel had this logic inline and nobody else had it at all, so
+ * a coach, a translator or an admin uploaded first and was refused afterwards:
+ * the bytes went up, the server said no, and the operator watched a progress
+ * bar complete before being told it was pointless. On the admin's folder boxes
+ * it was worse than pointless — the upload went through a Server Action, so an
+ * oversize file blew the request body limit and Next replied with its own
+ * "this page couldn't load" instead of anything we wrote (Ben, QA 6.6.1).
+ *
+ * One function, so the four surfaces can't drift on what they'll accept, and
+ * so the wording a person sees is the same wording wherever they see it. The
+ * server still re-checks all of it — this is the courtesy, `checkFile` is the
+ * enforcement, and a browser is never the place a limit actually lives.
+ *
+ * Returns null when the file is fine.
+ */
+export function refuseFile(
+  file: { name: string; size: number },
+  maxFileSizeMb: number,
+): string | null {
+  if (!isAllowedFilename(file.name)) {
+    return `That file type isn't supported. Accepted: ${describeAllowedTypes()}.`;
+  }
+  if (file.size <= 0) return "That file is empty.";
+  if (file.size > maxFileSizeMb * 1024 * 1024) {
+    return `That file is ${formatFileSize(file.size)}. The limit is ${maxFileSizeMb} MB.`;
+  }
+  return null;
 }

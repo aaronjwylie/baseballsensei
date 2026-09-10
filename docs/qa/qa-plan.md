@@ -196,6 +196,46 @@ Phase 2 manual smoke. Closing that would need a test Blob store; deferred until 
 
 ---
 
+## 5b. Hard-reload before you retest — Vercel pins your browser
+
+**A tester on an open tab is testing an old deployment, and nothing says so.**
+
+Vercel **Skew Protection** is on for this project with a 12-hour window
+(`skewProtectionMaxAge: 43200`). It pins a browser to whichever deployment
+served it, by cookie, so a Server Action from an already-open page keeps running
+the code that was live when the tab loaded. That is right for real users — it
+stops an old page calling an action id that no longer exists — and it is
+actively misleading during a QA pass, where the tester and the deployer are the
+same person deploying a dozen times a day.
+
+**On 2026-09-09 it cost about an hour.** Four contact-form submissions in a row
+came out in the pre-fix shape. The evidence looked damning and pointed the wrong
+way: the code on disk was verified correct by executing it, `origin/main` was in
+sync, the exact pushed commit built clean from a fresh checkout, and yet
+production kept sending the old envelope. The conclusion drawn — twice — was
+that deploys were failing. **Every deployment had succeeded**, and the newest was
+already serving the production domain. The browser had simply stopped moving
+forward.
+
+So:
+
+- **Close the tab and open the site fresh after any deploy you intend to test.**
+  A plain reload can reuse the pinned cookie; ⌘⇧R or a new tab is the reliable
+  gesture.
+- **Suspect this first** when a change is provably live and provably not
+  happening. The tell is a *partial* mismatch: an older change works and a newer
+  one does not, which is a browser pinned between the two rather than a build
+  that failed.
+- **Read the envelope, not the inbox.** Resend's `GET /emails` shows exactly
+  what was sent — `to`, `bcc`, `reply_to` — and settles in one call what a mail
+  client's rendering only hints at. It is how this was finally pinned down.
+- It is also worth **shortening the window while QA runs**. It is a project
+  setting, and 12 hours is a long time to be testing yesterday.
+
+The same family of problem produced the "reset seems to be hanging" report
+earlier the same week: the action had completed server-side, and the tab never
+caught up.
+
 ## 6. Cross-cutting: environments, data, secrets
 
 | Concern | CI | Local dev | Pre-deploy smoke |

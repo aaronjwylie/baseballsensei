@@ -145,6 +145,22 @@ export const FILE_SET_LABEL: Record<
   },
 };
 
+/**
+ * What each of the four folders is called — one vocabulary, four surfaces.
+ *
+ * The admin's folder boxes had these inline. The coach's and translator's
+ * finished cards needed the same words (Ben, 2026-09-07: the portals should be
+ * "consistent with what is on the blob, and what is present in the four folders
+ * on the admin panel"), and two lists of four strings is how "Client" becomes
+ * "Customer" on one screen and not the other.
+ */
+export const FOLDER_LABEL: Record<FileKind, string> = {
+  intake: "Client",
+  intake_translation: "Client (translated)",
+  feedback: "Coach",
+  feedback_translation: "Coach (translated)",
+};
+
 export function kindsForSet(
   side: "intake" | "feedback",
   set: FileSet,
@@ -218,19 +234,3 @@ export function isAvailable(file: SubmissionFile): boolean {
   return !!file.fileUrl;
 }
 
-/**
- * Human-readable size. Binary units, one decimal past a kilobyte — "48.3 MB"
- * reads better next to an upload limit expressed in whole megabytes than
- * "50642944 bytes" does.
- */
-export function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  const units = ["KB", "MB", "GB"];
-  let value = bytes / 1024;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit += 1;
-  }
-  return `${value.toFixed(value < 10 ? 1 : 0)} ${units[unit]}`;
-}

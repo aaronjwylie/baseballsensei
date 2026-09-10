@@ -87,6 +87,7 @@ export function AssignTranslatorSelect({
         <input type="hidden" name="leg" value={leg} />
         <select
           name="operatorId"
+          aria-label="Translator for this leg"
           value={operatorId}
           onChange={(e) => setOperatorId(e.target.value)}
           disabled={pending}

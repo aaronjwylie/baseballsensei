@@ -38,6 +38,8 @@ import {
   isWithCoach,
   listAllSubmissionFiles,
   listSubmissionEvents,
+  recordSubmissionEvent,
+  reachedAt,
   markCoachCollected,
   markTranslatorCollected,
   assignSubmissionTranslator,
@@ -57,7 +59,12 @@ import {
   type Submission,
   type SubmissionStatus,
 } from "@/domains/submission";
-import { approveAndComplete, resolveSubmission, sendFeedbackForApproval } from "@/domains/feedback";
+import {
+  approveAndComplete,
+  resolveSubmission,
+  sendFeedbackForApproval,
+  noteCustomerCollected,
+} from "@/domains/feedback";
 import { runRetentionSweep } from "@/domains/upload";
 import { getSettings } from "@/domains/settings";
 import { isOperatorSession } from "@/domains/account/model/session";
@@ -361,10 +368,30 @@ async function walk(label: string, translating: boolean) {
   check((await at(s.id)).status === "complete", `   not swept before collection (${early.resolvedPurged} purged)`);
 
   // ── rung 13: collected ───────────────────────────────────────────────
-  const collected = await markCustomerCollected(s.id);
-  check(collected?.status === "collected", "   the customer's download starts the clock");
-  check(!!collected?.collectedAt, "   collectedAt is stamped");
+  /*
+    Through `noteCustomerCollected`, which is what the download route calls —
+    not `markCustomerCollected` underneath it (QA 8.9.13).
+
+    The rung and the ⑦ row are two different writes, and e2e once sent and
+    delivered ⑦ while writing no row at all. Walking the inner function proved
+    the rung and could not have caught that.
+  */
+  await noteCustomerCollected(s.id);
+  const collected = await at(s.id);
+  check(collected.status === "collected", "   the customer's download starts the clock");
+  check(!!collected.collectedAt, "   collectedAt is stamped");
+  const collectMail = (await listSubmissionEvents(s.id)).filter(
+    (e) => e.kind === "email" && e.label?.startsWith("⑦"),
+  );
+  check(collectMail.length === 1, "   and the ⑦ send leaves exactly one row");
   check((await markCustomerCollected(s.id)) === null, "   a re-download can't restart it");
+  await noteCustomerCollected(s.id);
+  check(
+    (await listSubmissionEvents(s.id)).filter(
+      (e) => e.kind === "email" && e.label?.startsWith("⑦"),
+    ).length === 1,
+    "   nor send a second ⑦",
+  );
   await rung(s.id, "collected", "admin");
 
   // ── rung 14: resolved ────────────────────────────────────────────────
@@ -442,6 +469,27 @@ async function walk(label: string, translating: boolean) {
     : SUBMISSION_STATUSES.length - TRANSLATION_RUNGS.length;
   check(rungs.length === expected, `   ${rungs.length} rungs recorded (expected ${expected})`);
   check(new Set(rungs).size === rungs.length, "   no rung recorded twice");
+
+  /*
+    `reachedAt` — what the two portals date a hand-back from.
+
+    It takes the LAST occurrence, which only differs from the first once a rung
+    can be reached twice. So the check is worth having precisely here, where the
+    trail is already whole: reach `awaiting_approval` a second time and the
+    answer must move.
+  */
+  const firstHandBack = reachedAt(events, "awaiting_approval");
+  check(!!firstHandBack, "   reachedAt finds the hand-back on the trail");
+  check(
+    reachedAt(events, "draft") === events[0]?.at,
+    "   and reads the rung it was asked for, not the newest one",
+  );
+  await recordSubmissionEvent(s.id, "awaiting_approval", "simulated re-hand-back");
+  const again = reachedAt(await listSubmissionEvents(s.id), "awaiting_approval");
+  check(
+    !!again && !!firstHandBack && again > firstHandBack,
+    "   and a second visit to a rung moves it, so a redone hand-back dates right",
+  );
   console.log(`   trail: ${rungs.join(" → ")}`);
   console.log(`   emails: ${mails.length ? mails.map((m) => m.label).join(", ") : "none — RESEND_API_KEY unset locally"}`);
 
@@ -487,7 +535,7 @@ async function ensureCoach(name: string, languages: string[]) {
 
   const [operator] = await db
     .insert(operatorTable)
-    .values({ email, passwordHash: "x", name })
+    .values({ email, name })
     .returning();
   // A kind is a grant, and the grant carries the kind's settings — one row, not
   // two. A fixture without a grant is unlike any real operator: it would not
@@ -514,7 +562,7 @@ async function ensureTranslator(name: string) {
 
   const [operator] = await db
     .insert(operatorTable)
-    .values({ email, passwordHash: "x", name })
+    .values({ email, name })
     .returning();
   await grantRole(operator.id, "translator", null);
   await setRoleSettings(operator.id, "translator", {
