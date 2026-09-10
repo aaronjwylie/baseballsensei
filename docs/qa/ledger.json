@@ -2479,10 +2479,16 @@
     },
     "8.9.18": {
       "firstSeen": "2026-09-03T20:08:06.085Z",
-      "what": "All three customer pages resize the same way",
+      "what": "All three customer pages resize the same way. Covered by tests/integration/customerShell.test.tsx",
       "expect": "/status, /status/[token] and the ⑥ link share one shell. Dragging wider never narrows the column",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-10T02:52:19.343Z",
+          "what": "All three customer pages resize the same way",
+          "expect": "/status, /status/[token] and the ⑥ link share one shell. Dragging wider never narrows the column"
+        }
+      ]
     },
     "8.9.19": {
       "firstSeen": "2026-09-03T20:32:30.877Z",

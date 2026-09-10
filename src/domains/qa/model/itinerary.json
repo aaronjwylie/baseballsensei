@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 84,
-    "generatedAt": "2026-09-10T02:48:16.743Z",
+    "build": 85,
+    "generatedAt": "2026-09-10T02:52:19.343Z",
     "checks": 361,
     "live": 358,
     "retired": 3,
-    "edited": 91
+    "edited": 92
   },
   "phases": [
     {
@@ -2236,8 +2236,15 @@
             },
             {
               "id": "8.9.18",
-              "what": "All three customer pages resize the same way",
-              "expect": "/status, /status/[token] and the ⑥ link share one shell. Dragging wider never narrows the column"
+              "what": "All three customer pages resize the same way. Covered by tests/integration/customerShell.test.tsx",
+              "expect": "/status, /status/[token] and the ⑥ link share one shell. Dragging wider never narrows the column",
+              "history": [
+                {
+                  "at": "2026-09-10T02:52:19.343Z",
+                  "what": "All three customer pages resize the same way",
+                  "expect": "/status, /status/[token] and the ⑥ link share one shell. Dragging wider never narrows the column"
+                }
+              ]
             },
             {
               "id": "8.9.19",
