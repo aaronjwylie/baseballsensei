@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
-import { LocalTime, PageColumn } from "@/shared/ui";
+import { PageColumn } from "@/shared/ui";
 import { TranslationCard } from "./TranslationCard";
 import { PortalEmptyState } from "../_portal/PortalEmptyState";
 import { storage } from "@/shared/storage";
 import { requireRole } from "@/domains/account";
 import { getOperatorProfile } from "@/domains/operator";
 import {
-  SubmissionFolders,
-  describeFolders,
   listEventsForSubmissions,
   reachedAt,
   type FileKind,
-  type SubmissionFile,
+  type Submission,
 } from "@/domains/submission";
-import {
-  findLegsForTranslator,
-} from "@/domains/translation";
+import { findLegsForTranslator, LEGS, type TranslatorLeg } from "@/domains/translation";
 import type { UploadMode } from "@/shared/upload";
 import { getSettings } from "@/domains/settings";
 
@@ -32,40 +28,20 @@ export const metadata: Metadata = {
  * translation back on the admin side. That was a true description of the
  * workflow, and it is what this page replaces.
  *
- * **The one structural difference from the coach's page is the unit of work.**
- * A coach's queue is submissions. A translator's is *legs* — the customer's
- * files out, the coach's response back — so the same submission can appear
- * twice, weeks apart, pointing in opposite directions. Only one of the two can
- * be open at a time, because a submission sits on one rung.
- */
-/** The shape `SubmissionFolders` takes, with nothing in it. */
-const EMPTY_FOLDERS: Record<FileKind, SubmissionFile[]> = {
-  intake: [],
-  intake_translation: [],
-  feedback: [],
-  feedback_translation: [],
-};
-
-/**
- * One leg's own folders: the one it read from, and the one it delivered into.
+ * **The unit of work is the leg; the unit of the page is the submission.** A
+ * translator's queue is legs — the customer's files out, the coach's response
+ * back — and the same submission can carry both, weeks apart, pointing in
+ * opposite directions. `findLegsForTranslator` returns them as the separate
+ * jobs they are, and this page groups them back onto one card per submission,
+ * newest first, because that is the order a person holds in their head and the
+ * name they scan for (Ben, 2026-09-10). Only one leg can be open at a time,
+ * because a submission sits on one rung.
  *
- * Two of the four, chosen by the leg rather than by the submission — which is
- * the difference between a card that describes a job and a card that describes
- * a submission. A translator holding both legs gets two cards, and they have to
- * say different things.
+ * **One list, not two.** "To translate" above "Handed back" meant a translator
+ * had to know which half a submission had fallen into before they could scan
+ * for it — and with both legs held, one submission was in *both* halves at
+ * once. The badge on the card says what the headings said.
  */
-function legFolders(leg: {
-  leg: { reads: FileKind; produces: FileKind };
-  source: SubmissionFile[];
-  produced: SubmissionFile[];
-}): Record<FileKind, SubmissionFile[]> {
-  return {
-    ...EMPTY_FOLDERS,
-    [leg.leg.reads]: leg.source,
-    [leg.leg.produces]: leg.produced,
-  };
-}
-
 export default async function TranslatorHomePage() {
   const session = await requireRole("translator");
   const profile = await getOperatorProfile(session.operatorId);
@@ -78,13 +54,12 @@ export default async function TranslatorHomePage() {
   // in the browser rather than after the upload (Ben, QA 6.6.1).
   const settings = await getSettings();
 
-  const open = legs.filter((l) => l.open);
-  const done = legs.filter((l) => !l.open);
+  const cards = groupBySubmission(legs);
 
   // The trail is the only place that knows *when* a leg was handed back — one
-  // query for the finished set, not one per card.
+  // query for the page, not one per card.
   const eventsBySubmission = await listEventsForSubmissions(
-    done.map((l) => l.submission.id),
+    cards.map((c) => c.submission.id),
   );
 
   const heading = profile ? `${profile.name}'s translations` : "Your translations";
@@ -92,7 +67,7 @@ export default async function TranslatorHomePage() {
   // Nothing on the desk gets the calm centred panel rather than a page of empty
   // "(0)" headings bunched under the bar — the same call the coach's page makes
   // (Ben, QA 4.6).
-  if (open.length === 0 && done.length === 0) {
+  if (cards.length === 0) {
     return (
       <PortalEmptyState title={heading}>
         <p>Nothing is assigned to you right now.</p>
@@ -111,108 +86,64 @@ export default async function TranslatorHomePage() {
       </h1>
 
       <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-muted">
-        {`To translate (${open.length})`}
+        {`Translations (${cards.length})`}
       </h2>
       <ul className="mt-3 space-y-3">
-        {open.length === 0 && (
-          <li className="rounded-2xl border border-line bg-white p-5 text-sm text-ink-muted">
-            Nothing assigned to you right now.
-          </li>
-        )}
-        {open.map((leg) => (
+        {cards.map(({ submission, legs: own }) => (
           <TranslationCard
-            key={`${leg.submission.id}-${leg.leg.produces}`}
-            work={leg}
+            key={submission.id}
+            submission={submission}
+            legs={own}
             uploadMode={uploadMode}
             maxFileSizeMb={settings.maxFileSizeMb}
+            handedBackAt={handedBackByLeg(
+              own,
+              eventsBySubmission.get(submission.id),
+            )}
           />
         ))}
       </ul>
-
-      {done.length > 0 && (
-        <>
-          <h2 className="mt-10 text-sm font-semibold uppercase tracking-wide text-ink-muted">
-            {`Handed back (${done.length})`}
-          </h2>
-          {/*
-            A receipt, not a one-liner — the same change the coach's finished
-            list got, for the same reason (Ben, 2026-09-06). A translator who
-            wanted to check which files they had handed back, or when, had
-            nowhere to look once the card left the top of the page.
-
-            The leg's own `done` rung is what dates it: a translator may hold
-            both legs of one submission, and "handed back" means two different
-            moments depending on which.
-          */}
-          <ul className="mt-3 space-y-3">
-            {done.map((leg) => {
-              const handedBack = reachedAt(
-                eventsBySubmission.get(leg.submission.id),
-                leg.leg.done,
-              );
-              return (
-                <li
-                  key={`${leg.submission.id}-${leg.leg.produces}`}
-                  className="rounded-2xl border border-line bg-white p-5 text-sm"
-                >
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="font-medium text-ink">
-                      {leg.submission.playerName}
-                      <span className="text-ink-muted">{` · ${leg.leg.title}`}</span>
-                    </span>
-                    <span className="font-semibold text-emerald-600">
-                      {`${leg.produced.length} file${leg.produced.length === 1 ? "" : "s"} delivered ✓`}
-                    </span>
-                  </div>
-
-                  {/*
-                    **This leg's two folders — what it read and what it
-                    delivered.** Not all four (Ben, 2026-09-09).
-
-                    Showing the whole submission was right for the coach, whose
-                    card is one-per-submission. Here a card is one-per-*leg*, and
-                    a translator can hold both legs of the same submission — so
-                    submission-scope content renders identically on both cards
-                    and the finished list reads as a duplicate. It was: two
-                    entries for `asdfasdf`, differing only in a title and a
-                    timestamp under an identical block of four folders.
-
-                    The leg already knows the answer. `reads` and `produces` are
-                    what make it a leg rather than a submission.
-                  */}
-                  {handedBack && (
-                    <p className="mt-1 text-xs text-ink-muted">
-                      {"Handed back "}
-                      <LocalTime iso={handedBack} />
-                      {` · ${describeFolders(legFolders(leg))}`}
-                    </p>
-                  )}
-
-                  <div className="mt-3 border-t border-line pt-3">
-                    <SubmissionFolders
-                      folders={legFolders(leg)}
-                      emptyLabel="No files on this leg."
-                    />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </>
-      )}
     </PageColumn>
   );
 }
 
 /**
- * One leg on the desk.
+ * The queue's legs, gathered onto one entry per submission.
  *
- * The card leads with **which direction this is**, because that is the first
- * thing a translator needs and the one thing the coach's card never has to say.
- * The player's name alone would be ambiguous the moment someone holds both legs
- * of the same submission.
+ * **Order comes from the query, not from a sort here.**
+ * `findLegsForTranslator` already returns `submittedAt` descending, so
+ * first-seen is newest-first; re-sorting would be a second opinion that could
+ * disagree with the first. Within a card the legs take `LEGS` order — the
+ * pipeline's own — so the card reads in the direction the work travels rather
+ * than in whichever order the assignment rows happened to come back.
  *
- * The customer's notes are deliberately here: they are context for the words
- * being translated, and a translator working without them is guessing at
- * register and intent.
+ * Exported so the grouping can be tested without rendering an async page.
  */
+export function groupBySubmission(
+  legs: TranslatorLeg[],
+): { submission: Submission; legs: TranslatorLeg[] }[] {
+  const byId = new Map<string, { submission: Submission; legs: TranslatorLeg[] }>();
+  for (const leg of legs) {
+    const card = byId.get(leg.submission.id);
+    if (card) card.legs.push(leg);
+    else byId.set(leg.submission.id, { submission: leg.submission, legs: [leg] });
+  }
+  const order = (leg: TranslatorLeg) =>
+    LEGS.findIndex((l) => l.produces === leg.leg.produces);
+  for (const card of byId.values()) card.legs.sort((a, b) => order(a) - order(b));
+  return [...byId.values()];
+}
+
+/** When each of this submission's legs was handed back, keyed by what it produces. */
+function handedBackByLeg(
+  legs: TranslatorLeg[],
+  events: Parameters<typeof reachedAt>[0],
+): Partial<Record<FileKind, string>> {
+  const at: Partial<Record<FileKind, string>> = {};
+  for (const leg of legs) {
+    if (leg.open) continue;
+    const when = reachedAt(events, leg.leg.done);
+    if (when) at[leg.leg.produces] = when;
+  }
+  return at;
+}

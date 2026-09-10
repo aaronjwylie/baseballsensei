@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 90</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 92</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1944,13 +1944,23 @@ const PHASES = [
           ],
           [
             "6.15",
-            "The Submitted card is a receipt. Hand back, then read the card under Submitted",
-            "The player and focus, the hand-back date, and all four folders with every file and its size — the same list the admin's panel shows for that submission. ⚠️ It said \"0 files · No files on this submission\" for every finished submission: the page loaded listFilesForSubmissions, which returns intake kinds only, then filtered it for feedback files. A filter that cannot match is the quietest kind of bug — the page rendered and stated something definite"
+            "The handed-back card is a receipt. Hand back, then read the card again",
+            "The player and focus, the hand-back date, and all four folders with every file and its size — the same list the admin's panel shows for that submission. It stays in its date position in the one list rather than moving to a \"Submitted\" section (2026-09-10). ⚠️ It said \"0 files · No files on this submission\" for every finished submission: the page loaded listFilesForSubmissions, which returns intake kinds only, then filtered it for feedback files. A filter that cannot match is the quietest kind of bug — the page rendered and stated something definite"
           ],
           [
             "6.15.1",
             "After the retention sweep. Read a finished card whose files have been purged",
             "Covered by tests/unit/renderedLists.test.ts — the markup, not the layout. Every file still listed, struck through and marked deleted, and the count line says \"n files, deleted after the retention window\" rather than a bare count"
+          ],
+          [
+            "6.17",
+            "One list, newest first. A coach with several reviews, some on the desk and some handed back",
+            "One card per submission in submittedAt order, newest at the top, interleaved by date. The badge — \"To review\" / \"Awaiting review\" / \"Delivered ✓\" — says which is which, and the card states the date the list is ordered by. ⚠️ It was two lists, \"To review\" above \"Submitted\", so a coach had to know which half a review had fallen into before they could scan for it (Ben, 2026-09-10)"
+          ],
+          [
+            "6.18",
+            "A submission assigned but not yet sent to the coach",
+            "Still absent from the list, as before. A coach's turn starts when the admin hands it over; a card for work they cannot begin is a card they learn to ignore"
           ],
           [
             "6.16",
@@ -2038,12 +2048,12 @@ const PHASES = [
           [
             "7.6",
             "⚠️ Both legs, one translator. Assign the same person both legs of one submission",
-            "Two cards, not one — they are separate jobs in opposite directions. Only the leg matching the current rung is under \"To translate\"; the other waits its turn"
+            "Covered by tests/unit/translationCard.test.tsx. One card, with both legs as titled sections inside it, in pipeline order. Only the leg matching the current rung offers the hand-back form; the other reads as a receipt. ⚠️ It was two cards until 2026-09-10 — the honest rendering of the work, and the wrong rendering of the page: one submission appeared twice and a person scanning for a name had to read both to learn which was which (Ben). The substance the old check protected still holds, asserted within the card: with both legs on it, the titles are the only thing telling them apart"
           ],
           [
             "7.7",
-            "Each card names its direction",
-            "Covered by tests/unit/translationCard.test.tsx. The direction sits above the player's name. With both legs held, the name alone cannot tell them apart"
+            "Each leg names its direction",
+            "Covered by tests/unit/translationCard.test.tsx. The submission is named once, at the top of the card; each leg's title heads its own section beneath. With both legs held, the titles are the only thing telling them apart"
           ],
           [
             "7.8",
@@ -2071,6 +2081,16 @@ const PHASES = [
             "The calm centred panel, not a page of empty \"(0)\" headings"
           ],
           [
+            "7.16",
+            "One list, newest first. A translator holding several submissions, some open and some handed back",
+            "Covered by tests/unit/translationCard.test.tsx. One card per submission in submittedAt order, newest at the top, open and finished interleaved by date. The badge says which wants action. ⚠️ It was two lists, \"To translate\" above \"Handed back\", and a translator holding both legs of one submission appeared in both at once (Ben, 2026-09-10)"
+          ],
+          [
+            "7.17",
+            "The order comes from the query, not the page",
+            "Covered by tests/unit/translationCard.test.tsx. legsForTranslator already orders submittedAt descending; grouping preserves it, including when a submission's two legs arrive non-adjacent. A sort layered on top would be a second opinion that could disagree with the first"
+          ],
+          [
             "7.13",
             "A leg whose files the retention sweep has cleared",
             "Covered by tests/integration/translatorGuards.test.ts. \"Files deleted\" rather than an empty list or a broken link"
@@ -2078,7 +2098,7 @@ const PHASES = [
           [
             "7.14",
             "Handed-back legs stay visible",
-            "Covered by tests/integration/translatorGuards.test.ts. Under \"Handed back\", with the file count they delivered"
+            "Covered by tests/integration/translatorGuards.test.ts. On the submission's own card, as a receipt with the file count they delivered. The card is badged \"Handed back ✓\" once every leg on it is done"
           ],
           [
             "7.15",
@@ -2361,8 +2381,23 @@ const PHASES = [
           ],
           [
             "8.9.42",
-            "The number is the later of the two clocks",
-            "Covered by tests/unit/deletionClock.test.ts. 30 days from collection or 90 from delivery, whichever falls later — read forwards off the rule the sweep reads backwards"
+            "The download replaces the clock, it doesn't extend it",
+            "Covered by tests/unit/deletionClock.test.ts. 30 days from the customer's download; the 90-day delivery backstop applies only to a customer who never downloads. ⚠️ Reverses what this used to ask for. It read \"whichever falls later\" until 2026-09-10, while /admin/settings labelled the knobs as an either/or, ⑥ said \"30 days after you first download it\", and ⑨ mailed the collection date — so a prompt collector could be warned \"deleted 3 Oct\" and still hold the files in December (Ben)"
+          ],
+          [
+            "8.9.42.1",
+            "⚠️ The sweep agrees with the countdown. Age a collected submission past retainCollectedDays while its delivery is recent",
+            "Covered by tests/integration/retentionSweep.test.ts 9.4b and npm run simulate. Warned, then purged, on its own collection clock. Under the retired rule it was months from due. Mutation-tested: reverting either query fails 16 simulate checks"
+          ],
+          [
+            "8.9.42.2",
+            "⚠️ The backstop still covers the customer who never comes. A delivered, never-collected submission past retainDeliveredDays",
+            "Covered by 9.4c. Warned, then purged. This is the case the backstop exists for, and the one that used to be purged in silence"
+          ],
+          [
+            "8.9.42.3",
+            "⑥ states both clocks. Read a feedback-ready email",
+            "\"We delete everything 30 days after you first download it… If you never download it, it goes after 90 days.\" ⚠️ It stated only the first, so the customer it was written to protect — the one who never downloads — was given no deadline until the ⑨ warning a week out, which is the surprise that line exists to prevent"
           ],
           [
             "8.9.43",
