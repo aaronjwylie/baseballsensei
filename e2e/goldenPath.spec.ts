@@ -110,6 +110,32 @@ test("customer: details → verify → upload → pay → confirmation → statu
   // The status lookup finds it by email (behind the 6-digit code gate).
   await lookUpStatus(page, customerEmail);
   await expect(page.getByText(playerName)).toBeVisible();
+
+  /*
+    QA 8.9.19 / 8.9.20 — the way out, and what it takes with it.
+
+    Once you are in, the code form is gone: offering to mail a code to someone
+    already reading the page it unlocked is worse than clutter, because codes
+    are single-use and the most prominent control would have spent one for
+    nothing. What replaces it is the only reason to still want the form — a
+    quiet way to look somebody else up.
+
+    The clearing is the half worth asserting. Returning to the form while the
+    old code sat in state would have the next lookup start half-filled with a
+    code that is already spent, which fails in a way nobody would attribute to
+    this button.
+  */
+  await expect(page.getByRole("button", { name: "Email me a code" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Use a different email" }).click();
+
+  await expect(page.getByPlaceholder("you@example.com")).toBeVisible();
+  await expect(page.getByText(playerName)).toHaveCount(0);
+
+  // And the code really is cleared: ask for a fresh one and the field is empty,
+  // not carrying the last one.
+  await page.getByPlaceholder("you@example.com").fill(customerEmail);
+  await page.getByRole("button", { name: "Email me a code" }).click();
+  await expect(page.getByLabel("6-digit code")).toHaveValue("");
 });
 
 /*

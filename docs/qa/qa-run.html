@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 85</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 86</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -2242,7 +2242,7 @@ const PHASES = [
           [
             "8.9.20",
             "The escape still works",
-            "\"Use a different email\" returns to the form and clears the old code"
+            "\"Use a different email\" returns to the form and clears the old code. An E2E step exists for this in e2e/goldenPath.spec.ts (customer path, after the status lookup) — it asserts the form returns, the results go, and a fresh code field comes back empty. ⚠️ Not yet run: Playwright 1.62 needs macOS 14+ and the dev machine is on 13.7, so it awaits the nightly CI run or a click"
           ],
           [
             "8.9.21",
