@@ -35,11 +35,11 @@ export function Coach() {
             <div className="relative">
               <div className="relative aspect-[300/282] w-full overflow-hidden">
                 <Image
-                  src="/images/concept-panel-portrait.webp"
+                  src="/images/masatomoB.webp"
                   alt={`${coach.name}, head coach`}
                   fill
                   sizes="(min-width: 1024px) 440px, 100vw"
-                  className="object-cover"
+                  className="object-cover object-[40%_center]"
                 />
               </div>
 
