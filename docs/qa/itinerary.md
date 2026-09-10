@@ -436,7 +436,7 @@ than assuming the fix held.
 | 7.4 | Hand back | `intake_translated`; the admin can now hand it to the coach |
 | 7.5 | Repeat for the **feedback** direction | `feedback_translating` → `feedback_translated` |
 | 7.6 | ⚠️ **Both legs, one translator.** Assign the same person both legs of one submission | **Two cards**, not one — they are separate jobs in opposite directions. Only the leg matching the current rung is under "To translate"; the other waits its turn |
-| 7.7 | Each card names its direction | The direction sits **above** the player's name. With both legs held, the name alone cannot tell them apart |
+| 7.7 | Each card names its direction | **Covered by `tests/unit/translationCard.test.tsx`.** The direction sits **above** the player's name. With both legs held, the name alone cannot tell them apart |
 | 7.8 | Hand back with **no file uploaded** | **Covered by `tests/integration/translatorGuards.test.ts`.** Refused. An empty hand-back leaves the admin to discover the empty folder when they try to pass it on |
 | 7.9 | Hand back **twice** (two tabs, submit both) | **Covered by `tests/integration/translatorGuards.test.ts`.** The second is refused with a reason, not silently re-run. The rung is re-checked server-side, not just hidden in the UI |
 | 7.10 | ⚠️ **Another translator's leg.** As translator A, post a hand-back for a leg assigned to translator B | **Covered by `tests/integration/translatorGuards.test.ts`.** Refused. Role is not ownership — being *a* translator must not close *any* leg |

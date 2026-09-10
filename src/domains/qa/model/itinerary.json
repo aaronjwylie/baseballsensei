@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 78,
-    "generatedAt": "2026-09-09T23:47:01.117Z",
+    "build": 79,
+    "generatedAt": "2026-09-10T00:01:38.209Z",
     "checks": 361,
     "live": 358,
     "retired": 3,
-    "edited": 86
+    "edited": 87
   },
   "phases": [
     {
@@ -1901,7 +1901,14 @@
             {
               "id": "7.7",
               "what": "Each card names its direction",
-              "expect": "The direction sits above the player's name. With both legs held, the name alone cannot tell them apart"
+              "expect": "Covered by tests/unit/translationCard.test.tsx. The direction sits above the player's name. With both legs held, the name alone cannot tell them apart",
+              "history": [
+                {
+                  "at": "2026-09-10T00:01:38.209Z",
+                  "what": "Each card names its direction",
+                  "expect": "The direction sits above the player's name. With both legs held, the name alone cannot tell them apart"
+                }
+              ]
             },
             {
               "id": "7.8",

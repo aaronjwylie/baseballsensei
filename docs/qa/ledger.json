@@ -1702,9 +1702,15 @@
     "7.7": {
       "firstSeen": "2026-08-31T23:05:17.276Z",
       "what": "Each card names its direction",
-      "expect": "The direction sits above the player's name. With both legs held, the name alone cannot tell them apart",
+      "expect": "Covered by tests/unit/translationCard.test.tsx. The direction sits above the player's name. With both legs held, the name alone cannot tell them apart",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-10T00:01:38.209Z",
+          "what": "Each card names its direction",
+          "expect": "The direction sits above the player's name. With both legs held, the name alone cannot tell them apart"
+        }
+      ]
     },
     "7.8": {
       "firstSeen": "2026-08-31T23:05:17.276Z",
