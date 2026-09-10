@@ -19,10 +19,19 @@ Written for the reader who was not there: what is different *for someone*, not w
 
 ### Added
 
-- `doctrine.json` pins this project to doctrine pack **v1.0.0** and records each law's hash; the
-  doctrine gate now fails on a law edited after it was pinned (drift), so "copied verbatim" is checked
-  rather than trusted. Two laws are pinned as `amended` — Nomenclature and Structure — and are
-  upstream candidates.
+- `doctrine.json` pins this project to the doctrine pack and records each law's and template's hash;
+  the doctrine gate now fails on anything edited after it was pinned (drift), so "copied verbatim" is
+  checked rather than trusted.
+
+### Changed
+
+- **Pinned to pack v1.1.0, every law and template identical to canon.** The two local amendments —
+  Structure §3a/§3b/§5b and Nomenclature's *name the shape, not the role* — went upstream and came
+  back; `_NomenclatureLaw` is now the pack's generic text, with this project's words living only in
+  `_NomenclatureDocumentation.md` (settled words §1, retired words §4). Pointers into the old section
+  numbers were retargeted: the rename procedure is §3, nouns-vs-participles is §2b, the role test is
+  §4c.
+- `CLAUDE.md` §12 states the vendoring rule: nobody edits `laws/` or `templates/` in a feature PR.
 
 - The Release Law (`laws/_ReleaseLaw.md`) and this project's instance of it
   (`documentation/_ReleaseDocumentation.md`): what a release is here, the four rungs, the promotion

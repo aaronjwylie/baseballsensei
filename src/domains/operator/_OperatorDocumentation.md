@@ -161,7 +161,7 @@ an architectural conclusion.
 ## Coach and translator get their own files — 2026-08-06
 
 > **Partial.** This separated the two roles' *verbs* and left the shared *shape* named for one
-> of them. `Coach` is a role, not an entity — see `_NomenclatureLaw.md` §4 — and until it is
+> of them. `Coach` is a role, not an entity — see `_NomenclatureLaw.md` §4c — and until it is
 > renamed, `translatorApi` importing it is the tell that the job is half done.
 
 For one day, `coachApi.ts` held `listTranslators()` and `coachActions.ts` held
@@ -216,7 +216,7 @@ Three things fell out of doing it rather than just asserting it:
   schema change. That survives as `passwordFingerprint()` — the slicing happens
   behind the boundary and the caller gets a string it can only compare.
 - **`setUserPassword` → `setOperatorPassword`.** `user` is a retired word
-  (`_NomenclatureLaw.md` §3); this was the last live one in a function name.
+  (`_NomenclatureDocumentation.md` §4); this was the last live one in a function name.
 
 The four credential functions also came **off the barrel**. None had ever been
 imported from outside the domain — the three callers are neighbours and reach

@@ -15,7 +15,7 @@
 
 ## 1 · Recommended amendments
 
-### 1a · `_StructureLaw` — two rules this project had to discover the hard way
+### ~~1a · `_StructureLaw` — two rules this project had to discover the hard way~~ — **landed in pack v1.1.0** (2026-09-10)
 
 **Both are now in [`laws/_StructureLaw.md`](../laws/_StructureLaw.md) here** (§3a and §5b) and should
 go upstream. They were written in the template's voice — rule stated agnostically, this project's case
@@ -32,7 +32,7 @@ deserves one round of "why is the schema like that" before it becomes an archite
 generalises past storage, and may belong in `PRINCIPLES` rather than `_StructureLaw` if a second
 instance ever appears.
 
-### 1b · `_NomenclatureLaw` — name the shape, not the role that reached it first
+### ~~1b · `_NomenclatureLaw` — name the shape, not the role that reached it first~~ — **landed as §4c, pack v1.1.0**
 
 Added to [`laws/_NomenclatureLaw.md`](../laws/_NomenclatureLaw.md) §4 here. The rule: if a second kind
 of thing turns out to have the identical shape, the type was named after a **role** and the role got
@@ -46,7 +46,7 @@ changed by a rename.
 **The tell is an import**, which makes it greppable: a file about one role reaching into its sibling
 for the type they both are.
 
-### 1c · `_CommerceLaw` — a Documentation should be able to decline its law
+### ~~1c · `_CommerceLaw` — a Documentation should be able to decline its law~~ — **landed as `_CommerceDocumentation` §1d, pack v1.1.0**
 
 Writing `_CommerceDocumentation` here was awkward in a way worth fixing upstream. This project has one
 payment, no balance, no ledger, no payout — so **most of `_CommerceLaw` does not bind**, and there is
@@ -69,7 +69,7 @@ describes are cheaper to adopt before there is data than after.
 That last sentence is the load-bearing one: it converts a decline into a **tripwire** instead of a
 permanent exemption.
 
-### 1d · The placeholder convention should be *fenced*, not counted
+### ~~1d · The placeholder convention should be *fenced*, not counted~~ — **landed: the pack's own `doctrine check` reads fences, v1.0.0**
 
 `NOTES.md` §5 Q8 proposes `grep -rn '{{' laws/` returning "only the two sanctioned spots". A count is
 brittle — it breaks the moment a law legitimately grows a third form-block.
@@ -83,7 +83,7 @@ legitimately showing the shape a principle must take.
 
 ---
 
-## 2 · Answers to the template's open questions
+## 2 · Answers to the template's open questions — **absorbed into the pack's `NOTES.md`, v1.0.0**
 
 **Q1 · Should `_StructureLaw` be a root law?** — **Yes, and the argument is stronger than stated.**
 Not merely "it binds the whole project": while `docs/design/structure.md` held the rules *and* this

@@ -1,5 +1,5 @@
 {
-  "pack": "1.0.0",
+  "pack": "1.1.0",
   "source": "https://github.com/Ben-J-Wylie/doctrine.git",
   "pinnedAt": "2026-09-10",
   "lawsDir": "laws",
@@ -13,9 +13,8 @@
       "source": "pack"
     },
     "_NomenclatureLaw.md": {
-      "sha256": "5ae159ca84ea0b959a09a312f6820ba3a2bde94b8fe943b6a3728de8fbca93ba",
-      "source": "amended",
-      "packSha256": "04a7211783e4ad89b55bc7d58edc413cb2e7c93ffce80f6e3fa311f8339fcdaa"
+      "sha256": "e395645805434288f99ca5591595fbf748d21007c0e491504a8e04076e4e25a1",
+      "source": "pack"
     },
     "_QALaw.md": {
       "sha256": "8ae0ebeec483e4e06588b03561242ca59acc1cd3a2657e8c4d2d007b6863fd5f",
@@ -31,11 +30,24 @@
     },
     "_StructureLaw.md": {
       "sha256": "306dc3861e91b4cfb190e22bbf7f35b6657dfdc708e43c38978a8d97422b774f",
-      "source": "amended",
-      "packSha256": "361a3c68a3a0ed51413f0a6f450e551a5b04a5e1ca6f2947a1a6bbae2dffabef"
+      "source": "pack"
     },
     "_VerificationLaw.md": {
       "sha256": "4c3c040e60a85b917eb1ad641c97c447f4e751184d9b931d11c753967930b11b",
+      "source": "pack"
+    }
+  },
+  "templates": {
+    "_SliceDocumentation.md": {
+      "sha256": "6611454ab1aa3aa925874378f431499b2b976920f55d9a5dfeecb1bd0d1ca110",
+      "source": "pack"
+    },
+    "adr.md": {
+      "sha256": "a2f7cb1946dd3e795817fc587837508adf09a6a9ea49ed038b2076b93c0ee83e",
+      "source": "pack"
+    },
+    "charter.md": {
+      "sha256": "8358cdb27873437877a7c7e6bda0e06c5a2b9c92fbfa3dc6317d612cfcc81e4f",
       "source": "pack"
     }
   }

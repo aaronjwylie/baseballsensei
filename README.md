@@ -14,8 +14,8 @@ Mux, no external automation — the app is the system of record and the glue.
 
 ## The governing documents
 
-**Read [`documentation/README.md`](documentation/README.md) first** — it maps the six laws to this
-project's instance of each. `PRINCIPLES.md` sits above them and answers *why*.
+**Read [`documentation/README.md`](documentation/README.md) first** — it maps the eight laws to this
+project's instance of each — pinned to the doctrine pack in `doctrine.json`. `PRINCIPLES.md` sits above them and answers *why*.
 
 ## The flow
 

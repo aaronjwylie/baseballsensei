@@ -20,7 +20,7 @@
  *   2. PLACEHOLDERS no {{…}} survives outside templates/, where it is the point
  *   3. LINKS        every relative markdown link resolves to a real path
  *   4. SLICES       every domain carries a _XxxDocumentation.md
- *   5. DRIFT        every law matches the hash pinned in doctrine.json — a law
+ *   5. DRIFT        every law and template matches the hash pinned in doctrine.json — a law
  *                   is "copied verbatim" from the pack, and until 2026-09-10
  *                   nothing could say whether it still was (_ReleaseLaw P13,
  *                   applied to the documents: every copy says which version)
@@ -147,6 +147,13 @@ if (!existsSync(pinFile)) {
   }
   for (const law of laws) {
     if (!pin.laws?.[law]) note(join(lawsDir, law), "present but not pinned in doctrine.json — `doctrine pin`");
+  }
+  // Templates are copied verbatim too (pack ≥ 1.1.0 pins them).
+  for (const [tpl, entry] of Object.entries(pin.templates ?? {})) {
+    const file = join(ROOT, "templates", tpl);
+    if (!existsSync(file)) { note(file, "pinned in doctrine.json but missing"); continue; }
+    const hash = createHash("sha256").update(readFileSync(file)).digest("hex");
+    if (hash !== entry.sha256) note(file, "changed since pinned — re-pin deliberately (`doctrine pin`), or send the change upstream");
   }
 }
 

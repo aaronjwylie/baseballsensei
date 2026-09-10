@@ -85,7 +85,7 @@ different part of speech, no ambiguity at the call site.
   appears as a word.
 - ✅ **`Coach` the type is gone — it was a role wearing an entity's name.** The shape is
   `OperatorProfile`, which is what a coach and a translator both are; what separates them is `role`,
-  a column ([`_NomenclatureLaw §4`](../laws/_NomenclatureLaw.md)).
+  a column ([`_NomenclatureLaw §4c`](../laws/_NomenclatureLaw.md)).
 - ✅ **`coachEmail.ts` is `handoffEmail.ts`.** Neither of its messages was about coaching — one says
   work is waiting, the other says it was collected, and both are true of a translator word for word.
   The recipient's role is a parameter now.
