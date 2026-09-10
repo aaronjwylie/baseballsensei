@@ -32,6 +32,7 @@
  */
 import {
   deletionDueAt,
+  isPaid,
   isReleased,
   type Submission,
   type SubmissionStatus,
@@ -67,6 +68,21 @@ export interface PublicSubmission {
    */
   deleteAfter?: string;
   /**
+   * When an unpaid submission is discarded, and absent once it is paid for.
+   *
+   * A different promise from `deleteAfter`, and a harsher one: a paid
+   * submission's files are deleted and the record kept, while an unpaid one is
+   * **removed outright** — there is nothing to come back to. The customer is
+   * told nowhere else, because the emails that carry the retention window only
+   * go out after payment.
+   *
+   * Counted from `updatedAt`, which is what the sweep reads: a declined card
+   * touches the row, so trying again buys more time. Counting from `submittedAt`
+   * would quietly shorten it for exactly the people who are still trying (Ben,
+   * 2026-09-10).
+   */
+  discardAfter?: string;
+  /**
    * Whether the review is finished. The customer downloads it from the link in
    * their email — never from here — so this is a flag, not a location.
    */
@@ -80,13 +96,27 @@ export function toPublicSubmission(
    * the status, and a card that omits the deadline is better than one that
    * guesses at it from defaults the operator may have changed.
    */
-  retention?: { collectedDays: number; deliveredDays: number },
+  retention?: {
+    collectedDays: number;
+    deliveredDays: number;
+    /** Hours an unpaid submission is kept, from its last sign of life. */
+    unpaidHours?: number;
+  },
 ): PublicSubmission {
   return {
     deleteAfter: retention
       ? (deletionDueAt(submission, retention.collectedDays, retention.deliveredDays) ??
         undefined)
       : undefined,
+    discardAfter:
+      retention?.unpaidHours !== undefined &&
+      submission.updatedAt &&
+      !isPaid(submission)
+        ? new Date(
+            new Date(submission.updatedAt).getTime() +
+              retention.unpaidHours * 3_600_000,
+          ).toISOString()
+        : undefined,
     id: submission.id,
     playerName: submission.playerName || "Player",
     playerAge: submission.playerAge,

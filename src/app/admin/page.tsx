@@ -226,6 +226,7 @@ export default async function AdminHomePage({
         retention={{
           collectedDays: settings.retainCollectedDays,
           deliveredDays: settings.retainDeliveredDays,
+          unpaidHours: settings.retainUnpaidHours,
         }}
       />
     ),
@@ -280,7 +281,11 @@ function SubmissionRow({
   coaches: OperatorProfile[];
   translators: OperatorProfile[];
   /** The operator's two retention windows, read once for the page. */
-  retention: { collectedDays: number; deliveredDays: number };
+  retention: {
+    collectedDays: number;
+    deliveredDays: number;
+    unpaidHours: number;
+  };
 }) {
   const assignedCoachId = progress?.assignees.feedback;
   const assignedCoach = coaches.find((c) => c.id === assignedCoachId);

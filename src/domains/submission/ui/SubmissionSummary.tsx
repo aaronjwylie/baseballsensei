@@ -1,7 +1,7 @@
 "use client";
 
 import type { PublicSubmission } from "../model/publicSubmission";
-import { daysUntil } from "../model/submission";
+import { daysUntil, hoursUntil } from "../model/submission";
 
 /**
  * How a submission describes itself to the customer who sent it.
@@ -32,6 +32,7 @@ export function SubmissionSummary({
   const sent = formatDate(submission.submittedAt);
   const back = formatDate(submission.completedAt);
   const left = daysUntil(submission.deleteAfter ?? null);
+  const hoursLeft = hoursUntil(submission.discardAfter ?? null);
 
   return (
     <>
@@ -79,6 +80,25 @@ export function SubmissionSummary({
             a countdown shown too late, and the struck-through filenames say
             that better.
           */}
+          {/*
+            The unpaid deadline — a different promise, and a harsher one.
+
+            A delivered submission loses its files and keeps its record; one
+            that was never paid for is removed outright, and nothing is emailed
+            about it because the retention mail only goes out after payment.
+            So this page is the only place it is ever said (Ben, 2026-09-10).
+
+            In hours, because the window is a day: "1 day left" on something
+            that vanishes this evening is the wrong resolution.
+          */}
+          {hoursLeft !== null && hoursLeft >= 0 && (
+            <div className="flex gap-1.5">
+              <dt>Finish and pay within</dt>
+              <dd className="m-0 font-medium text-ink-soft">
+                {`${hoursLeft} ${hoursLeft === 1 ? "hour" : "hours"}`}
+              </dd>
+            </div>
+          )}
           {left !== null && left >= 0 && (
             <div className="flex gap-1.5">
               <dt>Files deleted in</dt>

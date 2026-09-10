@@ -2849,8 +2849,8 @@
     },
     "8.9.45": {
       "firstSeen": "2026-09-03T22:46:22.323Z",
-      "what": "Ready ones come first",
-      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A parent whose review just landed does not scroll past submissions that need nothing from them",
+      "what": "Newest first, and nothing re-sorts it",
+      "expect": "The server's order stands. ⚠️ Reverses what this used to ask for. It put submissions with files at the top — the surviving half of the old two-section page — and that buried a submission made minutes ago under eight older ones because it had no files yet, which reads as it never having arrived (2026-09-10)",
       "retired": false,
       "history": [
         {
@@ -2862,13 +2862,18 @@
           "at": "2026-09-09T03:48:51.987Z",
           "what": "Ready ones come first",
           "expect": "A parent whose review just landed does not scroll past submissions that need nothing from them"
+        },
+        {
+          "at": "2026-09-10T22:28:12.286Z",
+          "what": "Ready ones come first",
+          "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A parent whose review just landed does not scroll past submissions that need nothing from them"
         }
       ]
     },
     "8.9.46": {
       "firstSeen": "2026-09-03T22:46:22.323Z",
       "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
-      "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has",
+      "expect": "Listed once in its date position, reading \"No longer available\"",
       "retired": false,
       "history": [
         {
@@ -2880,6 +2885,11 @@
           "at": "2026-09-09T03:48:51.987Z",
           "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
           "expect": "Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has"
+        },
+        {
+          "at": "2026-09-10T22:28:12.286Z",
+          "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
+          "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has"
         }
       ]
     },
@@ -3169,6 +3179,20 @@
       "firstSeen": "2026-09-09T23:26:23.419Z",
       "what": "⚠️ Open question — the contact form has no rate limit. Post to sendContactAction repeatedly from one address",
       "expect": "Currently: every one is accepted and mailed. A Server Action is a public endpoint, and the honeypot stops naive bots rather than determined ones; each send costs a Resend credit and lands in five inboxes. Not the same question as 1.2.11 — that one records the deliberate absence of a duplicate guard, which is about a person writing twice, not about abuse. shared/lib/rateLimit.ts already guards checkout and both status-code routes, so this would be reuse. Needs a decision, not a fix",
+      "retired": false,
+      "history": []
+    },
+    "8.9.51": {
+      "firstSeen": "2026-09-10T22:28:12.286Z",
+      "what": "An unpaid submission counts down in hours. Look up an email with one at awaiting_payment",
+      "expect": "\"Finish and pay within N hours\". ⚠️ This page is the only place it is ever said: an unpaid submission is removed outright rather than having its files cleared, and the retention emails only go out after payment. Counted from updatedAt, which is what the sweep reads — a declined card touches the row, so trying again buys more time",
+      "retired": false,
+      "history": []
+    },
+    "8.9.52": {
+      "firstSeen": "2026-09-10T22:28:12.286Z",
+      "what": "A downloaded review stops saying \"Feedback ready\"",
+      "expect": "The badge reads \"Downloaded\" at collected and resolved. ⚠️ All three released rungs read \"Feedback ready\", so a parent who had already downloaded was still being told to. \"Ready\" is an instruction",
       "retired": false,
       "history": []
     }

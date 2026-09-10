@@ -7,7 +7,7 @@
  * | | resolved | archived-while-owed | abandoned |
  * | --- | --- | --- | --- |
  * | who | a completed review | a paid submission set aside before release | never paid for |
- * | clock | delivery/collection window after `completedAt`/`collectedAt` | the delivery window (`retainDeliveredDays`) after **its** `archivedAt` | `retainUnpaidHours` after **its** `submittedAt` |
+ * | clock | delivery/collection window after `completedAt`/`collectedAt` | the delivery window (`retainDeliveredDays`) after **its** `archivedAt` | `retainUnpaidHours` after **its** `updatedAt` — the last sign of life, not the first |
  * | warning | yes (`findWarningDue`) | **no** — the customer was never handed a link | n/a |
  * | files | deleted | deleted | deleted |
  * | record | **kept**, locator cleared | **kept**, locator cleared | **deleted outright** |

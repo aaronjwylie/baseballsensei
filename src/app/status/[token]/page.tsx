@@ -67,6 +67,7 @@ export default async function StatusByTokenPage({
   const settings = await getSettings();
   const submissions = await lookupPublicSubmissions(email, {
     collectedDays: settings.retainCollectedDays,
+    unpaidHours: settings.retainUnpaidHours,
     deliveredDays: settings.retainDeliveredDays,
   });
   // Read once and used twice — as the panel's contents and as the list of what

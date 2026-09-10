@@ -669,7 +669,11 @@ export async function legsForTranslator(
 export async function lookupPublicSubmissions(
   email: string,
   /** Passed through so each card can count down to its own deletion date. */
-  retention?: { collectedDays: number; deliveredDays: number },
+  retention?: {
+    collectedDays: number;
+    deliveredDays: number;
+    unpaidHours?: number;
+  },
 ): Promise<PublicSubmission[]> {
   const submissionsForEmail = await findByCustomerEmail(email);
   // Not `.map(toPublicSubmission)` — `map` hands the index as the second

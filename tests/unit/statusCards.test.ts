@@ -68,28 +68,39 @@ describe("8.9.43/8.9.44 — one list, files inside the card", () => {
 });
 
 describe("8.9.45/8.9.46 — order", () => {
-  it("8.9.45 puts the ones with files first", () => {
-    const html = render(
-      [submission({ id: "waiting", playerName: "Waiting" }),
-       submission({ id: "ready", playerName: "Ready" })],
-      { ready: createElement("div", null, "files") },
-    );
-    expect(html.indexOf("Ready")).toBeLessThan(html.indexOf("Waiting"));
+  /*
+    **Newest first, and nothing re-sorts it** (Ben, 2026-09-10).
+
+    This used to put submissions with files at the top. That was the wrong half
+    of the two-section page to keep: a parent looking for the thing they just
+    sent finds it by *when they sent it*, and sorting on whether the coach has
+    finished buries today's submission under last month's. One submitted minutes
+    earlier sat below eight older ones because it had no files yet, which reads
+    as it never having arrived.
+  */
+  it("8.9.45 keeps the server's order — newest first", () => {
+    const html = render([
+      submission({ id: "newest", playerName: "Newest" }),
+      submission({ id: "older", playerName: "Older" }),
+    ]);
+    expect(html.indexOf("Newest")).toBeLessThan(html.indexOf("Older"));
   });
 
-  /*
-    8.9.46 — ordered on whether files are actually on the page, not on whether
-    the submission *reads* as finished. A released submission whose files the
-    sweep has taken still has a released status, so sorting on that would float
-    it to the top promising a download it cannot honour.
-  */
-  it("8.9.46 leaves a released-but-swept submission in place", () => {
+  it("does not float a card with files above an newer one without", () => {
     const html = render(
-      [submission({ id: "swept", playerName: "Swept", status: "purged" }),
-       submission({ id: "ready", playerName: "Ready" })],
-      { ready: createElement("div", null, "files") },
+      [submission({ id: "newest", playerName: "Newest", status: "in_review" }),
+       submission({ id: "older", playerName: "Older" })],
+      { older: createElement("div", null, "files") },
     );
-    expect(html.indexOf("Ready")).toBeLessThan(html.indexOf("Swept"));
+    expect(html.indexOf("Newest")).toBeLessThan(html.indexOf("Older"));
+  });
+
+  it("8.9.46 leaves a released-but-swept submission where it was sent", () => {
+    const html = render([
+      submission({ id: "swept", playerName: "Swept", status: "purged" }),
+      submission({ id: "older", playerName: "Older" }),
+    ]);
+    expect(html.indexOf("Swept")).toBeLessThan(html.indexOf("Older"));
     expect(html).toContain("No longer available");
   });
 
@@ -153,5 +164,52 @@ describe("8.9.40/8.9.41 — the deletion deadline", () => {
   it("says nothing when no clock has started", () => {
     const html = render([submission({ deleteAfter: undefined })]);
     expect(html).not.toContain("Files deleted in");
+  });
+});
+
+describe("what a card says about its own state", () => {
+  /*
+    Ben, 2026-09-10. `complete`, `collected` and `resolved` all read "Feedback
+    ready", so a parent who had already downloaded was still being told to.
+    "Ready" is an instruction; once it is done the card should stop giving it.
+  */
+  it("says Feedback ready until it has been downloaded", () => {
+    expect(render([submission({ status: "complete" })])).toContain("Feedback ready");
+  });
+
+  it("and Downloaded afterwards", () => {
+    /*
+      Asserted on the badge, not the card. "Feedback ready" also appears as the
+      *date* label — when it became ready — which is a different statement and
+      stays true after downloading.
+    */
+    const badge = (html: string) =>
+      html.match(/<span class="inline-flex[^"]*"[^>]*>([^<]*)</)?.[1];
+    expect(badge(render([submission({ status: "complete" })]))).toBe("Feedback ready");
+    for (const status of ["collected", "resolved"] as const) {
+      expect(badge(render([submission({ status })]))).toBe("Downloaded");
+    }
+  });
+
+  /*
+    The unpaid deadline, which this page is the only place to say: an unpaid
+    submission is removed outright rather than having its files cleared, and no
+    email carries the window because the retention mail only goes out after
+    payment.
+  */
+  it("counts an unpaid submission down in hours", () => {
+    const html = render([
+      submission({
+        status: "awaiting_payment",
+        discardAfter: new Date(Date.now() + 5.5 * 3_600_000).toISOString(),
+      }),
+    ]);
+    expect(html).toContain("Finish and pay within");
+    expect(html).toContain("6 hours");
+  });
+
+  it("and says nothing about it once it is paid for", () => {
+    const html = render([submission({ status: "new", discardAfter: undefined })]);
+    expect(html).not.toContain("Finish and pay within");
   });
 });

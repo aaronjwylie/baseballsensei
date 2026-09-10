@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": 89,
-    "generatedAt": "2026-09-10T21:03:49.888Z",
-    "checks": 361,
-    "live": 358,
+    "build": 90,
+    "generatedAt": "2026-09-10T22:28:12.286Z",
+    "checks": 363,
+    "live": 360,
     "retired": 3,
     "edited": 95
   },
@@ -2453,6 +2453,16 @@
               ]
             },
             {
+              "id": "8.9.51",
+              "what": "An unpaid submission counts down in hours. Look up an email with one at awaiting_payment",
+              "expect": "\"Finish and pay within N hours\". ⚠️ This page is the only place it is ever said: an unpaid submission is removed outright rather than having its files cleared, and the retention emails only go out after payment. Counted from updatedAt, which is what the sweep reads — a declined card touches the row, so trying again buys more time"
+            },
+            {
+              "id": "8.9.52",
+              "what": "A downloaded review stops saying \"Feedback ready\"",
+              "expect": "The badge reads \"Downloaded\" at collected and resolved. ⚠️ All three released rungs read \"Feedback ready\", so a parent who had already downloaded was still being told to. \"Ready\" is an instruction"
+            },
+            {
               "id": "8.9.40",
               "what": "⚠️ The customer's card carries the deadline. Look up a delivered submission on /status",
               "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A last line: \"Files deleted in N days\". ⚠️ They are told at ⑥ and again at ⑨; this is the same promise on the page they actually return to",
@@ -2524,8 +2534,8 @@
             },
             {
               "id": "8.9.45",
-              "what": "Ready ones come first",
-              "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A parent whose review just landed does not scroll past submissions that need nothing from them",
+              "what": "Newest first, and nothing re-sorts it",
+              "expect": "The server's order stands. ⚠️ Reverses what this used to ask for. It put submissions with files at the top — the surviving half of the old two-section page — and that buried a submission made minutes ago under eight older ones because it had no files yet, which reads as it never having arrived (2026-09-10)",
               "history": [
                 {
                   "at": "2026-09-03T23:00:18.599Z",
@@ -2536,13 +2546,18 @@
                   "at": "2026-09-09T03:48:51.987Z",
                   "what": "Ready ones come first",
                   "expect": "A parent whose review just landed does not scroll past submissions that need nothing from them"
+                },
+                {
+                  "at": "2026-09-10T22:28:12.286Z",
+                  "what": "Ready ones come first",
+                  "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. A parent whose review just landed does not scroll past submissions that need nothing from them"
                 }
               ]
             },
             {
               "id": "8.9.46",
               "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
-              "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has",
+              "expect": "Listed once in its date position, reading \"No longer available\"",
               "history": [
                 {
                   "at": "2026-09-03T23:00:18.599Z",
@@ -2553,6 +2568,11 @@
                   "at": "2026-09-09T03:48:51.987Z",
                   "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
                   "expect": "Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has"
+                },
+                {
+                  "at": "2026-09-10T22:28:12.286Z",
+                  "what": "⚠️ A released submission whose files were swept. Age one past the retention window",
+                  "expect": "Covered by tests/unit/statusCards.test.ts — content and order, not layout. Listed once, reading \"No longer available\", and not sorted to the top. It still reads as having feedback, so ordering on that flag would promise a download it no longer has"
                 }
               ]
             },

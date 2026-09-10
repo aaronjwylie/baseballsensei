@@ -22,6 +22,7 @@ export {
   isReleased,
   deletionDueAt,
   daysUntil,
+  hoursUntil,
   isWithCoach,
   type AppWrittenStatus,
   type Focus,

@@ -479,6 +479,19 @@ export function daysUntil(iso: string | null): number | null {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
 }
 
+/**
+ * Whole hours from now until that date — `daysUntil` at the resolution an
+ * unpaid submission needs, since its whole window is about a day.
+ *
+ * Ceilinged for the same reason: a part-hour left is still an hour somebody can
+ * finish in, and rounding down would tell them their submission goes sooner
+ * than it does.
+ */
+export function hoursUntil(iso: string | null): number | null {
+  if (!iso) return null;
+  return Math.ceil((new Date(iso).getTime() - Date.now()) / 3_600_000);
+}
+
 export function isReleased(submission: Pick<Submission, "status">): boolean {
   return RELEASED_AT_STATUS[submission.status];
 }

@@ -202,6 +202,7 @@ async function retentionWindows() {
   const settings = await getSettings();
   return {
     collectedDays: settings.retainCollectedDays,
+    unpaidHours: settings.retainUnpaidHours,
     deliveredDays: settings.retainDeliveredDays,
   };
 }

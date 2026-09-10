@@ -58,28 +58,24 @@ export function StatusList({
   }
 
   /*
-    **One list, one card per submission** (Ben, 2026-09-03).
+    **One list, one card per submission, newest first** (Ben, 2026-09-10).
 
-    This was two sections — "Ready to download" and a full list below it — so a
-    finished review appeared twice: once with its files and no status, once with
-    its status and no files. Neither card was the whole thing, and on an account
-    where everything is finished the page was the same list printed twice.
+    It was two sections once — "Ready to download" and a full list below it — so
+    a finished review appeared twice, once with its files and no status and once
+    with its status and no files. Neither card was the whole thing.
 
-    Ordered **ready first**, which is the one thing worth keeping from the split.
-    A parent whose review has just landed should not scroll past submissions that
-    need nothing from them to reach the one that does. Within each group the
-    server's order stands, which is newest first.
+    The merge kept a ready-first ordering, and that was the wrong half to keep.
+    A parent looking for the thing they just sent finds it by *when they sent
+    it*; sorting by whether the coach happens to have finished buries today's
+    submission under last month's. `asdf`, submitted minutes earlier, sat below
+    eight older ones because it had no files yet — which reads as it not having
+    arrived.
 
-    Not sorted by `hasFeedback` but by whether files are actually on the page: a
-    released submission whose files have been swept still reads as having
-    feedback, and belongs with the rest rather than at the top promising a
-    download it no longer has.
+    So: the server's order stands, newest first, and nothing re-sorts it. The
+    colour still marks a ready card, which is the part worth keeping — it
+    belongs to a submission rather than to a region of the page.
   */
-  const hasFiles = (s: PublicSubmission) => !!downloads?.[s.id];
-  const ordered = [
-    ...submissions.filter(hasFiles),
-    ...submissions.filter((s) => !hasFiles(s)),
-  ];
+  const ordered = submissions;
 
   return (
     <>
@@ -112,6 +108,22 @@ const WITH_YOUR_COACH = {
 const READY = {
   label: "Feedback ready",
   className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+} as const;
+
+/**
+ * Downloaded — the end of the job, from the customer's side.
+ *
+ * `complete`, `collected` and `resolved` all read "Feedback ready" once, which
+ * left a parent who had already downloaded looking at a card still telling them
+ * to (Ben, 2026-09-10). "Ready" is an instruction; once it is done the card
+ * should stop giving it.
+ *
+ * Calmer than the green, deliberately: a downloaded review needs nothing from
+ * anybody, and the colour on this page is for the one that does.
+ */
+const DOWNLOADED = {
+  label: "Downloaded",
+  className: "bg-ink/5 text-ink-soft border-line",
 } as const;
 
 const STATUS_META: Record<
@@ -161,8 +173,8 @@ const STATUS_META: Record<
   // Ready to collect. `resolved` is the admin closing his side of the job — nothing
   // changes for the customer, who can still download.
   complete: READY,
-  collected: READY,
-  resolved: READY,
+  collected: DOWNLOADED,
+  resolved: DOWNLOADED,
 
   // The one middle state worth surfacing: it changes what they should *do*.
   purge_imminent: {
