@@ -13,6 +13,7 @@ the wrong file.
 | [`_QALaw`](../laws/_QALaw.md) | [`_QADocumentation`](_QADocumentation.md) | our probe, our itinerary, and what a pass has caught |
 | [`_CommerceLaw`](../laws/_CommerceLaw.md) | [`_CommerceDocumentation`](_CommerceDocumentation.md) | one payment, one submission — and which rails don't bind |
 | [`_DesignLaw`](../laws/_DesignLaw.md) | [`_DesignDocumentation`](_DesignDocumentation.md) | our tokens and rulings |
+| [`_ReleaseLaw`](../laws/_ReleaseLaw.md) | [`_ReleaseDocumentation`](_ReleaseDocumentation.md) | our rungs, how a tag reaches production, and how it comes back |
 
 **Above them:** [`PRINCIPLES.md`](../PRINCIPLES.md) — one per project, outranks the laws, answers *why*.
 

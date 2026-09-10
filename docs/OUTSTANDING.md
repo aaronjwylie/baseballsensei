@@ -177,14 +177,14 @@ can sign in and reach nothing.
 
 ## 6 · Decided, with a trigger
 
-**`_ReleaseLaw` — write it at Phase 11** (2026-08-26). Named releases, a changelog and rollback
-procedure. Deliberately not now: the repo has version control and unusually good commit messages, so
-what is missing is *releases*, not tracking — and until production carries someone else's money the
-changelog would be written by the three people who already know.
+~~**`_ReleaseLaw` — write it at Phase 11** (2026-08-26).~~ **Written 2026-09-10** —
+[`laws/_ReleaseLaw.md`](../laws/_ReleaseLaw.md) and
+[`documentation/_ReleaseDocumentation.md`](../documentation/_ReleaseDocumentation.md), the day `1.0.0`
+was named. The original reasoning held: the repo had version control and good commit messages, and what
+was missing was *releases*. The route from here is that document's §4.
 
-**Cheap thing that makes it cheap later: start tagging production deploys now.** Reconstructing what
-shipped when across 242 untagged commits is the expensive half; tagging forward costs seconds. *Offered
-2026-08-26, not yet taken up.*
+**Tagging starts with Phase 0 of that route.** The cheap thing offered on 2026-08-26 — tag production
+deploys now — went untaken for two weeks and some 350 more commits; the first tag is `v1.0.0-rc.1`.
 
 **Tear down the QA page when the pass is over** (2026-08-26). `/qa` is deliberately temporary — a page
 inside the product, which is why it works (`_QALaw` §6) and also why it must not become permanent
