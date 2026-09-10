@@ -53,10 +53,10 @@ export function SiteFooter() {
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6">
             <Link href="/terms" className="transition-opacity hover:opacity-70">
-              terms and conditions
+              Terms and Conditions
             </Link>
             <Link href="/privacy" className="transition-opacity hover:opacity-70">
-              privacy policy
+              Privacy Policy
             </Link>
           </div>
         </Container>
