@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 88</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 89</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -2172,7 +2172,7 @@ const PHASES = [
           [
             "8.9.6",
             "Resize slowly across the whole range",
-            "Heading and vertical rhythm scale continuously, with no snap at a breakpoint — and stop at 616px, where the column caps. ⚠️ They kept climbing to 1333px, so dragging a wide window slid the whole page down ~21px and back with nothing else moving (2026-09-10). Covered by tests/unit/narrowPage.test.tsx"
+            "Nothing changes size continuously. The heading and the vertical rhythm each have two fixed sizes with one step at sm; the column grows to its cap and holds. ⚠️ This reverses what the check used to ask for. It wanted continuous scaling and no snap, which was right about the column — one that narrows as the window widens is a fault — and wrong about type. A vw term gives a different size at every pixel of width, so the browser re-rasterises glyphs and em-based tracking shifts: the heading shivers and its line box drags the page below it up and down. Two attempts tried to fix that by shortening the fluid range; the range was never the problem (2026-09-10). Covered by tests/unit/pageColumn.test.tsx"
           ],
           [
             "8.9.7",

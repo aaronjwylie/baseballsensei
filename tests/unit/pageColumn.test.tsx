@@ -4,75 +4,71 @@ import { PageColumn, pageTitleClass } from "@/shared/ui/PageColumn";
 
 /**
  * QA 8.9.5 / 8.9.6 / 8.9.18 — how every page a person reads behaves under a
- * drag: the three customer pages and both portals, which share one shell.
+ * drag: the three customer pages and both portals, which share this shell.
  *
- * The rule these hold down: **vertical rhythm stops scaling where the column
- * stops growing.** The column caps at `max-w-xl` (576px) plus `px-5` either
- * side, so 616px of viewport is the last width that changes anything a reader
- * can see. A clamp that keeps climbing past it slides the whole page up and
- * down while nothing else moves, which reads as a fault because there is no
- * visible cause for it.
+ * **The rule is that nothing moves continuously.** A `vw` term gives a
+ * different value at every pixel of window width, and for type that is visible:
+ * the browser re-rasterises glyphs at each fractional size and em-based
+ * tracking shifts with it, so the heading shivers and the line box drags the
+ * page below it up and down. Two fixed sizes with one step at `sm` cannot do
+ * that.
  *
- * Solved rather than eyeballed, so it is worth asserting: an eyeballed value
- * drifts back the next time someone thinks the page looks tight.
+ * This replaced two earlier attempts, both of which were arithmetic about how
+ * *far* the fluid range should run. The range was never the problem.
  */
-const COLUMN_CAPS_AT = 808;  // max-w-3xl (768) + px-5 either side
-
-/** `clamp(<min>rem, <a>rem + <b>vw, <max>rem)` → px at a given viewport. */
-function evaluate(clamp: string, viewport: number): number {
-  const m = clamp.match(
-    /clamp\(([\d.]+)rem,([\d.]+)rem\+([\d.]+)vw,([\d.]+)rem\)/,
-  );
-  if (!m) throw new Error(`not a clamp this test understands: ${clamp}`);
-  const [min, a, b, max] = m.slice(1).map(Number) as [number, number, number, number];
-  return Math.max(min * 16, Math.min(max * 16, a * 16 + (b / 100) * viewport));
-}
-
-const clampIn = (source: string) => {
-  const m = source.match(/clamp\([^)]*\)/);
-  if (!m) throw new Error("no clamp found");
-  return m[0].replace(/\s/g, "");
+const shell = () => {
+  const html = renderToStaticMarkup(<PageColumn>x</PageColumn>);
+  return html.match(/<section class="([^"]*)"/)![1];
 };
 
-const paddingClamp = clampIn(
-  renderToStaticMarkup(<PageColumn>x</PageColumn>),
-);
-const titleClamp = clampIn(pageTitleClass);
+describe("nothing scales with the viewport", () => {
+  it("the shell has no vw term, and no clamp", () => {
+    expect(shell()).not.toMatch(/vw|clamp\(/);
+  });
 
-describe.each([
-  ["vertical padding", paddingClamp],
-  ["page title", titleClamp],
-])("%s", (_label, clamp) => {
-  it("still grows below the cap", () => {
-    expect(evaluate(clamp, 375)).toBeLessThan(evaluate(clamp, 500));
-    expect(evaluate(clamp, 500)).toBeLessThan(evaluate(clamp, 700));
-    expect(evaluate(clamp, 700)).toBeLessThanOrEqual(evaluate(clamp, COLUMN_CAPS_AT));
+  it("the title has no vw term, and no clamp", () => {
+    expect(pageTitleClass).not.toMatch(/vw|clamp\(/);
   });
 
   /*
-    The whole point. Past the cap the column is fixed, so a drag from 900 to
-    1440 must move nothing at all.
+    The column itself is the third thing that could move. It is capped with a
+    constant gutter, so it grows to the cap and holds — never narrows, and never
+    interpolates.
   */
-  it("is flat once the column has capped", () => {
-    // At the cap it is already at its ceiling — asserted against the clamp's
-    // own max rather than against its value there, so "flat" cannot be true by
-    // a rounding accident.
-    const max = Number(clamp.match(/,([\d.]+)rem\)$/)![1]) * 16;
-    expect(evaluate(clamp, COLUMN_CAPS_AT)).toBe(max);
-    // Derived from the cap, not listed: a hard-coded sample silently stops
-    // testing the rule the moment the cap moves, which is exactly what happened
-    // when the column went from 576 to 768.
-    for (const wider of [COLUMN_CAPS_AT + 1, 1000, 1200, 1440, 2560]) {
-      expect(evaluate(clamp, wider)).toBe(max);
+  it("the column grows to its cap and holds", () => {
+    const widths = [320, 375, 500, 639, 640, 800, 808, 1024, 1440, 2560].map(
+      (w) => Math.min(768, w - 2 * 20),
+    );
+    for (let i = 1; i < widths.length; i += 1) {
+      expect(widths[i]).toBeGreaterThanOrEqual(widths[i - 1]!);
     }
+    expect(widths.at(-1)).toBe(768);
+  });
+});
+
+describe("two states, and only two", () => {
+  it("steps the padding once, at sm", () => {
+    const s = shell();
+    expect(s).toContain("py-10");
+    expect(s).toContain("sm:py-14");
   });
 
-  it("has no step in it — continuous, so nothing snaps at a breakpoint", () => {
-    let previous = evaluate(clamp, 320);
-    for (let w = 321; w <= COLUMN_CAPS_AT; w += 1) {
-      const next = evaluate(clamp, w);
-      expect(next - previous).toBeLessThan(1);
-      previous = next;
-    }
+  it("steps the type once, at the same place", () => {
+    expect(pageTitleClass).toContain("text-3xl");
+    expect(pageTitleClass).toContain("sm:text-4xl");
+  });
+
+  /*
+    The endpoints are the ones the clamp used to interpolate between — 40/56px
+    of padding and 30/36px of type — so this is the same page at both ends of
+    the range, without the journey between them.
+  */
+  it("keeps the sizes the fluid version reached", () => {
+    // Tailwind: py-10 = 2.5rem = 40px, py-14 = 3.5rem = 56px,
+    //           text-3xl = 1.875rem = 30px, text-4xl = 2.25rem = 36px.
+    expect(shell()).toMatch(/py-10\b/);
+    expect(shell()).toMatch(/sm:py-14\b/);
+    expect(pageTitleClass).toMatch(/text-3xl\b/);
+    expect(pageTitleClass).toMatch(/sm:text-4xl\b/);
   });
 });

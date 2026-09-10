@@ -33,12 +33,17 @@ const FeedbackToken = (await import("@/app/feedback/[token]/page")).default;
 
 const html = async (el: unknown) => renderToStaticMarkup((await el) as ReactElement);
 
-/** The shell's own wrapper — the bit every page must share. */
-const shellOf = (markup: string) => {
-  const m = markup.match(/<section class="([^"]*py-\[clamp[^"]*)"/);
-  expect(m, "no PageColumn section found").toBeTruthy();
-  return m![1];
-};
+/**
+ * The shell's own wrapper — taken from `PageColumn` itself rather than matched
+ * by a pattern. A pattern is a description of the component, and it goes stale
+ * the moment the component changes: this one hunted for a `clamp` and stopped
+ * finding anything when the clamps became two fixed steps.
+ */
+const SHELL = renderToStaticMarkup(<PageColumn>x</PageColumn>).match(
+  /<section class="([^"]*)"/,
+)![1];
+
+const wearsShell = (markup: string) => markup.includes(`<section class="${SHELL}"`);
 
 describe("8.9.18 — one shell, three pages", () => {
   it("renders the identical wrapper on all three", async () => {
@@ -47,15 +52,9 @@ describe("8.9.18 — one shell, three pages", () => {
       html(StatusToken({ params: Promise.resolve({ token: "t" }) })),
       html(FeedbackToken({ params: Promise.resolve({ token: "t" }) })),
     ]);
-    const shells = pages.map(shellOf);
-    expect(new Set(shells).size).toBe(1);
-    // And it is the shell itself, not a copy of it. Asserted against what
-    // `PageColumn` renders rather than a literal — a literal stops testing the
-    // rule the moment the value moves, which is how this test came to be
-    // checking a clamp the component no longer had.
-    expect(shells[0]).toBe(
-      shellOf(renderToStaticMarkup(<PageColumn>x</PageColumn>)),
-    );
+    // Every page carries the shell's own markup — not something that merely
+    // looks like it.
+    for (const markup of pages) expect(wearsShell(markup)).toBe(true);
   });
 
   /*

@@ -19,33 +19,36 @@ import { Container } from "./Container";
  * thing that spaces it, and the layouts space nothing. **768px, the width the
  * portals already had and the one that was preferred on sight.**
  *
- * ── Why the ceilings are where they are ─────────────────────────────────────
+ * ── Two sizes, not a continuum ──────────────────────────────────────────────
  *
- * **Vertical rhythm stops where the column stops.** The column caps at
- * `max-w-3xl` plus `px-5` either side — 808px of viewport — so both clamps are
- * solved to reach their ceiling at 800px and hold. Past that, widening changes
- * nothing a reader can see, and spacing that keeps moving anyway slides the
- * page up and down with no visible cause.
+ * **Nothing here scales with `vw`.** It used to: the padding and the title were
+ * both `clamp(… + Nvw …)`, which gives a different value at every pixel of
+ * window width — 34.57px of type at 700, 34.62px at 701.
  *
- * That has been wrong twice, in opposite directions: gutters subtracted *from*
- * the cap made the column narrow as the window widened, and a clamp with too
- * long a runway made the whole page drift. Both are asserted now
- * (`tests/unit/pageColumn.test.tsx`, `tests/unit/container.test.tsx`) —
- * arithmetic rather than eye, because an eyeballed value drifts back the first
- * time someone thinks the page looks tight.
+ * That reads as broken even though every value is correct. The browser
+ * re-rasterises glyphs at each fractional size and `tracking-tight` is em-based,
+ * so the letters shiver and the line box changes height, and the whole page
+ * below the heading drifts up and down as you drag (Ben, 2026-09-10). Motion
+ * with no cause a reader can see is worse than a step they can.
+ *
+ * So: one step at `sm`, at the endpoints the clamps already had — 40/56px of
+ * padding, 30/36px of type. Below 640 it is one fixed page, above it another,
+ * and neither moves. A single deliberate change at a breakpoint is what QA
+ * 8.9.6 was warning against, and it was right about the *column* — a column
+ * that narrows as the window widens is a fault. It is wrong about type, which
+ * is the lesson that took three attempts to find.
  */
 export function PageColumn({ children }: { children: ReactNode }) {
   return (
-    <section className="py-[clamp(2.5rem,1.618rem+3.76vw,3.5rem)]">
+    <section className="py-10 sm:py-14">
       <Container className="max-w-3xl">{children}</Container>
     </section>
   );
 }
 
 /**
- * The page title on those pages — fluid rather than stepped, and stopping at
- * the same 800px the column and the padding do, so nothing on the page is still
- * responding to width once the measure has settled.
+ * The page title — two sizes, the same two the clamp used to interpolate
+ * between, and no interpolation. See above: fluid type shivers.
  */
 export const pageTitleClass =
-  "text-[clamp(1.875rem,1.544rem+1.41vw,2.25rem)] font-bold tracking-tight text-ink";
+  "text-3xl sm:text-4xl font-bold tracking-tight text-ink";
