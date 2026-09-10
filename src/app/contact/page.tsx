@@ -73,7 +73,7 @@ export default function ContactPage() {
             contact form and send your materials directly to a coach.
           </p>
           <ButtonLink href="/start" variant="primaryLime">
-            Get coach feedback <span aria-hidden className="relative -top-[2px]">→</span>
+            Get coach feedback <span aria-hidden className="relative -top-[3px]">→</span>
           </ButtonLink>
         </Container>
       </section>
