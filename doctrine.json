@@ -1,7 +1,7 @@
 {
-  "pack": "1.1.0",
+  "pack": "1.2.0",
   "source": "https://github.com/Ben-J-Wylie/doctrine.git",
-  "pinnedAt": "2026-09-10",
+  "pinnedAt": "2026-09-11",
   "lawsDir": "laws",
   "laws": {
     "_CommerceLaw.md": {
@@ -38,6 +38,10 @@
     }
   },
   "templates": {
+    "_DoctrineFeedback.md": {
+      "sha256": "acc3a9697c1a70c8a3ed95a318624114ad2f37b73448279460e9440042fae176",
+      "source": "pack"
+    },
     "_SliceDocumentation.md": {
       "sha256": "6611454ab1aa3aa925874378f431499b2b976920f55d9a5dfeecb1bd0d1ca110",
       "source": "pack"

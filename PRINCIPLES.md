@@ -238,6 +238,17 @@ it. Only the last beat writes code. Nothing skips the argument.
 
 ---
 
+### 14 · Doctrine is earned upward and adopted downward
+
+A rule enters the pack from a project that paid for it, with the failure attached — never from the
+pack's own imagination. It reaches the other projects by version, not by osmosis. So the copy in a
+project outranks the pack **exactly when it has learned something the pack has not**, and the pack
+outranks the copy the rest of the time; the pin (`doctrine.json`) says which state a copy is in. This
+is "if the doc contradicts the code, the code wins" one level up: the pack is the doc, the projects
+are the code. The loop that moves a rule up and back down is the pack's `RELEASING.md` §3; this
+project's half of it is [`documentation/_DoctrineFeedback.md`](documentation/_DoctrineFeedback.md).
+Taken verbatim from pack v1.2.0 §15 on 2026-09-10 — the day the loop first ran here.
+
 ## What this codebase deliberately does NOT adopt from WRLD
 
 WRLD is a large real-time platform; this is a five-domain service. Ported with eyes open:

@@ -32,6 +32,9 @@ Written for the reader who was not there: what is different *for someone*, not w
   numbers were retargeted: the rename procedure is §3, nouns-vs-participles is §2b, the role test is
   §4c.
 - `CLAUDE.md` §12 states the vendoring rule: nobody edits `laws/` or `templates/` in a feature PR.
+- **Pinned to pack v1.2.0.** `templates/_DoctrineFeedback.md` arrives as the form (the hand-written
+  `documentation/_DoctrineFeedback.md` stays as this project's instance), and `PRINCIPLES.md` §14 takes
+  the pack's §15 verbatim: doctrine is earned upward and adopted downward.
 
 - The Release Law (`laws/_ReleaseLaw.md`) and this project's instance of it
   (`documentation/_ReleaseDocumentation.md`): what a release is here, the four rungs, the promotion
