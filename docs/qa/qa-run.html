@@ -446,7 +446,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <div>
-      <p class="eyebrow">Manual pass · production <span class="build">Build 94</span></p>
+      <p class="eyebrow">Manual pass · production <span class="build">Build 95</span></p>
       <h1>QA run</h1>
       <p class="lede">
         Every feature, in the order it makes sense to exercise them. Work top to bottom.
@@ -1959,8 +1959,28 @@ const PHASES = [
           ],
           [
             "6.18",
-            "A submission assigned but not yet sent to the coach",
-            "Still absent from the list, as before. A coach's turn starts when the admin hands it over; a card for work they cannot begin is a card they learn to ignore"
+            "⚠️ Assigned, but not yet sent. Assign a coach, stop before the hand-off email, and open the coach portal",
+            "Covered by tests/unit/reviewCard.test.tsx. The card does appear — the row is theirs from assigned, by design — badged a quiet \"Assigned to you\", with no files and no hand-back form, and a line saying whose move it is: the admin's, or \"being translated first\" when it is out with a translator. ⚠️ This row reversed on 2026-09-11. It read \"still absent from the list, as before\", which I asserted without reading isWithCoach — a predicate that includes assigned deliberately. The card then rendered the customer's originals (coachFileSet is null, so filesAsSent falls back to them) and a live \"Send for approval\" the server would refuse. On a submission that needs translating, those originals are exactly what the translation exists to replace (Ben)"
+          ],
+          [
+            "6.18.1",
+            "⚠️ The six upload doors. As an assigned-but-unsent coach or translator, POST to each upload route directly",
+            "409 with a reason, not a silent accept. All six gated on isAssignedTo alone — true from the moment the admin picks someone — so the whole job could be done and only the hand-back refused. isCoachesTurn and isTranslatorsTurn are the one home per side"
+          ],
+          [
+            "6.18.2",
+            "⚠️ The download door. As an assigned-but-unsent coach, GET /api/files/[id] for an intake file",
+            "403, \"the admin hasn't sent this over to you yet\" — 403 not 404, because they are assigned and there is nothing to hide from them. An un-assigned operator still gets 404, which refuses to confirm the id. ⚠️ The gate is monotone (isHandedOverFor), so it only ever closes the window before the hand-off: a coach's own finished review stays downloadable, which is what the receipt on their card is made of"
+          ],
+          [
+            "6.18.3",
+            "⚠️ The translator's mirror. Assign a translator a leg and stop before sending",
+            "Covered by tests/unit/translationCard.test.tsx. The leg reads \"Assigned to you\", with no files and no upload. ⚠️ It read \"Handed back ✓\" — open is false both before the hand-off and after the hand-back, and the card took that one flag for \"finished\", so an unsent leg showed a receipt for files the translator had never been given"
+          ],
+          [
+            "6.18.4",
+            "The predicates cannot drift apart",
+            "Covered by tests/unit/submissionStatus.test.ts. isHandedOverFor is a monotone suffix for every kind; the coach's turn is exactly sent_to_coach+in_review; intake is never handed to anybody. A new rung is a compile error in each exhaustive Record"
           ],
           [
             "6.16",

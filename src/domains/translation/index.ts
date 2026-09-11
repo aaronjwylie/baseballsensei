@@ -31,4 +31,5 @@ export {
   type LegShape,
   type TranslationKind,
 } from "./model/translationLeg";
+export { isTranslatorsTurn, LEG_NOT_SENT } from "./api/translationPolicy";
 export { TranslationUpload } from "./ui/TranslationUpload";

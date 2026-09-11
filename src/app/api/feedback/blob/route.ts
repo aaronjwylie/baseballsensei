@@ -3,6 +3,7 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { env } from "@/shared/config/env";
 import { getSession } from "@/domains/account";
 import { getSubmission, isAssignedTo } from "@/domains/submission";
+import { isCoachesTurn, NOT_SENT_TO_COACH } from "@/domains/feedback";
 import { ALLOWED_MIME_TYPES, isAllowedFilename } from "@/shared/upload";
 import { getSettings, maxFileSizeBytes } from "@/domains/settings";
 
@@ -39,6 +40,14 @@ export async function POST(request: Request) {
 
         if (!session.roles.includes("admin") && !(await isAssignedTo(submissionId, session.operatorId, "feedback"))) {
           throw new Error("That isn't your submission.");
+        }
+
+        /*
+          Ownership is not a turn (Ben, QA 6.18). The admin may attach for
+          anyone; an operator may only work on what has been handed to them.
+        */
+        if (!session.roles.includes("admin") && !isCoachesTurn(submission)) {
+          throw new Error(NOT_SENT_TO_COACH);
         }
 
         if (!isAllowedFilename(pathname)) {

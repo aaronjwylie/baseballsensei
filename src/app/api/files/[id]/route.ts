@@ -1,8 +1,10 @@
 import { NextResponse, after } from "next/server";
 import { getSession } from "@/domains/account";
 import {
+  assignedKindsFor,
+  getSubmission,
   getSubmissionFile,
-  isAssignedToSubmission,
+  isHandedOverFor,
   isIntake,
 } from "@/domains/submission";
 import { noteCoachCollected } from "@/domains/operator";
@@ -42,6 +44,10 @@ export async function GET(
   const file = await getSubmissionFile(id);
   if (!file) return new Response("Not found", { status: 404 });
 
+  // Needed by the hand-off check below, which is a question about the rung.
+  const submission = await getSubmission(file.submissionId);
+  if (!submission) return new Response("Not found", { status: 404 });
+
   /*
     Operator *and* owner. A session proves they're staff; this proves the work
     is theirs. The admin reviews everything, so they bypass — but a coach or
@@ -50,11 +56,35 @@ export async function GET(
     customer's uploads — a minor's video among them. Answered as 404, not 403,
     so the endpoint doesn't confirm an id it won't serve.
   */
-  if (
-    !session.roles.includes("admin") &&
-    !(await isAssignedToSubmission(file.submissionId, session.operatorId))
-  ) {
-    return new Response("Not found", { status: 404 });
+  if (!session.roles.includes("admin")) {
+    const kinds = await assignedKindsFor(file.submissionId, session.operatorId);
+    if (kinds.length === 0) {
+      return new Response("Not found", { status: 404 });
+    }
+
+    /*
+      Assigned is not sent (Ben, QA 6.18).
+
+      Ownership alone let an operator pull the files the moment the admin picked
+      them — before a file set was chosen, and before the intake translation was
+      back. On a submission that needs translating that is precisely the
+      outcome translating exists to prevent: the coach reading the originals.
+
+      `isHandedOverFor` is monotone, so this only ever closes the window
+      *before* the hand-off. Their own finished work stays open — which the
+      receipt on each portal's card is made of — and each assignment is asked
+      about its own rung, because a coach's hand-off and a translator's are
+      different ones.
+
+      403, not 404: they are assigned, so there is nothing to hide from them.
+      The un-assigned case above stays 404 and still refuses to confirm an id.
+    */
+    if (!kinds.some((kind) => isHandedOverFor(submission, kind))) {
+      return new Response(
+        "The admin hasn't sent this over to you yet.",
+        { status: 403 },
+      );
+    }
   }
 
   if (!file.fileUrl) {

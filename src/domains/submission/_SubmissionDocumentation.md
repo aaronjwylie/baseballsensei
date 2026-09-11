@@ -1144,7 +1144,35 @@ Two mechanical notes worth keeping:
   `"The coach was unassigned — returned for reassignment"` (or "The intake
   translator", "The feedback translator").
 
-## 3 · Where we are now — 2026-08-02
+## 3 · Where we are now — 2026-09-11
+
+### 2026-09-11 — assignment is not hand-off
+
+**Every door was asking the wrong question.** Six upload routes and
+`/api/files/[id]` gated on `isAssignedTo`, which is true from the moment the
+admin *picks* someone. So an assigned coach could download the customer's
+originals and attach a response before the admin had sent anything — and on a
+submission that needs translating, the originals are exactly what the
+translation exists to replace. Only the two hand-backs checked the rung, so the
+work could be done and then refused at the last step (Ben, QA 6.18).
+
+Two predicates now, because they are two questions:
+
+| | asks | shape | guards |
+| --- | --- | --- | --- |
+| `isHandedOverFor(s, kind)` | has the admin handed it over? | **monotone** — true forever after | reading: `/api/files/[id]` |
+| `isCoachesTurn` / `isLegOpen` | is it their turn *right now*? | bounded — closes at the hand-back | writing: the six upload routes |
+
+Conflating them fails in both directions: a bounded read gate takes a coach's
+own finished review away from them the moment the admin approves it, and a
+monotone write gate lets a stale tab add a file to something already delivered.
+
+`isWithCoach` was always right that the row is theirs from `assigned` — the
+portals just rendered "theirs" as "workable". The card now has a third state
+that says whose move it is, reading `whoseCourt` so a new rung cannot fall into
+the wrong sentence.
+
+### Before that — 2026-08-02
 
 ### Twenty rungs, one word each
 

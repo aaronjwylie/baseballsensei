@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { LocalTime, PageColumn } from "@/shared/ui";
+import { PageColumn } from "@/shared/ui";
 import { PortalEmptyState } from "../_portal/PortalEmptyState";
+import { ReviewCard, type ReviewState } from "./ReviewCard";
 import { storage } from "@/shared/storage";
 import { requireRole } from "@/domains/account";
 import { getCoachByOperatorId } from "@/domains/operator";
@@ -12,17 +13,12 @@ import {
   listEventsForSubmissions,
   listFoldersForSubmissions,
   reachedAt,
-  SubmissionFolders,
-  describeFolders,
   type FileKind,
-  SubmissionFileList,
-  type Submission,
   type SubmissionFile,
   hasResponse,
-  isReleased,
+  isHandedToCoach,
   isWithCoach,
 } from "@/domains/submission";
-import { FeedbackUpload } from "@/domains/feedback";
 import type { UploadMode } from "@/shared/upload";
 import { getSettings } from "@/domains/settings";
 
@@ -51,14 +47,16 @@ const EMPTY_FOLDERS: Record<FileKind, SubmissionFile[]> = {
  * `findByCoach` already returns `submittedAt` descending, so the order here is
  * the query's — not a sort layered on top of it that could disagree.
  *
- * **What the two lists did carry, the card now says.** A submission on the desk
- * leads with its files and the hand-back form; one already handed back leads
- * with when, and with every folder the submission holds. The state is on the
- * card because that is where a person is already looking.
+ * **Three states, because assignment and hand-off are different acts.**
+ * `isWithCoach` says the row is theirs, from `assigned`. `isHandedToCoach` says
+ * the work has actually been handed over, from `sent_to_coach`. Between those
+ * two the admin is still choosing a file set, or the intake translation is
+ * still out — so the card names the submission and says whose move it is, and
+ * shows no files and no hand-back form. It used to show both, offering work
+ * `sendFeedbackForApproval` would then refuse (Ben, QA 6.18, 2026-09-11).
  *
- * A submission assigned but not yet *sent* appears on neither — unchanged. The
- * coach's turn starts when the admin hands it over, and a card for work they
- * cannot begin is a card they would have to learn to ignore.
+ * A submission on neither predicate is not the coach's at all and never
+ * appears.
  */
 export default async function CoachHomePage() {
   const session = await requireRole("coach");
@@ -72,20 +70,24 @@ export default async function CoachHomePage() {
   // in the browser rather than after the upload (Ben, QA 6.6.1).
   const settings = await getSettings();
 
-  // A coach's work is "open" until they hand it to the admin; once sent it's
-  // awaiting approval (or delivered), and out of their hands. Both belong on
-  // this page; anything on neither rung is not yet their turn.
-  const open = submissions.filter(isWithCoach);
+  // Theirs, and of those the ones actually handed over. Everything past the
+  // hand-back is `done`; the three sets partition the queue.
+  const mine = submissions.filter(isWithCoach);
+  const open = mine.filter(isHandedToCoach);
   const done = submissions.filter(hasResponse);
   const onDesk = new Set(open.map((s) => s.id));
-  const queue = submissions.filter((s) => onDesk.has(s.id) || hasResponse(s));
+  const queue = submissions.filter((s) => isWithCoach(s) || hasResponse(s));
 
-  // One query per set for the page, rather than one per card.
+  /*
+    One query per set for the page, rather than one per card — and **only for
+    the cards that render them**. A waiting card shows no files, so loading
+    them would be fetching the admin's un-curated originals to throw away.
+  */
   const filesBySubmission = await listIntakeFilesForSubmissions(
     open.map((s) => s.id),
   );
-  // Feedback files a coach has already attached to an open submission but not
-  // yet sent — so the card can show what's staged.
+  // Feedback files a coach has already attached but not yet sent, so the card
+  // can show what's staged.
   const feedbackByOpen = new Map(
     await Promise.all(
       open.map(async (s) => [s.id, await listFeedbackFiles(s.id)] as const),
@@ -131,143 +133,34 @@ export default async function CoachHomePage() {
             Nothing assigned to you right now.
           </li>
         )}
-        {queue.map((s) => (
-          <ReviewCard
-            key={s.id}
-            submission={s}
-            onDesk={onDesk.has(s.id)}
-            /* Only what the admin chose to send them (Ben, QA e2j). The
-               hand-off email has always been curated; this page was not, so
-               "The translation" still put both folders on the card. */
-            files={filesAsSent(
-              filesBySubmission.get(s.id) ?? [],
-              "intake",
-              s.coachFileSet,
-            )}
-            uploadMode={uploadMode}
-            maxFileSizeMb={settings.maxFileSizeMb}
-            feedbackFiles={feedbackByOpen.get(s.id) ?? []}
-            folders={foldersBySubmission.get(s.id) ?? EMPTY_FOLDERS}
-            handedBack={reachedAt(eventsBySubmission.get(s.id), "awaiting_approval")}
-          />
-        ))}
+        {queue.map((s) => {
+          const state: ReviewState = onDesk.has(s.id)
+            ? "review"
+            : hasResponse(s)
+              ? "done"
+              : "waiting";
+          return (
+            <ReviewCard
+              key={s.id}
+              submission={s}
+              state={state}
+              /* Only what the admin chose to send them (Ben, QA e2j). The
+                 hand-off email has always been curated; this page was not, so
+                 "The translation" still put both folders on the card. */
+              files={filesAsSent(
+                filesBySubmission.get(s.id) ?? [],
+                "intake",
+                s.coachFileSet,
+              )}
+              uploadMode={uploadMode}
+              maxFileSizeMb={settings.maxFileSizeMb}
+              feedbackFiles={feedbackByOpen.get(s.id) ?? []}
+              folders={foldersBySubmission.get(s.id) ?? EMPTY_FOLDERS}
+              handedBack={reachedAt(eventsBySubmission.get(s.id), "awaiting_approval")}
+            />
+          );
+        })}
       </ul>
     </PageColumn>
-  );
-}
-
-/**
- * One submission, whichever side of the hand-back it is on.
- *
- * A submission always arrives with its files already attached — they are
- * uploaded before payment now, and an unpaid submission never reaches a coach.
- * So there is no "awaiting upload" state to render here; an empty list means
- * the retention sweep has been through.
- *
- * **The badge is the card's state**, and it does the work the two headings used
- * to. Three answers, because a coach cares about the difference between "the
- * admin still has it" and "the customer has it": theirs, the admin's, done.
- */
-function ReviewCard({
-  submission,
-  onDesk,
-  files,
-  uploadMode,
-  maxFileSizeMb,
-  feedbackFiles,
-  folders,
-  handedBack,
-}: {
-  submission: Submission;
-  /** Their turn — as against handed back and out of their hands. */
-  onDesk: boolean;
-  files: SubmissionFile[];
-  uploadMode: UploadMode;
-  maxFileSizeMb: number;
-  feedbackFiles: SubmissionFile[];
-  folders: Record<FileKind, SubmissionFile[]>;
-  handedBack?: string;
-}) {
-  return (
-    <li className="rounded-2xl border border-line bg-white p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="font-semibold text-ink">
-            {submission.playerName}
-            {submission.playerAge ? (
-              <span className="text-ink-muted">{` · ${submission.playerAge}`}</span>
-            ) : null}
-          </div>
-          <div className="mt-0.5 text-sm text-ink-muted">
-            {submission.focus ? `${submission.focus} · ` : ""}
-            {submission.customerNotes ? submission.customerNotes : "No notes"}
-          </div>
-        </div>
-        <div className="shrink-0 text-right text-xs">
-          {onDesk ? (
-            <span className="font-semibold uppercase tracking-wide text-accent">
-              To review
-            </span>
-          ) : isReleased(submission) ? (
-            <span className="font-semibold text-emerald-600">Delivered ✓</span>
-          ) : (
-            <span className="font-semibold text-purple-600">Awaiting review</span>
-          )}
-          {/* The date the whole list is ordered by, said on the card — an order
-              nobody can see is one they have to take on trust. */}
-          <div className="mt-1 text-ink-muted">
-            {"Sent "}
-            <LocalTime iso={submission.submittedAt} />
-          </div>
-        </div>
-      </div>
-
-      {onDesk ? (
-        <>
-          <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
-            <div className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-              {`${files.length} file${files.length === 1 ? "" : "s"} to review`}
-            </div>
-            <SubmissionFileList files={files} emptyLabel="Files deleted" />
-          </div>
-          <div className="mt-4 border-t border-line pt-4">
-            <FeedbackUpload
-              submissionId={submission.id}
-              uploadMode={uploadMode}
-              maxFileSizeMb={maxFileSizeMb}
-              existingFiles={feedbackFiles.map((f) => ({
-                id: f.id,
-                filename: f.filename,
-                sizeBytes: f.sizeBytes,
-              }))}
-            />
-          </div>
-        </>
-      ) : (
-        <>
-          {/*
-            A receipt, not a one-liner (Ben, 2026-09-06). This said the player's
-            name and a status and nothing else, so a coach who wanted to check
-            what they had actually sent — or when — had nowhere to look. The
-            files are the work; leaving them off the only card that survives the
-            hand-back made the portal forget the job the moment it was done.
-          */}
-          <p className="mt-2 text-xs text-ink-muted">
-            {handedBack ? (
-              <>
-                {"Handed back "}
-                <LocalTime iso={handedBack} />
-              </>
-            ) : (
-              "Handed back"
-            )}
-            {` · ${describeFolders(folders)}`}
-          </p>
-          <div className="mt-3 border-t border-line pt-3">
-            <SubmissionFolders folders={folders} />
-          </div>
-        </>
-      )}
-    </li>
   );
 }

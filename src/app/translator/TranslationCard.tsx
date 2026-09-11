@@ -3,11 +3,12 @@ import {
   SubmissionFileList,
   SubmissionFolders,
   describeFolders,
+  whoseCourt,
   type FileKind,
   type Submission,
   type SubmissionFile,
 } from "@/domains/submission";
-import { TranslationUpload } from "@/domains/translation";
+import { TranslationUpload, isLegDone } from "@/domains/translation";
 import type { TranslatorLeg } from "@/domains/translation";
 import type { UploadMode } from "@/shared/upload";
 
@@ -91,12 +92,22 @@ export function TranslationCard({
           </div>
         </div>
         <div className="shrink-0 text-right text-xs">
+          {/*
+            Three answers, not two. "No open leg" was read as "finished", so a
+            leg the admin had picked a translator for but not yet sent showed
+            **Handed back ✓** — a card claiming they had delivered work they had
+            never been given (Ben, QA 6.18).
+          */}
           {open.length > 0 ? (
             <span className="font-semibold uppercase tracking-wide text-accent">
               To translate
             </span>
-          ) : (
+          ) : legs.every((l) => isLegDone(l.leg, submission.status)) ? (
             <span className="font-semibold text-emerald-600">Handed back ✓</span>
+          ) : (
+            <span className="font-semibold uppercase tracking-wide text-ink-muted">
+              Assigned to you
+            </span>
           )}
           {/* The date the whole list is ordered by, said on the card — an order
               nobody can see is one they have to take on trust. */}
@@ -146,6 +157,12 @@ function LegSection({
         {leg.title}
       </div>
 
+      {/*
+        Open, done, or **not yet sent** — the third is the one that was missing.
+        `open` is false both before the hand-off and after the hand-back, and
+        rendering the receipt for both made an unsent leg announce files it had
+        never received (Ben, QA 6.18).
+      */}
       {work.open ? (
         <>
           <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
@@ -173,6 +190,19 @@ function LegSection({
             />
           </div>
         </>
+      ) : !isLegDone(leg, submission.status) ? (
+        /*
+          Nothing to show and nothing to do — and the sentence says whose move
+          it is, from `whoseCourt`, which is already the one home for that
+          question and is exhaustive over the ladder. The feedback leg spends
+          most of its life here: assigned early, unsendable until the coach has
+          actually written something.
+        */
+        <p className="mt-2 text-sm text-ink-muted">
+          {whoseCourt(submission) === "coach"
+            ? "The coach is still writing their response. This leg opens once they hand it back and the admin sends it over."
+            : "The admin hasn\u2019t sent this leg over yet. The files will appear here, with somewhere to upload your translation, as soon as they do."}
+        </p>
       ) : (
         <>
           {/*

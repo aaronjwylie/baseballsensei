@@ -239,6 +239,30 @@ export async function markPaidIfUnpaid(
  * were actually put on. Any `produces` role counts — a translator carrying the
  * intake leg still needs the intake bytes.
  */
+/**
+ * Which kinds this operator owes on this submission — `[]` when none.
+ *
+ * The same query `isAssignedToSubmission` runs, returning what it throws away.
+ * A download gate needs more than "are they on it": it needs *as what*, because
+ * whether the hand-off has happened is a different rung for a coach and for
+ * each translation leg (Ben, QA 6.18).
+ */
+export async function assignedKindsFor(
+  submissionId: string,
+  operatorId: string,
+): Promise<FileKind[]> {
+  const rows = await db
+    .select({ produces: submissionAssignmentTable.produces })
+    .from(submissionAssignmentTable)
+    .where(
+      and(
+        eq(submissionAssignmentTable.submissionId, submissionId),
+        eq(submissionAssignmentTable.operatorId, operatorId),
+      ),
+    );
+  return rows.map((r) => r.produces);
+}
+
 export async function isAssignedToSubmission(
   submissionId: string,
   operatorId: string,

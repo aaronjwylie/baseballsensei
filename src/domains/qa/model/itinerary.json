@@ -1,11 +1,11 @@
 {
   "meta": {
-    "build": 94,
-    "generatedAt": "2026-09-11T00:43:04.919Z",
-    "checks": 375,
-    "live": 372,
+    "build": 95,
+    "generatedAt": "2026-09-11T23:57:42.165Z",
+    "checks": 379,
+    "live": 376,
     "retired": 3,
-    "edited": 98
+    "edited": 99
   },
   "phases": [
     {
@@ -1728,8 +1728,35 @@
             },
             {
               "id": "6.18",
-              "what": "A submission assigned but not yet sent to the coach",
-              "expect": "Still absent from the list, as before. A coach's turn starts when the admin hands it over; a card for work they cannot begin is a card they learn to ignore"
+              "what": "⚠️ Assigned, but not yet sent. Assign a coach, stop before the hand-off email, and open the coach portal",
+              "expect": "Covered by tests/unit/reviewCard.test.tsx. The card does appear — the row is theirs from assigned, by design — badged a quiet \"Assigned to you\", with no files and no hand-back form, and a line saying whose move it is: the admin's, or \"being translated first\" when it is out with a translator. ⚠️ This row reversed on 2026-09-11. It read \"still absent from the list, as before\", which I asserted without reading isWithCoach — a predicate that includes assigned deliberately. The card then rendered the customer's originals (coachFileSet is null, so filesAsSent falls back to them) and a live \"Send for approval\" the server would refuse. On a submission that needs translating, those originals are exactly what the translation exists to replace (Ben)",
+              "history": [
+                {
+                  "at": "2026-09-11T23:57:42.165Z",
+                  "what": "A submission assigned but not yet sent to the coach",
+                  "expect": "Still absent from the list, as before. A coach's turn starts when the admin hands it over; a card for work they cannot begin is a card they learn to ignore"
+                }
+              ]
+            },
+            {
+              "id": "6.18.1",
+              "what": "⚠️ The six upload doors. As an assigned-but-unsent coach or translator, POST to each upload route directly",
+              "expect": "409 with a reason, not a silent accept. All six gated on isAssignedTo alone — true from the moment the admin picks someone — so the whole job could be done and only the hand-back refused. isCoachesTurn and isTranslatorsTurn are the one home per side"
+            },
+            {
+              "id": "6.18.2",
+              "what": "⚠️ The download door. As an assigned-but-unsent coach, GET /api/files/[id] for an intake file",
+              "expect": "403, \"the admin hasn't sent this over to you yet\" — 403 not 404, because they are assigned and there is nothing to hide from them. An un-assigned operator still gets 404, which refuses to confirm the id. ⚠️ The gate is monotone (isHandedOverFor), so it only ever closes the window before the hand-off: a coach's own finished review stays downloadable, which is what the receipt on their card is made of"
+            },
+            {
+              "id": "6.18.3",
+              "what": "⚠️ The translator's mirror. Assign a translator a leg and stop before sending",
+              "expect": "Covered by tests/unit/translationCard.test.tsx. The leg reads \"Assigned to you\", with no files and no upload. ⚠️ It read \"Handed back ✓\" — open is false both before the hand-off and after the hand-back, and the card took that one flag for \"finished\", so an unsent leg showed a receipt for files the translator had never been given"
+            },
+            {
+              "id": "6.18.4",
+              "what": "The predicates cannot drift apart",
+              "expect": "Covered by tests/unit/submissionStatus.test.ts. isHandedOverFor is a monotone suffix for every kind; the coach's turn is exactly sent_to_coach+in_review; intake is never handed to anybody. A new rung is a compile error in each exhaustive Record"
             },
             {
               "id": "6.16",

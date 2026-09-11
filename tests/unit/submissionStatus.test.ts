@@ -8,6 +8,9 @@ import {
   isPaid,
   isReleased,
   hasResponse,
+  isWithCoach,
+  isHandedToCoach,
+  isHandedOverFor,
   whoseCourt,
   numberedRungLabel,
   type SubmissionStatus,
@@ -61,6 +64,81 @@ describe("ladder predicates are monotone suffixes", () => {
     expect(isSuffix(isPaid)).toBe(true);
     expect(isSuffix(isReleased)).toBe(true);
     expect(isSuffix(hasResponse)).toBe(true);
+  });
+
+  /*
+    The read gate is monotone too, and that is the whole reason it is a separate
+    predicate from the write gates: once the admin has handed work over, the
+    person it went to may always reopen it. A gate that closed again would take
+    a coach's own finished review away from them the moment the admin approved
+    it — which is the `status === "complete"` mistake, one role over.
+  */
+  it("isHandedOverFor never flips back off, for any kind", () => {
+    for (const kind of [
+      "feedback",
+      "intake_translation",
+      "feedback_translation",
+    ] as const) {
+      expect(isSuffix((s) => isHandedOverFor(s, kind))).toBe(true);
+    }
+  });
+});
+
+/**
+ * QA 6.18 — assignment is not hand-off.
+ *
+ * Every door was asking "are they assigned", which is true from the moment the
+ * admin picks someone. These pin the gap between picking and sending, on both
+ * sides of it (Ben, 2026-09-11).
+ */
+describe("6.18 — picked is not sent", () => {
+  const PICKED_NOT_SENT = [
+    "assigned",
+    "intake_translator_assigned",
+    "sent_to_intake_translator",
+    "intake_translating",
+    "intake_translated",
+  ] as const;
+
+  it("the row is the coach's from `assigned`, the work is not", () => {
+    for (const status of PICKED_NOT_SENT) {
+      expect(isWithCoach(at(status))).toBe(true);
+      expect(isHandedToCoach(at(status))).toBe(false);
+    }
+  });
+
+  it("the coach's turn opens at sent_to_coach and closes at the hand-back", () => {
+    const theirTurn = (status: SubmissionStatus) =>
+      isWithCoach(at(status)) && isHandedToCoach(at(status));
+    expect(SUBMISSION_STATUSES.filter(theirTurn)).toEqual([
+      "sent_to_coach",
+      "in_review",
+    ]);
+  });
+
+  it("a translator's leg is not handed over at its own picked rung", () => {
+    expect(
+      isHandedOverFor(at("intake_translator_assigned"), "intake_translation"),
+    ).toBe(false);
+    expect(
+      isHandedOverFor(at("sent_to_intake_translator"), "intake_translation"),
+    ).toBe(true);
+    expect(
+      isHandedOverFor(at("feedback_translator_assigned"), "feedback_translation"),
+    ).toBe(false);
+    expect(
+      isHandedOverFor(at("sent_to_feedback_translator"), "feedback_translation"),
+    ).toBe(true);
+  });
+
+  /*
+    Nobody is ever assigned to produce the customer's own uploads, so the kind
+    that can't be assigned can never open a door.
+  */
+  it("intake is never handed over to anybody", () => {
+    for (const status of SUBMISSION_STATUSES) {
+      expect(isHandedOverFor(at(status), "intake")).toBe(false);
+    }
   });
 });
 

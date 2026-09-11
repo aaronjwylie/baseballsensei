@@ -61,6 +61,19 @@ flowchart LR
 
 ## 2 · Honest current state
 
+**2026-09-11 — picked is not sent (Ben, QA 6.18).** The hand-back and the remove
+action had always checked `isLegOpen`; the three *upload* routes had not, so a
+translator the admin had merely chosen could do the entire job on a leg that was
+never sent, and only be refused at the last step. `isTranslatorsTurn` wraps the
+kind lookup around `isLegOpen` so the two cannot drift, and gates all three.
+
+The card had the matching bug and it was louder: `open` is false both *before*
+the hand-off and *after* the hand-back, and the card read that single flag as
+"finished" — so an unsent leg rendered **Handed back ✓** over a receipt for files
+the translator had never been given. Three states now, with `isLegDone` telling
+the two closed ones apart.
+
+
 **Built and deployed 2026-08-31.** The portal runs end to end: queue, download,
 upload, hand back, both legs.
 

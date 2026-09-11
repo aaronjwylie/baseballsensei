@@ -115,7 +115,17 @@ flowchart LR
   classification gets wording true of both. Telling someone with a full mailbox
   to check for a typo sends them hunting for a mistake they didn't make.
 
-## 2 · Where we are now — 2026-08-01
+## 2 · Where we are now — 2026-09-11
+
+- ✅ **`isCoachesTurn` gates all three upload routes** (Ben, QA 6.18). They
+  checked `isAssignedTo` alone, which is true from the moment the admin picks a
+  coach — so a response could be attached to a submission that was still being
+  translated, or that had no file set chosen. Both halves are required:
+  `isHandedToCoach` opens the turn at the hand-off, `isWithCoach` closes it at
+  the hand-back, so a stale tab can't add a file to something the admin is
+  already reviewing. One home, because three routes need the same answer.
+
+## Before that — 2026-08-01
 
 This slice grew from "the coach's response" into **the response's whole life after
 delivery** — collected, resolved, warned, purged — because all four are about the

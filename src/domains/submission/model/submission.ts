@@ -140,7 +140,7 @@ export function describeDirection(direction: Direction): string {
 }
 
 /** What the player wants coached. `./focusEnum.ts` derives the DB type from it. */
-import type { FileSet } from "./submissionFile";
+import type { FileKind, FileSet } from "./submissionFile";
 
 export const FOCUS_OPTIONS = [
   "Hitting",
@@ -546,6 +546,136 @@ export function isWithCoach(submission: Pick<Submission, "status">): boolean {
   return WITH_COACH_AT_STATUS[submission.status];
 }
 
+/**
+ * Has the admin handed the work over to whoever produces `kind`?
+ *
+ * **The read gate, and it is monotone.** Once the hand-off email has gone out
+ * it stays true forever — so a coach can still open their own past work, and a
+ * translator their own finished leg, which is what the receipt on each portal's
+ * card is made of. The bounded question, *is it their turn right now*, is a
+ * different one: `isWithCoach` for a coach, `isLegOpen` for a translator leg.
+ * Both doors need both answers, and conflating them either locks people out of
+ * their own history or lets them keep working past their turn.
+ *
+ * **Assignment is not hand-off.** The admin picks a person, then sends — two
+ * acts, and between them the file set is still unchosen (`coachFileSet` null)
+ * or the intake translation is still out. Until 2026-09-11 every door confused
+ * the two: six upload routes and `/api/files/[id]` checked `isAssignedTo`, so
+ * an assigned coach could download the customer's originals and upload a
+ * response before the admin had sent anything — including on a submission whose
+ * whole point was that the coach should read the *translation* (Ben, QA 6.18).
+ * Only the two hand-backs were guarded, so the work could be done but not
+ * delivered.
+ *
+ * `intake` is always false: the customer produces those, and nobody is ever
+ * assigned to them.
+ */
+const HANDED_OVER_FOR_FEEDBACK: Record<SubmissionStatus, boolean> = {
+  draft: false,
+  awaiting_payment: false,
+  new: false,
+  // Chosen, not sent. The row is theirs; the work is not yet.
+  assigned: false,
+  intake_translator_assigned: false,
+  sent_to_intake_translator: false,
+  intake_translating: false,
+  // The translation is back, but the admin still has to send it on.
+  intake_translated: false,
+  sent_to_coach: true,
+  in_review: true,
+  // Delivered. Still true — they may reopen what they sent.
+  awaiting_approval: true,
+  feedback_translator_assigned: true,
+  sent_to_feedback_translator: true,
+  feedback_translating: true,
+  feedback_translated: true,
+  complete: true,
+  collected: true,
+  resolved: true,
+  purge_imminent: true,
+  purged: true,
+};
+
+const HANDED_OVER_FOR_INTAKE_TRANSLATION: Record<SubmissionStatus, boolean> = {
+  draft: false,
+  awaiting_payment: false,
+  new: false,
+  assigned: false,
+  // Chosen, not sent — the translator's own version of `assigned`.
+  intake_translator_assigned: false,
+  sent_to_intake_translator: true,
+  intake_translating: true,
+  intake_translated: true,
+  sent_to_coach: true,
+  in_review: true,
+  awaiting_approval: true,
+  feedback_translator_assigned: true,
+  sent_to_feedback_translator: true,
+  feedback_translating: true,
+  feedback_translated: true,
+  complete: true,
+  collected: true,
+  resolved: true,
+  purge_imminent: true,
+  purged: true,
+};
+
+const HANDED_OVER_FOR_FEEDBACK_TRANSLATION: Record<SubmissionStatus, boolean> = {
+  draft: false,
+  awaiting_payment: false,
+  new: false,
+  assigned: false,
+  intake_translator_assigned: false,
+  sent_to_intake_translator: false,
+  intake_translating: false,
+  intake_translated: false,
+  sent_to_coach: false,
+  in_review: false,
+  awaiting_approval: false,
+  // Chosen, not sent.
+  feedback_translator_assigned: false,
+  sent_to_feedback_translator: true,
+  feedback_translating: true,
+  feedback_translated: true,
+  complete: true,
+  collected: true,
+  resolved: true,
+  purge_imminent: true,
+  purged: true,
+};
+
+const NEVER_HANDED_OVER: Record<SubmissionStatus, boolean> = Object.fromEntries(
+  SUBMISSION_STATUSES.map((status) => [status, false]),
+) as Record<SubmissionStatus, boolean>;
+
+const HANDED_OVER_AT_STATUS: Record<FileKind, Record<SubmissionStatus, boolean>> =
+  {
+    // Nobody is ever assigned to produce the customer's own uploads.
+    intake: NEVER_HANDED_OVER,
+    feedback: HANDED_OVER_FOR_FEEDBACK,
+    intake_translation: HANDED_OVER_FOR_INTAKE_TRANSLATION,
+    feedback_translation: HANDED_OVER_FOR_FEEDBACK_TRANSLATION,
+  };
+
+export function isHandedOverFor(
+  submission: Pick<Submission, "status">,
+  produces: FileKind,
+): boolean {
+  return HANDED_OVER_AT_STATUS[produces][submission.status];
+}
+
+/**
+ * The coach's half, named — `isHandedOverFor(s, "feedback")`.
+ *
+ * Pairs with `isWithCoach`: that one says the row is *theirs* (from `assigned`),
+ * this one says the work has actually been *handed over* (from `sent_to_coach`).
+ * Their turn is both at once; the gap between them is the waiting card.
+ */
+export function isHandedToCoach(
+  submission: Pick<Submission, "status">,
+): boolean {
+  return isHandedOverFor(submission, "feedback");
+}
 /**
  * Whose court is the ball in?
  *

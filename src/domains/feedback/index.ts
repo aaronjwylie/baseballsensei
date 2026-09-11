@@ -15,6 +15,7 @@ export {
   sendFeedbackReady,
 } from "./api/feedbackEmail";
 export { signFeedbackToken, verifyFeedbackToken } from "./api/feedbackToken";
+export { isCoachesTurn, NOT_SENT_TO_COACH } from "./api/feedbackPolicy";
 export {
   FEEDBACK_CODE_COOKIE,
   FEEDBACK_CODE_TTL_S,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/domains/account";
 import { getSubmission, isAssignedTo } from "@/domains/submission";
+import { isCoachesTurn, NOT_SENT_TO_COACH } from "@/domains/feedback";
 import { saveFeedbackFile } from "@/domains/feedback";
 import { getSettings, maxFileSizeBytes } from "@/domains/settings";
 
@@ -31,6 +32,15 @@ export async function POST(request: Request) {
 
   if (!session.roles.includes("admin") && !(await isAssignedTo(submissionId, session.operatorId, "feedback"))) {
     return NextResponse.json({ error: "Not your submission." }, { status: 403 });
+  }
+
+  /*
+    Ownership is not a turn (Ben, QA 6.18). The admin may attach for anyone —
+    they are the one who unsticks a stalled submission — but an operator may
+    only work on one that has actually been handed to them.
+  */
+  if (!session.roles.includes("admin") && !isCoachesTurn(submission)) {
+    return NextResponse.json({ error: NOT_SENT_TO_COACH }, { status: 409 });
   }
 
   try {

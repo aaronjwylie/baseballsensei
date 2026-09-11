@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/domains/account";
 import { getSubmission, isAssignedTo } from "@/domains/submission";
+import { isTranslatorsTurn, LEG_NOT_SENT } from "@/domains/translation";
 import { saveTranslationFile } from "@/domains/translation";
 import { TRANSLATION_KINDS, type TranslationKind } from "@/domains/translation";
 import { getSettings, maxFileSizeBytes } from "@/domains/settings";
@@ -38,6 +39,14 @@ export async function POST(request: Request) {
     !(await isAssignedTo(submissionId, session.operatorId, kind))
   ) {
     return NextResponse.json({ error: "Not your leg." }, { status: 403 });
+  }
+
+  /*
+    Ownership is not a turn (Ben, QA 6.18). The admin may attach for anyone;
+    an operator may only work on what has been handed to them.
+  */
+  if (!session.roles.includes("admin") && !isTranslatorsTurn(submission, kind)) {
+    return NextResponse.json({ error: LEG_NOT_SENT }, { status: 409 });
   }
 
   try {
