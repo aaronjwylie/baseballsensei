@@ -6,7 +6,7 @@
 >
 > **If this contradicts Vercel's project settings, Vercel wins — fix this doc.**
 >
-> **Written 2026-09-10**, the day `1.0.0` was named and before any of it existed. §1 is the
+> **Written 2026-09-10**, the day `1.0.0` was named. Phase 0 shipped the same evening. §1 is the
 > destination; §2 is the honest distance; §4 is the route. When a phase ships, §2 moves and §4
 > shrinks — §1 should not need to change.
 
@@ -182,7 +182,10 @@ from a distance:
 
 - ❌ **`main` is production.** The `baseball-sensei` Vercel project's production branch is `main`;
   every merge deploys live. 598 commits, no tags.
-- ❌ **`package.json` reads `"name": "dev", "version": "0.1.0"`.** No `CHANGELOG.md`.
+- ✅ **Phase 0 shipped 2026-09-10.** `package.json` is `baseball-sensei@1.0.0`; `CHANGELOG.md` carries
+  the in-progress `[1.0.0]` section; `drizzle/meta/floors.json` records `0028`; `check:release` runs
+  first in `build` and in CI, proven red on three planted faults; the footer and `/api/version` say
+  `v1.0.0 · <sha>` on every rung; `main` is tagged `v1.0.0-rc.1`.
 - ❌ **Previews share the production database.** `migrate-on-deploy.mjs` skips them *for that reason*,
   so a preview of a branch carrying a migration misbehaves by design. There is no qa rung — a preview
   is production's code against production's data with a different hostname.
@@ -191,8 +194,8 @@ from a distance:
   which is also the only way forward.
 - ❌ **No rollback floor.** `0028` dropped columns; nothing records that `0027` and earlier can no
   longer be promoted.
-- ❌ **The running system does not say its version.** It says its commit, to the QA probe only
-  (`BUILD_SHA`), which is half of P13.
+- ✅ **The running system says its version** — footer, `/api/version`, and the QA probe's first line,
+  all from `publicEnv.ts`. Was commit-only, to the probe only, until Phase 0.
 - ⚠️ **A duplicate Vercel project (`baseballsensai`) is wired to the same repo and fails every
   push.** Noise that looks exactly like a broken deploy ([`docs/OUTSTANDING.md`](../docs/OUTSTANDING.md) §1).
 
@@ -249,7 +252,7 @@ Phases 1–3 need Aaron, because they are dashboards.** The minimum for promotin
 Phase 0 plus the `production` branch from Phase 3 — staging can follow the first release if the
 calendar forces it, and §2 will say so if it does.
 
-### Phase 0 · Name what is · *no infra, ~half a day*
+### Phase 0 · Name what is · *no infra, ~half a day* — ✅ **shipped 2026-09-10**
 
 **Goal:** the release becomes a noun before the pipeline exists to carry it (P1, P2, P5, P12, P13).
 

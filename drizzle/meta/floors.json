@@ -1,0 +1,6 @@
+{
+  "_": "Rollback floors — migrations that CONTRACT the schema (drop, narrow, rename). Nothing older than the release carrying one can be promoted again. Add the tag in the same commit as the migration. _ReleaseLaw P4; _ReleaseDocumentation §1d.",
+  "floors": [
+    "0028_drop_vestigial_operator_columns"
+  ]
+}

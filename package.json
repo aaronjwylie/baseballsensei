@@ -1,10 +1,10 @@
 {
-  "name": "dev",
-  "version": "0.1.0",
+  "name": "baseball-sensei",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/check-names.mjs && node scripts/check-doctrine.mjs && node scripts/check-structure.mjs && node scripts/check-a11y.mjs && node scripts/migrate-on-deploy.mjs && next build",
+    "build": "node scripts/check-release.mjs && node scripts/check-names.mjs && node scripts/check-doctrine.mjs && node scripts/check-structure.mjs && node scripts/check-a11y.mjs && node scripts/migrate-on-deploy.mjs && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -24,6 +24,7 @@
     "flow": "tsx --tsconfig tsconfig.json scripts/test-flow.ts",
     "stripe": "tsx --tsconfig tsconfig.json scripts/stripe-webhook.ts",
     "db:baseline": "tsx --tsconfig tsconfig.json scripts/baseline-migrations.ts",
+    "check:release": "node scripts/check-release.mjs",
     "check:names": "node scripts/check-names.mjs",
     "check:doctrine": "node scripts/check-doctrine.mjs",
     "check:structure": "node scripts/check-structure.mjs",

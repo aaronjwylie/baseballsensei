@@ -112,6 +112,7 @@ repeatedly (AUTH_SECRET, EMAIL_FROM).
 13. [Endpoint reference](#13-endpoint-reference)
 14. [Troubleshooting](#14-troubleshooting)
 15. [Pending changes](#15-pending-changes)
+16. [The release pipeline — setting it up](#16-the-release-pipeline--setting-it-up)
 
 ---
 
@@ -611,6 +612,88 @@ The Stripe webhook URL. See the warning at the top.
 | **The remaining 3 emails + the admin's approval step** ([`shared/email/_EmailDocumentation.md`](src/shared/email/_EmailDocumentation.md)) | Agreed, not built — needs a new status and an admin approve action |
 | **Point the site at `baseball-sensei.com`** + update `NEXT_PUBLIC_SITE_URL` | Optional — on the `.vercel.app` URL today |
 | **Forgot-password** (email reset) | Deferred — needs a token flow (change-password already shipped) |
+
+---
+
+## 16. The release pipeline — setting it up
+
+The *why* and the design are [`documentation/_ReleaseDocumentation.md`](documentation/_ReleaseDocumentation.md);
+this is what to click, in order. **Phase 0 is done** (version, changelog, floors, `check:release`,
+the version stamp, `v1.0.0-rc.1`). Everything below needs a dashboard login, so it is Aaron's unless
+Ben is granted access first — which is the better fix ([§1](#1-ownership-model)).
+
+**The one rule that survives every step: no rung ever holds another rung's credentials.** A
+production URL or token goes into a non-production environment under no name the app reads — the
+`PROD_*` convention in `.env.example` — or not at all.
+
+### Phase 1 · qa — previews get their own data · *~half a day*
+
+- [ ] **Supabase → New project** `baseball-sensei-qa` (same org). Copy its pooled and direct URLs.
+- [ ] From a checkout, migrate and seed it:
+      ```bash
+      POSTGRES_URL_NON_POOLING="<qa direct url>" npm run db:migrate
+      DATABASE_URL="<qa direct url>" SEED_SAMPLES=1 npm run db:seed && DATABASE_URL="<qa direct url>" npm run db:ladder
+      ```
+- [ ] **Vercel → Storage → Create Blob store** `baseball-sensei-qa`. Do **not** connect it to the
+      Production environment.
+- [ ] **Vercel → `baseball-sensei` → Settings → Environment Variables → Preview only:**
+      `POSTGRES_URL` + `POSTGRES_URL_NON_POOLING` (qa), `BLOB_READ_WRITE_TOKEN` (qa store),
+      Stripe **test** `sk_test_` / `pk_test_`, `STRIPE_WEBHOOK_SECRET` (any `whsec_` — previews get
+      no webhook), `AUTH_SECRET` (**a new one** — a session minted on qa must not open prod),
+      `CRON_SECRET`, `QA_TOKEN`, `RESEND_API_KEY` + `EMAIL_FROM`, `BASIC_AUTH_*`.
+      **Leave `NEXT_PUBLIC_SITE_URL` unset** — the code falls back to the preview's own host.
+- [ ] Merge the PR that makes `migrate-on-deploy.mjs` migrate previews too (it currently skips them
+      *because* they shared prod). Confirm on the PR's own preview: footer stamp, `/status`, one upload.
+- [ ] Done when a PR carrying a migration previews correctly against rows that are not in production.
+
+### Phase 2 · staging — a second Vercel project · *~one day, plus DNS*
+
+- [ ] **Delete the `baseballsensai` project** (misspelled duplicate; fails every push).
+- [ ] **Vercel → Add New → Project** from the same repo: `baseball-sensei-staging`. Production
+      branch **`main`**. Move Phase 1's Preview variables *to this project* (Preview scope) and remove
+      them from the prod project; on the prod project set **Ignored Build Step** to skip anything that
+      is not `VERCEL_ENV=production`, so each PR builds once, here, against qa.
+- [ ] **Supabase → New project** `baseball-sensei-staging`; **Vercel → Blob store**
+      `baseball-sensei-staging`. Set the staging project's **Production** variables: staging DB + Blob,
+      Stripe test keys, a **new** `AUTH_SECRET`, `CRON_SECRET`, `QA_TOKEN`, Resend, Basic Auth, and
+      `NEXT_PUBLIC_SITE_URL=https://staging.baseball-sensei.com` **explicitly** (3-D Secure must
+      return to the host the flow cookie was set on).
+- [ ] **GoDaddy → DNS:** CNAME `staging` → `cname.vercel-dns.com`. **Vercel → staging project →
+      Domains:** add `staging.baseball-sensei.com`.
+- [ ] **Stripe → Developers → Webhooks (test mode):** add
+      `https://staging.baseball-sensei.com/api/webhooks/stripe` for `payment_intent.succeeded` +
+      `payment_intent.payment_failed`; put its `whsec_` in the staging project. Redeploy.
+- [ ] Run the mirror once (`npm run mirror:staging` — lands with the PR for this phase) and open
+      `/admin`: production-shaped rows, unreachable addresses, files showing as swept.
+- [ ] Done when a merge to `main` deploys to staging, a test card and a 3-D Secure card clear there
+      against staging's own webhook, and production is untouched throughout.
+
+### Phase 3 · prod changes only by promotion · *~half a day, then go-live*
+
+- [ ] **GitHub:** create `production` at the commit currently live
+      (`git branch production <sha> && git push origin production`).
+- [ ] **Vercel → `baseball-sensei` → Settings → Git → Production Branch: `production`.**
+- [ ] **GitHub → Settings → Rules:** `main` requires a PR with `static` + `db` green; `production`
+      restricts pushes to the two account holders and allows their force-push (rollback);
+      `v*` tags cannot be deleted or moved.
+- [ ] Merge the PR with `scripts/release.mjs` + `scripts/promote.mjs`. Rehearse on the staging
+      project: promote `rc.1`, then `rc.2`, then back. Record the outcome in
+      `_ReleaseDocumentation.md` §3.
+- [ ] **Go-live is the first real promotion.** Walk the release itinerary on staging, do every item
+      under `Operate` in `CHANGELOG.md` `[1.0.0]`, then:
+      ```bash
+      npm run release -- 1.0.0     # cuts the changelog section, commits, tags v1.0.0
+      npm run promote -- v1.0.0    # fast-forwards production to the tag; Vercel deploys
+      ```
+      Confirm the footer on `www` reads `v1.0.0`, make one real low-stakes purchase, refund it.
+      Clear `BASIC_AUTH_*` on **production only**.
+- [ ] Done when a push to `main` no longer changes `www`.
+
+### After that
+
+Phase 4 (the rollback floor enforced at build) and Phase 5 (document sweep) are code, not clicks —
+see the Documentation §4. The nightly sweep, the QA probe and the E2E all keep working unchanged;
+they just start running on the rung they were meant for.
 
 ---
 
