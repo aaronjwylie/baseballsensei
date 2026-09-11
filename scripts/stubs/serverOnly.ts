@@ -1,5 +1,6 @@
 /**
- * A no-op stand-in for the `server-only` package, used only by `npm run simulate`.
+ * A no-op stand-in for the `server-only` package, mapped in by `tsconfig.scripts.json` for
+ * every script run under `tsx` — seed, ladder, flow, payment, simulate, the lot.
  *
  * `import "server-only"` is a build-time assertion: Next resolves it to an empty
  * module in a server bundle and to one that throws in a client bundle, so a
@@ -17,5 +18,10 @@
  * meaningless to a script that is server-side by definition, so the script maps
  * it to nothing. `tsconfig.json` is untouched, so the guarantee the real module
  * provides to `next build` is exactly as it was.
+ *
+ * It was `tsconfig.simulate.json` and mapped for `simulate` alone until 2026-09-10, when
+ * `db:seed` — run under plain `tsconfig.json` — died the same death the moment its import
+ * chain first reached a file that says `import "server-only"`. One tsconfig for every script,
+ * named for what it is.
  */
 export {};

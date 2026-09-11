@@ -47,6 +47,18 @@ export const env = {
     );
   },
 
+  /**
+   * Which rung this deploy is — `qa` · `staging` · `prod` — set per Vercel
+   * environment (OPERATIONS §16). Optional: a laptop has none and reads as
+   * `dev`. Two readers: the footer stamp shows it beside the version
+   * (_ReleaseLaw P13), and `migrate-on-deploy.mjs` migrates a preview only
+   * when it says `qa`, because that is the one preview environment that owns
+   * its database (P6).
+   */
+  get rung() {
+    return optional("RUNG") ?? "dev";
+  },
+
   // Auth.js session/JWT secret for the operator portal.
   get authSecret() {
     return required("AUTH_SECRET");

@@ -134,7 +134,7 @@ async function main() {
       .insert(submissionTable)
       .values({
         customerEmail: `${MARK}${i + 1}@example.com`,
-        playerName: NAMES[i],
+        playerName: NAMES[i % NAMES.length], // 16 names, 20 rungs — wrap rather than insert null
         playerAge: 12 + (i % 7),
         focus: FOCUS[i % FOCUS.length],
         customerNotes: "Seeded for the progress view.",

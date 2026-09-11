@@ -31,4 +31,5 @@ export {
   type LegShape,
   type TranslationKind,
 } from "./model/translationLeg";
+export { groupBySubmission, type TranslationCardGroup } from "./model/translationCard";
 export { TranslationUpload } from "./ui/TranslationUpload";

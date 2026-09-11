@@ -18,7 +18,7 @@
  *                 names the schema head it was built against:
  *                   ## [1.2.0] — 2026-10-01 · schema 0031[ · floor]
  *   3. SCHEMA     the heading's schema equals the migration journal's head;
- *                 `· floor` is present iff drizzle/meta/floors.json names a
+ *                 `· floor` is present iff drizzle/floors.json names a
  *                 migration newer than the previous release's schema
  *   4. FLOORS     every floor names a migration that exists
  *   5. OPERATE    every variable added to .env.example since the last tag is
@@ -85,7 +85,7 @@ if (current?.schema && current.schema !== headIdx) {
 }
 
 // ── 4 · FLOORS ─────────────────────────────────────────────────────────────
-const floorsFile = "drizzle/meta/floors.json";
+const floorsFile = "drizzle/floors.json";
 const floors = existsSync(floorsFile) ? JSON.parse(readFileSync(floorsFile, "utf8")).floors ?? [] : [];
 const tags = new Set(entries.map((e) => e.tag));
 for (const f of floors) if (!tags.has(f)) fail(`floors.json names ${f}, which is not in the journal`);

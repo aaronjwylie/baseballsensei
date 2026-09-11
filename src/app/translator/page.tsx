@@ -9,9 +9,8 @@ import {
   listEventsForSubmissions,
   reachedAt,
   type FileKind,
-  type Submission,
 } from "@/domains/submission";
-import { findLegsForTranslator, LEGS, type TranslatorLeg } from "@/domains/translation";
+import { findLegsForTranslator, groupBySubmission, type TranslatorLeg } from "@/domains/translation";
 import type { UploadMode } from "@/shared/upload";
 import { getSettings } from "@/domains/settings";
 
@@ -107,32 +106,6 @@ export default async function TranslatorHomePage() {
   );
 }
 
-/**
- * The queue's legs, gathered onto one entry per submission.
- *
- * **Order comes from the query, not from a sort here.**
- * `findLegsForTranslator` already returns `submittedAt` descending, so
- * first-seen is newest-first; re-sorting would be a second opinion that could
- * disagree with the first. Within a card the legs take `LEGS` order — the
- * pipeline's own — so the card reads in the direction the work travels rather
- * than in whichever order the assignment rows happened to come back.
- *
- * Exported so the grouping can be tested without rendering an async page.
- */
-export function groupBySubmission(
-  legs: TranslatorLeg[],
-): { submission: Submission; legs: TranslatorLeg[] }[] {
-  const byId = new Map<string, { submission: Submission; legs: TranslatorLeg[] }>();
-  for (const leg of legs) {
-    const card = byId.get(leg.submission.id);
-    if (card) card.legs.push(leg);
-    else byId.set(leg.submission.id, { submission: leg.submission, legs: [leg] });
-  }
-  const order = (leg: TranslatorLeg) =>
-    LEGS.findIndex((l) => l.produces === leg.leg.produces);
-  for (const card of byId.values()) card.legs.sort((a, b) => order(a) - order(b));
-  return [...byId.values()];
-}
 
 /** When each of this submission's legs was handed back, keyed by what it produces. */
 function handedBackByLeg(

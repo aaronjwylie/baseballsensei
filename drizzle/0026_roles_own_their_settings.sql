@@ -32,12 +32,22 @@ ALTER TABLE "operator_role_grant" ADD COLUMN IF NOT EXISTS "image_url" text;--> 
 -- Admin grants are left empty on purpose: languages and specialties do not
 -- apply to running the platform, and copying a coach's onto their admin role
 -- would invent a fact nobody stated.
+--
+-- `g."role"::text` rather than `g."role"`, since 2026-09-10. `translator` was
+-- added to the enum by 0004, and Postgres refuses to COMPARE against a value
+-- added in the same transaction ("unsafe use of new value"). Production never
+-- saw that — 0004 and 0026 shipped weeks apart — but a fresh database applies
+-- the whole chain in one transaction and died here, silently, on every CI run
+-- since 2026-08-30. The cast reads the label as text and sidesteps the check;
+-- the rows it touches are identical. This is the one shape of edit an applied
+-- migration may take: effect-preserving, and only so the chain applies from
+-- empty (_ReleaseLaw §6a; _DoctrineFeedback §1e).
 UPDATE "operator_role_grant" g
 SET "languages"   = COALESCE(p."languages", '{}'),
     "specialties" = COALESCE(p."specialties", '{}')
 FROM "operator_profile" p
 WHERE p."operator_id" = g."operator_id"
-  AND g."role" IN ('coach', 'translator');--> statement-breakpoint
+  AND g."role"::text IN ('coach', 'translator');--> statement-breakpoint
 
 -- Bio and photo are the public site's, and only a coach is shown there.
 UPDATE "operator_role_grant" g
