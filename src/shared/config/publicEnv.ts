@@ -42,3 +42,11 @@ export function assertStripeKeyPresent(): void {
     );
   }
 }
+
+/**
+ * Which release this bundle is (_ReleaseLaw P13). Both are inlined at build
+ * time by `next.config.ts` — the version from package.json, the commit from
+ * Vercel — and read here so no component touches `process.env` for them.
+ */
+export const appVersion = process.env.APP_VERSION ?? "0.0.0";
+export const buildSha = process.env.BUILD_SHA ?? "dev";

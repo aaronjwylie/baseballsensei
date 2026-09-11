@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/shared/ui";
 import { site } from "@/shared/config/site";
+import { appVersion, buildSha } from "@/shared/config/publicEnv";
 import { Logo } from "@/shared/layout/Logo";
 import { AnchorScrollLink } from "@/shared/layout/AnchorScrollLink";
 import { navLinks } from "@/shared/layout/navLinks";
@@ -51,6 +52,8 @@ export function SiteFooter() {
             © {year} {site.name}
             {" · "}Vancouver &amp; Tokyo
           </p>
+          {/* Which release this is — on every rung, so "is this the fix?" is answered by looking (_ReleaseLaw P13). */}
+          <p className="opacity-60" data-testid="release-stamp">{`v${appVersion} · ${buildSha}`}</p>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6">
             <Link href="/terms" className="transition-opacity hover:opacity-70">
               Terms and Conditions

@@ -66,6 +66,11 @@ for the build. It is cut, dated, and tagged `v1.0.0` on the day production takes
 - **Nine transactional emails** plus the decline notice and the status access code, on Resend from
   the verified `baseball-sensei.com` domain.
 - Stripe Elements embedded on our own page; uploads straight from the browser to Vercel Blob.
+- **The release machinery** (Phase 0 of `_ReleaseDocumentation` §4): `package.json` is the one
+  version home; `check:release` runs first in the build and in CI and refuses a version without a
+  changelog section, a heading whose schema disagrees with the journal, or a floor that is not
+  declared; `drizzle/meta/floors.json` records `0028` as the first rollback floor; every page's
+  footer and `GET /api/version` say which release and commit this is.
 
 ### Operate
 

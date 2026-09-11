@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import { readFileSync } from "node:fs";
+
+/** package.json is the one home for the version (_ReleaseLaw P2); everything else derives it. */
+const { version } = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
 
 const nextConfig: NextConfig = {
   /*
@@ -16,6 +20,7 @@ const nextConfig: NextConfig = {
   */
   env: {
     BUILD_SHA: (process.env.VERCEL_GIT_COMMIT_SHA ?? "dev").slice(0, 7),
+    APP_VERSION: version,
   },
   experimental: {
     // Coach photos are uploaded through the create/edit Server Actions, which

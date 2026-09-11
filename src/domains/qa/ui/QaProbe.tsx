@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { appVersion, buildSha } from "@/shared/config/publicEnv";
 import {
   MAX_BATCH,
   QA_FLAG_COOKIE,
@@ -477,7 +478,7 @@ export function QaProbe() {
 
     push("nav", {
       target: lastPath,
-      detail: `run started · ${browserLabel()} · build ${process.env.BUILD_SHA ?? "?"}`,
+      detail: `run started · ${browserLabel()} · build v${appVersion} ${buildSha}`,
     });
 
     document.addEventListener("click", onClick, true);
