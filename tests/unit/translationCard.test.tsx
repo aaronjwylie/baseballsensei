@@ -22,7 +22,7 @@ vi.mock("@/domains/translation", async (orig) => ({
 }));
 
 const { TranslationCard } = await import("@/app/translator/TranslationCard");
-const { groupBySubmission } = await import("@/app/translator/page");
+const { groupBySubmission } = await import("@/domains/translation/model/translationCard");
 const { LEGS } = await import("@/domains/translation/model/translationLeg");
 
 const submission = (id = "s1", submittedAt = "2026-09-01T00:00:00.000Z") =>

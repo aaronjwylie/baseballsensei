@@ -69,8 +69,21 @@ for the build. It is cut, dated, and tagged `v1.0.0` on the day production takes
 - **The release machinery** (Phase 0 of `_ReleaseDocumentation` §4): `package.json` is the one
   version home; `check:release` runs first in the build and in CI and refuses a version without a
   changelog section, a heading whose schema disagrees with the journal, or a floor that is not
-  declared; `drizzle/meta/floors.json` records `0028` as the first rollback floor; every page's
+  declared; `drizzle/floors.json` records `0028` as the first rollback floor; every page's
   footer and `GET /api/version` say which release and commit this is.
+- **CI on `main` is green again**, after eleven red days nobody read: migration `0026` could not
+  apply to a fresh database inside one transaction (an enum value compared in the transaction that
+  added it — an effect-preserving cast fixes it), and one unit test demanded a database it never
+  queried, because the database seam built its client at import. The seam is lazy now: it fails at
+  the first query, not the first import.
+- `npm run db:ladder` no longer fails on the last four rungs — it had sixteen names for twenty
+  statuses and inserted a null player name.
+- **The pipeline scripts** (Phases 1–4 of the same route, the half that is code): `npm run release`
+  cuts a tag from a green `main`; `npm run promote` moves the `production` branch to a tag and
+  refuses a rollback across a floor; `npm run mirror:staging` restores a **scrubbed** copy of
+  production into staging (addresses unreachable, file locators nulled, logins dropped);
+  `npm run reset:qa` rebuilds the qa database. `migrate-on-deploy` migrates a preview only when its
+  environment says `RUNG=qa`. The footer shows the rung beside the version on every rung but prod.
 
 ### Operate
 
@@ -81,6 +94,9 @@ for the build. It is cut, dated, and tagged `v1.0.0` on the day production takes
   strands a 3-D Secure customer after they were charged).
 - Clear `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` on production only, and redeploy.
 - Record each coach's languages in the portal, or translation need is never detected.
+- Set **`RUNG`** per Vercel environment once each rung has its own database — `qa` on the staging
+  project's Preview scope, `staging` on its Production scope, `prod` on the live project. Nothing
+  changes until it is set; a preview without it skips migrations as before (OPERATIONS §16).
 - One real low-stakes purchase, end to end, then refund it in Stripe.
 
 ### Schema

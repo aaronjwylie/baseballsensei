@@ -50,7 +50,7 @@ A release is a **git tag `vX.Y.Z` on a commit of `main`**, annotated, never move
 | the version | `package.json` `version` — **the one home** | the tag name; the footer stamp; the changelog heading |
 | the commit | the tag itself | `BUILD_SHA` in `next.config.ts` (already inlined for the QA probe — [`_QALaw` Q19](../laws/_QALaw.md)) |
 | the schema it requires | `drizzle/meta/_journal.json` — the last entry's tag | the changelog heading's `schema NNNN`, written by the release script |
-| whether it is a rollback floor | `drizzle/meta/floors.json` — the tags of contracting migrations | the changelog heading's `· floor` marker |
+| whether it is a rollback floor | `drizzle/floors.json` — the tags of contracting migrations | the changelog heading's `· floor` marker |
 | what changed, for whom | `CHANGELOG.md`, the section under its heading | — this *is* the home |
 | what an operator must do | the `Operate` subsection of that section | — |
 
@@ -67,13 +67,20 @@ customer holds (`/status`, `/api/feedback/[id]`) is **MAJOR**; a new capability 
 ### 1c · The promotion mechanism — one branch, one direction at a time
 
 Production is the `production` branch on the `baseball-sensei` Vercel project. It moves only by
-`npm run promote -- vX.Y.Z`, which:
+`npm run promote -- vX.Y.Z` ([`scripts/promote.mjs`](../scripts/promote.mjs)), which:
 
-1. refuses unless the tag exists, the working tree is clean, and CI is green on the tagged commit;
-2. refuses a **backward** promotion that would cross a floor (reads `floors.json` between the target
-   and the current `production`);
-3. pushes the tag's commit to `origin/production` — **fast-forward** for a promotion, **`--force`**
-   for a rollback, and prints which it did.
+1. refuses unless the tag exists and sits on the main line (an ancestor or descendant of where
+   `production` is — never a diverged commit);
+2. refuses a **backward** promotion that would cross a floor, reading `floors.json` at the newer
+   commit, and names the floor and the snapshot that is the only way past it;
+3. pushes the tag's commit to `origin/production` — **fast-forward** forward, **`--force-with-lease`**
+   backward — and prints which it did. `--branch <name>` rehearses the same motion elsewhere;
+   `--dry-run` prints and pushes nothing.
+
+The tag itself comes from `npm run release -- X.Y.Z` ([`scripts/release.mjs`](../scripts/release.mjs)):
+on a clean, level `main` with CI green on HEAD, it dates the changelog heading (or moves `Unreleased`
+under a new one), stamps `schema NNNN` and `· floor` from the journal and `floors.json`, bumps
+`package.json` if the version is new, runs `check:release`, and only then commits, tags and pushes.
 
 Vercel rebuilds the commit with production's own environment. That is the law's **second form of
 P10** — we rebuild rather than promote a build, because `NEXT_PUBLIC_SITE_URL` and
@@ -98,7 +105,7 @@ corrected by the mechanism.
 Rollback is `npm run promote` pointed at the previous tag. It is allowed when every migration between
 the target's schema and production's current schema is **expanding** — the old code runs on the newer,
 wider schema. A **contracting** migration (a drop, a narrow, a rename) is recorded in
-`drizzle/meta/floors.json` in the same commit that adds it, and nothing older than the release
+`drizzle/floors.json` in the same commit that adds it, and nothing older than the release
 carrying it can be promoted again.
 
 The rule that makes this work is [P4](../laws/_ReleaseLaw.md): **a contraction ships no sooner than
@@ -112,10 +119,13 @@ contracting migration is promoted, a Supabase backup is taken and its name goes 
 chain is already proven from empty on every PR — `ci.yml`'s `db` job migrates a throwaway Postgres and
 asserts no drift.
 
-`migrate-on-deploy.mjs` is the backstop: on a production build whose journal is *shorter* than the
-migrations already applied, it refuses the build unless every extra migration is absent from
-`floors.json`. A rollback across a floor therefore fails at build, and the previous deploy keeps
-serving — the same shape as the forward guard it already is.
+**`scripts/promote.mjs` is the gate, and it is the only road.** It has both commits — the target tag
+and what `production` is at now — so it reads `floors.json` at the *newer* one and refuses a backward
+promotion that would cross a floor. `migrate-on-deploy.mjs` cannot do that: a build of the older tag
+has never heard of the migrations it would be rolling back across, so it cannot classify them. It
+**warns loudly** when the database is ahead of its journal, and leaves the refusal to `promote`, which
+branch protection makes the only way `production` moves. *(Was specified as a build-time refusal
+before the scripts were written; the build-time side turned out structurally unable to know.)*
 
 **Rehearsed** (P11): once staging exists, a promotion `v1.0.0-rc.1 → v1.0.0-rc.2 → v1.0.0-rc.1` is
 performed on the staging project and its outcome written in §3 before `1.0.0` is promoted anywhere.
@@ -127,13 +137,17 @@ Staging matches production in every row of §1a's table except the audience colu
 behind each cell. Specifically it runs: the Blob driver (not local disk), Supabase's transaction pooler
 with `prepare: false`, Resend against the verified domain, Stripe **test** mode with its own webhook
 endpoint pointed at `staging.baseball-sensei.com/api/webhooks/stripe`, the `vercel.json` cron at 04:00
-UTC against its own database, `QA_TOKEN` set so the probe can be armed, `CRON_SECRET` set, and Basic
-Auth on. **Nothing that is off on staging and on in production**, with one named exception: the
+UTC against its own database, `QA_TOKEN` set so the probe can be armed, `CRON_SECRET` set, Basic Auth on, and `RUNG=staging` —
+the variable each deployed environment sets to say which rung it is, shown in the footer beside the
+version and read by `migrate-on-deploy.mjs` to decide whether a preview owns its database. **Nothing that is off on staging and on in production**, with one named exception: the
 duplicate-Vercel-project failure noise (`baseballsensai`) is deleted, not mirrored.
 
 ### 1f · The mirror and the scrub (P7)
 
-`npm run mirror:staging` — run by whoever holds the accounts, from a checkout, before each candidate:
+`npm run mirror:staging -- --yes` ([`scripts/mirror-to-staging.sh`](../scripts/mirror-to-staging.sh) +
+[`scrub-mirror.sql`](../scripts/scrub-mirror.sql)) — run by whoever holds the accounts, from a
+checkout, before each candidate. It reads `PROD_DATABASE_URL` and `STAGING_DATABASE_URL`, refuses if
+they are equal, and was proven on a local dump-and-restore on 2026-09-10:
 
 1. `pg_dump` production over the direct URL held under `PROD_DATABASE_URL` (the name the app does not
    read, the convention `.env.example` already sets for `PROD_BLOB_READ_WRITE_TOKEN`);
@@ -183,17 +197,22 @@ from a distance:
 - ❌ **`main` is production.** The `baseball-sensei` Vercel project's production branch is `main`;
   every merge deploys live. 598 commits, no tags.
 - ✅ **Phase 0 shipped 2026-09-10.** `package.json` is `baseball-sensei@1.0.0`; `CHANGELOG.md` carries
-  the in-progress `[1.0.0]` section; `drizzle/meta/floors.json` records `0028`; `check:release` runs
+  the in-progress `[1.0.0]` section; `drizzle/floors.json` records `0028`; `check:release` runs
   first in `build` and in CI, proven red on three planted faults; the footer and `/api/version` say
   `v1.0.0 · <sha>` on every rung; `main` is tagged `v1.0.0-rc.1`.
 - ❌ **Previews share the production database.** `migrate-on-deploy.mjs` skips them *for that reason*,
   so a preview of a branch carrying a migration misbehaves by design. There is no qa rung — a preview
   is production's code against production's data with a different hostname.
-- ❌ **No staging.** Nothing between a laptop and the live site is shaped like the live site.
-- ❌ **No promotion, no rollback.** The only way back is to find a commit hash and push it to `main`,
-  which is also the only way forward.
-- ❌ **No rollback floor.** `0028` dropped columns; nothing records that `0027` and earlier can no
-  longer be promoted.
+- ❌ **No staging.** Nothing between a laptop and the live site is shaped like the live site. **The
+  scripts that will fill it exist** — `mirror:staging`, `scrub-mirror.sql`, `reset:qa`, proven on a
+  local dump-and-restore — and wait on the accounts.
+- ❌ **Production is still `main`.** `release` and `promote` exist and are smoke-tested (`promote` sees
+  no `production` branch yet and would create it); they take effect at Phase 3.
+- 🔶 **The rollback floor is recorded and gated at promotion, not yet exercised.** `0028` is in
+  `floors.json`; `promote` refuses to cross it; no rollback has been rehearsed (§1d).
+- ✅ **`migrate-on-deploy` is rung-aware.** A preview migrates only when its environment says `RUNG=qa`,
+  which is set only once the Preview environment has its own database — the old "previews share prod"
+  skip is now a key, not a wall.
 - ✅ **The running system says its version** — footer, `/api/version`, and the QA probe's first line,
   all from `publicEnv.ts`. Was commit-only, to the probe only, until Phase 0.
 - ⚠️ **A duplicate Vercel project (`baseballsensai`) is wired to the same repo and fails every
@@ -262,7 +281,7 @@ calendar forces it, and §2 will say so if it does.
    nine emails, retention. Not 598 commits; the promise. Its `Operate` section is the go-live
    runbook's remaining items: live Stripe keys and webhook, `CRON_SECRET`, clearing Basic Auth,
    confirming `NEXT_PUBLIC_SITE_URL`.
-3. `drizzle/meta/floors.json`: `["0028_drop_vestigial_operator_columns"]` — the first floor, recorded
+3. `drizzle/floors.json`: `["0028_drop_vestigial_operator_columns"]` — the first floor, recorded
    after the fact, because it is true.
 4. `scripts/check-release.mjs`, first in `build` and in `ci.yml`'s `static` job: tag ↔ version ↔
    changelog heading ↔ journal head ↔ floors; `.env.example` diff since the last tag named under
@@ -276,7 +295,7 @@ calendar forces it, and §2 will say so if it does.
 **Done when:** `npm run build` refuses a version bump without a tag, and refuses a tag without a
 changelog section; the footer says `v1.0.0-rc.1 · <sha>` in dev.
 
-### Phase 1 · Give non-production its own data · *accounts, ~half a day*
+### Phase 1 · Give non-production its own data · *accounts, ~half a day* — code ✅, accounts ⏳
 
 **Goal:** the qa rung exists — every preview runs against a database nobody minds losing (P6, P7).
 
@@ -299,7 +318,7 @@ changelog section; the footer says `v1.0.0-rc.1 · <sha>` in dev.
 **Done when:** a PR carrying a migration previews correctly, and the preview's footer, `/status`,
 and a test upload all work against rows that do not exist in production.
 
-### Phase 2 · Staging · *accounts + DNS, ~one day*
+### Phase 2 · Staging · *accounts + DNS, ~one day* — code ✅, accounts ⏳
 
 **Goal:** a place shaped like production that is not production (P7, P8).
 
@@ -322,7 +341,7 @@ and a test upload all work against rows that do not exist in production.
 against staging's Stripe webhook; the 04:00 sweep runs against staging's copy and warns a scrubbed
 address; production is untouched throughout.
 
-### Phase 3 · Production changes only by promotion · *~half a day, then go-live*
+### Phase 3 · Production changes only by promotion · *~half a day, then go-live* — code ✅, accounts ⏳
 
 **Goal:** `main` stops being production (P9, P10, P11).
 
@@ -343,20 +362,18 @@ address; production is untouched throughout.
 **Done when:** a push to `main` no longer changes `www`; `production` is at `v1.0.0`; the previous
 tag (`v1.0.0-rc.N`) is still promotable and the script says so.
 
-### Phase 4 · The floor is mechanical · *~2 hours*
+### Phase 4 · The floor is mechanical · *~2 hours* — gate ✅, rehearsal ⏳
 
-**Goal:** a rollback across a contraction fails at build, not at runtime (P3, P4, P12).
+**Goal:** a rollback across a contraction is refused before it deploys (P3, P4, P12).
 
-1. `migrate-on-deploy.mjs`: on a production build, compare the journal against
-   `drizzle.__drizzle_migrations`; if the database is ahead, refuse unless every extra tag is absent
-   from `floors.json`. Prove it: on staging, add a throwaway contracting migration, promote, roll back,
-   watch the build refuse, restore.
-2. `check:release`: a floor added in the same release as the code change that stopped reading the
-   column is refused — the contraction waits one release (P4). The check is a diff of `floors.json`
-   against the changelog's previous section.
+1. ✅ `promote.mjs` refuses a backward promotion across a floor (§1d). `migrate-on-deploy.mjs` warns
+   when the database is ahead of its journal — it cannot refuse, for the reason §1d gives.
+2. ⏳ Rehearse on staging once it exists: add a throwaway contracting migration, promote, attempt the
+   rollback, watch `promote` refuse, restore. Record it in §1d.
+3. ⏳ `check:release`: a floor added in the same release as the code change that stopped reading the
+   column is refused — the contraction waits one release (P4).
 
-**Done when:** the rehearsal in §1d is recorded, and `npm run promote` to a pre-floor tag prints the
-floor it refuses to cross.
+**Done when:** the rehearsal in §1d is recorded.
 
 ### Phase 5 · Sweep the documents · *~2 hours*
 

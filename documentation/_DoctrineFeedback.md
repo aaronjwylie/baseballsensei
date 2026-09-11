@@ -83,6 +83,32 @@ legitimately showing the shape a principle must take.
 
 ---
 
+### 1e · `_ReleaseLaw` §6a — the one edit an applied migration may take
+
+**Touches:** §6a, "an applied migration is never edited" · **Kind:** sharpens · **Seasoned since:**
+2026-09-10 (not yet — recorded the day it was found)
+
+The rule stands, and it needs one named exception or it forbids the only fix for a real failure:
+**an applied migration may be edited when the edit leaves its effect on every row identical and is
+needed for the chain to apply from an empty database.** Record the edit in the file, with the date.
+
+> **⟨INHERITED EVIDENCE⟩** In `baseballsensei`, migration `0026` compared a column against an enum
+> value that `0004` had added. Applied weeks apart in production, fine. Applied together to a fresh
+> database — which is what every CI run and every new environment does — Postgres refuses to compare
+> against a value added in the same transaction, and the whole chain rolled back. drizzle-kit
+> reported it as exit 1 with no message; CI on `main` was red for eleven days before anyone read the
+> job. A *successor* migration cannot fix this: the chain still dies at `0026` before reaching it. The
+> fix was `g."role"::text`, same rows, and it could only be made by editing an applied file.
+
+**Why it belongs in the law:** the rule as written makes the fresh-chain failure unfixable, and
+"chain applies from empty" is already a gate the law itself requires (§6a, last bullet). The two
+rules need to be able to both hold.
+
+**Second finding, same afternoon, for `_VerificationLaw` §6:** *a gate whose tool swallows the
+error is a gate that names nothing* — drizzle-kit's silent exit 1 met §4's rule 2 ("it names the
+thing") in the letter and not at all in practice. Worth a row in the §6 table; not yet proposed as
+text.
+
 ## 2 · Answers to the template's open questions — **absorbed into the pack's `NOTES.md`, v1.0.0**
 
 **Q1 · Should `_StructureLaw` be a root law?** — **Yes, and the argument is stronger than stated.**

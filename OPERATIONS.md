@@ -640,10 +640,12 @@ production URL or token goes into a non-production environment under no name the
       `POSTGRES_URL` + `POSTGRES_URL_NON_POOLING` (qa), `BLOB_READ_WRITE_TOKEN` (qa store),
       Stripe **test** `sk_test_` / `pk_test_`, `STRIPE_WEBHOOK_SECRET` (any `whsec_` — previews get
       no webhook), `AUTH_SECRET` (**a new one** — a session minted on qa must not open prod),
-      `CRON_SECRET`, `QA_TOKEN`, `RESEND_API_KEY` + `EMAIL_FROM`, `BASIC_AUTH_*`.
+      `CRON_SECRET`, `QA_TOKEN`, `RESEND_API_KEY` + `EMAIL_FROM`, `BASIC_AUTH_*`, and **`RUNG=qa`** —
+      the key that lets a preview build migrate; without it previews still skip, as they always have.
       **Leave `NEXT_PUBLIC_SITE_URL` unset** — the code falls back to the preview's own host.
-- [ ] Merge the PR that makes `migrate-on-deploy.mjs` migrate previews too (it currently skips them
-      *because* they shared prod). Confirm on the PR's own preview: footer stamp, `/status`, one upload.
+- [ ] Redeploy any open PR and confirm on its preview: the footer reads `v1.0.0 · <sha> · qa`,
+      `/status` works, one upload lands in the qa Blob store. When the qa database drifts (two PRs
+      with conflicting migrations): `QA_DATABASE_URL="<qa direct url>" npm run reset:qa -- --yes`.
 - [ ] Done when a PR carrying a migration previews correctly against rows that are not in production.
 
 ### Phase 2 · staging — a second Vercel project · *~one day, plus DNS*
@@ -655,16 +657,22 @@ production URL or token goes into a non-production environment under no name the
       is not `VERCEL_ENV=production`, so each PR builds once, here, against qa.
 - [ ] **Supabase → New project** `baseball-sensei-staging`; **Vercel → Blob store**
       `baseball-sensei-staging`. Set the staging project's **Production** variables: staging DB + Blob,
-      Stripe test keys, a **new** `AUTH_SECRET`, `CRON_SECRET`, `QA_TOKEN`, Resend, Basic Auth, and
-      `NEXT_PUBLIC_SITE_URL=https://staging.baseball-sensei.com` **explicitly** (3-D Secure must
-      return to the host the flow cookie was set on).
+      Stripe test keys, a **new** `AUTH_SECRET`, `CRON_SECRET`, `QA_TOKEN`, Resend, Basic Auth,
+      **`RUNG=staging`**, and `NEXT_PUBLIC_SITE_URL=https://staging.baseball-sensei.com` **explicitly**
+      (3-D Secure must return to the host the flow cookie was set on). On the prod project set
+      **`RUNG=prod`** (Production scope) so its footer stays clean.
 - [ ] **GoDaddy → DNS:** CNAME `staging` → `cname.vercel-dns.com`. **Vercel → staging project →
       Domains:** add `staging.baseball-sensei.com`.
 - [ ] **Stripe → Developers → Webhooks (test mode):** add
       `https://staging.baseball-sensei.com/api/webhooks/stripe` for `payment_intent.succeeded` +
       `payment_intent.payment_failed`; put its `whsec_` in the staging project. Redeploy.
-- [ ] Run the mirror once (`npm run mirror:staging` — lands with the PR for this phase) and open
-      `/admin`: production-shaped rows, unreachable addresses, files showing as swept.
+- [ ] Run the mirror once, from a checkout, with both DIRECT urls under the names the app never reads:
+      ```bash
+      PROD_DATABASE_URL="<prod direct>" STAGING_DATABASE_URL="<staging direct>" \
+      SEED_ADMIN_EMAIL="<staging admin>" SEED_ADMIN_PASSWORD="<strong>" npm run mirror:staging -- --yes
+      ```
+      Then open `/admin` on staging: production-shaped rows, `staging+…` addresses, files showing as
+      swept, and the scrub's own proof line at the end of the output reading `0 | 0 | 0 | 1`.
 - [ ] Done when a merge to `main` deploys to staging, a test card and a 3-D Secure card clear there
       against staging's own webhook, and production is untouched throughout.
 
@@ -676,9 +684,10 @@ production URL or token goes into a non-production environment under no name the
 - [ ] **GitHub → Settings → Rules:** `main` requires a PR with `static` + `db` green; `production`
       restricts pushes to the two account holders and allows their force-push (rollback);
       `v*` tags cannot be deleted or moved.
-- [ ] Merge the PR with `scripts/release.mjs` + `scripts/promote.mjs`. Rehearse on the staging
-      project: promote `rc.1`, then `rc.2`, then back. Record the outcome in
-      `_ReleaseDocumentation.md` §3.
+- [ ] Rehearse on the staging project: point its production branch at `staging-release`
+      temporarily, then `npm run promote -- v1.0.0-rc.1 --branch staging-release`, cut an `rc.2`,
+      promote it, promote `rc.1` again (a rollback). Record the outcome in `_ReleaseDocumentation.md`
+      §1d, and point staging back at `main`.
 - [ ] **Go-live is the first real promotion.** Walk the release itinerary on staging, do every item
       under `Operate` in `CHANGELOG.md` `[1.0.0]`, then:
       ```bash

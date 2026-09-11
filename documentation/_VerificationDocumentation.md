@@ -100,6 +100,20 @@ failure has been deleted is folklore.
 
 ---
 
+- **2026-09-10 — the chain that could not apply from empty, and the gate that could not say so.**
+  CI on `main` had been red since 2026-08-30 — eleven days — and nobody had read the job. Two causes,
+  both structural. **The `db` job:** migration `0026` compared against an enum value `0004` had added,
+  legal across deploys and illegal inside the one transaction a fresh database applies the chain in;
+  drizzle-kit exited 1 *with no message*, so the step named nothing (rule 2 of §4, met in letter only).
+  Found by applying the chain with `psql` inside one transaction, which named the file and the line.
+  Fixed by an effect-preserving `::text` cast in the applied file — the one edit §6a of the Release
+  Law can permit, now proposed as such in `_DoctrineFeedback` §1e. **The `static` job:** a unit test
+  rendered a server component, which reached the database seam through a barrel, which constructed
+  its client at import and demanded `DATABASE_URL` in a job that has none by design. Fixed by making
+  the seam lazy — a database fails at the first *query*, not the first *import* — and by moving the
+  pure function the test wanted out of a route file. **The lesson is the one this document opens
+  with:** a red gate nobody reads is a gate that is not there.
+
 ## 4 · Deferred — what we chose NOT to gate
 
 | Not gated | Why | What would change it |
