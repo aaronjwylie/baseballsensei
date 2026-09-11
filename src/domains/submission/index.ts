@@ -164,9 +164,12 @@ export {
 export {
   FLOW_MAX_AGE_S,
   clearFlowSession,
+  claimFlowSession,
+  FLOW_SUPERSEDED_MESSAGE,
   readFlowSession,
   setFlowSession,
   touchFlowSession,
+  type FlowClaim,
 } from "./api/flowSession";
 
 export { StatusList } from "./ui/StatusList";

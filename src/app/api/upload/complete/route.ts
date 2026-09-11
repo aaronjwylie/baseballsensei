@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { touchFlowSession } from "@/domains/submission";
 import { authorizeUpload, checkFile, registerUpload } from "@/domains/upload";
+import { submissionIdFromPath } from "@/shared/storage";
 
 /**
  * Record a file the browser uploaded straight to Blob.
@@ -20,7 +21,13 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const decision = await authorizeUpload();
+  const parsed = bodySchema.safeParse(await request.json().catch(() => null));
+
+  // The pathname names the submission the tab thinks it is on; the gate refuses
+  // a tab whose submission another tab has since replaced, with that reason.
+  const decision = await authorizeUpload(
+    parsed.success ? submissionIdFromPath(parsed.data.pathname) : null,
+  );
   if (!decision.ok) {
     return NextResponse.json(
       { error: decision.refusal.error },
@@ -29,7 +36,6 @@ export async function POST(request: Request) {
   }
   const { permit } = decision;
 
-  const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid upload details." }, { status: 400 });
   }

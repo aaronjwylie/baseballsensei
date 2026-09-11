@@ -73,3 +73,45 @@ export async function readFlowSession(): Promise<string | null> {
 export async function clearFlowSession(): Promise<void> {
   return clearSignedCookie(FLOW_COOKIE);
 }
+
+/**
+ * Said to the tab that lost the browser's one flow.
+ *
+ * One home for the sentence: the actions and the upload gate both say it, and a
+ * customer who meets it on step 2 and again on step 3 should meet the same words.
+ */
+export const FLOW_SUPERSEDED_MESSAGE =
+  "Another submission was started in this browser, so this one was closed. Carry on in the other tab, or start again here.";
+
+export type FlowClaim =
+  | { ok: true; submissionId: string }
+  | { ok: false; reason: "expired" | "superseded" };
+
+/**
+ * The cookie's submission, checked against the one this tab says it is on.
+ *
+ * **One cookie per browser — but a browser has many tabs** (Ben, QA 10.6,
+ * 2026-09-10). Each tab's step is client state, so a second tab submitting
+ * step 1 re-points the cookie at its own new submission, and every action the
+ * first tab took after that re-derived "its" submission from the cookie and
+ * landed on the second tab's row: its code was checked against the wrong
+ * submission, then waved through once that one was verified; its upload was
+ * refused as "session timed out"; and it would have paid for a submission whose
+ * details it never entered.
+ *
+ * So a tab now says which submission it started, and the server refuses when
+ * the cookie disagrees. The claim is **checked, never accepted**: the cookie
+ * still authorises, and a claim can only narrow it — a mismatch fails, a match
+ * is exactly what the cookie already said. There is nothing to tamper with,
+ * because lying can only make your own request fail.
+ *
+ * Newest start wins, deliberately: that is how a refresh already works, and one
+ * cookie cannot name two submissions. The losing tab simply learns it on its
+ * next action, with the true reason, instead of acting on someone else's row.
+ */
+export async function claimFlowSession(claimed: string): Promise<FlowClaim> {
+  const current = await readFlowSession();
+  if (!current) return { ok: false, reason: "expired" };
+  if (current !== claimed) return { ok: false, reason: "superseded" };
+  return { ok: true, submissionId: current };
+}

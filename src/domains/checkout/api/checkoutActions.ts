@@ -10,6 +10,11 @@
  *
  * **Every action re-derives the submission from the cookie.** None of them
  * accepts a submission id from the browser, so there is nothing to tamper with.
+ *
+ * Past step 1 each one also takes the id the *tab* believes it is on, and that
+ * is checked, never accepted: the cookie still decides, the claim can only make
+ * the request fail. It exists because a browser has one cookie and many tabs —
+ * see `claimFlowSession` for what went wrong without it (Ben, QA 10.6).
  */
 import { headers } from "next/headers";
 import { clientIdentifierFrom, rateLimit } from "@/shared/lib";
@@ -26,7 +31,9 @@ import {
   readFlowSession,
   setFlowSession,
   clearFlowSession,
+  claimFlowSession,
   touchFlowSession,
+  FLOW_SUPERSEDED_MESSAGE,
   type SubmissionFile,
   bounceOf,
   type BounceKind,
@@ -131,6 +138,27 @@ function bouncedBack(
 
 const DONE: ActionResult<void> = { ok: true, data: undefined };
 
+/**
+ * The submission this tab is on, or the `gone` that sends it back to step 1.
+ *
+ * Every action past step 1 goes through here. A superseded tab gets its own
+ * sentence — "another submission was started in this browser" — so the customer
+ * is told what happened rather than told the window lapsed when it didn't.
+ */
+async function claimed(
+  submissionId: string,
+): Promise<
+  | { ok: true; submissionId: string }
+  | { ok: false; result: { ok: false; error: string; gone: true } }
+> {
+  const claim = await claimFlowSession(submissionId);
+  if (claim.ok) return claim;
+  return {
+    ok: false,
+    result: claim.reason === "superseded" ? gone(FLOW_SUPERSEDED_MESSAGE) : gone(),
+  };
+}
+
 async function identify(): Promise<string> {
   return clientIdentifierFrom(await headers());
 }
@@ -152,7 +180,9 @@ async function identify(): Promise<string> {
  */
 export async function startSubmissionAction(
   raw: unknown,
-): Promise<ActionResult<{ email: string; uploadFolder: string }>> {
+): Promise<
+  ActionResult<{ submissionId: string; email: string; uploadFolder: string }>
+> {
   const limit = rateLimit(`start:${await identify()}`, {
     limit: 10,
     windowSeconds: 60 * 10,
@@ -220,6 +250,10 @@ export async function startSubmissionAction(
   return {
     ok: true,
     data: {
+      // The tab keeps this and says it back on every later action — not so the
+      // server will act on it, but so the server can refuse when the browser's
+      // cookie has since moved to a submission another tab started.
+      submissionId: submission.id,
       email: submission.customerEmail,
       uploadFolder: submissionFolder(submission.id),
     },
@@ -244,7 +278,9 @@ async function sendCode(submissionId: string, email: string): Promise<boolean> {
   return result.ok;
 }
 
-export async function resendCodeAction(): Promise<ActionResult> {
+export async function resendCodeAction(
+  submissionId: string,
+): Promise<ActionResult> {
   const limit = rateLimit(`resend:${await identify()}`, {
     limit: 5,
     windowSeconds: 60 * 10,
@@ -253,10 +289,10 @@ export async function resendCodeAction(): Promise<ActionResult> {
     return fail("Too many code requests. Please wait a few minutes.");
   }
 
-  const submissionId = await readFlowSession();
-  if (!submissionId) return gone();
+  const claim = await claimed(submissionId);
+  if (!claim.ok) return claim.result;
 
-  const submission = await getSubmission(submissionId);
+  const submission = await getSubmission(claim.submissionId);
   if (!submission) return gone();
   if (isPaid(submission)) return fail("This submission is already complete.");
 
@@ -308,14 +344,24 @@ async function undeliverable(submissionId: string) {
  * acts, and answering `gone` from a background check would yank them out of a
  * step they were happily on.
  */
-export async function checkDeliveryAction(): Promise<ActionResult> {
-  const submissionId = await readFlowSession();
-  if (!submissionId) return DONE;
-  const bounce = await undeliverable(submissionId);
+export async function checkDeliveryAction(
+  submissionId: string,
+): Promise<ActionResult> {
+  const claim = await claimFlowSession(submissionId);
+  // No session is not news, as above. A *superseded* one is certain — the
+  // cookie names a submission another tab started — and that is the one thing
+  // worth moving someone backwards for.
+  if (!claim.ok) {
+    return claim.reason === "superseded" ? gone(FLOW_SUPERSEDED_MESSAGE) : DONE;
+  }
+  const bounce = await undeliverable(claim.submissionId);
   return bounce ? bouncedBack(bounce) : DONE;
 }
 
-export async function verifyCodeAction(rawCode: string): Promise<ActionResult> {
+export async function verifyCodeAction(
+  submissionId: string,
+  rawCode: string,
+): Promise<ActionResult> {
   const limit = rateLimit(`verify:${await identify()}`, {
     limit: 20,
     windowSeconds: 60 * 10,
@@ -327,8 +373,14 @@ export async function verifyCodeAction(rawCode: string): Promise<ActionResult> {
     return fail(parsed.error.issues[0]?.message ?? "Enter the code from your email.");
   }
 
-  const submissionId = await readFlowSession();
-  if (!submissionId) return gone();
+  /*
+    Before the code is even looked at. A tab whose submission another tab has
+    replaced used to have its code checked against the *other* submission —
+    refused as a mismatch, then accepted once that one was verified, because
+    re-verifying is a no-op (Ben, QA 10.6).
+  */
+  const claim = await claimed(submissionId);
+  if (!claim.ok) return claim.result;
 
   /*
     Say the true thing first.
@@ -341,7 +393,7 @@ export async function verifyCodeAction(rawCode: string): Promise<ActionResult> {
   const bounced = await undeliverable(submissionId);
   if (bounced) return bouncedBack(bounced);
 
-  const result = await verifyCode(submissionId, parsed.data);
+  const result = await verifyCode(claim.submissionId, parsed.data);
   if (result.ok) {
     await touchFlowSession();
     return DONE;
@@ -361,13 +413,13 @@ export async function verifyCodeAction(rawCode: string): Promise<ActionResult> {
  * The files currently attached, so the panel can rebuild itself after a reload
  * instead of pretending nothing was uploaded.
  */
-export async function listFlowFilesAction(): Promise<
-  ActionResult<SubmissionFile[]>
-> {
-  const submissionId = await readFlowSession();
-  if (!submissionId) return gone();
+export async function listFlowFilesAction(
+  submissionId: string,
+): Promise<ActionResult<SubmissionFile[]>> {
+  const claim = await claimed(submissionId);
+  if (!claim.ok) return claim.result;
   await touchFlowSession();
-  return { ok: true, data: await listIntakeFiles(submissionId) };
+  return { ok: true, data: await listIntakeFiles(claim.submissionId) };
 }
 
 /**
@@ -379,16 +431,19 @@ export async function listFlowFilesAction(): Promise<
  * first (best-effort, the driver swallows a missing object), then the row, so a
  * failed storage delete can't strand a row pointing at nothing.
  */
-export async function removeFlowFileAction(fileId: string): Promise<ActionResult> {
-  const submissionId = await readFlowSession();
-  if (!submissionId) return gone();
+export async function removeFlowFileAction(
+  submissionId: string,
+  fileId: string,
+): Promise<ActionResult> {
+  const claim = await claimed(submissionId);
+  if (!claim.ok) return claim.result;
 
-  const submission = await getSubmission(submissionId);
+  const submission = await getSubmission(claim.submissionId);
   if (!submission) return gone();
   if (isPaid(submission)) return fail("This submission is already complete.");
 
   const file = await getSubmissionFile(fileId);
-  if (!file || file.submissionId !== submissionId || file.kind !== "intake") {
+  if (!file || file.submissionId !== claim.submissionId || file.kind !== "intake") {
     return fail("That file isn't part of this submission.");
   }
 
@@ -406,11 +461,13 @@ export async function removeFlowFileAction(fileId: string): Promise<ActionResult
  * Refuses if nothing has been uploaded: paying for an empty submission is a
  * dead end for the customer and a support ticket for the admin.
  */
-export async function createIntentAction(): Promise<ActionResult<CreatedIntent>> {
-  const submissionId = await readFlowSession();
-  if (!submissionId) return gone();
+export async function createIntentAction(
+  submissionId: string,
+): Promise<ActionResult<CreatedIntent>> {
+  const claim = await claimed(submissionId);
+  if (!claim.ok) return claim.result;
 
-  const submission = await getSubmission(submissionId);
+  const submission = await getSubmission(claim.submissionId);
   if (!submission) return gone();
   if (!submission.emailVerifiedAt) return fail("Please verify your email first.");
   if (isPaid(submission)) return fail("This submission has already been paid for.");
@@ -485,11 +542,19 @@ export async function reportDeclineAction(
  * second case clears the cookie without touching the customer's record — and
  * `spareStarted` keeps the mid-flow case from deleting a submission whose payment
  * is still in flight, leaving it for the sweep.
+ *
+ * **A tab may only let go of its own.** If the cookie already names a submission
+ * another tab started, "Start over" here must not discard that tab's work or
+ * clear its cookie — this tab only has to forget, and the caller resets its own
+ * state. Null is the confirmation screen, which never held an id of its own:
+ * the cookie was cleared when the payment confirmed, so this is a no-op there.
  */
-export async function startAnotherAction(): Promise<ActionResult> {
-  const submissionId = await readFlowSession();
-  if (submissionId)
-    await discardUnpaidSubmission(submissionId, { spareStarted: true });
+export async function startAnotherAction(
+  submissionId: string | null,
+): Promise<ActionResult> {
+  const current = await readFlowSession();
+  if (current && submissionId && current !== submissionId) return DONE;
+  if (current) await discardUnpaidSubmission(current, { spareStarted: true });
   await clearFlowSession();
   return DONE;
 }

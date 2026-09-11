@@ -53,6 +53,12 @@ export interface UploadRequest {
   mode: UploadMode;
   /** `submissions/<id>` — where this submission's files live. */
   folder: string;
+  /**
+   * Which submission the tab believes it is on, for the proxy path's query.
+   * The blob path already says it through the pathname. Only the customer's
+   * flow sets this; the operator routes carry their own `?submission=`.
+   */
+  submissionId?: string;
   file: File;
   onProgress: (percentage: number) => void;
   signal?: AbortSignal;
@@ -138,17 +144,22 @@ function uploadError(res: Response, serverMessage?: string): Error {
  */
 function viaProxy({
   file,
+  submissionId,
   onProgress,
   signal,
   endpoints = CUSTOMER_ENDPOINTS,
 }: UploadRequest): Promise<UploadedFile> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    // The feedback proxy carries `?submission=…` already; the customer's doesn't.
+    // The feedback proxy carries `?submission=…` already; the customer's says
+    // it here instead, so the gate can tell a superseded tab why.
     const sep = endpoints.proxy.includes("?") ? "&" : "?";
+    const claim = submissionId
+      ? `&submission=${encodeURIComponent(submissionId)}`
+      : "";
     xhr.open(
       "POST",
-      `${endpoints.proxy}${sep}filename=${encodeURIComponent(file.name)}`,
+      `${endpoints.proxy}${sep}filename=${encodeURIComponent(file.name)}${claim}`,
     );
     xhr.setRequestHeader(
       "Content-Type",

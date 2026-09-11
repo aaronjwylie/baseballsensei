@@ -39,7 +39,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const decision = await authorizeUpload();
+  const url = new URL(request.url);
+  // Which submission the tab believes it is on — checked against the cookie by
+  // the gate, so a tab another tab has superseded is refused with that reason.
+  const decision = await authorizeUpload(url.searchParams.get("submission"));
   if (!decision.ok) {
     return NextResponse.json(
       { error: decision.refusal.error },
@@ -48,7 +51,6 @@ export async function POST(request: Request) {
   }
   const { permit } = decision;
 
-  const url = new URL(request.url);
   const filename = url.searchParams.get("filename")?.trim();
   if (!filename) {
     return NextResponse.json({ error: "Missing filename." }, { status: 400 });

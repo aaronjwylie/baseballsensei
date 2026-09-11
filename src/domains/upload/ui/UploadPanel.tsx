@@ -67,9 +67,19 @@ function describeUploadFailure(signal: AbortSignal, err: unknown): string {
     return "The upload kept restarting and couldn't complete, usually a setup issue on our side, not your file. Please try again shortly.";
   }
   const message = err instanceof Error ? err.message : "";
-  // The Blob client can't get an upload token when the flow session has lapsed;
-  // it reports that as an opaque "client token" error. Name the real cause.
-  if (/client token|session (has )?expired|verify your email/i.test(message)) {
+  /*
+    The Blob client flattens every token refusal into an opaque "client token"
+    error, so from here the two real causes are indistinguishable: the window
+    lapsed, or another tab started a new submission and took the browser's one
+    flow (Ben, QA 10.6). Name both rather than guess one — "timed out" was a
+    lie for the second — and point at the remedy, which is the same for both.
+    The dev proxy and the completion step carry the server's exact sentence,
+    and the flow itself learns the precise reason at "Continue to payment".
+  */
+  if (/client token/i.test(message)) {
+    return "This submission isn't active in this browser any more — the window may have timed out, or another tab started a new one. Choose “Start over” below.";
+  }
+  if (/session (has )?expired|verify your email/i.test(message)) {
     return "Your session timed out. Choose “Start over” below and run through the steps again.";
   }
   return message || "That upload didn't finish. Please try again.";
@@ -78,6 +88,7 @@ function describeUploadFailure(signal: AbortSignal, err: unknown): string {
 export function UploadPanel({
   mode,
   folder,
+  submissionId,
   maxFileSizeMb,
   maxFiles,
   initialFiles,
@@ -86,6 +97,8 @@ export function UploadPanel({
 }: {
   mode: UploadMode;
   folder: string;
+  /** The submission this tab started — what every upload says it is for. */
+  submissionId: string;
   maxFileSizeMb: number;
   maxFiles: number;
   /** Files already attached — a reload must not pretend they're gone. */
@@ -146,6 +159,7 @@ export function UploadPanel({
         const uploaded = await uploadFile({
           mode,
           folder,
+          submissionId,
           file,
           signal: controller.signal,
           onProgress: (progress) => {
@@ -173,7 +187,7 @@ export function UploadPanel({
         controllers.current.delete(key);
       }
     },
-    [mode, folder, patch],
+    [mode, folder, submissionId, patch],
   );
 
   const addFile = useCallback(

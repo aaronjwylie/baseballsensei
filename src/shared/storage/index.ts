@@ -25,6 +25,19 @@ export function submissionFolder(submissionId: string): string {
 }
 
 /**
+ * The inverse: which submission a storage path says it belongs to, or null when
+ * it isn't shaped like one of ours.
+ *
+ * What an upload route reads off a browser-supplied pathname to learn which
+ * submission the tab *thinks* it is uploading for — a claim to be checked
+ * against the flow cookie, never a value to be trusted on its own.
+ */
+export function submissionIdFromPath(pathname: string): string | null {
+  const match = /^submissions\/([^/]+)\//.exec(pathname);
+  return match?.[1] ?? null;
+}
+
+/**
  * Build the storage key for one of a submission's uploaded files.
  *
  * The random prefix keeps two files of the same name from colliding — a

@@ -7,7 +7,11 @@
  * every request** — the browser is told the limits so it can be helpful, but it
  * is never trusted to enforce them.
  *
- * 1. The flow cookie names a submission this browser actually started.
+ * 1. The flow cookie names a submission this browser actually started — and,
+ *    when the request says which submission *it* is for, the two agree. A
+ *    browser has one cookie and many tabs; a tab whose submission was replaced
+ *    by a newer start is refused with that reason, not with a folder error the
+ *    Blob client swallows into "session timed out" (Ben, QA 10.6).
  * 2. That submission's email has been verified.
  * 3. It isn't already paid for, and isn't already at the file limit.
  *
@@ -15,7 +19,13 @@
  * check that exists in three copies is a check that will eventually differ in
  * three ways.
  */
-import { countSubmissionFiles, getSubmission, readFlowSession, isPaid } from "@/domains/submission";
+import {
+  countSubmissionFiles,
+  getSubmission,
+  readFlowSession,
+  isPaid,
+  FLOW_SUPERSEDED_MESSAGE,
+} from "@/domains/submission";
 import type { Submission } from "@/domains/submission";
 import { getSettings, maxFileSizeBytes, type PlatformSettings } from "@/domains/settings";
 import { isAllowedFilename } from "@/shared/upload";
@@ -39,16 +49,28 @@ export type UploadDecision =
 /**
  * Resolve the current browser's right to upload.
  *
+ * `claimedSubmissionId` is which submission the request says it is for — read
+ * off the pathname or the query, so never trusted, only compared. Null when the
+ * route couldn't tell, in which case the cookie alone decides as it always did.
+ *
  * Status codes are chosen so the client can tell the three failures apart
  * without parsing prose: 401 means "start again", 403 means "verify first",
  * 409 means "you're done uploading".
  */
-export async function authorizeUpload(): Promise<UploadDecision> {
+export async function authorizeUpload(
+  claimedSubmissionId: string | null,
+): Promise<UploadDecision> {
   const submissionId = await readFlowSession();
   if (!submissionId) {
     return {
       ok: false,
       refusal: { status: 401, error: "Your session has expired. Please start again." },
+    };
+  }
+  if (claimedSubmissionId && claimedSubmissionId !== submissionId) {
+    return {
+      ok: false,
+      refusal: { status: 401, error: FLOW_SUPERSEDED_MESSAGE },
     };
   }
 

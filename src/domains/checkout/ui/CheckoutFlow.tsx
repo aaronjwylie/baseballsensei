@@ -69,6 +69,14 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * — lands on `/start?paid=1` instead, a standalone confirmation that reads no
  * state at all.
  *
+ * **The tab remembers which submission it started, and says so on every
+ * action.** The cookie is one per browser; the step is one per tab. A second
+ * tab submitting step 1 moves the cookie to its own submission, and until
+ * 2026-09-10 this tab carried on verifying, uploading and paying against that
+ * one without knowing (Ben, QA 10.6). Now the server compares what the tab says
+ * with what the cookie says and answers `gone` with the reason, which lands this
+ * tab back on step 1 through the same path a lapsed window does.
+ *
  * This component owns the sequence and nothing else. Each step's panel belongs
  * to the domain that owns its subject.
  */
@@ -85,6 +93,9 @@ export function CheckoutFlow({
   paymentNotice?: string;
 }) {
   const [step, setStep] = useState<FlowStep>("details");
+  // The submission this tab started — sent back with every action as a claim
+  // the server checks against the cookie. Empty until step 1 has answered.
+  const [submissionId, setSubmissionId] = useState("");
   const [email, setEmail] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -119,13 +130,14 @@ export function CheckoutFlow({
     here is what actually takes them back.
   */
   async function startOver() {
-    await startAnotherAction();
+    await startAnotherAction(submissionId || null);
     resetToStepOne(null);
   }
 
   /** Clear every trace of the attempt and show step 1, with an optional note. */
   function resetToStepOne(note: string | null) {
     setStep("details");
+    setSubmissionId("");
     setEmail("");
     setPlayerName("");
     setFiles([]);
@@ -178,6 +190,7 @@ export function CheckoutFlow({
       if (!handledGone(result)) setError(result.error);
       return;
     }
+    setSubmissionId(result.data.submissionId);
     setEmail(result.data.email);
     setFolder(result.data.uploadFolder);
     setPlayerName(values.playerName);
@@ -202,7 +215,9 @@ export function CheckoutFlow({
       clean window advances them (QA 2.1.9).
     */
     await wait(DELIVERY_HOLD_MS);
-    const delivery = await checkDeliveryAction();
+    // From the result, not the state — the state set above lands on the next
+    // render, and this call is still in the same one.
+    const delivery = await checkDeliveryAction(result.data.submissionId);
     if (!delivery.ok) {
       if (!handledGone(delivery)) setError(delivery.error);
       return;
@@ -213,7 +228,7 @@ export function CheckoutFlow({
   async function submitCode(
     code: string,
   ): Promise<{ error: string; locked?: boolean } | null> {
-    const result = await verifyCodeAction(code);
+    const result = await verifyCodeAction(submissionId, code);
     if (!result.ok) {
       // A scrubbed submission can't be fixed by retyping the code, so this one
       // leaves the panel entirely rather than showing an inline hint.
@@ -224,7 +239,7 @@ export function CheckoutFlow({
     }
 
     // Files may already exist if they got this far before and came back.
-    const existing = await listFlowFilesAction();
+    const existing = await listFlowFilesAction(submissionId);
     if (existing.ok) setFiles(existing.data);
 
     setStep("upload");
@@ -242,12 +257,12 @@ export function CheckoutFlow({
     It can only ever move them backwards, so it says nothing unless it's certain.
   */
   async function checkDelivery(): Promise<void> {
-    const result = await checkDeliveryAction();
+    const result = await checkDeliveryAction(submissionId);
     if (!result.ok) handledGone(result);
   }
 
   async function resend(): Promise<string | null> {
-    const result = await resendCodeAction();
+    const result = await resendCodeAction(submissionId);
     if (result.ok) return null;
     if (handledGone(result)) return null;
     return result.error;
@@ -255,10 +270,12 @@ export function CheckoutFlow({
 
   async function toPayment() {
     setError(null);
-    const current = await listFlowFilesAction();
+    const current = await listFlowFilesAction(submissionId);
     if (current.ok) setFiles(current.data);
+    // A superseded tab learns it here, with the reason, before any card is shown.
+    if (!current.ok && handledGone(current)) return;
 
-    const result = await createIntentAction();
+    const result = await createIntentAction(submissionId);
     if (!result.ok) {
       if (!handledGone(result)) setError(result.error);
       return;
@@ -335,10 +352,11 @@ export function CheckoutFlow({
         <UploadPanel
           mode={uploadMode}
           folder={folder}
+          submissionId={submissionId}
           maxFileSizeMb={maxFileSizeMb}
           maxFiles={maxFiles}
           initialFiles={files}
-          onRemoveFile={removeFlowFileAction}
+          onRemoveFile={(fileId) => removeFlowFileAction(submissionId, fileId)}
           onDone={toPayment}
         />
       )}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
-import { submissionFolder } from "@/shared/storage";
+import { submissionFolder, submissionIdFromPath } from "@/shared/storage";
 import { env } from "@/shared/config/env";
 import { authorizeUpload } from "@/domains/upload";
 import { ALLOWED_MIME_TYPES, isAllowedFilename } from "@/shared/upload";
@@ -35,7 +35,11 @@ export async function POST(request: Request) {
       token: env.blobToken,
 
       onBeforeGenerateToken: async (pathname) => {
-        const decision = await authorizeUpload();
+        // The pathname names the submission the tab thinks it is on. The gate
+        // compares it to the cookie and says *why* when they differ — though
+        // the Blob client flattens any refusal here into "failed to retrieve
+        // the client token", so the panel's wording has to cover both causes.
+        const decision = await authorizeUpload(submissionIdFromPath(pathname));
         if (!decision.ok) throw new Error(decision.refusal.error);
 
         const { permit } = decision;

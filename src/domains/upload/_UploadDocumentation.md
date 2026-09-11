@@ -62,7 +62,15 @@ flowchart LR
 
 ---
 
-## 2 · Where we are now — 2026-08-30
+## 2 · Where we are now — 2026-09-10
+
+- ✅ **`authorizeUpload` takes the tab's claim** (Ben, QA 10.6). Each route
+  says which submission the upload is for — the pathname's folder on the Blob
+  and completion routes, `?submission=` on the dev proxy — and the gate answers
+  401 with `FLOW_SUPERSEDED_MESSAGE` when the cookie names another tab's
+  submission. The Blob client flattens a token refusal into an opaque error, so
+  the panel's wording covers both causes and the flow learns the precise one at
+  "Continue to payment".
 
 **The retention sweep grew a third rule** (Ben, QA 5.6). Archiving is now allowed
 at any rung, which created submissions no clock was watching: a paid one set

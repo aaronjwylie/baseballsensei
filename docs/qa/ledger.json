@@ -1247,9 +1247,15 @@
     "10.6": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
       "what": "Two tabs, same flow",
-      "expect": "Doesn't corrupt either",
+      "expect": "Covered by tests/integration/twoTabs.test.ts. One cookie per browser, so the newest start owns the flow — as a refresh does. The other tab is told so on its next action and returns to step 1: its code is refused with the reason, its uploads are refused with the reason, and it can never pay for the other tab's submission. ⚠️ Before 2026-09-10 the first tab silently acted on the second tab's row: its code was checked against the wrong submission, then waved through once that one was verified (re-verifying is a no-op), its upload was refused as \"session timed out\", and it would have paid for details it never entered (Ben). Every action past step 1 now says which submission the tab is on, and the server refuses when the cookie disagrees — a claim that is checked, never accepted",
       "retired": false,
-      "history": []
+      "history": [
+        {
+          "at": "2026-09-11T00:43:04.919Z",
+          "what": "Two tabs, same flow",
+          "expect": "Doesn't corrupt either"
+        }
+      ]
     },
     "10.7": {
       "firstSeen": "2026-08-26T22:00:09.081Z",
@@ -3288,6 +3294,27 @@
       "firstSeen": "2026-09-10T23:04:32.179Z",
       "what": "The folder headings inside a downloaded card",
       "expect": "Neutral. They took their green from the panel they used to sit in, and on a grey card the heading was the last green thing left",
+      "retired": false,
+      "history": []
+    },
+    "10.6.1": {
+      "firstSeen": "2026-09-11T00:43:04.919Z",
+      "what": "Start over in the losing tab",
+      "expect": "Same test. Leaves the winning tab's submission and cookie alone; only the losing tab resets. ⚠️ It discarded whatever the cookie named — the other tab's live submission",
+      "retired": false,
+      "history": []
+    },
+    "10.6.2": {
+      "firstSeen": "2026-09-11T00:43:04.919Z",
+      "what": "The upload refusal in production",
+      "expect": "The Blob client flattens every token refusal into \"failed to retrieve the client token\", so on step 3 the panel names both causes — window lapsed, or another tab started a new one — and points at Start over. The dev proxy and the completion step carry the exact sentence, and \"Continue to payment\" learns the precise reason and resets the tab",
+      "retired": false,
+      "history": []
+    },
+    "10.6.3": {
+      "firstSeen": "2026-09-11T00:43:04.919Z",
+      "what": "A lapsed window is still reported as a timeout",
+      "expect": "Same test. The two reasons are told apart: no cookie is \"timed out\", a cookie naming a different submission is \"another tab\"",
       "retired": false,
       "history": []
     }

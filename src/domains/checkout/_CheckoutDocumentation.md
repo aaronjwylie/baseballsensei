@@ -45,7 +45,21 @@ the way `app/` is for a page.
 
 ---
 
-## 2 · Where we are now — 2026-08-29
+## 2 · Where we are now — 2026-09-10
+
+- ✅ **A tab says which submission it is on, and the server checks** (Ben, QA
+  10.6). The flow cookie is one per browser; the step is one per tab. A second
+  tab submitting step 1 moves the cookie to its own submission, and until now the
+  first tab carried on against that row without knowing — code refused, then
+  accepted once the other tab had verified, upload refused as "session timed
+  out", payment about to attach to details it never entered. Step 1 now returns
+  the id, the tab keeps it, and every later action and upload route takes it as
+  a **claim that is checked, never accepted**: the cookie still authorises, a
+  mismatch answers `gone` with `FLOW_SUPERSEDED_MESSAGE`, a match is what the
+  cookie already said. Newest start wins, as a refresh does; the losing tab
+  learns it on its next action with the true reason. "Start over" in the losing
+  tab no longer discards the winning tab's submission. `claimFlowSession` in
+  `domains/submission` is the one home for the rule.
 
 - ✅ **A cleared charge is confirmed even when the flow cookie is gone.**
   `confirmPaymentForFlow` now reads the paid submission from the **intent's own
