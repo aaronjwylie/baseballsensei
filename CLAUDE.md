@@ -599,7 +599,7 @@ One row per file, **both directions**. The `kind` column is the four folders.
 | `fileUrl` | text, **null** | storage locator. **Goes null when swept — the row survives** |
 | `uploadedAt` | timestamptz, default `now()` | |
 
-**Kinds are nouns, statuses are participles** (`_NomenclatureLaw.md` §2): the kind
+**Kinds are nouns, statuses are participles** (`_NomenclatureLaw.md` §2b): the kind
 is `intake_translation` (*what this file is*), the status is `intake_translated`
 (*what has happened*). One stem, two axes, neither reading as the other.
 
@@ -1076,6 +1076,15 @@ Read this section before coding. These have bitten *this* project.
   owner — set it up early, DNS takes hours. Sends are best-effort: a failure logs,
   never throws into a webhook or action.
 
+### The laws are vendored
+
+- **Never edit a file in `laws/` or `templates/` in a feature PR.** They are copied verbatim from
+  the doctrine pack (`Ben-J-Wylie/doctrine`) and pinned by hash in `doctrine.json`; `check:doctrine`
+  fails the build on any drift. An amendment goes into
+  [`documentation/_DoctrineFeedback.md`](documentation/_DoctrineFeedback.md), then a PR to the pack,
+  then `doctrine upgrade` re-pins — the loop that took Nomenclature §4c and Structure §3a/§5b upstream
+  into pack v1.1.0 on 2026-09-10. A local edit that skips the loop is a fork nobody knows about.
+
 ### Next.js 16
 
 - **Middleware is `proxy.ts` now**, and `params` / `searchParams` / `cookies()`
@@ -1102,7 +1111,7 @@ A feature is "done" when:
    failure blocks the deploy. It catches a table export used as a word — in copy, a
    URL, a storage path, or prose — which `tsc` and `eslint` structurally cannot, since
    a wrong string is a well-typed string. Sixty-six such strings shipped on 2026-08-05
-   with every other check green (`_NomenclatureLaw.md` §2b).
+   with every other check green (`_NomenclatureLaw.md` §3).
 1b. **`npm run simulate` passes.** It walks all twenty rungs through the real
    domain functions, and it is the only check that catches a guard which stopped
    matching when the ladder grew — a comparison against one literal status stays
@@ -1155,7 +1164,7 @@ For anything ambiguous: **the accepted proposal (v4) is the source of truth for 
 
 - **[OPERATIONS.md](OPERATIONS.md)** — Account setup, database + storage provisioning, admin seeding, webhook configuration, Resend domain, Vercel, DNS, go-live checklist, and the operator workflow _(being swept to match the pivot as each piece is built)_
 - **[PRINCIPLES.md](PRINCIPLES.md)** — the constitution: *why* we build this way. One per project, outranks the laws
-- **[laws/](laws/)** — seven laws, copied verbatim between projects: structure · nomenclature · security · verification · qa · commerce · design
+- **[laws/](laws/)** — eight laws, copied verbatim from the doctrine pack and **pinned** in [`doctrine.json`](doctrine.json): structure · nomenclature · security · verification · qa · commerce · design · release
 - **[documentation/](documentation/)** — this project's instance of each law. **Start at [documentation/README.md](documentation/README.md)** for the map
 - **[docs/design/rollout.md](docs/design/rollout.md)** — the route from what's deployed to the northstar pipeline, with phases, dependencies, and red flags
 - **[docs/design/northstar/](docs/design/northstar/)** — the pipeline as it should be: every step, substep, trail row and message. Edit `northstar.py`, then run `build.py`

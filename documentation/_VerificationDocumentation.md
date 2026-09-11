@@ -84,7 +84,7 @@ failure has been deleted is folklore.
   share the production database and a branch may carry a migration nobody has agreed to.
 - **2026-08-05 — the sixty-six strings.** A word-boundary substitution could not tell an identifier
   from prose, and the words worth renaming are exactly the words that appear in sentences. Bought gate
-  1, plus [`_NomenclatureLaw §2b`](../laws/_NomenclatureLaw.md) on how to rename at all.
+  1, plus [`_NomenclatureLaw §3`](../laws/_NomenclatureLaw.md) on how to rename at all.
 - **2026-08-06 — the flake that was a real bug.** `simulate` failed its
   assignment-trail ordering check **once in five runs**, then passed five
   straight. The temptation to call it flaky and move on was the whole danger:

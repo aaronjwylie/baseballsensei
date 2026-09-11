@@ -166,7 +166,7 @@ export type Focus = (typeof FOCUS_OPTIONS)[number];
  * Anything rendering this as a linear track will be wrong for most submissions.
  *
  * The vocabulary is **intake / response** — what the customer sent, what the
- * coach wrote (`_NomenclatureLaw.md` §3). Statuses are **participles** (what has
+ * coach wrote (`_NomenclatureDocumentation.md` §1). Statuses are **participles** (what has
  * happened); the matching file kinds are **nouns** (what a file is), so
  * `intake_translated` the status never reads as `intake_translation` the kind.
  *

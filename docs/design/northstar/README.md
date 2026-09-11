@@ -111,4 +111,4 @@ Three gaps this list carried are now shut, all by ADR 018:
   `in_review` already were on the coach side. The second is earned by the
   translator's own download, not declared by the admin (`0010`).
 - ~~**The file kinds and the statuses use different words.**~~ Renamed. Both
-  say `feedback`; `response` is retired (`0005`, `_NomenclatureLaw.md` §3).
+  say `feedback`; `response` is retired (`0005`, `_NomenclatureDocumentation.md` §4).

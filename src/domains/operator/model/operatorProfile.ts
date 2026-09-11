@@ -10,7 +10,7 @@
  * **It was called `Coach` until 2026-08-06**, and that was a role wearing an
  * entity's name. A translator has every field on it — languages, specialties,
  * the lot — so `translatorApi` had to import `Coach` to say what it returned,
- * which is the tell `_NomenclatureLaw.md` §4 describes: a file about one role
+ * which is the tell `_NomenclatureLaw.md` §4c describes: a file about one role
  * reaching into its sibling for the shape they both are.
  *
  * **What separates them is `role`, which is a column** — the right home for a

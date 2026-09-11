@@ -118,7 +118,7 @@ exports, not five scoldings.
   not the rules ([`_StructureLaw §5b`](../laws/_StructureLaw.md)). `operator` imports `account`, never
   the reverse.
 - 🔶 **The `Coach` type is a role, not a shape** — `translatorApi` imports it to describe a translator.
-  [`_NomenclatureLaw §4`](../laws/_NomenclatureLaw.md).
+  [`_NomenclatureLaw §4c`](../laws/_NomenclatureLaw.md).
 
 **Greppable invariants and their current values:**
 
