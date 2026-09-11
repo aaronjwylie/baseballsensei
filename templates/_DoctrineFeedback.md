@@ -3,7 +3,7 @@
 > **Scope: upstream, not here.** This is the one place `{{project}}` records what it learned by
 > *applying* the doctrine pack, in a form the pack can act on. Nothing here changes this repo;
 > everything here is a proposal about the portable documents — and each entry is the body of the PR
-> that will carry it upstream ([`RELEASING.md` §3](../RELEASING.md) in the pack).
+> that will carry it upstream (the pack's `RELEASING.md` §3).
 >
 > **Kept because a fork that learns something and doesn't say so is a fork that diverges.** A law
 > amended locally is pinned `amended` in `doctrine.json`; this file is where the amendment's *why*

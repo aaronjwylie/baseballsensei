@@ -1,5 +1,5 @@
 {
-  "pack": "1.2.0",
+  "pack": "1.2.1",
   "source": "https://github.com/Ben-J-Wylie/doctrine.git",
   "pinnedAt": "2026-09-11",
   "lawsDir": "laws",
@@ -39,7 +39,7 @@
   },
   "templates": {
     "_DoctrineFeedback.md": {
-      "sha256": "acc3a9697c1a70c8a3ed95a318624114ad2f37b73448279460e9440042fae176",
+      "sha256": "72a06b10c3bd66c8f27be1b21e5119e7ee56955c3c6d725310aee0de1badd3be",
       "source": "pack"
     },
     "_SliceDocumentation.md": {
