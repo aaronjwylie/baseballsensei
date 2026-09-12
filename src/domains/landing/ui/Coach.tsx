@@ -33,13 +33,15 @@ export function Coach() {
               tower over the copy. */}
           <div className="max-w-[440px]">
             <div className="relative">
-              <div className="relative aspect-[300/282] w-full overflow-hidden">
+              {/* Box matches the photo's own ratio, so it shows whole — the
+                  client's crop, not ours (Aaron). */}
+              <div className="relative aspect-[1000/834] w-full overflow-hidden">
                 <Image
                   src="/images/masatomoB.webp"
                   alt={`${coach.name}, head coach`}
                   fill
                   sizes="(min-width: 1024px) 440px, 100vw"
-                  className="object-cover object-[40%_center]"
+                  className="object-cover"
                 />
               </div>
 
