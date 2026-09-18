@@ -6,28 +6,24 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
   title: "Privacy policy",
   description: `How ${site.name} handles the details and files you send us.`,
-  robots: { index: false },
 };
 
 /**
  * The footer and the contact form's consent line link here, so the link
  * resolves rather than 404s.
  *
- * ⚠️ **This is a placeholder, not reviewed legal copy.** It states plainly what
- * data the product handles and why, and says so — a page that *looked* like a
- * finished policy while being written by nobody qualified would be worse than an
- * obvious stub. `noindex` until it's real.
+ * The copy is the client's own (Aaron, 2026-09-16), replacing the placeholder
+ * this page carried while it was being drafted. It states plainly what data the
+ * product handles and why. Indexable, and listed in `sitemap.ts` next to the
+ * terms.
  *
- * TODO(2026-07-30, Ben): replace with a privacy policy reviewed by someone
+ * TODO(2026-07-30, Ben): have this policy and the terms reviewed by someone
  * qualified, before the site takes live payments. A site taking money and
- * storing video of minors needs one.
+ * storing video of minors needs both reviewed.
  */
 export default function PrivacyPage() {
   return (
-    <LegalPage
-      title={{ lead: "Privacy", highlight: "policy" }}
-      intro="This policy is still being drafted. What follows describes how we handle your information today; it is not a substitute for the reviewed policy that will replace this page before launch."
-    >
+    <LegalPage title={{ lead: "Privacy", highlight: "policy" }}>
       <LegalSection title="What we collect">
         <p>
           The details you enter (your name and email, the player&rsquo;s first
@@ -52,8 +48,7 @@ export default function PrivacyPage() {
           can review them. They are not published, and they are not shared
           outside the coaching team. If the player is a minor, the files should
           be submitted by a parent or guardian. Your uploads are deleted after
-          your review is delivered; the coach&rsquo;s response stays available at
-          the link we email you.
+          your review is delivered.
         </p>
       </LegalSection>
 

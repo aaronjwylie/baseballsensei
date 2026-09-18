@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Container } from "@/shared/ui";
 import { site } from "@/shared/config/site";
-import { appVersion, buildSha } from "@/shared/config/publicEnv";
 import { Logo } from "@/shared/layout/Logo";
 import { AnchorScrollLink } from "@/shared/layout/AnchorScrollLink";
 import { navLinks } from "@/shared/layout/navLinks";
@@ -52,8 +51,11 @@ export function SiteFooter() {
             © {year} {site.name}
             {" · "}Vancouver &amp; Tokyo
           </p>
-          {/* Which release this is — on every rung, so "is this the fix?" is answered by looking (_ReleaseLaw P13). */}
-          <p className="opacity-60" data-testid="release-stamp">{`v${appVersion} · ${buildSha}`}</p>
+          {/* No release stamp in the customer-facing footer (Aaron,
+              2026-09-16). _ReleaseLaw P13 wants the running instance to say
+              which release it is "a footer, a header, an endpoint" — here it is
+              the endpoint: `/api/version` reports the version and the commit,
+              and QaProbe stamps both into every QA run. */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6">
             <Link href="/terms" className="transition-opacity hover:opacity-70">
               Terms and Conditions

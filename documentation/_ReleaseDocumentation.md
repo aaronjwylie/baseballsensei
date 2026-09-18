@@ -47,7 +47,7 @@ A release is a **git tag `vX.Y.Z` on a commit of `main`**, annotated, never move
 
 | Fact | Home | Derived by |
 |---|---|---|
-| the version | `package.json` `version` — **the one home** | the tag name; the footer stamp; the changelog heading |
+| the version | `package.json` `version` — **the one home** | the tag name; `/api/version`; the changelog heading |
 | the commit | the tag itself | `BUILD_SHA` in `next.config.ts` (already inlined for the QA probe — [`_QALaw` Q19](../laws/_QALaw.md)) |
 | the schema it requires | `drizzle/meta/_journal.json` — the last entry's tag | the changelog heading's `schema NNNN`, written by the release script |
 | whether it is a rollback floor | `drizzle/meta/floors.json` — the tags of contracting migrations | the changelog heading's `· floor` marker |
@@ -169,9 +169,10 @@ named under `Operate`.
 
 ### 1h · Every rung says what it is (P13)
 
-The footer of every page carries `v1.2.0 · a1b2c3d`, from `package.json` and `BUILD_SHA`, on every
-rung. `/api/version` returns the same two facts as JSON for a script. The QA probe's Q19 stamp becomes
-a read of the same value rather than its own.
+`/api/version` returns `v1.2.0 · a1b2c3d` as JSON, from `package.json` and `BUILD_SHA`, on every
+rung. The QA probe's Q19 stamp is a read of the same value rather than its own. The footer carried
+the stamp too until 2026-09-16, when it came out of the customer-facing copy (Aaron); P13 names
+"a footer, a header, an endpoint", so the endpoint alone satisfies it.
 
 ---
 
@@ -194,7 +195,7 @@ from a distance:
   which is also the only way forward.
 - ❌ **No rollback floor.** `0028` dropped columns; nothing records that `0027` and earlier can no
   longer be promoted.
-- ✅ **The running system says its version** — footer, `/api/version`, and the QA probe's first line,
+- ✅ **The running system says its version** — `/api/version` and the QA probe's first line,
   all from `publicEnv.ts`. Was commit-only, to the probe only, until Phase 0.
 - ⚠️ **A duplicate Vercel project (`baseballsensai`) is wired to the same repo and fails every
   push.** Noise that looks exactly like a broken deploy ([`docs/OUTSTANDING.md`](../docs/OUTSTANDING.md) §1).
@@ -269,12 +270,12 @@ calendar forces it, and §2 will say so if it does.
    `Operate`; `Unreleased` non-empty when `main` has moved since the last tag. **Break it on purpose
    and confirm red**, then fix ([`_VerificationLaw` §4](../laws/_VerificationLaw.md)).
 5. Version surface: `APP_VERSION` beside `BUILD_SHA` in `next.config.ts`, read through
-   `publicEnv.ts`; the footer stamp; `GET /api/version`. The QA probe reads the same value.
+   `publicEnv.ts`; `GET /api/version`. The QA probe reads the same value.
 6. `git tag -a v1.0.0-rc.1` on `main`. **Tagging starts today**, which is the cheap thing
    `OUTSTANDING.md` §6 offered on 2026-08-26.
 
 **Done when:** `npm run build` refuses a version bump without a tag, and refuses a tag without a
-changelog section; the footer says `v1.0.0-rc.1 · <sha>` in dev.
+changelog section; `/api/version` says `v1.0.0-rc.1 · <sha>` in dev.
 
 ### Phase 1 · Give non-production its own data · *accounts, ~half a day*
 
@@ -296,7 +297,7 @@ changelog section; the footer says `v1.0.0-rc.1 · <sha>` in dev.
    open PRs carrying conflicting migrations; with three people the answer is *reset it*, and the
    script is what makes that a thirty-second act instead of an afternoon.
 
-**Done when:** a PR carrying a migration previews correctly, and the preview's footer, `/status`,
+**Done when:** a PR carrying a migration previews correctly, and the preview's `/api/version`, `/status`,
 and a test upload all work against rows that do not exist in production.
 
 ### Phase 2 · Staging · *accounts + DNS, ~one day*
@@ -337,8 +338,8 @@ address; production is untouched throughout.
    `--project staging`). Write the outcome in §3.
 4. **Go-live is the first real promotion.** Walk the release itinerary on staging
    ([`_QADocumentation`](_QADocumentation.md) — its content is that law's), do the `Operate` items in
-   the `[1.0.0]` section, `npm run release -- 1.0.0`, `npm run promote -- v1.0.0`, confirm the footer
-   on `www`, one real low-stakes purchase, refund it. Clear Basic Auth on production only.
+   the `[1.0.0]` section, `npm run release -- 1.0.0`, `npm run promote -- v1.0.0`, confirm
+   `/api/version` on `www`, one real low-stakes purchase, refund it. Clear Basic Auth on production only.
 
 **Done when:** a push to `main` no longer changes `www`; `production` is at `v1.0.0`; the previous
 tag (`v1.0.0-rc.N`) is still promotable and the script says so.

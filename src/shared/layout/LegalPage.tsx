@@ -9,17 +9,12 @@ import { Container, SectionHeading, type SplitHeading } from "@/shared/ui";
  * the page name as a `SectionHeading` (Oswald, the highlight half in lime), then
  * the copy sits on paper below. `LegalSection` gives every sub-heading the same
  * Oswald label so the two pages can't drift apart.
- *
- * `intro` is the honest "this is a placeholder" line each page opens with, set
- * off with a lime rule so it reads as a notice rather than as body copy.
  */
 export function LegalPage({
   title,
-  intro,
   children,
 }: {
   title: SplitHeading;
-  intro: string;
   children: ReactNode;
 }) {
   return (
@@ -32,11 +27,7 @@ export function LegalPage({
 
       <section className="py-16 lg:py-24">
         <Container className="max-w-2xl">
-          <p className="rounded-2xl border-l-4 border-highlight bg-paper-alt px-7 py-6 text-[15px] leading-relaxed text-ink-soft">
-            {intro}
-          </p>
-
-          <div className="mt-12 space-y-10 text-[15px] leading-relaxed text-ink-soft">
+          <div className="space-y-10 text-[15px] leading-relaxed text-ink-soft">
             {children}
           </div>
         </Container>

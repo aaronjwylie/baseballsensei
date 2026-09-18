@@ -7,28 +7,24 @@ export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
   title: "Terms and conditions",
   description: `The terms covering a ${site.name} video review.`,
-  robots: { index: false },
 };
 
 /**
  * The wireframe's footer links here, so the link resolves rather than 404s.
  *
- * ⚠️ **This is a placeholder, not legal copy.** It states plainly what the
- * product does and what a customer is buying, and says so — a page that *looked*
- * like finished terms while being written by nobody qualified would be worse
- * than an obvious stub. `noindex` until it's real.
+ * The copy is the client's own (Aaron, 2026-09-16), replacing the placeholder
+ * this page carried while it was being drafted. It states plainly what the
+ * product does and what a customer is buying. Indexable, and listed in
+ * `sitemap.ts` next to the privacy policy.
  *
- * TODO(2026-07-30, Ben): replace with terms and a privacy policy reviewed by
+ * TODO(2026-07-30, Ben): have these terms and the privacy policy reviewed by
  * someone qualified, before the site takes live payments. A site taking money
- * and storing video of minors needs both.
+ * and storing video of minors needs both reviewed.
  */
 export default async function TermsPage() {
   const settings = await getSettings();
   return (
-    <LegalPage
-      title={{ lead: "Terms and", highlight: "conditions" }}
-      intro="These terms are still being drafted. What follows describes how the service works today; it is not a substitute for the reviewed terms that will replace this page before launch."
-    >
+    <LegalPage title={{ lead: "Terms and", highlight: "conditions" }}>
       <LegalSection title="What you're buying">
         <p>
           One review, by one coach, of the files you attach to a single
@@ -41,9 +37,9 @@ export default async function TermsPage() {
 
       <LegalSection title="What you receive">
         <p>
-          A personal response from your coach, delivered within {site.turnaround}{" "}
-          of your files reaching us. We email you the moment it&rsquo;s ready, and
-          it stays available at the link in that email.
+          A personal response from your coach (feedback in PDF and suggested
+          drills in video format), delivered within {site.turnaround}{" "}
+          of your files reaching us.
         </p>
       </LegalSection>
 
@@ -53,8 +49,7 @@ export default async function TermsPage() {
           can review them. They are not published, and they are not shared
           outside the coaching team. If the player is a minor, the files should
           be submitted by a parent or guardian. Your uploads are deleted after
-          your review is delivered; the coach&rsquo;s response stays available at
-          the link we email you.
+          your review is delivered.
         </p>
       </LegalSection>
 

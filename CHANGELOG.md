@@ -41,6 +41,22 @@ Written for the reader who was not there: what is different *for someone*, not w
   mechanism, the rollback floors, and the route from every push deploying production to a pipeline.
 - This changelog.
 
+- **The terms and the privacy policy are the client's own copy, and no longer announce
+  themselves as a draft.** Both pages opened with a notice saying they were still being
+  drafted and would be replaced before launch; that notice is gone. `/terms` now says what
+  a review actually delivers (written feedback as a PDF, suggested drills as video).
+  Neither page promises any longer that the response stays available at the emailed link.
+  Both pages are indexable now, which is what `sitemap.ts` had been assuming of them all along.
+  Neither has been through legal review yet: that is still the open TODO on both files.
+
+### Removed
+
+- **The release stamp is gone from the site footer.** The last line of every page read
+  `v1.0.0 · <sha>`; it is developer information sitting in customer-facing copy. The version
+  and the commit are still readable from the running instance at `GET /api/version`, and the
+  QA probe still stamps both into every run, which is what `_ReleaseLaw` P13 asks for (it
+  names "a footer, a header, an endpoint").
+
 ---
 
 ## [1.0.0] — in progress · schema 0028 · floor
